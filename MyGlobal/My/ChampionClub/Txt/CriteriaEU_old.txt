@@ -1,0 +1,113 @@
+﻿<div class="main-intro">
+                <div class="intro-heading">
+                    Regional Program Criteria
+                </div>
+                <!-- end .main-intro -->
+            </div>
+            <div class="main-content">
+                <div class="content-heading">
+                    Gaming Rules:</div>
+                <div id="Opp_table">
+                    <table width="100%">
+                        <thead>
+                            <tr>
+								<th>Rule #</th>
+                                <th width="60%" scope="col" style="padding: 10px; text-align: left">
+                                    Sales Revenue 1K = 1 Point
+                                </th>
+                                <th width="20%" scope="col">
+                                </th>
+                                <th width="20%" scope="col" style="padding: 10px; text-align: left">
+                                    Example
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr class="odd1">
+								<td>1</td>
+                                <td style="padding: 10px; text-align: left">
+                                    Minimum Threshold of Quarterly Revenue Achievement for Redemption
+                                </td>
+                                <td style="padding: 10px; text-align: left">
+                                    = 100K<br />
+                                    = 100 Points
+                                </td>
+                                <td>
+                                </td>
+                            </tr>
+                            <tr class="odd2">
+								<td>2</td>
+                                <td style="padding: 10px; text-align: left">
+                                    Special Offering (Limited period or selected products)<br />
+                                    Minimum Threshold of Special Offering for Redemption
+									
+
+
+ <b><span lang="EN-US" style="font-size:12.0pt;
+  color:red">2nd Quarter 2013</span></b>
+
+<table width="100%" style="line-height:25px;; border:1px;">
+<tr><td>product</td><td>turnover</td><td>points</td><td>promo</td></tr>
+
+<tr><td align="left" style="line-height:25px; text-align:left">One managed project in 3 months</td><td>10000</td><td>10</td><td>20</td></tr>
+<tr><td align="left" style="line-height:25px; text-align:left">Wireless EKI-6311 or EKI-6331 </td><td>5000</td><td>5</td><td>10</td></tr>
+<tr><td align="left" style="line-height:25px; text-align:left">Project WOP-2 Series</td><td>5000</td><td>5</td><td>10</td></tr>
+<tr><td align="left" style="line-height:25px; text-align:left">71H family</td><td>10000</td><td>10</td><td>20</td></tr>
+<tr><td colspan="4" style="line-height:25px; text-align:left">(Please contact your local Advantech channel sales / marcom for questions or more information.)</td></tr>
+</table>
+
+
+
+
+
+
+
+
+
+
+
+
+                                </td>
+                                <td style="padding: 10px; text-align: left">
+                                    = ? Points X 2<br />
+                                    = 20K = 20Points
+                                </td>
+                                <td style="padding: 10px; text-align: left">
+                                    20 Points x 2<br />
+                                    = 40 Points
+                                </td>
+                            </tr>
+                            <tr class="odd1">
+								<td>3</td>
+                                <td style="padding: 10px; text-align: left">
+                                    Point Submission<br />
+                                    Minimum Threshold for Big Project
+                                </td>
+                                <td style="padding: 10px; text-align: left">
+                                    = ? Points = x1.5<br />
+                                    = 50K = 50 Points
+                                </td>
+                                <td style="padding: 10px; text-align: left">
+                                    50 Points x 1.5<br />
+                                    = 75 Points
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="main-content">
+                <div class="content-heading">
+                    Point Accumulate Regulations:</div>
+                <p>
+                    When overlap between above rules, participant can only select for the best rule
+                    to apply for exchanging the points. See examples:
+                </p>
+                <ul type="disc">
+                    <li>200K (including 150K from rule #1 and 50K from rule #3): 150 points + (50 points x 1.5) = 150 + 75 points = 225 points </li>
+                    <li>170K (including 20K from Special Offering + 50K from PRM project registration): 100 points + (20 points x 2) + (50 points x 1.5) = 100 + 40 + 75 points = 215 points</li>
+                </ul>
+				<p>(The calculation will base on the best fit rule from the revenue achievement to get for more points as possible)</p>
+                <div class="sure">
+                    <a href="PersonalInfo.aspx">Join Us</a></div>
+            </div>

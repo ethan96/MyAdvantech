@@ -1,0 +1,179 @@
+﻿<%@ Page Language="VB" MasterPageFile="~/Includes/MyMaster.master" Title="MyAdvantech - QuoteHistory" %>
+
+<script runat="server">
+    Protected Sub Page_Load(ByVal sender As Object, ByVal e As System.EventArgs)
+        
+        Dim T_strselect As String = ""
+       
+        
+        'If LCase(Session("USER_ROLE")) = "logistics" Or LCase(Session("USER_ROLE")) = "administrator" Then
+        '    If Global_Inc.IsRBUSales(Session("company_id")) Then
+        '        T_strselect = " select distinct '' as SNO,Quote_No, Quote_Desc , 'Detail' as DETAIL ,user_id,convert(varchar(11),Create_Date,111) as Create_Date , '' as ADD2CART, 'Del' as Del , Quote_ID " & _
+        '             " from QUOTATION_Master_History Where company_ID = '" & Session("company_ID") & "' order by Create_Date Desc"
+        '    Else
+        '        T_strselect = " select distinct '' as SNO,Quote_No, Quote_Desc , 'Detail' as DETAIL ,user_id,convert(varchar(11),Create_Date,111) as Create_Date , '' as ADD2CART, 'Del' as Del , Quote_ID " & _
+        '             " from QUOTATION_Master_History Where quote_to_company_id = '" & Session("company_ID") & "'  order by Create_Date Desc"
+        '    End If
+        'Else
+        T_strselect = " select distinct '' as SNO,Quote_No, Quote_Desc , 'Detail' as DETAIL ,user_id,convert(varchar(11),Create_Date,111) as Create_Date , '' as ADD2CART, 'Del' as Del , Quote_ID " & _
+           " from QUOTATION_Master_History Where quote_to_company_id = '" & Session("company_ID") & "' " + _
+           " order by Create_Date Desc"
+        'End If
+       
+        Me.SqlDataSource1.SelectCommand = T_strselect
+        If Not Page.IsPostBack Then
+            GridView1.DataBind()
+        End If
+    End Sub
+
+   
+
+    Protected Sub GridView1_RowDataBound(ByVal sender As Object, ByVal e As System.Web.UI.WebControls.GridViewRowEventArgs)
+        If e.Row.RowType <> DataControlRowType.Pager Then
+            e.Row.Cells(8).Visible = False
+        End If
+        If e.Row.RowType() = DataControlRowType.DataRow Then
+            e.Row.Cells(0).Text = e.Row.RowIndex + 1
+            e.Row.Cells(3).Text = "<a href='../esales/quote/QuotationResult.aspx?flg=history&Quote_ID=" & e.Row.Cells(8).Text & "'>Detail</a>"
+            e.Row.Cells(6).Text = "<img alt="""" src=""../Images/ebiz.aeu.face/btn_add2cart1.gif"" align=""absmiddle"" style=""cursor:hand;"" onclick=""" & "Go('" & e.Row.Cells(8).Text & "')" & """  />"
+            e.Row.Cells(7).Text = "<img alt="""" src=""../images/btn_del.gif"" onclick=""" & "Del('" & e.Row.Cells(8).Text & "')" & """  />"
+           
+            Dim phase_tb As New DataTable
+            phase_tb = dbUtil.dbGetDataTable("b2b", "select * from quotation_detail_history where quote_id='" & e.Row.Cells(8).Text & "'")
+            For i As Integer = 0 To phase_tb.Rows.Count - 1
+                If OrderUtilities.PhaseOutItemCheck(phase_tb.Rows(i).Item("part_no")) = 0 Then
+                    e.Row.Cells(6).Text = "<font color='Red'>Phase Out</font>"
+                End If
+                Exit For
+            Next
+            'Response.Write("<xml>" + DataBinder.Eval(e.Row.DataItem, "quote_to_company_id").ToString() + "</xml>")
+        End If
+    End Sub
+</script>
+
+<asp:Content ID="Content1" ContentPlaceHolderID="_main" Runat="Server">
+<table width="100%" height="100%" border="0" cellspacing="0" cellpadding="0" >
+			<!-- ******* page header (start) ********-->
+			<tr valign="top" valign="top">
+				<td>
+                    
+					<!--include virtual="/includes/header_inc.asp" -->
+				</td>
+			</tr>
+			<!-- ******* page header (end) ********-->
+			<tr valign="top">
+				<td>
+					<!-- ******* main pane (start) ********-->
+					<table width="100%" ID="Table2" valign="top">
+						<!-- ******* thread bar (start) ********-->
+	<!--					<tr valign="top">
+							<td class="PageThreadBar">
+								&nbsp;&nbsp; Home &gt; Cart
+							</td>
+						</tr>-->
+						<!-- ******* thread bar (end) ********-->
+						<tr valign="top">
+							<td height="2">&nbsp;
+							</td>
+						</tr>
+						<!-- ******* page title (start) ********-->
+						<tr valign="top">
+							
+							<td colspan="2" height="60" valign="middle"><div class="euPageTitle">Quote History</div>
+							</td>
+						</tr>
+						
+						<tr valign="top">
+							<td align="center">
+											<!-- include virtual = "/quote/QuoteHistory_List_main.asp" -->
+											
+											<table cellpadding="1"  width="100%"><tr><td style="background-color:#666666">
+			<table width="100%" border="0" cellspacing="0" cellpadding="0" align="center" style="vertical-align:middle" ID="Table1">
+                    <tr>
+                        <td style="padding-left:10px;border-bottom:#ffffff 1px solid;height:20px;background-color:#6699CC" align="left" valign="middle" class="text">
+                        <font color="#ffffff"><b>Quote History</b></font></td></tr>
+                        <tr><td>
+										
+														<!-- include virtual = "/cart/carthistory_list_new_main.asp" -->
+												<asp:GridView runat="server" Width="100%" ID="GridView1" AutoGenerateColumns = "true" 
+                                                            DataSourceID ="SqlDataSource1" onrowdatabound="GridView1_RowDataBound" 
+                                                            AllowPaging="True" PageIndex="0" PageSize="20"></asp:GridView>		
+								
+								
+								
+														
+                                            <asp:SqlDataSource ID="SqlDataSource1" runat="server" ConnectionString="<%$ ConnectionStrings:B2B %>"></asp:SqlDataSource>
+								   
+                </td></tr><tr><td id="tdTotal" align="right" style="background-color:#ffffff" runat="server"></td></tr></table>
+				</td></tr></table>
+					<%--<adl:AdxDataGrid id="AdxGrid1" runat="server" xnavipage="true" xshowfooter="true" xconnectionstring="ADLSERVER"
+					xtitletext="Quote History" xpagesize="40" xDebugSQL="false" xImgUrl="../Images/" 
+					  xshowboolean="false" 
+					xshowdelete="false" 
+				    xdeleteKey="Quote_Id"		
+				    xAdd="false"		    				
+				    xdeletesql="delete from QUOTATION_Master_History " OnItemDataBound="AdxGrid1_ItemDataBound"
+					>				
+					
+					<adl:AdxColumn runat="server" id="Quote_no" xwidth="110" xalign="left" xdatasource="Quote_no"
+					xSearch="true" xSortable="true" xheadertext="Quote No"></adl:AdxColumn>
+					
+					<adl:AdxColumn runat="server" id="Quote_Desc" xwidth="150" xalign="left" xdatasource="Quote_Desc"
+					xSearch="true" xSortable="true" xheadertext="Quote Description"></adl:AdxColumn>		
+								
+					<adl:AdxColumn runat="server" id="DETAIL" xwidth="50" xdatasource="DETAIL" xSearch="true" xSortable="true"
+					xheadertext="Detail" xColumnType="HyperLink" xUrl="QuoteHistory_Detail.aspx" xQueryString="Quote_ID,Create_Date"></adl:AdxColumn>
+					
+					<adl:AdxColumn runat="server" id="user_id" xwidth="150" xdatasource="user_id" xSearch="true" xSortable="true"
+					xheadertext="Created By"></adl:AdxColumn>
+					
+					<adl:AdxColumn runat="server" id="Create_Date" xwidth="150" xdatasource="Create_Date" xSearch="true" xheadertext="Created Date"></adl:AdxColumn>
+					<adl:AdxColumn runat="server" id="ADD2CART" xwidth="150" xdatasource="ADD2CART" xSearch="false" xheadertext="Save As" xAlign="center"></adl:AdxColumn>
+					<adl:AdxColumn runat="server" id="del" xwidth="50" xdatasource="del" xSearch="true" xheadertext="Del" xAlign="center"></adl:AdxColumn>
+					
+					<adl:AdxColumn runat="server" id="Quote_ID" xwidth="70" xdatasource="Quote_ID" xSearch="true" xheadertext="Quote_ID" xVisible="false"></adl:AdxColumn>
+					
+									
+				</adl:AdxDataGrid>	
+											--%>
+							
+							</td>
+						</tr>
+						<!-- ******* record list1 (end) ********-->
+						<tr valign="top">
+							<td height="2">&nbsp;
+							</td>
+						</tr>
+					</table>
+					<!-- ******* main pane (end) ********-->
+				</td>
+			</tr>
+			<tr valign="top">
+				<td height="2">&nbsp;
+				</td>
+			</tr>
+			<!-- *******  page footer (start) ********-->
+			<tr valign="top">
+				<td>
+					<!--include virtual="/utility/footer_inc.asp" -->
+				</td>
+			</tr>
+			<!-- *******  page footer (end) ********-->
+		</table>
+    
+    
+    <script language="javascript">
+function Del(strId)
+{
+ //alert (strId)
+ window.location.href="../quote/QuotationHistoryDel.aspx?quote_id=" + strId
+}
+
+function Go(strId)
+{
+ //alert (strId)
+ window.location.href="../quote/QuotationHistory2Cart.aspx?Quote_ID=" + strId
+}
+</script>
+</asp:Content>
+

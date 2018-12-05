@@ -1,0 +1,186 @@
+﻿<%@ Page Title="MyAdvantech DataMining - Search Order History by Model" Language="VB" MasterPageFile="~/Includes/MyMaster.master" %>
+<%@ MasterType VirtualPath="~/Includes/MyMaster.master" %>  
+
+<script runat="server">
+    
+    Protected Sub gvRowCreated(ByVal sender As Object, ByVal e As System.Web.UI.WebControls.GridViewRowEventArgs)
+        'If Not (e.Row Is Nothing) AndAlso e.Row.RowType = DataControlRowType.Header Then
+        '    Dim GridView1 As GridView = sender
+        '    For Each cell As TableCell In e.Row.Cells
+        '        If cell.HasControls Then
+        '            For Each c As Control In cell.Controls
+        '                Dim button As LinkButton = TryCast(c, LinkButton)
+        '                If Not (button Is Nothing) Then
+        '                    Dim image As New ImageButton
+        '                    image.ImageUrl = "/Images/sort_1.jpg"
+        '                    image.CommandArgument = button.CommandArgument : image.CommandName = button.CommandName
+        '                    If GridView1.SortExpression = button.CommandArgument Then
+        '                        If GridView1.SortDirection = SortDirection.Ascending Then
+        '                            image.ImageUrl = "/Images/sort_2.jpg"
+        '                        Else
+        '                            image.ImageUrl = "/Images/sort_1.jpg"
+        '                        End If
+        '                    End If
+        '                    cell.Controls.Add(image)
+        '                End If
+        '            Next
+        '        End If
+        '    Next
+        'End If
+    End Sub
+    
+    Function GetSql() As String
+        If txtMN.Text.Trim() = "" Then Return ""
+        Dim sb As New System.Text.StringBuilder
+        With sb
+            .AppendLine(String.Format(" select distinct top 500 a.item_no as part_no, a.customer_id as company_id, a.model_no, a.order_no, dbo.DateOnly(a.order_date) as order_date, a.order_date as od "))
+            .AppendLine(String.Format(" from {0} a  ", IIf(dlShipYear.SelectedValue <> 2008, "eai_sale_fact", "eai_sale_fact_vor_2008")))
+            .AppendLine(String.Format(" where a.FACTYEAR={0} and left(a.org,2)='{1}' and (a.item_no like '%{2}%' or a.model_no like '%{2}%')  ", _
+                                      dlShipYear.SelectedValue, dlOrg.SelectedValue, txtMN.Text.Trim().Replace("'", "''").Replace("*", "%")))
+            .AppendLine(String.Format(" order by a.order_date desc "))
+        End With
+        'MailUtil.SendDebugMsg("oh", sb.ToString(), "tc.chen@advantech.com.tw")
+        Return sb.ToString()
+    End Function
+
+    Protected Sub btnQuery_Click(ByVal sender As Object, ByVal e As System.EventArgs)
+        src1.SelectCommand = GetSql()
+    End Sub
+
+    Protected Sub gv1_RowDataBound(ByVal sender As Object, ByVal e As System.Web.UI.WebControls.GridViewRowEventArgs)
+        If e.Row.RowType = DataControlRowType.DataRow Then
+            CType(e.Row.FindControl("srcROWOD"), SqlDataSource).SelectParameters("ONO").DefaultValue = CType(e.Row.FindControl("hd_ROWSONO"), HiddenField).Value
+        End If
+    End Sub
+
+    Protected Sub Page_Load(ByVal sender As Object, ByVal e As System.EventArgs)
+        If Not Page.IsPostBack Then
+            Me.Master.LogoImgPath = "~/Images/dm_logo.JPG"
+            Me.txtMN.Attributes("autocomplete") = "off"
+        End If
+    End Sub
+
+    Protected Sub src1_Selecting(ByVal sender As Object, ByVal e As System.Web.UI.WebControls.SqlDataSourceSelectingEventArgs)
+        e.Command.CommandTimeout = 600
+    End Sub
+    
+    Function GetCompanyName(ByVal companyid As String) As String
+        Dim o As Object = dbUtil.dbExecuteScalar("MY", "select top 1 company_name from sap_dimcompany where company_id='" + companyid + "'")
+        If o IsNot Nothing Then Return o.ToString()
+        Return "N/A"
+    End Function
+    
+    Protected Sub gv1_PageIndexChanging(ByVal sender As Object, ByVal e As System.Web.UI.WebControls.GridViewPageEventArgs)
+        src1.SelectCommand = GetSql()
+    End Sub
+
+    Protected Sub gv1_Sorting(ByVal sender As Object, ByVal e As System.Web.UI.WebControls.GridViewSortEventArgs)
+        src1.SelectCommand = GetSql()
+    End Sub
+</script>
+
+<asp:Content ID="Content1" ContentPlaceHolderID="_main" Runat="Server">
+    <table width="100%">
+        <tr>
+            <td>
+                <asp:Panel runat="server" ID="panelQuery" DefaultButton="btnQuery">
+                    <table>
+                        <tr>
+                            <th align="left" colspan="2" style="color:Navy"><h2>Search Order History By Model</h2></th>
+                        </tr>
+                        <tr>
+                            <th align="left">Org:</th>
+                            <td>
+                                <asp:DropDownList runat="server" ID="dlOrg">
+                                    <asp:ListItem Text="Taiwan" Value="TW" />
+                                </asp:DropDownList>
+                            </td>
+                        </tr>
+                        <tr>
+                            <th align="left">Model Number or Part Number:</th>
+                            <td>
+                                <ajaxToolkit:AutoCompleteExtender runat="server" ID="acext1" TargetControlID="txtMN" 
+                                    CompletionInterval="100" MinimumPrefixLength="1" ServicePath="~/Services/AutoComplete.asmx" 
+                                    ServiceMethod="GetPartNo" />
+                                <asp:TextBox runat="server" ID="txtMN" Width="150px" />
+                            </td>
+                        </tr>
+                        <tr>
+                            <th align="left">Shipping Year:</th>
+                            <td>
+                                <asp:DropDownList runat="server" ID="dlShipYear">
+                                    <asp:ListItem Value="2011" />
+                                    <asp:ListItem Value="2010" Selected="True" />
+                                    <asp:ListItem Value="2009" />
+                                    <asp:ListItem Value="2008" />
+                                </asp:DropDownList>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td colspan="2" align="center"><asp:Button runat="server" ID="btnQuery" Text="Query" OnClick="btnQuery_Click" /></td>
+                        </tr>
+                    </table>
+                </asp:Panel>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <asp:UpdatePanel runat="server" ID="up1" UpdateMode="Conditional">
+                    <ContentTemplate>
+                        <asp:GridView runat="server" ID="gv1" Width="100%" AutoGenerateColumns="false" AllowPaging="true" AllowSorting="true" ShowHeader="false" 
+                            DataSourceID="src1" PageSize="100" PagerSettings-Position="TopAndBottom" OnRowDataBound="gv1_RowDataBound" OnRowCreated="gvRowCreated" OnPageIndexChanging="gv1_PageIndexChanging" OnSorting="gv1_Sorting">
+                            <Columns>                                
+                                <asp:TemplateField HeaderText="Order Detail">                                    
+                                    <ItemTemplate>
+                                        <table width="100%">
+                                            <tr>
+                                                <th align="left">Order No:</th>
+                                                <th align="left"><%# Eval("order_no")%></th>
+                                                <th align="left">Order Date:</th>
+                                                <td><%# Eval("order_date")%></td>
+                                                <th align="left">Customer Name:</th>
+                                                <td>
+                                                    <a target="_blank" href='../CustomerDashboard.aspx?ERPID=<%#Eval("company_id") %>'><%# GetCompanyName(Eval("company_id"))%></a>
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td colspan="6">
+                                                    <asp:UpdatePanel runat="server" ID="upRowOD" UpdateMode="Conditional">
+                                                        <ContentTemplate>
+                                                            <asp:HiddenField runat="server" ID="hd_ROWSONO" Value='<%#Eval("order_no") %>' />
+                                                            <asp:GridView Width="99%" runat="server" ID="gvRowOD" AutoGenerateColumns="false" DataSourceID="srcRowOD">
+                                                                <Columns>
+                                                                    <asp:BoundField HeaderText="Line No." DataField="line_no" SortExpression="line_no" ItemStyle-HorizontalAlign="Center" />
+                                                                    <asp:HyperLinkField HeaderText="Part No." DataNavigateUrlFields="part_no" 
+                                                                        DataNavigateUrlFormatString="~/DM/ProductDashboard.aspx?PN={0}" DataTextField="part_no" Target="_blank" />  
+                                                                    <asp:BoundField HeaderText="Model No." DataField="model_no" SortExpression="model_no" />
+                                                                    <asp:BoundField HeaderText="Qty" DataField="Qty" SortExpression="Qty" ItemStyle-HorizontalAlign="Center" />
+                                                                    <asp:BoundField HeaderText="Currency" DataField="Currency" SortExpression="Currency" ItemStyle-HorizontalAlign="Center" />
+                                                                    <asp:BoundField HeaderText="Amount" DataField="Us_amt" SortExpression="Us_amt" ItemStyle-HorizontalAlign="Right" />
+                                                                </Columns>
+                                                            </asp:GridView>
+                                                            <asp:SqlDataSource runat="server" ID="srcRowOD" ConnectionString="<%$ConnectionStrings:MY %>" 
+                                                                SelectCommand="select item_no as part_no, model_no, tr_line as line_no, cast(Qty as int) as Qty, cast((Us_amt/us_ex_rate) as numeric(18,2)) as Us_amt, efftive_date, tr_curr as currency from EAI_SALE_FACT where order_no=@ONO and Qty>0 order by tr_line ">
+                                                                <SelectParameters>
+                                                                    <asp:Parameter ConvertEmptyStringToNull="false" Name="ONO" />
+                                                                </SelectParameters>
+                                                            </asp:SqlDataSource> 
+                                                        </ContentTemplate>
+                                                    </asp:UpdatePanel>    
+                                                </td>
+                                            </tr>
+                                        </table>                                                                            
+                                    </ItemTemplate>
+                                </asp:TemplateField>
+                            </Columns>
+                        </asp:GridView>
+                        <asp:SqlDataSource runat="server" ID="src1" ConnectionString="<%$ConnectionStrings:MY %>" OnSelecting="src1_Selecting" />
+                    </ContentTemplate>
+                    <Triggers>
+                        <asp:AsyncPostBackTrigger ControlID="btnQuery" EventName="Click" />
+                    </Triggers>
+                </asp:UpdatePanel>
+            </td>
+        </tr>
+    </table>
+</asp:Content>

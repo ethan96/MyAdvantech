@@ -1,0 +1,593 @@
+﻿<%@ Page Language="VB" MasterPageFile="~/Includes/MyMaster.master" Title="MyAdvantech Configuration Result"%>
+<%@ Register TagPrefix="adl" Namespace="clsAdxInheritsTreeView.nms3view" Assembly="clsAdxInheritsTreeView"%>
+
+<script runat="server">
+    Dim l_strSQLCmd As String = "", PszHTML As String = "", iRet As Integer = 0
+    Dim BTOComp As DataTable
+    Dim ConfigurationHTML As String = ""
+    Dim total_price As Decimal = 0, rate As Decimal = 0
+    Dim due_date As String = System.DateTime.Today()
+    Dim BTO_Qty As Integer = 0, BTO_Category_Id As String = ""
+    
+    Private Function AppendBTOSubNode(ByRef ParentNode As AdxTreeNode, ByVal Parent_Category_Id As String) As Boolean
+       
+        Dim dt As New System.Data.DataTable
+        dt = Me.ViewState("dt")
+        Dim dvTree As New DataView()
+        dvTree = New DataView(dt)
+        '过滤ParentID,得到当前的所有子节点
+        dvTree.RowFilter = "parent_category_id = '" & Parent_Category_Id & "'"
+
+        Dim Row As DataRowView
+        For Each Row In dvTree
+            Dim Node As New AdxTreeNode
+            Node.Value = Row.Item("category_id").ToString()
+            Node.Text = Row.Item("category_id").ToString()
+            If Object.Equals(Row.Item("category_type").ToString(), "Component") Then
+                Node.ImageUrl = "../Images/eConfig_Icons_Advantech/other.gif"
+                Node.Text = "<a href='javascript:CheckPriceDue(""" & Node.Value & """,""" & CInt(Request("QTY")) & """)'>" & Row.Item("category_id") & "---" & Row.Item("category_desc") & "</a>"
+            End If
+            Node.ShowCheckBox = False
+            ParentNode.ChildNodes.Add(Node)
+            Node.Expanded = True
+            AppendBTOSubNode(Node, Row("category_id").ToString())
+        Next
+        Return True
+    End Function
+
+    
+    
+    Protected Sub btnSaveAsBo_Click(ByVal sender As Object, ByVal e As System.EventArgs)
+	
+        Dim l_strSQLCmd As String = ""
+		        
+        l_strSQLCmd = l_strSQLCmd & " SELECT Category_ID,CATEGORY_Name,Category_type,Parent_Category_id,Catalog_id,catalogcfg_seq,CATEGORY_DESC,Extended_desc,Seq_no,Category_price,Category_qty FROM History_CATALOG_CATEGORY WHERE "
+        
+        l_strSQLCmd = l_strSQLCmd & " History_Id='" & Request("BONO") & "_BLKT_ORDER'"
+        Dim l_adoRs_detail_his As DataTable = dbUtil.dbGetDataTable("B2B", l_strSQLCmd)
+        If l_adoRs_detail_his.Rows.Count <> 0 Then
+            Dim l_strSQLdelete As String = "delete from History_CATALOG_CATEGORY where History_Id ='" & Request("BONO") & "_BLKT_ORDER'"
+            dbUtil.dbExecuteNoQuery("B2B", l_strSQLdelete)
+        End If
+
+        l_strSQLCmd = " insert History_CATALOG_CATEGORY (Category_ID,CATEGORY_Name,Category_type,Parent_Category_id,Catalog_id,catalogcfg_seq,CATEGORY_DESC,Extended_desc,Seq_no,Category_price,Category_qty) "
+        l_strSQLCmd = l_strSQLCmd & " SELECT Category_ID,CATEGORY_Name,Category_type,Parent_Category_id,Catalog_id,catalogcfg_seq,CATEGORY_DESC,Extended_desc,Seq_no,Category_price,Category_qty FROM CONFIGURATION_CATALOG_CATEGORY WHERE "
+        l_strSQLCmd = l_strSQLCmd & " CATALOG_ID=" & "'" & Session("G_CATALOG_ID") & "'"
+        l_strSQLCmd = l_strSQLCmd & " AND CATALOGCFG_SEQ=1"
+        dbUtil.dbExecuteNoQuery("B2B", l_strSQLCmd)
+		
+        l_strSQLCmd = " update History_CATALOG_CATEGORY set History_Id ='" & Request("BONO") & "_BLKT_ORDER',Company_Id='" & Session("COMPANY_ID") & "',Created=getdate() WHERE "
+        l_strSQLCmd = l_strSQLCmd & " CATALOG_ID=" & "'" & Session("G_CATALOG_ID") & "'"
+        l_strSQLCmd = l_strSQLCmd & " AND CATALOGCFG_SEQ=1"
+        l_strSQLCmd = l_strSQLCmd & " AND History_Id is null"
+        dbUtil.dbExecuteNoQuery("B2B", l_strSQLCmd)
+        Response.Redirect("../BO/MyBlanketOrder.aspx")
+		
+    End Sub
+	
+    Protected Sub Page_Load(ByVal sender As Object, ByVal e As System.EventArgs)
+        If Session("ConfigState") IsNot Nothing Then
+            Me.ibReconfig.Visible = True
+            'TDreConfig.Visible = True
+        End If
+        If Not IsNothing(Request("UID")) AndAlso Request("UID") <> "" Then
+            Me.ibAssemble.Visible = False
+            Me.ibAdd2Quote.Visible = True
+            Me.ibAdd2Cart.Visible = False
+        Else
+            Me.ibAdd2Quote.Visible = False
+            Me.ibAdd2Cart.Visible = True
+        End If
+        'If Session("user_id") = "tc.chen@advantech.com.tw" Then Response.Write("<xml>catalogID:" + Session("G_CATALOG_ID") + "</xml>")
+        Session("HISTORY_PHASE_OUT") = 1
+        'If 1 = 1 Then
+        '    Response.Write("G_CATALOG_ID:" & Session("G_CATALOG_ID"))
+        'End If
+        '     If Session("user_id") = "tc.chen@advantech.com.tw" Or LCase(Session("user_id")) = "nada.liu@advantech.com.cn" Or _
+        'LCase(Session("user_id")) = "pri.supriyanto@advantech.de" Then
+        '         Response.Write(Session("G_CATALOG_ID") & "<br/>")
+        '         'Response.Write("Referer:" + Request.QueryString.ToString())
+        '     End If
+        If Request("status") = "IPC" Then
+            ibAssemble.Visible = False
+        End If
+        If Global_Inc.IsB2BOwner(Session("user_id")) Or _
+         LCase(Session("user_id")) = "sabine.lin@advantech.fr" Or _
+         LCase(Session("user_id")) = "maria.unger@advantech.de" Or _
+         LCase(Session("user_id")) = "kristian.nikander@advantech.de" Then
+				
+            btnSaveAsBo.Visible = True
+        End If
+		
+        If Not Page.IsPostBack Then
+            '---jan 
+            
+            'Session("nBtos_LineNo") = 100
+            'Dim strID As String = ""
+            'Dim g_Catalog_Id = Session("G_CATALOG_ID")
+            'Me.iRet = OrderUtilities.TransformConfigurationToCart(g_Catalog_Id, "config")
+               
+                
+            'End If
+            '------
+            If Request("UID") <> "" Then
+                Session("isQuote_Currency") = Request("UID")
+            End If
+            Me.iRet = OrderUtilities.ConfigurationPage_Get(1, Session("G_CATALOG_ID"), 99, ConfigurationHTML)
+            If Not IsNothing(Session("isQuote_Currency")) Then Session("isQuote_Currency") = Nothing
+            
+            Me.divConguration.InnerHtml = ConfigurationHTML
+            'me.divConguration.Style.
+            If dbUtil.dbGetDataTable("B2B", "select category_name,category_qty from configuration_catalog_category where catalog_id='" & Session("G_Catalog_Id") & "' ").Rows.Count > 0 Then
+      
+                BTO_Category_Id = Request("BTOITEM")
+                If Request("QTY") IsNot Nothing AndAlso IsNumeric(Request("QTY")) Then
+                    BTO_Qty = CInt(Request("QTY"))
+                Else
+                    BTO_Qty = 1
+                End If
+        
+                Dim rootNode As New AdxTreeNode
+                With rootNode
+                    .Text = "<b>" & BTO_Category_Id & "</b>" : .Value = BTO_Category_Id : .xNodeType = ENumNodeType.component : .xQty = BTO_Qty : tv1.Nodes.Add(rootNode)
+                End With
+                GenerateTree(rootNode, rootNode.Value, "1", "1")
+                Me.tv1.ExpandAll()
+            End If
+        End If
+    End Sub
+    
+    Sub GenerateTree(ByRef adx As AdxTreeNode, ByVal szParent_Catalog_Id As String, ByVal szparentseqno As String, ByVal szCATALOGCFG_SEQ As String)
+        Dim lf = Chr(13) & Chr(10)
+        Dim g_CATALOG_ID As String = ""
+        If Request("flg") = "history" Then
+            g_CATALOG_ID = Request("Quote_ID")
+        Else
+            g_CATALOG_ID = Session("G_CATALOG_ID")
+        End If
+        
+        Dim BTOCount = 1
+        Dim szChildCategory_Id As String = ""
+        Dim strHTML, szCartLine, intCost
+        Dim table As String = ""
+        'Dim g_adoConn As New SqlClient.SqlConnection(ConfigurationManager.ConnectionStrings("B2B").ConnectionString)
+        table = "CONFIGURATION_CATALOG_CATEGORY"
+        'End If
+        
+     
+        If dbUtil.dbGetDataTable("B2B", "select parentseqno from " & table & " where CATALOG_ID=" & "'" & g_CATALOG_ID & _
+                                            "' and category_id='" & szParent_Catalog_Id & "' and ParentRoot='1'").Rows.Count > 0 Then
+            l_strSQLCmd = "SELECT CATALOGCFG_SEQ,Category_ID,CATEGORY_Name,Category_type,Parent_Category_id,parentseqno,CATEGORY_DESC " & _
+            "  FROM " & table & _
+            " WHERE (PARENT_CATEGORY_ID = '" & szParent_Catalog_Id & "'" & _
+            " )  AND CATALOG_ID=" & "'" & g_CATALOG_ID & "'" & _
+            "   AND CATALOGCFG_SEQ=" & szCATALOGCFG_SEQ & " Order by SEQ_NO"
+        Else
+            l_strSQLCmd = "SELECT CATALOGCFG_SEQ,Category_ID,CATEGORY_Name,Category_type,Parent_Category_id,parentseqno,CATEGORY_DESC " & _
+           "  FROM " & table & _
+           " WHERE (PARENT_CATEGORY_ID = '" & szParent_Catalog_Id & "' and parentseqno=" & szparentseqno & _
+           " )  AND CATALOG_ID=" & "'" & g_CATALOG_ID & "'" & _
+           "   AND CATALOGCFG_SEQ=" & szCATALOGCFG_SEQ & " Order by SEQ_NO"
+        End If
+       
+        Dim g_adoConn As New System.Data.SqlClient.SqlConnection(ConfigurationManager.ConnectionStrings("B2B").ConnectionString)
+        Dim dbCmd As New System.Data.SqlClient.SqlCommand
+        Dim l_adoRs As System.Data.SqlClient.SqlDataReader = Nothing, l_adoRs_detail As System.Data.SqlClient.SqlDataReader = Nothing
+        Try
+            g_adoConn.Open()
+            With dbCmd
+                .CommandTimeout = 180 : .Connection = g_adoConn : .CommandText = Me.l_strSQLCmd
+                l_adoRs_detail = .ExecuteReader()
+            End With
+        Catch ex As Exception
+            g_adoConn.Close() : Throw ex
+        End Try
+        
+        Do While l_adoRs_detail.Read() 'Not l_adoRs_detail.EOF
+            Dim Detail_Category = l_adoRs_detail("CATEGORY_Name")
+            Dim Detail_Category_Id = l_adoRs_detail("CATEGORY_ID")
+            Dim Detail_CATALOGCFG_SEQ = l_adoRs_detail("CATALOGCFG_SEQ")
+            Dim Detail_parentseqno = l_adoRs_detail("parentseqno")
+            Dim Detail_CategoryType = l_adoRs_detail("Category_Type")
+            
+            ' add the node category
+            Dim nod As New AdxTreeNode
+            nod.Text = l_adoRs_detail("Category_id") 'szParent_Catalog_Id
+            adx.ChildNodes.Add(nod)
+           
+            REM == Get Component Info ==	
+            l_strSQLCmd = " SELECT distinct seq_no, CATALOGCFG_SEQ,Category_ID,CATEGORY_Name,Category_type,Parent_Category_id,parentseqno,isnull(CATEGORY_DESC,'') " & _
+                "as CATEGORY_DESC,isnull(Category_price,0) as Category_price,Category_qty FROM " & table & " WHERE (PARENT_CATEGORY_ID = '" & _
+                Detail_Category_Id & "' and ParentSeqNo=" & Detail_parentseqno & " )"
+            l_strSQLCmd = l_strSQLCmd & " AND CATALOG_ID=" & "'" & g_CATALOG_ID & "'"
+            l_strSQLCmd = l_strSQLCmd & " AND CATALOGCFG_SEQ=" & szCATALOGCFG_SEQ & " Order by SEQ_NO"
+		
+            Dim l_adoRs_detail_com As New DataTable
+            l_adoRs_detail_com = dbUtil.dbGetDataTable("B2B", Me.l_strSQLCmd)
+            If l_adoRs_detail_com.Rows.Count > 0 Then
+                For icount As Integer = 0 To l_adoRs_detail_com.Rows.Count - 1
+                    'jackie add this per Tc's EZ Configuration request 2006/7/11
+            
+                    Dim Detail_PartNo = l_adoRs_detail_com.Rows(icount).Item("CATEGORY_Name")
+			
+                    Dim Detail_Desc = Trim(l_adoRs_detail_com.Rows(icount).Item("CATEGORY_DESC"))
+                    Dim Detail_Category_ID_COM = l_adoRs_detail_com.Rows(icount).Item("Category_ID")
+                    Dim Detail_Category_SeqNumber = l_adoRs_detail_com.Rows(icount).Item("parentseqno")
+                    Dim Detail_Category_CategoryType = l_adoRs_detail_com.Rows(icount).Item("Category_Type")
+              
+                    'add the node component
+                    Dim nod_chi As New AdxTreeNode
+                    nod_chi.Text = l_adoRs_detail_com.Rows(icount).Item("Category_id")
+                    nod_chi.Value = l_adoRs_detail_com.Rows(icount).Item("Category_id")
+                    nod_chi.ShowCheckBox = False
+                    nod_chi.ImageUrl = "../Images/eConfig_Icons_Advantech/other.gif"
+                    If Request("QTY") IsNot Nothing AndAlso IsNumeric(Request("QTY")) Then
+                        nod_chi.Text = _
+                     "<a href='javascript:CheckPriceDue(""" & nod_chi.Value & """,""" & CInt(Request("QTY")) & """)'>" & Detail_Category_ID_COM & "---" & Detail_Desc & "</a>"
+                    Else
+                        nod_chi.Text = _
+                   "<a href='javascript:CheckPriceDue(""" & nod_chi.Value & """,""" & 1 & """)'>" & Detail_Category_ID_COM & "---" & Detail_Desc & "</a>"
+                   
+                    End If
+                    nod.ChildNodes.Add(nod_chi)
+                    
+                    generateTree(nod_chi, Detail_Category_ID_COM, Detail_Category_SeqNumber, szCATALOGCFG_SEQ)
+                
+                Next
+            End If
+            l_adoRs_detail_com = Nothing
+        Loop
+        l_adoRs_detail = Nothing
+        g_adoConn.Close() : g_adoConn.Dispose()
+    End Sub
+    
+    Protected Sub ibAssemble_Click(ByVal sender As Object, ByVal e As System.Web.UI.ImageClickEventArgs)
+        Dim list_price As Decimal = 0, unit_price As Decimal = 0, dt As New DataTable, qty As Integer = 0
+        Dim cart_id As String = Session("cart_id"), intMaxLineNo As Integer = 0, part_no As String = ""
+    
+        Dim dr1 As Object
+        dr1 = dbUtil.dbExecuteScalar("B2B", _
+        "select isnull(max(line_no),0) As line_no from cart_detail where cart_id='" & Session("cart_id") & "' and line_no<100")
+        If dr1 IsNot Nothing Then
+            intMaxLineNo = CInt(dr1) + 1
+        Else
+            intMaxLineNo = 1
+        End If
+    
+        Me.iRet = Me.ConfigurationComponentGet(Session("G_CATALOG_ID"), dt)
+        If Me.iRet = 1 Then
+            For i As Integer = 0 To dt.Rows.Count - 1
+               
+                part_no = dt.Rows(i).Item("Category_ID")
+                If Not Global_Inc.IsNonStandardPTrade(part_no) And OrderUtilities.PhaseOutItemCheck(part_no) = 1 _
+                And OrderUtilities.Add2CartCheck(part_no, Session("role_id")) Then
+                    qty = CInt(dt.Rows(i).Item("Category_qty"))
+                    Me.iRet = OrderUtilities.GetPrice(part_no, Session("company_id"), "EU10", CDbl(qty), list_price, unit_price)
+                    'Jackie revise 2007/08/23
+                    OrderUtilities.CartLine_Add(cart_id, intMaxLineNo, part_no, qty, list_price, unit_price, "EUH1", "0")
+                    intMaxLineNo = intMaxLineNo + 1
+                End If
+                
+            Next
+            dbUtil.dbExecuteNoQuery("B2B", "delete from CONFIGURATION_CATALOG_CATEGORY WHERE catalog_id = '" & Session("G_CATALOG_ID") & "'")
+        End If
+        Response.Redirect("../order/cart_list.aspx")
+    End Sub
+
+    Function ConfigurationComponentGet(ByVal g_CATALOG_ID As String, ByRef componet_table As DataTable) As Integer
+        Dim sql As String = " SELECT CATALOGCFG_SEQ,Category_ID,CATEGORY_Name,Category_type,Parent_Category_id,Category_desc,Category_price," & _
+                            " Category_qty FROM CONFIGURATION_CATALOG_CATEGORY WHERE catalog_id = '" & g_CATALOG_ID & "' and PARENT_CATEGORY_ID <> 'ROOT' and category_type = 'Component'" & _
+                            " and (Category_ID not like 'OPTION%' and Category_ID not like 'AGS-EW-%') order by seq_no "
+        
+        Dim dt As DataTable = dbUtil.dbGetDataTable("B2B", sql)
+        If dt.Rows.Count > 0 Then
+            componet_table = dt : Return 1
+        Else
+            Return 0
+        End If
+    End Function
+
+    Protected Sub CheckNode(ByVal sender As Object, ByVal e As TreeNodeEventArgs)
+        
+        Dim checkedValue As String = e.Node.Value
+        For i As Integer = 0 To e.Node.Parent.ChildNodes.Count - 1
+            If e.Node.Parent.ChildNodes(i).Value <> checkedValue Then
+                e.Node.Parent.ChildNodes.Item(i).Checked = False
+            End If
+        Next
+       
+    End Sub
+    Protected Sub ibAdd2Cart_Click(ByVal sender As Object, ByVal e As System.Web.UI.ImageClickEventArgs)
+        'Dim sql = "delete from CART_DETAIL_BTOS where CART_ID='" & Session("cart_id") & "'"
+        'dbUtil.dbExecuteNoQuery("B2B", sql)
+        Session("nBtos_LineNo") = 100
+        Dim strID As String = ""
+        Dim g_Catalog_Id = Session("G_CATALOG_ID")
+        Me.iRet = OrderUtilities.TransformConfigurationToCart(g_Catalog_Id, "config")
+        'If Session("user_id").ToString.ToLower = "nada.liu@advantech.com.cn" Then
+        '    HttpContext.Current.Response.End()
+
+        'End If
+        
+        Response.Redirect("../order/cart_list.aspx")
+    End Sub
+    Protected Sub ibAdd2Quote_Click(ByVal sender As Object, ByVal e As System.Web.UI.ImageClickEventArgs)
+        Session("UID") = Request("UID")
+        OrderUtilities.TransformConfigurationToCart(Session("G_CATALOG_ID"), "NEWQUOTE")
+        Session("UID") = Nothing
+        
+        Op_Quotation.Transfer_Config2QuoteConfig(Session("G_CATALOG_ID"))
+        OrderUtilities.Configuration_Destroy(Session("G_CATALOG_ID"))
+        
+        Op_Quotation.UPDATE_Quote_Master("QUOTE_ID='" & Request("UID") & "'", "S_CATALOG_ID='" & HttpContext.Current.Session("G_CATALOG_ID") & "'")
+        Dim SerialID As String = ""
+        Global_Inc.UniqueID_Get("EU", "L", 12, SerialID)
+        Session("G_CATALOG_ID") = SerialID
+        If Not IsNothing(Request("SPR")) AndAlso Request("SPR") <> "" Then
+            Response.Redirect("~/eQuotation/SPR.aspx?UID=" & Request("UID"))
+        End If
+        Response.Redirect("~/eQuotation/QuotationDetail.aspx?UID=" & Request("UID"))
+    End Sub
+    
+    
+    
+    <Services.WebMethod()> _
+    <Web.Script.Services.ScriptMethod()> _
+    Public Shared Function GetATP(ByVal PartNo As String, ByVal ReqQty As Integer) As String
+        Dim STR As String = "TBD"
+        Dim atpDt As DataTable = Util.GetSAPCompleteATPByOrg(PartNo, 0, Left(HttpContext.Current.Session("org_id"), 2) & "H1", "")
+        If atpDt IsNot Nothing AndAlso atpDt.Rows.Count > 0 AndAlso atpDt.Rows(0).Item("Com_Qty") > 0 Then
+            STR = Glob.DateFormat(Global_Inc.FormatDate(atpDt.Rows(0).Item("Com_Date")), "YYYYMMDD", "MMDDYYYY", "/", "/") & "(" & FormatNumber(atpDt.Rows(0).Item("Com_Qty").ToString(), 0) & ")"
+        End If
+        Return STR
+    End Function
+
+    Protected Sub ibReconfig_Click(ByVal sender As Object, ByVal e As System.Web.UI.ImageClickEventArgs)
+    
+        If Not IsNothing(Request("UID")) AndAlso Request("UID").ToString <> "" Then
+            Response.Redirect("~/ORDER/ConfiguratorNew.aspx?ReConfigure=y&BTOITEM=" + Request("BTOITEM") + "&QTY=" + Request("QTY") + "&QUOTE=1&UID=" + Request("UID") + "&SPR=" + Request("SPR"))
+                
+        Else
+            Response.Redirect("~/ORDER/ConfiguratorNew.aspx?ReConfigure=y&BTOITEM=" + Request("BTOITEM") + "&QTY=" + Request("QTY"))
+                
+        End If
+    End Sub
+</script>
+
+<asp:Content runat="server" ID="_main" ContentPlaceHolderID="_main">
+<script type = "text/javascript">
+    var cnum = 0;
+    var mnum = 5;
+    function GetATPP(PN,A) {
+        var obj = A.parentNode
+        GetATP(PN,obj)
+    }
+
+    function GetATP(PN, PE) {
+        if (cnum < mnum) {
+            cnum++;
+            PageMethods.GetATP(PN, 1, OnGetATPComplete, OnGetATPError, PE);
+        } else {
+            var tt = setTimeout(function () { PageMethods.GetATP(PN, 1, OnGetATPComplete, OnGetATPError, PE) }, Math.round(Math.random() * 1000));
+        }
+        
+    }
+    function OnGetATPComplete(result, atp, methodName) {
+        if (cnum > 0) { cnum-- };
+       
+        atp.innerHTML = result;
+    }
+    function OnGetATPError(error, userContext, methodName) {
+        if (cnum > 0) { cnum-- };
+      
+        alert(error);
+    }
+</script>
+    <table cellpadding=0 cellspacing=0 width="100%">	    
+	    <tr><td height="10px"></td></tr>
+	    <tr>
+		    <td width="15px"/>
+		    <td>	
+			    <table cellpadding=0 cellspacing=0 width="100%">
+				    <tr><td style="height: 54px"><div class="euPageTitle">Configuration Page</div><br></td></tr>
+				    <tr>
+					    <td>
+						    <div id="divConguration" runat="server">
+                            </div>
+    					
+					    </td>
+				    </tr>	
+				    <tr>
+				        <td>
+				            
+				        </td>
+				    </tr>
+				     <tr>
+					    <td>
+						  <%If Not IsNothing(Request("UID")) AndAlso Request("UID") <> "" Then%>
+						  <FONT COLOR="red">For Price changing,Please Go Next Step.</FONT>
+						  <%End If%>
+					    </td>
+				    </tr>			    			   
+			    </table>
+			    <br/>
+			    <table width="100%" ID="Table1">
+				    <tr>
+					    <td align='left' width='40%'>						    
+                            &nbsp;&nbsp;&nbsp;<asp:ImageButton ID="ibAssemble" runat="server" ImageUrl="../images/ebiz.aeu.face/btn_noassembly.gif"
+                                OnClick="ibAssemble_Click" />
+					    </td>    					
+					    <td align='left' width='60%'>
+						    <% if (SESSION("HISTORY_PHASE_OUT") =1) then %>    						
+                            &nbsp;<asp:ImageButton ID="ibAdd2Cart" runat="server" ImageUrl="../images/ebiz.aeu.face/btn_add2cart1.gif" 
+                                    OnClick="ibAdd2Cart_Click" />
+                            &nbsp;<asp:ImageButton ID="ibAdd2Quote" runat="server" ImageUrl="../images/ebiz.aeu.face/Next.gif" OnClick="ibAdd2Quote_Click" />
+						    <% end if %>    <asp:ImageButton ID="ibReconfig" Visible="false" runat="server" ImageUrl="../images/RECONFIG.gif" OnClick="ibReconfig_Click" /> 						
+					    </td>
+					    <td>
+						    <% if Request("BONO") <> "" then  %>
+						    &nbsp;&nbsp;&nbsp;<asp:button runat="server" id="btnSaveAsBo" font-bold="true" Text="Save as Blanket Order" 
+						        OnClick="btnSaveAsBo_Click"></asp:button>
+						    <% end if %>
+					    </td>
+				    </tr>
+			    </table>		
+		    </td>
+		    <td width="15px"></td>
+	    </tr>
+	    <tr>
+	        <td width="15px" colspan=3></td>
+	    </tr>
+	    <tr>
+	        <td colspan=3 align="left" style="padding-left:15px;padding-right:15px" width="100%">
+	            <table border="1" cellpadding="0" cellspacing="0" style="border:#ffffff 1px solid" width="100%">
+	                <tr>
+	                    <td >
+	                        <adl:AdxTreeView runat="server" ID="tv1" ExpandDepth="1" Width="100%" ShowCheckBoxes="Leaf" 
+	                            OnTreeNodeCheckChanged="CheckNode">
+                            </adl:AdxTreeView>
+	                    </td>
+	                </tr>
+	            </table>
+                
+            </td>
+        </tr>
+        <tr><td height="10px" colspan=3></td></tr>         
+    </table>
+       <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.3.2/jquery.min.js"></script>
+    <script language="javascript" type="text/javascript">
+    document.body.style.cursor = 'default';
+function ConfigQty_onchange(szQty,element) {
+
+//		var g_catalog_id='<%=Session("G_CATALOG_ID")%>';
+//		var g_cart_id='<%=SESSION("CART_ID")%>';
+//		var category_id,str_id;
+//  
+//         str_id = element.name;
+//        
+//		CATALOGCFG_SEQ = str_id.substr(9,1);
+//		category_id = str_id.substr(10);
+//		
+//		var xmlhttp = new ActiveXObject("Microsoft.XMLHTTP");
+//    	//xmlhttp.Open("POST","<% = "http://" & Request.ServerVariables("Server_Name") & ":" & Request.ServerVariables("Server_Port") & "/order/UpdateConfigurationConfigQty.aspx" %>",false);
+//        xmlhttp.Open("POST","<% = "UpdateConfigurationConfigQty.aspx" %>",false);
+//		xmlhttp.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
+//		xmlhttp.send('strCATALOGCFG_SEQ=' + CATALOGCFG_SEQ + '&' + 'strCatalog_Id=' + g_catalog_id + '&' + 'strCategory_Id=' + category_id + '&' + 'strCategory_Value=' + element.value + '&' + 'strCart_Id=' + g_cart_id+ '&' + 'strLine_No=' + szQty);	
+//			//alert('strCATALOGCFG_SEQ=' + CATALOGCFG_SEQ + '&' + 'strCatalog_Id=' + g_catalog_id + '&' + 'strCategory_Id=' + category_id + '&' + 'strCategory_Value=' + element.value + '&' + 'strCart_Id=' + g_cart_id+ '&' + 'strLine_No=' + szQty);
+//        document.location.reload();
+/////////////////////
+  $("body").append("<div id='toprightdiv'   style='font-family: Arial, Helvetica, sans-serif;margin-top:2px;font-size:12px;height: 20px;width: 230px;float: right;position: absolute;z-index: 999;top: 5px;right: 10px;border: 1px solid #66FFFF;padding-left: 5px;color: #FFFFFF;background-color: #FF3300;'>Quantity is changing.Please wait...</div>");
+var g_catalog_id='<%=Session("G_CATALOG_ID")%>';
+		var g_cart_id='<%=SESSION("CART_ID")%>';
+		var category_id,str_id;
+  
+         str_id = element.name;
+        
+		CATALOGCFG_SEQ = str_id.substr(9,1);
+		category_id = str_id.substr(10);
+		
+		function getpars(){
+		return 'strCATALOGCFG_SEQ=' + CATALOGCFG_SEQ + '&' + 'strCatalog_Id=' + g_catalog_id + '&' + 'strCategory_Id=' + category_id + '&' + 'strCategory_Value=' + element.value + '&' + 'strCart_Id=' + g_cart_id+ '&' + 'strLine_No=' + szQty;
+		}
+$.ajax({
+   type: "POST",
+   url: "UpdateConfigurationConfigQty.aspx",
+   data: getpars(),
+   success: function(msg){
+     //alert( "Change success");
+       $("body").remove("#toprightdiv"); 
+     document.location.reload();
+   }
+}); 
+
+/////////////
+	}   
+	
+	
+	function LinePrice_onchange(szCartLine,intCost,element) {
+	var re = /^\d+(\.\d+)?$/;
+	var tPrice = element.value
+	var rPrice = tPrice.replace(',','')
+	var aa = re.test(rPrice);
+	if (aa==false) {
+	alert("Please input as correct num format!");
+	return false;
+	}
+	var g_catalog_id='<%=Session("G_CATALOG_ID")%>';
+	var g_cart_id='<%=SESSION("CART_ID")%>';
+	var category_id,str_id;
+
+         str_id = element.name;       
+	CATALOGCFG_SEQ = str_id.substr(9,1);
+	category_id = str_id.substr(10);
+	//if ( parseInt(element.value) < parseInt(intCost) )
+	//{
+	//	alert("Lower than cost!!-->" + "Unit Price:" + element.value + " < Cost Price:" + intCost);
+
+	//	return false;
+	//}
+	// Rem == Replace a blank with vbSpace ==
+	category_id = Script2Script(category_id);
+
+ 	var xmlhttp = new ActiveXObject("Microsoft.XMLHTTP");
+	//xmlhttp.Open("POST","<% = "http://" & Request.ServerVariables("Server_Name") & ":" & Request.ServerVariables("Server_Port") & "/BTOS/UpdateConfigurationLinePrice.asp" %>",false);
+	xmlhttp.Open("POST","<% = "UpdateConfigurationLinePrice.aspx" %>",false);
+	xmlhttp.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
+	xmlhttp.send('strCATALOGCFG_SEQ=' + CATALOGCFG_SEQ + '&' + 'strCatalog_Id=' + g_catalog_id + '&' + 'strCategory_Id=' + category_id + '&' + 'strCategory_Value=' + rPrice + '&' + 'strCart_Id=' + g_cart_id+ '&' + 'strLine_No=' + szCartLine);	
+       	}
+       	
+       	function Script2Script ( strString ) {
+		var re = '' ;
+		var re1 ='' ;
+		re = /\x20/g ;
+		re1= /\+/g ;
+		strString = strString.replace(re, '%20');
+		strString = strString.replace(re1, '%2B');
+		return strString ;			
+        }
+        
+        function Del()
+        {
+            //window.location="ConfigurationDel.aspx"
+         if(confirm('are you sure to delete this item'))
+         {
+			 var xmlhttp = new ActiveXObject("Microsoft.XMLHTTP");
+//		xmlhttp.Open("POST","<% = "http://" & Request.ServerVariables("Server_Name") & ":" & Request.ServerVariables("Server_Port") & "/order/UpdateConfigurationConfigQty.aspx" %>",false);
+        xmlhttp.Open("POST","<% = "ConfigurationDel.aspx" %>",false);
+		xmlhttp.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
+		xmlhttp.send(); //'strCATALOGCFG_SEQ=' + CATALOGCFG_SEQ + '&' + 'strCatalog_Id=' + g_catalog_id + '&' + 'strCategory_Id=' + category_id + '&' + 'strCategory_Value=' + element.value + '&' + 'strCart_Id=' + g_cart_id+ '&' + 'strLine_No=' + szQty);	
+			//alert('strCATALOGCFG_SEQ=' + CATALOGCFG_SEQ + '&' + 'strCatalog_Id=' + g_catalog_id + '&' + 'strCategory_Id=' + category_id + '&' + 'strCategory_Value=' + element.value + '&' + 'strCart_Id=' + g_cart_id+ '&' + 'strLine_No=' + szQty);
+        document.location.reload();
+        }
+		else
+			{return ;}   
+           
+        }
+        
+        function CheckPriceDue(part_no,qty)
+        {
+            var Url="../order/PriceDue.aspx?part_no=" + part_no + "&qty=" + qty
+            window.open(Url, "pop","height=300,width=520,scrollbars=yes");
+        }
+        
+          function ReConfigure(part_no)
+        {
+            var bto='<%=request("BTOITEM") %>'
+            var qty='<%=request("QTY") %>'
+            var Url='../order/Configurator.aspx?newflag=y&BTOITEM=' +part_no +'&QTY=' + qty + '&ReConfigure=' + bto
+            //alert (Url)
+           // window.open(Url, "pop","height=300,width=520,scrollbars=yes");
+           window.location.href=Url
+        }
+       
+</script>
+
+<%
+	if Request("BONO") <> "" then
+		response.write("<script language='javascript'>var oBtnQty = document.getElementById('ConfigQty1" & Request("BTOITEM") & "');" & _
+						"var qty = " & Request("QTY") & ";" & _
+						"if (oBtnQty.value!=qty) " & _
+						"{oBtnQty.value = qty;ConfigQty_onchange('" & Request("QTY") & "',oBtnQty);}</script>")
+	end if
+%>
+</asp:Content>

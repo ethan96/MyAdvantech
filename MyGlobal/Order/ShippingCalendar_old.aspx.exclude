@@ -1,0 +1,464 @@
+﻿<%@ Page Language="VB" MasterPageFile="~/Includes/MyMaster.master" Title="Shipping Calendar" Culture="en-US" %>
+<%@ Import Namespace="System.Data.SqlClient" %>
+<script runat="server">
+    Dim tYear As String = "Year", tMonth As String = "Month"
+    
+    Dim tbotitle1 As String = "My B2B Order"
+    Dim tBOTitle2 As String = "Backorder"
+    Dim tBOTitle As String = "Shipping Calender"
+    
+    Protected Sub Page_Load(ByVal sender As Object, ByVal e As System.EventArgs)
+        Dim SelDate As Date
+        If Not Page.IsPostBack Then
+            Dim intToYear As Integer = Now.Year + 10
+            For i As Integer = 1990 To intToYear
+                Me.DlYear.Items.Add(New ListItem(i.ToString(), i.ToString()))
+            Next
+            Me.DlYear.SelectedValue = Now.Year.ToString()
+            Me.DlMonth.SelectedValue = Now.Month.ToString()
+            DataBind()
+        End If
+        SelDate = Me.DlYear.Text.ToString & "-" & Me.DlMonth.SelectedValue.ToString & "-" & "01"
+        cal1.VisibleDate = SelDate
+        If Session("org_id") Is Nothing OrElse Session("org_id") = "" Then Session("org_id") = "EU10"
+        
+    End Sub
+    Protected Sub cal1_DataBinding(ByVal sender As Object, ByVal e As System.EventArgs)
+       
+    End Sub
+
+    Protected Sub cal1_DayRender(ByVal sender As Object, ByVal e As System.Web.UI.WebControls.DayRenderEventArgs)
+        Dim d As CalendarDay = e.Day, c As TableCell = e.Cell, p1 As New Panel, gv1 As New GridView, dt As New DataTable
+        c.Controls.Clear() : dt.Columns.Add("part_no") : dt.Columns.Add("dd")
+       
+        With p1
+            .ScrollBars = ScrollBars.Auto : .Width = New Unit(110, UnitType.Pixel) : p1.Height = New Unit(100, UnitType.Pixel)
+        End With
+      
+        gv1.ShowHeader = False
+        
+        c.Controls.Add(p1)
+        'If Session("user_id") = "rudy.wang@advantech.com.tw" Then Response.Write(d.Date.ToString("yyyyMMdd"))
+        Dim rs() As DataRow = CType(ViewState("DDTable"), DataTable).Select(String.Format("duedate='{0}'", d.Date.ToString("yyyyMMdd")))
+        'If Session("user_id") = "rudy.wang@advantech.com.tw" Then Response.Write(rs.Length)
+        Dim dayRow As DataRow = dt.NewRow() : dayRow.Item(0) = d.Date.Day.ToString() : dt.Rows.Add(dayRow)
+        If rs IsNot Nothing AndAlso rs.Length > 0 Then
+            For Each r As DataRow In rs
+                Dim r2 As DataRow = dt.NewRow
+                r2.Item("part_no") = r.Item("ProductId") : r2.Item("dd") = d.Date.ToString("yyyy-MM-dd") : dt.Rows.Add(r2)
+            Next
+        End If
+        AddHandler gv1.RowDataBound, AddressOf gv1_rowDataBind
+        gv1.DataSource = dt : gv1.DataBind() : p1.Controls.Add(gv1)
+        With gv1
+            .Width = New Unit(110, UnitType.Pixel) : .BorderWidth = New Unit(0, UnitType.Pixel)
+            .HorizontalAlign = HorizontalAlign.Center
+            If Not d.IsOtherMonth Then
+                .CssClass = "text_mini"
+            End If
+        End With
+    End Sub
+
+    Protected Sub cal1_VisibleMonthChanged(ByVal sender As Object, ByVal e As System.Web.UI.WebControls.MonthChangedEventArgs)
+        SetBackOrderOfVisibleMonth()
+    End Sub
+
+    Private Sub SetBackOrderOfVisibleMonth()
+        'Dim BackOrder_DT As New DataTable
+        'Dim strConn As String = ConfigurationManager.ConnectionStrings("B2B").ToString
+        'Dim oAdp As New SqlDataAdapter
+        'oAdp.SelectCommand = New SqlCommand
+        'oAdp.SelectCommand.Connection = New SqlConnection(strConn)
+        'oAdp.SelectCommand.CommandType = CommandType.StoredProcedure
+        'oAdp.SelectCommand.CommandText = "[dbo].[SP_PAGE_GETBACKORDER]"
+        'Dim oPara1 As SqlParameter = New SqlParameter("@CompanyID", SqlDbType.VarChar)
+        'oPara1.Value = Session("Company_ID")
+        'oAdp.SelectCommand.Parameters.Add(oPara1)
+        'Dim oPara2 As SqlParameter = New SqlParameter("@PONo", SqlDbType.VarChar)
+        'oPara2.Value = ""
+        'oAdp.SelectCommand.Parameters.Add(oPara2)
+        'Dim oPara3 As SqlParameter = New SqlParameter("@DateFrom", SqlDbType.DateTime)
+        'oPara3.Value = CDate(cal1.VisibleDate.ToString("yyyy-MM-01"))
+        'oAdp.SelectCommand.Parameters.Add(oPara3)
+        'Dim oPara4 As SqlParameter = New SqlParameter("@DateTo", SqlDbType.DateTime)
+        'oPara4.Value = CDate(Util.GetLastDateOfMonth(cal1.VisibleDate).ToString("yyyy-MM-dd"))
+        'oAdp.SelectCommand.Parameters.Add(oPara4)
+        'oAdp.Fill(BackOrder_DT)
+        'oAdp.Dispose()
+        'ViewState("DDTable") = BackOrder_DT
+        If ViewState("DDTable") Is Nothing Then
+            ViewState("DDTable") = New DataTable
+        Else
+            CType(ViewState("DDTable"), DataTable).Clear()
+        End If
+        Dim dt As DataTable = dbUtil.dbGetDataTable("My", String.Format("select * from SAP_BACKORDER_AB where BILLTOID='EDDEVI07' and DUEDATE between '{0}' and '{1}'", cal1.VisibleDate.ToString("yyyy-MM-01"), Util.GetLastDateOfMonth(cal1.VisibleDate).ToString("yyyy-MM-dd")))
+        CType(ViewState("DDTable"), DataTable).Merge(dt)
+        'Dim t1 As New Threading.Thread(AddressOf GetBackOrderAB), t2 As New Threading.Thread(AddressOf GetBackOrderC)
+        't1.Start() : t2.Start()
+        't1.Join() : t2.Join()
+        ''OrderUtilities.showDT(CType(ViewState("DDTable"), DataTable))
+        'If Not IsNothing(CType(ViewState("DDTable"), DataTable)) And CType(ViewState("DDTable"), DataTable).Rows.Count > 0 Then CType(ViewState("DDTable"), DataTable).DefaultView.Sort = "ORDERDATE desc"
+        'ViewState("DDTable") = CType(ViewState("DDTable"), DataTable).DefaultView.ToTable()
+        'For Each row As DataRow In CType(ViewState("DDTable"), DataTable).Rows
+        '    Dim oriDD As String = dbUtil.dbExecuteScalar("B2B", String.Format("select isnull(a.due_date,'') as due_date from order_detail a left join order_master b on a.order_id=b.order_id where b.order_no='{0}' and a.line_no='{1}'", row.Item("OrderNo"), row.Item("OrderLine")))
+        '    If oriDD <> "" Then
+        '        row.Item("originalDD") = CDate(oriDD).ToString("yyyy/MM/dd")
+        '    End If
+        '    If CInt(row.Item("SchdLineOpenQty")) = 0 Then
+        '        row.Item("DUEDATE") = row.Item("originalDD")
+        '    End If
+        'Next
+        'CType(ViewState("DDTable"), DataTable).AcceptChanges()
+        
+        'ViewState("DDTable") = dbUtil.dbGetDataTable("B2B", _
+        '    String.Format(" select MaterialNo, PONo, OrderNo, OrderLine, orderdate from factOrder " + _
+        '                  " where CustomerId='{0}' and (orderdate between '{1}' and '{2}' )", Session("company_id"), cal1.VisibleDate.ToString("yyyy-MM-01"), Util.GetLastDateOfMonth(cal1.VisibleDate).ToString("yyyy-MM-dd")))
+    End Sub
+        
+    Private Sub GetBackOrderAB()
+        Try
+            Dim kunnr As String = UCase(Session("company_id")), vkorg As String = UCase(Session("org_id"))
+            If kunnr = "" Or vkorg = "" Then Exit Sub
+            Dim FromDate As String = CDate(cal1.VisibleDate.ToString("yyyy-MM-01")).ToString("yyyyMMdd")
+            Dim ToDate As String = CDate(Util.GetLastDateOfMonth(cal1.VisibleDate).ToString("yyyy-MM-dd")).ToString("yyyyMMdd")
+            Dim sb As New System.Text.StringBuilder
+            With sb
+                .AppendFormat(" select VBAK.VBELN AS OrderNo, VBAK.BSTNK AS PONO, VBAK.KUNNR as BILLTOID, ")
+                .AppendFormat(" (select kunnr from saprdp.vbpa where vbpa.vbeln=vbak.vbeln and vbpa.parvw='WE' and rownum=1) AS SHIPTOID, ")
+                .AppendFormat(" VBAK.AUDAT AS ORDERDATE, VBAK.WAERK AS CURRENCY, cast(VBAP.POSNR as integer) AS ORDERLINE, ")
+                .AppendFormat(" VBAP.MATNR AS ProductId, VBAP.KWMENG AS SchdLineConfirmQty, ")
+                .AppendFormat(" VBEP.BMENG AS SchdLineOpenQty, VBAP.NETPR AS UNITPRICE, ")
+                .AppendFormat(" VBAP.NETWR AS TOTALPRICE, VBUP.LFSTA AS DOC_STATUS, VBEP.EDATU AS DUEDATE, VBEP.EDATU AS OriginalDD, VBAP.ZZ_GUARA AS ExWarranty, ")
+                .AppendFormat(" nvl((select cast(LFIMG as integer) from SAPRDP.LIPS where LIPS.VGBEL=VBAK.VBELN and LIPS.VGPOS=VBAP.POSNR and rownum=1),0) as SchedLineShipedQty, ")
+                .AppendFormat(" cast(VBEP.ETENR as integer) as SchdLineNo, ")
+                .AppendFormat(" nvl((select SUM(LFIMG) from SAPRDP.LIPS where LIPS.VGBEL=VBAK.VBELN and LIPS.VGPOS=VBAP.POSNR),0) as DLV_QTY ")
+                .AppendFormat(" FROM SAPRDP.VBAK INNER JOIN SAPRDP.VBAP ON VBAK.VBELN = VBAP.VBELN INNER JOIN ")
+                .AppendFormat(" SAPRDP.VBEP ON VBAP.VBELN = VBEP.VBELN AND VBAP.POSNR = VBEP.POSNR INNER JOIN ")
+                .AppendFormat(" SAPRDP.VBUP ON VBAP.VBELN = VBUP.VBELN AND VBAP.POSNR = VBUP.POSNR ")
+                .AppendFormat(" WHERE (VBAK.MANDT = '168') AND (VBAP.MANDT = '168') AND (VBEP.MANDT = '168') AND (VBUP.MANDT = '168')  AND ")
+                .AppendFormat(" (VBAK.VKORG = '{0}') AND (VBAK.KUNNR='{1}') AND ", vkorg, kunnr)
+                .AppendFormat(" (VBEP.EDATU between '{0}' and '{1}') and VBUP.LFSTA IN ('A','B') ", FromDate, ToDate)
+                .AppendFormat(" and VBAP.ABGRU = ' ' ")
+            End With
+            Dim dt As DataTable = OraDbUtil.dbGetDataTable("SAP_PRD", sb.ToString())
+            'Response.Write(dt.Rows.Count)
+            'Response.Write(sb.ToString())
+            Dim BRs() As DataRow = dt.Select("DOC_STATUS='B'", "OrderNo ASC, ORDERLINE ASC, DUEDATE ASC")
+
+            If BRs.Length > 0 Then
+                Dim curSO As String = "", curLine As String = "", curQty As Decimal = 0
+                For Each sch As DataRow In BRs
+                    If sch.Item("OrderNo").ToString() <> curSO Or sch.Item("ORDERLINE").ToString() <> curLine Then
+                        curSO = sch.Item("OrderNo").ToString() : curLine = sch.Item("ORDERLINE")
+                        curQty = DirectCast(sch.Item("DLV_QTY"), Decimal)
+                    End If
+                    If CDbl(sch.Item("SchdLineOpenQty")) > curQty Then
+                        sch.Item("SchdLineOpenQty") = sch.Item("SchdLineOpenQty") - curQty
+                        curQty = 0
+                    Else
+                        curQty = curQty - CDbl(sch.Item("SchdLineOpenQty"))
+                        sch.Delete()
+                    End If
+                Next
+            End If
+            dt.AcceptChanges()
+            BRs = dt.Select("DOC_STATUS='A' and SchedLineShipedQty=0 and SchdLineNo=1")
+            For Each sch As DataRow In BRs
+                If dt.Select(String.Format("OrderNo='{0}' and ORDERLINE={1} and SchdLineNo>1", sch.Item("OrderNo"), sch.Item("ORDERLINE"))).Length > 0 Then
+                    sch.Delete()
+                End If
+            Next
+            dt.AcceptChanges()
+            CType(ViewState("DDTable"), DataTable).Merge(dt)
+        Catch ex As Exception
+            Response.Write(ex.ToString())
+        End Try
+    End Sub
+    Private Sub GetBackOrderC()
+        Try
+            Dim kunnr As String = UCase(Session("company_id")), vkorg As String = UCase(Session("org_id"))
+            If kunnr = "" Or vkorg = "" Then Exit Sub
+            Dim FromDate As String = CDate(cal1.VisibleDate.ToString("yyyy-MM-01")).ToString("yyyyMMdd")
+            Dim ToDate As String = CDate(Util.GetLastDateOfMonth(cal1.VisibleDate).ToString("yyyy-MM-dd")).ToString("yyyyMMdd")
+            Dim sb As New System.Text.StringBuilder
+            With sb
+                .AppendFormat(" select VBAK.VBELN AS OrderNo, VBAK.BSTNK AS PONO, VBAK.KUNNR as BILLTOID, ")
+                .AppendFormat(" (select kunnr from saprdp.vbpa where vbpa.vbeln=vbak.vbeln and vbpa.parvw='WE' and rownum=1) AS SHIPTOID, ")
+                .AppendFormat(" VBAK.AUDAT AS ORDERDATE, VBAK.WAERK AS CURRENCY, cast(VBAP.POSNR as integer) AS ORDERLINE, ")
+                .AppendFormat(" VBAP.MATNR AS ProductId, VBAP.KWMENG AS SchdLineConfirmQty, ")
+                .AppendFormat(" VBEP.BMENG AS SchdLineOpenQty, VBAP.NETPR AS UNITPRICE, ")
+                .AppendFormat(" VBAP.NETWR AS TOTALPRICE, VBUP.LFSTA AS DOC_STATUS, VBEP.EDATU AS DUEDATE, VBEP.EDATU AS OriginalDD, VBAP.ZZ_GUARA AS ExWarranty, ")
+                .AppendFormat(" (select cast(LFIMG as integer) from SAPRDP.LIPS where LIPS.VGBEL=VBAK.VBELN and LIPS.VGPOS=VBAP.POSNR and rownum=1) as SchedLineShipedQty, ")
+                .AppendFormat(" cast(VBEP.ETENR as integer) as SchdLineNo, ")
+                .AppendFormat(" nvl((select count(*) as n from SAPRDP.VBRP where VBRP.AUBEL = VBAK.VBELN and VBRP.AUPOS=VBAP.POSNR),0) as DLV_QTY ")
+                .AppendFormat(" FROM SAPRDP.VBAK INNER JOIN SAPRDP.VBAP ON VBAK.VBELN = VBAP.VBELN INNER JOIN ")
+                .AppendFormat(" SAPRDP.VBEP ON VBAP.VBELN = VBEP.VBELN AND VBAP.POSNR = VBEP.POSNR INNER JOIN ")
+                .AppendFormat(" SAPRDP.VBUP ON VBAP.VBELN = VBUP.VBELN AND VBAP.POSNR = VBUP.POSNR ")
+                .AppendFormat(" WHERE (VBAK.MANDT = '168') AND (VBAP.MANDT = '168') AND (VBEP.MANDT = '168') AND (VBUP.MANDT = '168')  AND ")
+                .AppendFormat(" (VBAK.VKORG = '{0}') AND (VBAK.KUNNR='{1}') AND ", vkorg, kunnr)
+                .AppendFormat(" (VBEP.EDATU between '{0}' and '{1}') and VBUP.LFSTA ='C' ", FromDate, ToDate)
+                .AppendFormat(" and VBAP.ABGRU = ' ' ")
+            End With
+            'Response.Write(sb.ToString())
+            Dim dt As DataTable = OraDbUtil.dbGetDataTable("SAP_PRD", sb.ToString())
+            For Each r As DataRow In dt.Rows
+                If CInt(r.Item("DLV_QTY")) > 0 Then
+                    r.Delete()
+                End If
+            Next
+            dt.AcceptChanges()
+            CType(ViewState("DDTable"), DataTable).Merge(dt)
+        Catch ex As Exception
+            Response.Write(ex.ToString())
+        End Try
+    End Sub
+    
+    Protected Sub cal1_Load(ByVal sender As Object, ByVal e As System.EventArgs)
+        If Not Page.IsPostBack Then
+            cal1.VisibleDate = Now : SetBackOrderOfVisibleMonth()
+        End If
+        cal1.VisibleDate = Me.DlYear.Text.ToString & "-" & Me.DlMonth.SelectedValue.ToString & "-" & "01" : SetBackOrderOfVisibleMonth()
+    End Sub
+    
+    Protected Sub gv1_rowDataBind(ByVal sender As Object, ByVal e As GridViewRowEventArgs)
+        If e.Row.RowIndex <> 0 Then
+            e.Row.HorizontalAlign = HorizontalAlign.Left
+        End If
+        e.Row.Cells(1).Visible = False
+        If e.Row.RowType <> DataControlRowType.Header And e.Row.RowType <> DataControlRowType.Footer And e.Row.RowIndex <> 0 Then
+            e.Row.Cells(0).Text = "<a href='BO_BackorderInquiry.aspx?txtPN=" & e.Row.Cells(0).Text & "&txtOrderDateFrom=" & e.Row.Cells(1).Text & "' >" & e.Row.Cells(0).Text & "</a>"
+        End If
+    End Sub
+
+   
+</script>
+<asp:Content runat="server" ID="_main" ContentPlaceHolderID="_main">
+<style type="text/css">
+<!--
+body {
+	margin-left: 10px;
+	margin-top: 0px;
+	margin-right: 0px;
+	margin-bottom: 0px;
+}
+.style3 {
+	color: #000000;
+	font-weight: bold;
+	font-size: 12px;
+}
+.style8 {font-size: 12px}
+.style9 {font-size: 12px; font-weight: bold;}
+.text_mini
+{
+	font-family: Verdana;
+	font-size: 10px;
+	font-weight:bold;
+	color: #000000;
+}
+
+-->
+</style>
+
+<table border="0" cellpadding="0" cellspacing="0" width="100%">
+                                    <tr>
+                                      <td></td>
+                                      <td align="left"><table border="0" cellspacing="0" cellpadding="0">
+                                        <tr>
+                                          <td height="9" align="right" valign="bottom" style="width:9px"><img src="../images/bag1a.gif" width="9" height="9" /></td>
+                                          <td width="110" height="9" bgcolor="#A1B1C8"></td>
+                                          <td height="9" valign="bottom"><span><img src="../images/bag4a.gif" width="8" height="9" /></span></td>
+                                          <td width="8" height="9"></td>
+                                          <td height="9"><img src="../images/bag1a.gif" width="9" height="9" /></td>
+                                          <td width="110" height="9" align="center" bgcolor="#A1B1C8"></td>
+                                          <td height="9"><img src="../images/bag4a.gif" width="8" height="9" /></td>
+                                          <td width="8" height="9"></td>
+                                          <td height="9" align="right" valign="bottom"><span><img src="../images/bag1.gif" width="9" height="9" /></span></td>
+                                          <td width="110" height="9" align="center" bgcolor="#CDD6E2"></td>
+                                          <td height="9" align="left" valign="bottom"><span><img src="../images/bag4.gif" width="8" height="9" /></span></td>
+                                          <td width="8" height="9"></td>
+                                          <td height="9" align="right" valign="bottom" style="width:9px"><img src="../images/bag1a.gif" width="9" height="9" /></td>
+                                          <td width="110" height="9" bgcolor="#A1B1C8"></td>
+                                          <td height="9" valign="bottom"><span><img src="../images/bag4a.gif" width="8" height="9" /></span></td>
+                                          <td width="8" height="9"></td>
+                                          <td height="9" align="right" valign="bottom" style="width:9px"><img src="../images/bag1a.gif" width="9" height="9" /></td>
+                                          <td width="110" height="9" bgcolor="#A1B1C8"></td>
+                                          <td height="9" valign="bottom"><span><img src="../images/bag4a.gif" width="8" height="9" /></span></td>
+                                          <td width="8" height="9"></td>
+                                          <td height="9" align="right" valign="bottom" style="width:9px"><img src="../images/bag1a.gif" width="9" height="9" /></td>
+                                          <td width="110" height="9" bgcolor="#A1B1C8"></td>
+                                          <td height="9" valign="bottom"><span><img src="../images/bag4a.gif" width="8" height="9" /></span></td>
+                                          <td width="8" height="9"></td>
+                                          <td height="9" align="right" valign="bottom" style="width:9px"><img src="../images/bag1a.gif" width="9" height="9" /></td>
+                                          <td width="110" height="9" bgcolor="#A1B1C8"></td>
+                                          <td height="9" valign="bottom"><span><img src="../images/bag4a.gif" width="8" height="9" /></span></td>
+                                          <td width="8" height="9"></td>
+                                          <td height="9" align="right" valign="bottom" style="width:9px"><img src="../images/bag1a.gif" width="9" height="9" /></td>
+                                          <td width="110" height="9" bgcolor="#A1B1C8"></td>
+                                          <td height="9" valign="bottom"><span><img src="../images/bag4a.gif" width="8" height="9" /></span></td>
+                                          <td width="8" height="9"></td>
+                                          <td height="9" align="right" valign="bottom" style="width:9px"><img src="../images/bag1a.gif" width="9" height="9" /></td>
+                                          <td width="140" height="9" bgcolor="#A1B1C8"></td>
+                                          <td height="9" valign="bottom"><span><img src="../images/bag4a.gif" width="8" height="9" /></span></td>
+                                          <td width="8" height="9"></td>
+                                        </tr>
+                                        <tr>
+                                          <td align="right" bgcolor="#A1B1C8" style="width:9px"></td>
+                                          <td align="center" bgcolor="#A1B1C8"><span class="style3"></span><span class="style9"><a href="BO_BackOrderInquiry.aspx?company_id=<%=session("company_id") %>"><%#tBOTitle2%></a></span><span class="style3"></span></td>
+                                          <td bgcolor="#A1B1C8"><span class="style8"></span></td>
+                                          <td><span class="style8"></span></td>
+                                          <td bgcolor="#A1B1C8"><span class="style8"></span></td>
+                                          <td align="center" bgcolor="#A1B1C8"><span class="style3"><a href="BO_B2BOrderInquiry.aspx?company_id=<%=session("company_id") %>"><%#tBOTitle1%></a></span></td>
+                                          <td bgcolor="#A1B1C8"><span class="style8"></span></td>
+                                          <td><span class="style8"></span></td>
+                                          <td bgcolor="#CDD6E2"><span class="style8"></span></td>
+                                          <td align="center" bgcolor="#CDD6E2" class="style3"><%#tBOTitle%></td>
+                                          <td bgcolor="#CDD6E2">&nbsp;</td>
+                                          <td><span class="style8"></span></td>
+                                          <td align="right" bgcolor="#A1B1C8" style="width:9px"></td>
+                                          <td align="center" bgcolor="#A1B1C8"><span class="style3"></span><span class="style9"><a href="/Order/BO_OrderTracking.aspx?company_id=<%=session("company_id") %>">Order Tracking</a></span><span class="style3"></span></td>
+                                          <td bgcolor="#A1B1C8"><span class="style8"></span></td>
+                                          <td><span class="style8"></span></td>
+                                          <td align="right" bgcolor="#A1B1C8" style="width:9px"></td>
+                                          <td align="center" bgcolor="#A1B1C8"><span class="style3"></span><span class="style9"><a href="/Order/BO_InvoiceInquiry.aspx?company_id=<%=session("company_id") %>">Invoice Inquiry</a></span><span class="style3"></span></td>
+                                          <td bgcolor="#A1B1C8"><span class="style8"></span></td>
+                                          <td><span class="style8"></span></td>
+                                          <td align="right" bgcolor="#A1B1C8" style="width:9px"></td>
+                                          <td align="center" bgcolor="#A1B1C8"><span class="style3"></span><span class="style9"><a href="/Order/ARInquiry_WS.aspx?company_id=<%=session("company_id") %>">A/P Inquiry</a></span><span class="style3"></span></td>
+                                          <td bgcolor="#A1B1C8"><span class="style8"></span></td>
+                                          <td><span class="style8"></span></td>
+                                          <td align="right" bgcolor="#A1B1C8" style="width:9px"></td>
+                                          <td align="center" bgcolor="#A1B1C8"><span class="style3"></span><span class="style9"><a href="/Order/MyRMA.aspx?company_id=<%=session("company_id") %>">My RMA Order</a></span><span class="style3"></span></td>
+                                          <td bgcolor="#A1B1C8"><span class="style8"></span></td>
+                                          <td><span class="style8"></span></td>
+                                          <td align="right" bgcolor="#A1B1C8" style="width:9px"></td>
+                                          <td align="center" bgcolor="#A1B1C8"><span class="style3"></span><span class="style9"><a href="BO_SerialInquiry.aspx?company_id=<%=session("company_id") %>">S/N Inquiry</a></span><span class="style3"></span></td>
+                                          <td bgcolor="#A1B1C8"><span class="style8"></span></td>
+                                          <td><span class="style8"></span></td>
+                                          <td align="right" bgcolor="#A1B1C8" style="width:9px"></td>
+                                          <td align="center" bgcolor="#A1B1C8"><span class="style3"></span><span class="style9"><a href="BO_ForwarderTracking.aspx?company_id=<%=session("company_id") %>">Forwarder Tracking</a></span><span class="style3"></span></td>
+                                          <td bgcolor="#A1B1C8"><span class="style8"></span></td>
+                                          <td><span class="style8"></span></td>
+                                        </tr>
+                                      </table></td>
+                                    </tr>
+                                    <tr>
+                                      <td width="17">&nbsp;</td>
+                                      <td><table border="0" cellpadding="0" cellspacing="0" width="100%">
+
+                                        <tr>
+                                          <td rowspan="2" bgcolor="#CDD6E2" style="width: 10px">&nbsp;</td>
+                                          <td bgcolor="#CDD6E2"></td>
+                                          <td align="left" valign="bottom" bgcolor="#FFFFFF" style="width: 8px"><img src="../images/bag4.gif" width="8" height="9" /></td>
+                                        </tr>
+                                        <tr>
+                                          <td align="left" valign="top" bgcolor="#A1B1C8"><table border="0" cellpadding="0" cellspacing="0" width="100%">
+                                            <tr>
+                                              <td width="100%" align="left" bgcolor="#E7EBF1">
+                                              
+
+                            <table border="0" cellpadding="0" cellspacing="0" width="100%">
+                                <tr>
+                                    <td style="width:15px" />
+                                    <td>
+                                        <table border="0" cellpadding="0" cellspacing="0" width="100%">                                                                            
+                                            <tr>                                                
+                                                <td align="right">                                                    
+                                                    <table>
+                                                        <tr>
+                                                            <td class="text">
+                                                                <%=tYear%>:<asp:DropDownList runat="server" ID="DlYear"  AutoPostBack="true"/>                                                            </td>
+                                                            <td class="text">
+                                                                <%=tMonth%>:                                                                                                                                                                                 
+                                                                <asp:DropDownList runat="server" ID="DlMonth"  AutoPostBack="true">
+                                                                    <asp:ListItem Text="January" Value="1" />
+                                                                    <asp:ListItem Text="February" Value="2" />
+                                                                    <asp:ListItem Text="March" Value="3" />
+                                                                    <asp:ListItem Text="April" Value="4" />
+                                                                    <asp:ListItem Text="May" Value="5" />
+                                                                    <asp:ListItem Text="June" Value="6" />
+                                                                    <asp:ListItem Text="July" Value="7" />
+                                                                    <asp:ListItem Text="August" Value="8" />
+                                                                    <asp:ListItem Text="Spetember" Value="9" />
+                                                                    <asp:ListItem Text="October" Value="10" />
+                                                                    <asp:ListItem Text="November" Value="11" />
+                                                                    <asp:ListItem Text="December" Value="12" />                                                                </asp:DropDownList>                                                            </td>
+                                                            <td class="text">
+                                                                <asp:Button runat="server" ID="Button1" Text="Change"  Visible="False" />                                                            </td>
+                                                        </tr>
+                                                    </table>                                                </td>
+                                                <td align="right" valign="top" rowspan="3">
+                                                   <%-- <uc5:OrderTrackLinks ID="OrderTrackLinks1" runat="server" Visible="true" /> --%>                                               </td>
+                                                <td align="right" valign="top" rowspan="3">
+                                                    &nbsp;</td>
+                                            </tr>
+                                            <tr>                                                
+                                                <td align="right">                                                    
+                                                    &nbsp;</td>
+                                            </tr>
+                                            <tr>                                                
+                                                <td align="right">                                                    
+                                                    <table>
+                                                        <tr>
+                                                            <td class="text">
+                                                                <%--<%#tCalendartpe%>: --%>                                                                                                                                                                                   
+                                                                <%--<asp:DropDownList runat="server" ID="DropDownList3" AutoPostBack="true" >
+																</asp:DropDownList> --%>                                                           </td>
+                                                        </tr>
+                                                    </table>
+                                                    </td>
+                                            </tr>
+                                            <tr>
+                                                <td colspan="3">
+                                                    <asp:Panel runat="server" ID="Panel1">
+                                                                                                            
+                                   <!--Start-->
+                                                        <table width="100%">
+        <tr>
+            <td>
+            
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <asp:Calendar runat="server" ID="cal1" Width="99%" Height="550px" OnDataBinding="cal1_DataBinding"
+                    OnDayRender="cal1_DayRender" 
+                    OnVisibleMonthChanged="cal1_VisibleMonthChanged" OnLoad="cal1_Load" 
+                    BackColor="White" BorderColor="White" BorderWidth="1px" Font-Names="Verdana" 
+                    Font-Size="9pt" ForeColor="Black" NextPrevFormat="FullMonth">
+                    <SelectedDayStyle BackColor="#333399" ForeColor="White" />
+                    <TodayDayStyle BackColor="#E5ECF9" />
+                    <OtherMonthDayStyle ForeColor="#999999" />
+                    <NextPrevStyle Font-Bold="True" Font-Size="8pt" ForeColor="#333333" 
+                        VerticalAlign="Bottom" />
+                    <DayHeaderStyle Font-Bold="True" Font-Size="8pt" />
+                    <TitleStyle BackColor="White" BorderColor="Black" BorderWidth="4px" 
+                        Font-Bold="True" Font-Size="12pt" ForeColor="#333399" />
+                </asp:Calendar>
+            </td>
+        </tr>
+    </table>
+    <!--end-->
+    </asp:Panel>                                                </td>
+                                            </tr>
+                                      </table>                                    </td>
+                                </tr>
+                          </table>                                            </tr>
+                                          </table>                                            </td>
+                                          <td bgcolor="#CDD6E2">&nbsp;</td>
+                                        </tr>
+                                        <tr>
+                                          <td align="right" valign="top" bgcolor="#FFFFFF" style="width: 10px"><img src="../images/bag2.gif" width="9" height="8" /></td>
+                                          <td bgcolor="#CDD6E2"></td>
+                                          <td align="left" valign="top" bgcolor="#FFFFFF"><img src="../images/bag3.gif" width="8" height="8" /></td>
+                                        </tr>
+                                      </table></td>
+                                    </tr>
+                                  </table>
+                                  
+    
+
+    
+    
+    
+    
+</asp:Content>

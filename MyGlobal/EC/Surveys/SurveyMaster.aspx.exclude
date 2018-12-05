@@ -1,0 +1,200 @@
+﻿<%@ Page Title="eSurvey - Survey Master" Language="VB" MasterPageFile="~/Includes/MyMaster.master" %>
+<%@ Register TagPrefix="ed" Namespace="OboutInc.Editor" Assembly="obout_Editor" %>
+
+<script runat="server">
+    Protected Sub btnCreate_Click(ByVal sender As Object, ByVal e As System.EventArgs)
+        Dim row_id As String = NewId()
+        dbUtil.dbGetDataTable("MyLocal", String.Format("insert into survey_master (row_id, survey_title, survey_desc, created_by, bg_color, survey_thank_msg) values ('{0}',N'{1}',N'{2}','{3}','FFFFFF','{4}')", row_id, txtSurveyTitle.Text.Replace("'", "''").Trim, txtSurveyDesc.Text.Replace("'", "''").Replace(ControlChars.Lf, "<br/>").Trim, Session("user_id"), txtSurveyThank.Content.Trim.Replace("'", "''")))
+        gv1.DataBind()
+        Util.AjaxJSAlert(upGV, "This new survey is created.")
+        'lblMsg.Text = "This new survey is created."
+    End Sub
+    
+    Private Shared Function NewId() As String
+        Dim tmpRowId As String = ""
+        Do While True
+            tmpRowId = System.Guid.NewGuid.ToString().Replace("-", "").Substring(0, 10)
+            If CInt( _
+              dbUtil.dbExecuteScalar("MYLocal", String.Format("select count(row_id) as counts from SURVEY_MASTER where row_id='{0}'", tmpRowId)) _
+               ) = 0 Then
+                Exit Do
+            End If
+        Loop
+        Return tmpRowId
+    End Function
+
+    Protected Sub btnEditTemplate_Click(ByVal sender As Object, ByVal e As System.Web.UI.ImageClickEventArgs)
+        Util.AjaxRedirect(upGV, "SurveyTemplate.aspx?sid=" + GetSelectedRowId(sender))
+    End Sub
+
+    Protected Sub btnViewReport_Click(ByVal sender As Object, ByVal e As System.Web.UI.ImageClickEventArgs)
+        Util.AjaxRedirect(upGV, "SurveyReport.aspx?sid=" + GetSelectedRowId(sender))
+    End Sub
+    
+    Private Function GetSelectedRowId(ByVal sender As Object) As String
+        gv1.DataBind()
+        Return gv1.DataKeys(CType(CType(sender, Control).NamingContainer, GridViewRow).RowIndex).Item("ROW_ID").ToString
+    End Function
+
+    Protected Sub gv1_RowDataBound(ByVal sender As Object, ByVal e As System.Web.UI.WebControls.GridViewRowEventArgs)
+        If e.Row.RowType = DataControlRowType.DataRow Then
+            If e.Row.Cells(2).FindControl("txtEditSurveyDesc") IsNot Nothing Then
+                CType(e.Row.Cells(2).FindControl("txtEditSurveyDesc"), TextBox).Text = CType(e.Row.Cells(2).FindControl("txtEditSurveyDesc"), TextBox).Text.Replace("<br/>", ControlChars.Lf)
+            End If
+        End If
+    End Sub
+    
+    Protected Sub Updating(ByVal s As Object, ByVal e As GridViewUpdateEventArgs) Handles gv1.RowUpdating
+        Dim tmprow As GridViewRow = gv1.Rows(e.RowIndex)
+        sql1.UpdateParameters.Item("SURVEY_TITLE").DefaultValue = CType(tmprow.FindControl("txtEditSubject"), TextBox).Text.Replace("'", "''").Trim
+        sql1.UpdateParameters.Item("SURVEY_DESC").DefaultValue = CType(tmprow.FindControl("txtEditSurveyDesc"), TextBox).Text.Replace(ControlChars.Lf, "<br/>").Replace("'", "''").Trim
+    End Sub
+
+    Protected Sub Page_Load(ByVal sender As Object, ByVal e As System.EventArgs)
+        If Not Page.IsPostBack Then
+            If Request.IsAuthenticated = False Then
+                Dim strRuntimeSiteUrl As String = Util.GetRuntimeSiteUrl()
+                Response.Redirect(strRuntimeSiteUrl & "/home.aspx?ReturnUrl=" & strRuntimeSiteUrl & "/EC/Surveys/SurveyMaster.aspx")
+            End If
+            txtSurveyThank.Content = "Thank you for your feedback."
+        End If
+    End Sub
+</script>
+
+<asp:Content ID="Content1" ContentPlaceHolderID="_main" Runat="Server">
+    <table width="100%">
+        <tr>
+            <td width="10%"></td>
+            <td width="80%">
+                <table width="100%" border="0">
+                    <tr><th align="left"><font size="5">Create Survey</font></th></tr>
+                    <tr><td height="5"></td></tr>
+                    <tr>
+                        <td>
+                            <table width="100%" style="border-bottom:1px solid #d7d0d0;border-top:1px solid #d7d0d0; border-left:1px solid #d7d0d0; border-right:1px solid #d7d0d0">
+                                <tr>
+                                    <td height="300" width="100%" valign="top">
+                                        <table width="100%">
+                                            <tr>
+                                                <td>
+                                                    <table>
+                                                        <tr>
+                                                            <td width="10"></td>
+                                                            <td>
+                                                                <table>
+                                                                    <tr>
+                                                                        <th>Title: </th><td><asp:TextBox runat="server" ID="txtSurveyTitle" Width="500px" /></td>
+                                                                    </tr>
+                                                                    <tr><td height="10" colspan="2"></td></tr>
+                                                                    <tr>
+                                                                        <th valign="top">Description: </th>
+                                                                        <td><asp:TextBox runat="server" ID="txtSurveyDesc" Width="500px" TextMode="MultiLine" Height="150" /></td>
+                                                                    </tr>
+                                                                    <tr><td height="10" colspan="2"></td></tr>
+                                                                    <tr>
+                                                                        <th valign="top">End Message: </th>
+                                                                        <td>
+                                                                            <ed:Editor runat="server" ID="txtSurveyThank" Appearance="custom" ShowQuickFormat="false" Submit="false" CausesValidation="false" NoScript="true" Width="500" Height="250">
+                                                                                <Buttons>
+                                                                                    <ed:Toggle Name="Bold"/>
+                                                                                    <ed:Toggle Name="Italic"/>
+                                                                                    <ed:Toggle Name="Underline"/>
+                                                                                    <ed:HorizontalSeparator/>
+                                                                                    <ed:Method Name="ClearStyles"/>
+                                                                                    <ed:HorizontalSeparator/>
+                                                                                    <ed:Method Name="JustifyLeft"/>
+                                                                                    <ed:Method Name="JustifyCenter"/>
+                                                                                    <ed:Method Name="JustifyRight"/>
+                                                                                    <ed:Method Name="JustifyFull"/>
+                                                                                    <ed:Method Name="RemoveAlignment"/>
+                                                                                    <ed:HorizontalSeparator/>
+                                                                                    <ed:Method Name="ForeColor" />
+                                                                                    <ed:Method Name="ForeColorClear" />
+                                                                                    <ed:Method Name="CreateLink" />
+                                                                                    <ed:Method Name="InsertIMG" />
+                                                                                    <ed:VerticalSeparator />
+                                                                                    <ed:Select Name="FontSize" />
+                                                                                    <ed:Select Name="FontName" />
+                                                                                </Buttons>
+                                                                            </ed:Editor>
+                                                                        </td>
+                                                                    </tr>
+                                                                </table>
+                                                            </td>
+                                                            <td width="10"></td>
+                                                        </tr>
+                                                    </table>
+                                                </td>
+                                            </tr>
+                                            <tr><td height="10"></td></tr>
+                                            <tr><td valign="bottom"><asp:Button runat="server" ID="btnCreate" Text="Submit" BorderWidth="1" BorderStyle="Ridge" BackColor="#3EBCFF" ForeColor="White" Font-Bold="true" Font-Size="Small" Width="110" Height="30" OnClick="btnCreate_Click" /></td></tr>
+                                            <tr><td><asp:Label runat="server" ID="lblMsg" ForeColor="Red" /></td></tr>
+                                        </table>
+                                    </td>
+                                </tr>
+                            </table>
+                        </td>
+                    </tr>
+                </table>
+            </td>
+            <td width="10%"></td>
+        </tr>
+    </table>
+    <hr />
+    <asp:UpdatePanel runat="server" ID="upGV" UpdateMode="Conditional">
+        <ContentTemplate>
+            <table width="100%">
+                <tr>
+                    <td>
+                        <asp:GridView runat="server" ID="gv1" AutoGenerateColumns="false" DataSourceID="sql1" PageSize="30" DataKeyNames="ROW_ID" OnRowDataBound="gv1_RowDataBound">
+                            <Columns>
+                                <asp:CommandField ShowEditButton="true" ShowDeleteButton="true" ButtonType="Link" />
+                                <asp:TemplateField HeaderText="Survey Subject">
+                                    <ItemTemplate>
+                                        <asp:Label runat="server" ID="lblSubject" Text='<%#Eval("SURVEY_TITLE") %>' />
+                                    </ItemTemplate>
+                                    <EditItemTemplate>
+                                        <asp:TextBox runat="server" ID="txtEditSubject" text='<%#Eval("SURVEY_TITLE") %>' Width="300px" />
+                                    </EditItemTemplate>
+                                </asp:TemplateField>
+                                <asp:TemplateField HeaderText="Survey Description">
+                                    <ItemTemplate>
+                                        <asp:Label runat="server" ID="lblDesc" Text='<%#Eval("SURVEY_DESC") %>' />
+                                    </ItemTemplate>
+                                    <EditItemTemplate>
+                                        <asp:TextBox runat="server" ID="txtEditSurveyDesc" Text='<%#Eval("SURVEY_DESC") %>' Width="300px" TextMode="MultiLine" Height="150px" />
+                                    </EditItemTemplate>
+                                </asp:TemplateField>
+                                <asp:BoundField DataField="CREATED_BY" HeaderText="Created By" ReadOnly="true" />
+                                <asp:BoundField DataField="CREATED_DATE" HeaderText="Created Date" ReadOnly="true" />
+                                <asp:TemplateField HeaderText="Template" ItemStyle-HorizontalAlign="Center" ItemStyle-Width="80">
+                                    <ItemTemplate>
+                                        <asp:ImageButton runat="server" ID="btnEditTemplate" ImageUrl="~/Images/Dashboard.gif" CausesValidation="false" OnClick="btnEditTemplate_Click" />
+                                    </ItemTemplate>
+                                </asp:TemplateField>
+                                <asp:TemplateField HeaderText="Report" ItemStyle-HorizontalAlign="Center" ItemStyle-Width="90">
+                                    <ItemTemplate>
+                                        <asp:ImageButton runat="server" ID="btnViewReport" ImageUrl="~/Images/enews.gif" CausesValidation="false" OnClick="btnViewReport_Click" />
+                                    </ItemTemplate>
+                                </asp:TemplateField>
+                            </Columns>
+                        </asp:GridView>
+                        <asp:SqlDataSource runat="server" ID="sql1" ConnectionString="<%$ connectionStrings: MyLocal %>"
+                            SelectCommand="select * from survey_master order by created_date desc"
+                            DeleteCommand="delete from survey_master where row_id=@ROW_ID"
+                            UpdateCommand="update survey_master set survey_title=@SURVEY_TITLE, survey_desc=@SURVEY_DESC where ROW_ID=@ROW_ID">
+                            <UpdateParameters>
+                                <asp:Parameter Type="String" Name="SURVEY_TITLE" />
+                                <asp:Parameter Type="String" Name="SURVEY_DESC" />
+                            </UpdateParameters>
+                        </asp:SqlDataSource>
+                    </td>
+                </tr>
+            </table>
+        </ContentTemplate>
+        <Triggers>
+            <asp:AsyncPostBackTrigger ControlID="btnCreate" EventName="Click" />
+        </Triggers>
+    </asp:UpdatePanel>
+</asp:Content>
+

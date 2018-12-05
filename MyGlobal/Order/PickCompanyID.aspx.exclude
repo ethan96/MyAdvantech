@@ -1,0 +1,234 @@
+﻿<%@ Page Language="VB" %>
+
+<script runat="server">
+    Dim xCompanyID As String = ""
+    Dim Type As String = ""
+    Dim ElementName As String = ""
+    Dim CustIDCondition As String = ""
+    Private Sub page_load(ByVal sender As Object, ByVal e As System.EventArgs)
+        'Me.GlobalInc.ValidationStateCheck()
+        
+        'If Request.QueryString("CompanyID") <> "" Then
+        xCompanyID = Request.QueryString("CompanyID")
+        '    Session("CompanyID") = xCompanyID
+        'Else
+        '    xCompanyID = Session("CompanyID")
+        'End If
+        'If Request.QueryString("Type") <> "" Then
+        Type = Request.QueryString("Type")
+        '    Session("Type") = Type
+        'Else
+        '    Type = Session("Type")
+        'End If
+        'If Request.QueryString("Element") <> "" Then
+        ElementName = Request.QueryString("Element")
+        '    Session("ElementName") = ElementName
+        'Else
+        '    ElementName = Session("ElementName")
+        'End If
+
+        'If Request.QueryString("CustID") <> "" Then
+        '    CustIDCondition = " and (companyid like '%" & Request.QueryString("CustID") & "%' or companyname like '%" & Request.QueryString("CustID") & "%') "
+        'Else
+        '    CustIDCondition = " "
+        'End If
+        'Session("COMPANY_ID") = "UUAAESC"
+        Dim strSqlCmd As String
+        If UCase(Type) = "SHIPTO" Then
+            strSqlCmd = "select TOP 1000 company_id,company_name,org_id,address,attention from SAP_DIMCOMPANY where ( company_id like '%" & xCompanyID & "%' or company_name like '%" & xCompanyID & "%') AND ORG_ID = '" + Session("ORG_ID") + "' AND company_name not like '*INVALID*%'"
+        ElseIf UCase(Type) = "SOLDTO" Then
+            strSqlCmd = "select TOP 1000 company_id,company_name,org_id,address,attention from SAP_DIMCOMPANY where ( company_id like '%" & xCompanyID & "%' or company_name like '%" & xCompanyID & "%') AND ORG_ID = '" + Session("ORG_ID") + "' AND company_name not like '*INVALID*%' "
+        Else
+            strSqlCmd = "select TOP 1000 company_id,company_name,org_id,address,attention from SAP_DIMCOMPANY where ( company_id like '%" & xCompanyID & "%' or company_name like '%" & xCompanyID & "%') AND ORG_ID = '" + Session("ORG_ID") + "'  AND company_name not like '*INVALID*%' "
+        End If
+        Me.SqlDataSource1.SelectCommand = strSqlCmd
+        If Not Page.IsPostBack Then
+            GridView1.DataBind()
+        End If
+    End Sub
+    
+    
+    
+    
+    Protected Sub GridView1_RowDataBound(ByVal sender As Object, ByVal e As System.Web.UI.WebControls.GridViewRowEventArgs)
+        If e.Row.RowType <> DataControlRowType.Pager Then
+            e.Row.Cells(2).Visible = False
+            e.Row.Cells(4).Visible = False
+        End If
+        Dim xCompanyID As String = ""
+        Dim xOrg_ID As String = ""
+        Dim xCompanyAttn As String = ""
+        If e.Row.RowType = DataControlRowType.DataRow Then
+            xCompanyID = e.Row.Cells(0).Text
+            xCompanyAttn = e.Row.Cells(4).Text.Replace(" ", "")
+            xOrg_ID = e.Row.Cells(2).Text
+            Dim StrLink As String = ""
+            StrLink = " onClick=copopulate('" & ElementName & "','" & xCompanyID & "','" & xOrg_ID & "'" & "," & "'" & xCompanyAttn & "')"
+            'me.DropShip.VxUserFormat(xDataGridItem,1,"<a href='#' onClick=copopulate('" & xCompanyID & "','" & xCompanyAttn & "') >" & UCase(xCompanyID) & "</a>")
+            e.Row.Cells(0).Text = "<a href='#' " & StrLink & " >" & UCase(xCompanyID) & "</a>"
+        End If
+        
+    End Sub
+    'Protected Sub AdxGrid1_ItemDataBound(ByVal sender As Object, ByVal e As System.Web.UI.WebControls.DataGridItemEventArgs)
+    '    Dim xDataGridItem As DataGridItem = e.Item
+    '    Dim retVal() As String
+    '    Dim xType As ListItemType = e.Item.ItemType
+    '    Dim xCompanyID As String = ""
+    '    Dim xOrg_ID As String = ""
+    '    Dim xCompanyAttn As String = ""
+    '    If xType <> ListItemType.Header And xType <> ListItemType.Footer Then
+    '        retVal = Me.DropShip.VxGetGridItemValue(xDataGridItem)
+    '        xCompanyID = retVal(1)
+    '        xCompanyAttn = retVal(4)
+    '        xOrg_ID = retVal(5)
+    '        Dim StrLink As String = ""
+    '        StrLink = " 'javascript:vorg_id(0);' onClick=" & Chr(34) & "copopulate(" & "'" & ElementName & "','" & xCompanyID & "','" & xOrg_ID & "'" & "," & "'" & xCompanyAttn & "'" & ")" & Chr(34) & "," & _
+    '                  Chr(34) & xCompanyAttn & Chr(34) & ")'"
+    '        'me.DropShip.VxUserFormat(xDataGridItem,1,"<a href='#' onClick=copopulate('" & xCompanyID & "','" & xCompanyAttn & "') >" & UCase(xCompanyID) & "</a>")
+    '        Me.DropShip.VxUserFormat(xDataGridItem, 1, "<a href='#' & " & StrLink & " >" & UCase(xCompanyID) & "</a>")
+    '    End If
+    'End Sub
+    
+    Protected Sub Search_Click(ByVal sender As Object, ByVal e As System.EventArgs)
+        'Dim strSqlCmd As String
+        'strSqlCmd = "select company_id,company_name,org_id,address,attention from company where " & Me.ddlSearchType.selectedValue & " like '%" & Me.txtKeyWord.text.Trim() & "%'"
+        'Me.DropShip.xSQL = strSqlCmd
+        'Me.DropShip.CurrentPageIndex=0
+        'Me.DropShip.VxDataGridBinding()
+    End Sub
+</script>
+
+<html xmlns="http://www.w3.org/1999/xhtml" >
+<head id="Head1" runat="server">
+    <title>Advantech B2B-Europe Online -- Product Inquiry</title>
+ <meta content="Microsoft Visual Studio .NET 7.1" name="GENERATOR"/>
+	<meta content="Visual Basic .NET 7.1" name="CODE_LANGUAGE"/>
+	<meta content="JavaScript" name="vs_defaultClientScript"/>
+	<meta content="http://schemas.microsoft.com/intellisense/ie5" name="vs_targetSchema"/>
+	<link runat="server" id="ebizCss" visible="true" href="../Includes/ebiz.aeu.style.css" rel="stylesheet" type="text/css" />
+    <link href="../Includes/global.css" rel="Stylesheet" type="text/css" /> 
+</head>
+<body>
+    <form id="form1" runat="server">
+    <div>
+<script type="text/javascript" language="javascript">
+
+window.document.onkeydown = CheckEnter;
+
+function CheckEnter()
+{
+
+     if(event.keyCode == 13)
+
+          return false;
+
+     return true;
+
+}
+
+
+
+function copopulate(xElement,company,org_id,ShipToAttn)
+   	{
+   	//xElement="company_id*org_id"
+   	var retValue;
+   	retValue = xElement.split("*");
+   	var i;
+   	i = 0;
+   	//alert(retValue.length + "||" + retValue[0] + "||" + retValue[1]);
+   	for (i = 0; i < retValue.length; i++){
+   	  //alert("retValue" + i + ":" + retValue[i].toUpperCase());
+   	  switch (retValue[i]){
+   	      case "ctl00__main_txtcompid":
+   	          {
+   	              //alert(company);
+   	              //window.opener.aspnetForm.elements("company_id").value = company;
+   	              eval("window.opener.document.aspnetForm." + xElement).value = company
+   	              continue;
+   	          }
+   	     case "ORG_ID":
+   	     {
+   	       window.opener.aspnetForm.elements("org_id").value = org_id;
+   	       //alert("org_id:" + org_id);
+   	       continue;
+   	     }
+   	     case "ATTENTION":
+   	     {
+   	       window.opener.aspnetForm.elements("attention").value = ShipToAttn;
+   	       //alert("attention:" + ShipToAttn);
+   	       continue;
+   	   }
+         case "ctl00__main_txtshiptoid":
+           {
+          // alert(ShipToAttn);
+           eval("window.opener.document.aspnetForm." + xElement).value = company
+   	       continue;
+   	   }
+   	     default:
+   	     {
+   	       
+   	          window.opener.aspnetForm.elements( retValue[i]).value = company;
+   	       
+   	     }
+   	  }
+   	}
+   	//window.opener.form1.elements(xElement).value = company;
+   	//alert("self.close()");
+   	self.close()
+   	}
+</script>
+
+
+ <table width="100%" border="0" cellspacing="0" cellpadding="0" ID="Table1">
+			<tr>
+				<td style="width:100%;height:10px" valign="top" align="center">
+					&nbsp;
+				</td>
+			</tr>
+			
+			<tr>
+				<!-- ******* center column (start) ********-->
+				<td style="width:100%" valign="top" align="center">
+					<!--include file="PickDropShip_main.asp"-->
+					<table cellpadding="1"  width="100%"><tr><td style="background-color:#666666">
+			<table width="100%" border="0" cellspacing="0" cellpadding="0" align="center" style="vertical-align:middle" ID="Table3">
+                    <tr>
+                        <td style="padding-left:10px;border-bottom:#ffffff 1px solid;height:20px;background-color:#6699CC" align="left" valign="middle" class="text">
+                        <font color="#ffffff"><b>Company List</b></font></td></tr>
+                        <tr><td>
+										
+														
+												<asp:GridView runat="server" Width="100%" ID="GridView1" AutoGenerateColumns = "true" 
+                                                            DataSourceID ="SqlDataSource1" onrowdatabound="GridView1_RowDataBound" 
+                                                            AllowPaging="True" PageIndex="0" PageSize="20"></asp:GridView>		
+								
+								
+								
+														
+                                            <asp:SqlDataSource ID="SqlDataSource1" runat="server" ConnectionString="<%$ ConnectionStrings:B2B %>"></asp:SqlDataSource>
+								   
+                </td></tr><tr><td id="tdTotal" align="right" style="background-color:#ffffff" runat="server"></td></tr></table>
+				</td></tr></table>
+							
+				</td>
+				<!-- ******* center column (end) ********-->
+			</tr>
+			<tr>
+				<td style="width:100%;height:10px" valign="top" align="center">
+					&nbsp;
+				</td>
+			</tr>
+			<tr valign="middle">
+				<td align="center">
+					<!-- ******* page title (start) ********-->
+					&nbsp;&nbsp;<span class="PageMessageBar">*HINT: Click 'Query' to input query string then 'Go'. Click 'Ship Id' to apply.</span>
+					<p></p>
+					<!-- ******* page title (end) ********-->
+				</td>
+			</tr>			
+		</table>
+</div>
+</form>
+</body>
+</html>
+

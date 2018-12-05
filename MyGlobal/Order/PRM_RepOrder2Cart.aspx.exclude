@@ -1,0 +1,165 @@
+﻿<%@ Page Title="MyAdvantech - Convert PRM Replenish Order Request to Shopping Cart" Language="VB" MasterPageFile="~/Includes/MyMaster.master" %>
+
+<script runat="server">
+
+    Protected Sub Page_Load(sender As Object, e As System.EventArgs)
+        If Not Page.IsPostBack Then
+            If Request("rid") IsNot Nothing Then
+                Dim strRequestId As String = Trim(Request("rid"))
+                Dim PRMOrderRequests As Dictionary(Of String, MyPRM.PRMReqOrderDetail) = CType(HttpContext.Current.Cache("PRMOrderRequests"), Dictionary(Of String, MyPRM.PRMReqOrderDetail))
+                If PRMOrderRequests Is Nothing Then
+                Else
+                    If PRMOrderRequests.ContainsKey(strRequestId) Then
+                        Page.ClientScript.RegisterStartupScript(Me.Page.GetType(), "initGetRequest", "GetRequest('" + strRequestId + "')", True)
+                    Else
+                    
+                    End If
+                End If
+            End If
+        End If
+    End Sub
+    
+    <Services.WebMethod()> _
+    <Web.Script.Services.ScriptMethod()> _
+    Public Shared Function GetRequest(ByVal RequestId As String) As String
+        Dim CandidateCartDetail1 As New CandidateCartDetail
+        Dim PRMOrderRequests As Dictionary(Of String, MyPRM.PRMReqOrderDetail) = CType(HttpContext.Current.Cache("PRMOrderRequests"), Dictionary(Of String, MyPRM.PRMReqOrderDetail))
+        If PRMOrderRequests Is Nothing Then
+        Else
+            If PRMOrderRequests.ContainsKey(RequestId) Then
+                Dim PRMReqOrderDetail1 As MyPRM.PRMReqOrderDetail = PRMOrderRequests.Item(RequestId)
+                If Not String.Equals(HttpContext.Current.User.Identity.Name, PRMReqOrderDetail1.ContactEmail) AndAlso Util.IsAEUIT() = False Then
+                    CandidateCartDetail1.GetStatus = False : CandidateCartDetail1.ErrorMessage = "You are not authorized to access requested data"
+                Else
+                    CandidateCartDetail1.GetStatus = True : CandidateCartDetail1.ErrorMessage = ""
+                    CandidateCartDetail1.CartLines = PRMReqOrderDetail1.ProductRecords
+                End If
+            Else
+                CandidateCartDetail1.GetStatus = False : CandidateCartDetail1.ErrorMessage = "Cannot find request"
+            End If
+        End If
+        Dim serializer = New Script.Serialization.JavaScriptSerializer()
+        Return serializer.Serialize(CandidateCartDetail1)
+    End Function
+    
+    Class CandidateCartDetail
+        Public Property GetStatus As Boolean : Public Property ErrorMessage As String : Public Property CartLines As List(Of MyPRM.PartNoQtyReqDate)
+        Public Sub New()
+            CartLines = New List(Of MyPRM.PartNoQtyReqDate)
+        End Sub
+    End Class
+    
+    <Services.WebMethod()> _
+    <Web.Script.Services.ScriptMethod()> _
+    Public Shared Function Add2Cart(ByVal CartLines As List(Of MyPRM.PartNoQtyReqDate)) As String
+        'Dim serializer = New Script.Serialization.JavaScriptSerializer()
+        'Dim ListOfCartLines As List(Of MyPRM.PartNoQtyReqDate) = serializer.Deserialize(Of List(Of MyPRM.PartNoQtyReqDate))(CartLines)
+        'Return CartLines.Count.ToString()
+        Dim serializer = New Script.Serialization.JavaScriptSerializer()
+        Dim mycart As New CartList("b2b", "cart_detail_v2"), strCartId As String = HttpContext.Current.Session("cart_id")
+        For Each cartLine As MyPRM.PartNoQtyReqDate In CartLines
+            mycart.ADD2CART_V2(strCartId, cartLine.PartNo, cartLine.Qty, 0, 0, "", 1, 0, Now, "", "", 0, False)
+        Next
+        Dim Add2CartResponse1 As New Add2CartResponse
+        Add2CartResponse1.IsOk = True : Add2CartResponse1.ErrorMessage = ""
+        Return serializer.Serialize(Add2CartResponse1)
+    End Function
+    
+    Class Add2CartResponse
+        Public Property IsOk As Boolean : Public Property ErrorMessage As String
+    End Class
+    
+</script>
+
+<asp:Content ID="Content1" ContentPlaceHolderID="_main" Runat="Server">
+    <script type="text/javascript" src="../EC/Includes/jquery-latest.min.js"></script>
+    <script type="text/javascript" src="../EC/Includes/jquery-ui.js"></script>
+    <script type="text/javascript" src="../EC/Includes/json2.js"></script>
+    <script type="text/javascript">
+        function GetRequest(rid) {           
+            var postData = JSON.stringify({ RequestId: rid });            
+            $.ajax(
+                {
+                    type: "POST",
+                    url: "PRM_RepOrder2Cart.aspx/GetRequest",
+                    data: postData,
+                    contentType: "application/json; charset=utf-8",
+                    dataType: "json",
+                    success: function (retData) {                        
+                        var CandidateCartDetail1 = $.parseJSON(retData.d);                        
+                        if (CandidateCartDetail1.GetStatus) {
+                            var tbCartLines = $("#tbCartLines"); var tbLineHtml = "";
+                            $.each(CandidateCartDetail1.CartLines, function (idx, item) {
+                                tbLineHtml += "<tr><td>" + item.PartNo + "</td><td align='center'><input style='width:30px' class='cartline' type='text' pn='" + item.PartNo + "' value='" + item.Qty.toString() + "' /></td></tr>";
+                            });
+                            tbCartLines.html(tbLineHtml);
+                        }
+                        else {
+                            //console.log(CandidateCartDetail1.ErrorMessage);
+                        }
+                    },
+                    error: function (msg) {                        
+                        //console.log("call GetRequest err:" + msg.d);
+                    }
+                }
+            );            
+        }
+
+        function add2Cart() {
+            var lines = $(".cartline"); var linesToServer = [];
+            $.each(lines, function (idx, item) {
+                //console.log($(item).attr("pn") + "," + $(item).val());
+                var line1 = {
+                    PartNo: $(item).attr("pn"),
+                    Qty: $(item).val(),
+                    RequiredDate: new Date()
+                }
+                linesToServer.push(line1);
+            });
+
+            var postData = JSON.stringify({ CartLines: linesToServer });
+            $.ajax(
+                {
+                    type: "POST",
+                    url: "PRM_RepOrder2Cart.aspx/Add2Cart",
+                    data: postData,
+                    contentType: "application/json; charset=utf-8",
+                    dataType: "json",
+                    success: function (retData) {
+                        //console.log("Add2Cart ok:" + retData.d);
+                        var retMsg = $.parseJSON(retData.d);
+                        if (retMsg.IsOk) {
+                            window.location.href = "cart_list.aspx";
+                        }
+                        else {
+                            //console.log(retMsg.ErrorMessage);
+                            $("#add2CartErr").text(retMsg.ErrorMessage);
+                        }
+                    },
+                    error: function (msg) {
+                        //console.log("call Add2Cart err:" + msg.d);                        
+                    }
+                }
+            ); 
+
+        }
+
+    </script>
+    <h2>Convert PRM Relenishment Order to Cart</h2><br />
+    <table>
+        <thead>
+            <tr>
+                <th align="left" style="width:100px">Part No.</th>
+                <th align="left" style="width:100px">Qty.</th>
+            </tr>
+        </thead>
+        <tbody id="tbCartLines" />
+        <tfoot>
+            <tr>
+                <td colspan="2" align="center">
+                    <input type="button" value="Add to Cart" onclick="add2Cart()" />&nbsp;<p id="add2CartErr"></p>
+                </td>
+            </tr>
+        </tfoot>
+    </table>
+</asp:Content>

@@ -1,0 +1,274 @@
+﻿<%@ Page Language="VB" MasterPageFile="~/Includes/MyMaster.master" Title="eStore - To Be Reviewed List" %>
+
+<script runat="server">
+
+    Protected Sub Page_Load(ByVal sender As Object, ByVal e As System.EventArgs)
+        If Not Page.IsPostBack Then
+        End If
+    End Sub
+    
+    Private Sub LoadData()
+        
+        Dim _StoreID As String = Me.dlStoreID.SelectedValue
+        
+        Dim sql As New StringBuilder
+        sql.AppendLine(" SELECT a.SProductID,a.DisplayPartno ")
+        sql.AppendLine(" ,case when b.BTONo is Null and c.SProductID is Null then 'Products' else  ")
+        sql.AppendLine(" 	case when b.BTONo is not Null and c.SProductID is Null then 'CTOS' else  ")
+        sql.AppendLine(" 		case when b.BTONo is Null and c.SProductID is not Null then 'Bundles' else '' end ")
+        sql.AppendLine("    end")
+        sql.AppendLine("  end as ProductType ")
+        sql.AppendLine(" ,d.Currency + '' + CAST(d.VendorSuggestedPrice as nvarchar(max)) as VendorSuggestedPrice ")
+        sql.AppendLine(" ,d.PriceSourceProvider ")
+        sql.AppendLine(" ,d.Currency + '' +  CAST(a.StorePrice as nvarchar(max)) as StorePrice ")
+        sql.AppendLine(" FROM [Product] a left join Product_Ctos b on a.SProductID=b.SProductID and a.StoreID=b.StoreID ")
+        sql.AppendLine(" left join Product_Bundle c on a.SProductID=c.SProductID and a.StoreID=c.StoreID ")
+        sql.AppendLine(" left join Parts d on a.StoreID=d.StoreID and a.SProductID=d.SProductID ")
+        sql.AppendLine(" where a.storeid='" & _StoreID & "' and a.PublishStatus=1 ")
+        sql.AppendLine(" and a.[Status]='TOBEREVIEW' ")
+        sql.AppendLine(" order by a.DisplayPartno ")
+        
+        Dim dt As DataTable = dbUtil.dbGetDataTable("Estore", sql.ToString)
+        Dim _ListPriceDC As New DataColumn("listprice")
+        _ListPriceDC.ReadOnly = False
+        dt.Columns.Add(_ListPriceDC)
+        
+        Dim _rowcount As Integer = dt.Rows.Count
+        
+        For i As Integer = _rowcount - 1 To 0 Step -1
+            If dt.Rows(i).Item("ProductType").ToString = "CTOS" Then
+                Dim _dtCTOSChild As DataTable = GeteStoreCBOMDetail(dt.Rows(i).Item("SProductID").ToString, _StoreID)
+                Dim _ListPriceDC1 As New DataColumn("listprice")
+                _ListPriceDC1.ReadOnly = False
+                _dtCTOSChild.Columns.Add(_ListPriceDC1)
+                
+                For Each _row As DataRow In _dtCTOSChild.Rows
+                    Dim row = dt.NewRow
+                    row.ItemArray = _row.ItemArray
+                    dt.Rows.InsertAt(row, i + 1)
+                Next
+                
+                
+                
+               
+            End If
+                
+        Next
+        
+        Dim ws As New MYSAPDAL
+        Dim pin As New SAPDALDS.ProductInDataTable, pout As New SAPDALDS.ProductOutDataTable, errMsg As String = ""
+        For Each r As DataRow In dt.Rows
+            pin.AddProductInRow(r.Item("DisplayPartno"), 1)
+        Next
+        If ws.GetPrice("ASPA001", "ASPA001", "TW01", pin, pout, errMsg) Then
+            For Each r As DataRow In dt.Rows
+                Dim rs() As SAPDALDS.ProductOutRow = pout.Select("part_no='" + r.Item("DisplayPartno") + "'")
+                If rs.Length > 0 AndAlso Decimal.TryParse(rs(0).UNIT_PRICE, 0) AndAlso Decimal.TryParse(rs(0).LIST_PRICE, 0) Then
+                    'r.Item("unitprice") = FormatNumber(rs(0).UNIT_PRICE, 2).Replace(",", "")
+                    r.Item("listprice") = "USD " & FormatNumber(rs(0).LIST_PRICE, 2).Replace(",", "")
+                End If
+            Next
+        End If
+        
+        Me.gv1.DataSource = dt
+        Me.gv1.DataBind()
+    End Sub
+
+    Protected Sub Button1_Click(sender As Object, e As System.EventArgs)
+        
+        'Dim _dt As DataTable = Me.GeteStoreCBOMDetail()
+        
+        Me.LoadData()
+        
+        
+        
+    End Sub
+    
+    Private Function GeteStoreCBOMDetail(ByVal _SproductID As String, ByVal _Storeid As String) As DataTable
+        
+        Dim _subitem As New DataTable
+        
+        Dim sql As New StringBuilder
+        sql.AppendLine(" select * from CTOSBOM where SproductID  = '" & _SproductID & "' AND StoreID = '" & _Storeid & "' AND ParentID IS null ")
+        Dim _dt1 As DataTable = dbUtil.dbGetDataTable("Estore", sql.ToString)
+        
+        For Each _row1 As DataRow In _dt1.Rows
+            sql.Clear()
+            sql.AppendLine(" select ComponentID from CTOSBOM where StoreID = '" & _Storeid & "' and SProductID ='" & _row1.Item("SProductID") & "' and CTOSBOM.ParentID = '" & _row1.Item("ID") & "' ")
+            Dim _dt2 As DataTable = dbUtil.dbGetDataTable("Estore", sql.ToString)
+            
+            For Each _row2 As DataRow In _dt2.Rows
+
+                sql.Clear()
+                sql.AppendLine(" Select a.SProductID,'' as DisplayPartNo,'CTOS-Item',b.VendorSuggestedPrice,b.LocalPrice,b.PriceSourceProvider from CTOSComponentDetail a left join parts b on a.SProductID=b.SProductID and a.storeid=b.storeid ")
+                sql.AppendLine(" WHERE a.ComponentID = '" & _row2.Item("ComponentID") & "' ")
+                sql.AppendLine(" and a.StoreID = '" & _Storeid & "' ")
+                Dim _dt3 As DataTable = dbUtil.dbGetDataTable("Estore", sql.ToString)
+
+                _subitem.Merge(_dt3)
+            Next
+            
+            Dim aaa = 1
+            
+        Next
+        
+        Return _subitem
+        
+        
+        'Dim sql As New StringBuilder
+        'sql.AppendLine(" DECLARE @Store nvarchar(20) = 'SAP' ")
+        'sql.AppendLine(" DECLARE @ProductID nvarchar(20) = '21033' ")
+        'sql.AppendLine(" select * INTO franktmp from CTOSBOM where SproductID  = @ProductID AND StoreID = @Store AND ParentID IS null ")
+        'sql.AppendLine(" DECLARE @tab table ( ")
+        'sql.AppendLine(" StroreID nvarchar(20) default '', ")
+        'sql.AppendLine(" ParentID nvarchar(20) default '', ")
+        'sql.AppendLine(" ComponentID nvarchar(20) default '', ")
+        'sql.AppendLine(" ComponentName nvarchar(250) default '', ")
+        'sql.AppendLine(" ComponentDesc nvarchar(500) default '', ")
+        'sql.AppendLine(" MainPart nvarchar(20) default '', ")
+        'sql.AppendLine(" Seq nvarchar(20) default '', ")
+        'sql.AppendLine(" Defaults nvarchar(20) default '', ")
+        'sql.AppendLine(" Show nvarchar(20) default '', ")
+        'sql.AppendLine(" InputType nvarchar(20) default '', ")
+        'sql.AppendLine(" Maxquantity nvarchar(20) default '', ")
+        'sql.AppendLine(" partNo nvarchar(200) default '' ")
+        'sql.AppendLine(" ) ")
+        'sql.AppendLine(" DECLARE @StoreID nvarchar(20) ")
+        'sql.AppendLine(" DECLARE @ComID int ")
+        'sql.AppendLine(" DECLARE @ParentID int ")
+        'sql.AppendLine(" DECLARE @SproductID nvarchar(100) ")
+        'sql.AppendLine(" DECLARE @ID int ")
+        'sql.AppendLine(" declare detailCur cursor ")
+        'sql.AppendLine(" read_only ")
+        'sql.AppendLine(" for ")
+        'sql.AppendLine(" 	SELECT StoreID,ComponentID,SproductID,ID from franktmp ")
+        'sql.AppendLine(" open detailCur ")
+        'sql.AppendLine(" fetch next from detailCur into @StoreID,@ComID,@SproductID,@ID ")
+        'sql.AppendLine(" while(@@fetch_status=0) ")
+        'sql.AppendLine(" begin ")
+        'sql.AppendLine(" insert into @tab SELECT CTOSBOM.StoreID, CTOSBOM.ComponentID as ParentID,CTOSBOM.ParentID as ComponentID,CTOSComponent.ComponentName, CTOSComponent.ComponentDesc, ")
+        'sql.AppendLine(" 			 CTOSBOM.MainPart,CTOSBOM.Seq ,CTOSBOM.Defaults,CTOSBOM.Show, CTOSBOM.InputType,CTOSBOM.Maxquantity,'' as  partNo_X_Qty     ")
+        'sql.AppendLine(" FROM         CTOSBOM INNER JOIN ")
+        'sql.AppendLine(" CTOSComponent ON  ")
+        'sql.AppendLine(" CTOSBOM.StoreID = CTOSComponent.StoreID AND  ")
+        'sql.AppendLine(" CTOSBOM.ComponentID = CTOSComponent.ComponentID ")
+        'sql.AppendLine(" WHERE CTOSBOM.SproductID  = @SproductID AND CTOSBOM.StoreID = @StoreID AND CTOSBOM.ComponentID = @ComID ")
+        'sql.AppendLine(" declare @sComponect varchar(20) = '' ")
+        'sql.AppendLine(" declare sCur cursor ")
+        'sql.AppendLine(" read_only ")
+        'sql.AppendLine(" for ")
+        'sql.AppendLine(" select ComponentID from CTOSBOM where StoreID = @StoreID and SProductID = @SproductID and CTOSBOM.ParentID = @ID ")
+        'sql.AppendLine(" open sCur ")
+        'sql.AppendLine(" fetch next from sCur into @sComponect ")
+        'sql.AppendLine(" while(@@fetch_status=0) ")
+        'sql.AppendLine(" begin ")
+        'sql.AppendLine(" DECLARE @dQTY nvarchar(10) = '' ")
+        'sql.AppendLine(" DECLARE @dSproductId nvarchar(20) = '' ")
+        'sql.AppendLine(" DECLARE @dPartNbQty nvarchar(1200) = '' ")
+        'sql.AppendLine(" declare dcur cursor ")
+        'sql.AppendLine(" for select SProductID,Qty from CTOSComponentDetail ")
+        'sql.AppendLine(" WHERE ComponentID = @sComponect  ")
+        'sql.AppendLine(" and StoreID = @StoreID ")
+        'sql.AppendLine(" open dcur ")
+        'sql.AppendLine(" fetch next from dcur into @dSproductId,@dQTY ")
+        'sql.AppendLine(" while (@@fetch_status =0) ")
+        'sql.AppendLine(" begin ")
+        'sql.AppendLine(" IF @dPartNbQty = '' ")
+        'sql.AppendLine(" begin ")
+        'sql.AppendLine(" IF(@dSproductId != '' and @dSproductId is not null) ")
+        'sql.AppendLine(" set @dPartNbQty = @dPartNbQty + @dSproductId ")
+        'sql.AppendLine(" end ")
+        'sql.AppendLine(" else ")
+        'sql.AppendLine(" begin ")
+        'sql.AppendLine(" IF(@dSproductId != '' and @dSproductId is not null) ")
+        'sql.AppendLine(" set @dPartNbQty = @dPartNbQty + ' & ' + @dSproductId  ")
+        'sql.AppendLine(" end ")
+        'sql.AppendLine(" fetch next from dcur into @dSproductId,@dQTY ")
+        'sql.AppendLine(" end ")
+        'sql.AppendLine(" close dcur ")
+        'sql.AppendLine(" deallocate dcur ")
+        'sql.AppendLine(" insert into @tab SELECT     CTOSBOM.StoreID, '', CTOSComponent.ComponentID, CTOSComponent.ComponentName, CTOSComponent.ComponentDesc,  ")
+        'sql.AppendLine(" CTOSBOM.MainPart, CTOSBOM.Seq, CTOSBOM.Defaults, CTOSBOM.Show, CTOSBOM.InputType, CTOSBOM.Maxquantity, ")
+        'sql.AppendLine(" @dPartNbQty as partNo_X_Qty ")
+        'sql.AppendLine(" FROM CTOSBOM LEFT JOIN CTOSComponent ON CTOSBOM.StoreID = CTOSComponent.StoreID AND CTOSBOM.ComponentID = CTOSComponent.ComponentID ")
+        'sql.AppendLine(" WHERE CTOSBOM.SproductID  = @SproductID AND CTOSBOM.StoreID = @StoreID AND CTOSBOM.ParentID = @ID AND CTOSComponent.ComponentID = @sComponect ")
+        'sql.AppendLine(" fetch next from sCur into @sComponect ")
+        'sql.AppendLine(" end ")
+        'sql.AppendLine(" close detailCur ")
+        'sql.AppendLine(" deallocate detailCur ")
+        'sql.AppendLine(" SELECT * from @tab ")
+        'sql.AppendLine(" DROP TABLE franktmp ")
+        'Dim dt As DataTable = dbUtil.dbGetDataTable("Estore", sql.ToString)
+        'Return dt
+    End Function
+    
+</script>
+
+<asp:Content ID="Content1" ContentPlaceHolderID="_main" Runat="Server">
+
+        <table cellpadding="0" cellspacing="0" width="100%" style="height:100%">
+            <tr>
+                <td valign="top">
+                    <table cellpadding="0" cellspacing="0" width="100%">
+                        <tr><td style="height:20px"></td></tr>
+                        <tr><td class="euPageTitle">eStore - To Be Reviewed List</td></tr>
+                        <tr><td style="height:15px"></td></tr>
+                        <tr>
+                            <td>
+                                <table width="100%">
+                                    <tr>
+                                        <td>Store ID：
+                                            <asp:DropDownList runat="server" ID="dlStoreID" AutoPostBack="true">
+                                                <asp:ListItem Value="SAP" Selected="True" />
+                                                <asp:ListItem Value="AAU" />
+                                                <asp:ListItem Value="ABR" />
+                                                <asp:ListItem Value="ACN" />
+                                                <asp:ListItem Value="AEU" />
+                                                <asp:ListItem Value="AIN" />
+                                                <asp:ListItem Value="AJP" />
+                                                <asp:ListItem Value="AKR" />
+                                                <asp:ListItem Value="ALA" />
+                                                <asp:ListItem Value="ASC" />
+                                                <asp:ListItem Value="ATW" />
+                                                <asp:ListItem Value="AUS" />
+                                                <asp:ListItem Value="EMT" />
+                                            </asp:DropDownList>
+                                            <asp:Button ID="Button1" runat="server" Text="Query" onclick="Button1_Click" />
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>
+                                            
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>
+                                            <asp:UpdatePanel runat="server" ID="upABProduct" UpdateMode="Conditional">
+                                                <ContentTemplate>
+                                                    <asp:GridView runat="server" ID="gv1" AutoGenerateColumns="true" 
+                                                        HeaderStyle-HorizontalAlign="Center" Width="95%">
+					                                    <Columns>
+					                                        <asp:TemplateField ItemStyle-Width="50px" ItemStyle-HorizontalAlign="Center">
+                                                                <headertemplate>
+                                                                    No.
+                                                                </headertemplate>
+                                                                <itemtemplate>
+                                                                    <%# Container.DataItemIndex + 1 %>
+                                                                </itemtemplate>
+                                                            </asp:TemplateField>
+                                                        </Columns>
+					                                </asp:GridView>
+                                                </ContentTemplate>
+                                            </asp:UpdatePanel> 
+                                        </td>
+                                    </tr>
+                                </table>                            
+                            </td>
+                        </tr>
+                    </table>
+                </td>
+            </tr>
+            <tr><td style="height:20px"></td></tr>
+        </table>
+
+</asp:Content>

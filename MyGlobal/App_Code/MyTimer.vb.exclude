@@ -1,0 +1,88 @@
+﻿Imports Microsoft.VisualBasic
+Imports System.Diagnostics
+
+Public Class MyTimer
+
+    Private mlogarr As ArrayList = New ArrayList
+    Private mWatch As Stopwatch = New Stopwatch
+    Private lastTime As Long = 0
+    Public Sub New()
+        Me.reset()
+    End Sub
+
+    Public Sub reset()
+        mlogarr.Clear()
+        mWatch.Reset()
+        lastTime = 0
+    End Sub
+
+    Public Sub SendReport(ByVal _SendTo As String, ByVal _Subject As String)
+
+        If Me.mWatch IsNot Nothing Then Me.mWatch.Stop()
+
+        Dim _sb As New StringBuilder
+
+        _sb.AppendLine("<html>")
+        _sb.AppendLine("<body>")
+        _sb.AppendLine(_Subject & "<br>")
+        _sb.AppendLine("<table border='1'>")
+
+        'Elapsed
+        _sb.AppendLine("<tr>")
+        _sb.AppendLine("<td align='center'>Log Point Description</td>")
+        _sb.AppendLine("<td align='center'>Elapsed time from previous Log Point</td>")
+        _sb.AppendLine("<td align='center'>Total Elapsed time</td>")
+        _sb.AppendLine("</tr>")
+
+        For Each _str As String() In Me.mlogarr
+            _sb.AppendLine("<tr>")
+            _sb.AppendLine("<td>" & _str(0) & "</td>")
+            _sb.AppendLine("<td align='right'>" & _str(1) & " ms</td>")
+            _sb.AppendLine("<td align='right'>" & _str(2) & " ms</td>")
+            _sb.AppendLine("</tr>")
+        Next
+
+        _sb.AppendLine("</table>")
+        _sb.AppendLine("</body>")
+        _sb.AppendLine("</html>")
+
+
+        Util.SendEmail(_SendTo, "Frank.Chung@advantech.com.tw", _Subject, _sb.ToString, True, "", "")
+    End Sub
+
+    Public Function GetLogContent() As ArrayList
+        Return Me.mlogarr
+    End Function
+
+    Public Sub logNow(ByVal LogTimeDescription As String)
+
+        Static lastTime As Long
+
+        Dim _logitem(2) As String
+
+        Dim StrTime As String = ""
+
+        '' stop timing the event and display the results
+
+        If mWatch.IsRunning Then
+            mWatch.Stop()
+        Else
+            lastTime = 0
+        End If
+
+
+        _logitem(0) = LogTimeDescription
+
+        _logitem(1) = mWatch.ElapsedMilliseconds - lastTime
+
+        lastTime = mWatch.ElapsedMilliseconds
+        _logitem(2) = lastTime
+
+        mlogarr.Add(_logitem)
+
+        mWatch.Start()
+
+
+    End Sub
+
+End Class

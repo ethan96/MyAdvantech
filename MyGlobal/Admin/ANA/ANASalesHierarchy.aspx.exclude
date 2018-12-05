@@ -1,0 +1,70 @@
+﻿<%@ Page Title="MyAdvantech - ANA Sales Hierarchy" Language="VB" MasterPageFile="~/Includes/MyMaster.master" %>
+
+<script runat="server">
+
+   Protected Sub Page_Init(ByVal sender As Object, ByVal e As System.EventArgs)
+        If Not Page.IsPostBack Then
+            If Util.IsAEUIT() = False AndAlso Util.IsANAPowerUser() = False Then
+               Response.Redirect("../../home.aspx")
+            End If
+            dlMD_SelectedIndexChanged(Nothing, Nothing)
+        End If
+    End Sub
+    
+    Sub GetHierarchy(ByRef pnode As TreeNode)
+        If pnode.Depth >= 5 Then Exit Sub
+        Dim dt As DataTable = dbUtil.dbGetDataTable("MY", String.Format( _
+        " select IsNull(NAME,'') +' ('+IsNull(POSITION_TYPE,IsNull(POSITION,'')) +')' as NAME, POSITION_ID from SIEBEL_SALES_HIERARCHY " + _
+        " where PAR_POSITION_ID='{0}' and EMAIL is not null and PAR_POSITION_ID<>POSITION_ID order by NAME, POSITION_TYPE ", Replace(pnode.Value, "'", "''").Trim()))
+        For Each r As DataRow In dt.Rows
+            Dim cn As New TreeNode(r.Item("NAME"), r.Item("POSITION_ID"))
+            pnode.ChildNodes.Add(cn)
+            GetHierarchy(cn)
+        Next
+    End Sub
+
+    Protected Sub dlMD_SelectedIndexChanged(ByVal sender As Object, ByVal e As System.EventArgs)
+        tv1.Nodes.Clear()
+        tv1.Nodes.Add(New TreeNode(dlMD.SelectedItem.Text, dlMD.SelectedValue))
+        GetHierarchy(tv1.Nodes(0))
+        tv1.ExpandAll()
+    End Sub
+</script>
+
+<asp:Content ID="Content1" ContentPlaceHolderID="_main" Runat="Server">    
+    <table width="100%">
+        <tr>
+            <td>
+                <b>Sales Head:</b>
+                <asp:DropDownList runat="server" ID="dlMD" AutoPostBack="true" OnSelectedIndexChanged="dlMD_SelectedIndexChanged">
+                    <asp:ListItem Text="Ween Niu (AENC/Mgmt/VP)" Value="N-1SG" />
+                    <asp:ListItem Text="Ween Niu (ECG_ATI Country Manager)" Value="1-8YP32" />
+                    <asp:ListItem Text="Ween Niu (NCG_ATI Country Manager)" Value="1-8YP2O" />
+                    <asp:ListItem Text="Ween Niu (AENC/Sales/DMS/Mgr)" Value="P-B7" />
+                    <asp:ListItem Text="Roy Wang (AAC/VicePresidentNorthAmerica)" Value="FZ-9LWLX" />
+                    <asp:ListItem Text="Roy Wang (AAC)" Value="1-6E3VU" />
+                    <asp:ListItem Text="Roy Wang (AAC/SALES/CSF/Director)" Value="E1-6J43N" />
+                    <asp:ListItem Text="Roy Wang (ATW IAG Director)" Value="1-99H" />
+                    <asp:ListItem Text="Roy Wang (AAC/President)" Value="N-C8" />
+                    <asp:ListItem Text="Roy Wang (AAC/SALES/KA/Director)" Value="1-6270Y" />
+                </asp:DropDownList>  
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <asp:TreeView runat="server" ID="tv1" Width="90%" ImageSet="Contacts" 
+                    NodeIndent="10">
+                    <HoverNodeStyle Font-Underline="False" />
+                    <Nodes>                        
+                    </Nodes>
+                    <RootNodeStyle  Font-Bold="True" ForeColor="#5555DD" />
+                    <NodeStyle Font-Names="Verdana" Font-Size="8pt" ForeColor="Black" 
+                        HorizontalPadding="5px" NodeSpacing="0px" VerticalPadding="0px" />
+                    <ParentNodeStyle Font-Bold="True" ForeColor="#5555DD" />
+                    <SelectedNodeStyle Font-Underline="True" HorizontalPadding="0px" 
+                        VerticalPadding="0px" />
+                </asp:TreeView>
+            </td>
+        </tr>
+    </table>    
+</asp:Content>

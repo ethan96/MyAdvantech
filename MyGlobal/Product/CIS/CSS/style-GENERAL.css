@@ -1,0 +1,102 @@
+/* Standard Advantech Style Tag Definitions */
+
+A				{ color: #000099; text-decoration: none }
+A:hover			{ color: #000099; text-decoration: underline }
+
+/* Text Styles */
+
+.text_mini		{  font-family: "Arial", "Helvetica", "sans-serif"; font-size: 10px; color: #000000}
+.text			{  font-family: "Arial", "Helvetica", "sans-serif"; font-size: 12px; color: #000000}
+.text_list		{  font-family: "Arial", "Helvetica", "sans-serif"; font-size: 12px; line-height: 20px; color: #000000 }
+.text_path		{  font-family: "Arial", "Helvetica", "sans-serif"; font-size: 10px; color: #990099}
+.text_box		{  font-family: "Arial", "Helvetica", "sans-serif"; font-size: 12px; color: #000000; height: 20px; background-color: #CCCCFF }
+
+/* Title Styles */
+
+.title_para		{  font-family: "Arial", "Helvetica", "sans-serif"; font-size: 12px; font-weight: bold; color: #000099 }
+.title_med		{  font-family: "Arial", "Helvetica", "sans-serif"; font-size: 14px; font-weight: bold; color: #000099 }
+.title_big		{  font-family: "Arial", "Helvetica", "sans-serif"; font-size: 16px; font-weight: bold; color: #000099 }
+.title_verybig	{
+	font-family: "Arial", "Helvetica", "sans-serif";
+	font-size: 22px;
+	line-height: 26px;
+	font-weight: bold;
+	color: #000000
+}
+
+.grid_tittle	{  font-family: "Arial", "Helvetica", "sans-serif"; font-size: 16px; font-weight: bold; color: #ffffff }
+/* Price Styles */
+
+.price_text		{  font-family: "Arial", "Helvetica", "sans-serif"; font-size: 12px; color: #ff0000 }
+.price_med		{  font-family: "Arial", "Helvetica", "sans-serif"; font-size: 14px; color: #ff0000 }
+.price_big		{  font-family: "Arial", "Helvetica", "sans-serif"; font-size: 14px; color: #ff0000 }
+.stock_med		{  font-family: "Arial", "Helvetica", "sans-serif"; font-size: 16px; color: #009900 }
+
+/* Product Styles */
+
+.ProductList	{  font-family: "Arial", "Helvetica", "sans-serif"; font-size: 12px; font-weight: bold; color: #000066; text-decoration: none }
+.001 {
+	font-size: 10px;
+	font-weight: normal;
+	color: #CCCCCC;
+	line-height: normal;
+	font-style: normal;
+	word-spacing: 3pt;
+	letter-spacing: 1pt;
+	font-family: "Arial", "Helvetica", "sans-serif";
+
+
+
+
+}
+.002 {
+	font-size: 12px;
+	color: #CCCCCC;
+	letter-spacing: 0.5pt;
+	font-weight: lighter;
+	font-family: "Arial", "Helvetica", "sans-serif";
+
+
+
+}
+.table {
+	font-size: 70%;
+	color: #333333;
+	background-color: #FFFFFF;
+	border: #0033CC;
+
+}
+.table02 {
+	font-family: Verdana;
+	font-size: 70%;
+	cursor: hand;
+	border: 1px solid #999999;
+
+}
+.tbw {
+	font-family: Arial, Helvetica, sans-serif;
+	font-size: 22px;
+	line-height: 26px;
+	font-weight: bold;
+	color: #FFFFFF;
+}
+.tvbb {
+	font-family: Arial, Helvetica, sans-serif;
+	font-size: 22px;
+	line-height: 26px;
+	font-weight: bold;
+	color: #000099;
+}
+.tw {
+	font-family: Arial, Helvetica, sans-serif;
+	font-size: 12px;
+	font-weight: bold;
+	color: #FFFFFF;
+}
+.tbb {
+	font-family: Arial, Helvetica, sans-serif;
+	font-size: 22px;
+	line-height: 26px;
+	font-weight: bold;
+	color: #000000;
+}

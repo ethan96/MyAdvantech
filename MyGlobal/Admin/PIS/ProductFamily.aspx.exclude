@@ -1,0 +1,221 @@
+﻿<%@ Page Language="VB" MasterPageFile="~/Includes/MyMaster.master" Title="MyAdvantech - Product Family editor"
+    ValidateRequest="false" %>
+
+<%@ Import Namespace="System.Data.SqlClient" %>
+<script runat="server">
+    Protected Sub btnUpload_Click(ByVal sender As Object, ByVal e As System.EventArgs)
+        Dim filename As System.IO.Stream = upload()
+        If Not IsNothing(filename) Then
+            preview(filename)
+            Button_Search_Click(sender, e)
+        End If
+    End Sub
+
+    Function upload() As System.IO.Stream
+        If Me.FileUpload1.PostedFile.ContentLength > 0 Then
+            Dim MSM As New System.IO.MemoryStream(Me.FileUpload1.FileBytes)
+            'Me.FileUpload1.SaveAs(fileName)
+            Return MSM
+        End If
+        Return Nothing
+    End Function
+
+    Sub preview(ByVal fileName As System.IO.Stream)
+        
+        Dim tempdt As DataTable = Util.ExcelFile2DataTable(fileName, 1, 0)
+        If tempdt.Rows.Count <= 0 Then
+            Glob.ShowInfo("No data be uploaded.")
+            Exit Sub
+        End If
+        If tempdt.Columns.Count < 3 Then
+            Glob.ShowInfo("The uploaded excel file is in invalid format. Please download and use sample excel file.")
+            Exit Sub
+        End If
+        Dim _sql_remove As String = "Delete From PRODUCT_FAMILY Where ", _sql_remove_Where As String = ""
+        Dim _sql_insert As String = "Insert into PRODUCT_FAMILY values ", _sql_insert_values As String = ""
+        
+        For Each _row As DataRow In tempdt.Rows
+            
+            Dim _part_no As String = _row.Item(0).ToString, _family_name As String = _row.Item(1).ToString
+            Dim _AlternativeGroup As String = _row.Item(2).ToString
+            If String.IsNullOrEmpty(_part_no) Then Continue For
+            _part_no = _part_no.Replace("'", "''") : _family_name = _family_name.Replace("'", "''"):  _AlternativeGroup = _AlternativeGroup.Replace("'", "''")
+            'Remove current record
+            _sql_remove_Where = " PART_NO='" & _part_no & "' "
+            dbUtil.dbExecuteNoQuery("PIS", _sql_remove & _sql_remove_Where)
+            'Insert new record  
+            _sql_insert_values = " ('" & _part_no & "','" & _family_name & "','" & _AlternativeGroup & "','" & Session("user_id") & "',getDate())"
+            If Not String.IsNullOrEmpty(_family_name) Then
+                dbUtil.dbExecuteNoQuery("PIS", _sql_insert & _sql_insert_values)
+            End If
+        Next
+    End Sub
+
+    Protected Sub Button_Search_Click(sender As Object, e As System.EventArgs)
+        Dim _part_no As String = Me.TextBox_PART_NO.Text, _family_name As String = Me.TextBox_FAMILY_NAME.Text
+        Dim _AlternativeGroup As String = Me.TextBox_AlternativeGroup.Text
+        
+        Dim _sql As String = "SELECT PART_NO,FAMILY_NAME ,ALTERNATIVE_GROUP,LAST_UPDATED_BY,LAST_UPDATED FROM PRODUCT_FAMILY", _order_by = " Order by LAST_UPDATED desc,PART_NO,FAMILY_NAME"
+        Dim _SQLCondition As String = String.Empty
+        
+        If Not String.IsNullOrEmpty(_part_no) Then
+            _SQLCondition &= " PART_NO like '%" & _part_no.Replace("'", "''") & "%'"
+        End If
+
+        If Not String.IsNullOrEmpty(_family_name) Then
+            If Not String.IsNullOrEmpty(_SQLCondition) Then _SQLCondition &= " And "
+            _SQLCondition &= " FAMILY_NAME like '%" & _family_name.Replace("'", "''") & "%'"
+        End If
+        If Not String.IsNullOrEmpty(_AlternativeGroup) Then
+            If Not String.IsNullOrEmpty(_SQLCondition) Then _SQLCondition &= " And "
+            _SQLCondition &= " ALTERNATIVE_GROUP like '%" & _AlternativeGroup.Replace("'", "''") & "%'"
+        End If
+        If Not String.IsNullOrEmpty(_SQLCondition) Then _sql &= " Where " & _SQLCondition
+        Me.SqlDataSource_ProductFamily.SelectCommand = _sql & _order_by
+        Me.GV_ProductFamily.DataBind()
+        
+    End Sub
+
+    Protected Sub Button_Delet_Click(sender As Object, e As System.EventArgs)
+        Dim count As Integer = 0, _Part_No As String = String.Empty, _Family_Name As String = String.Empty
+        Dim _sql As String = String.Empty, chk As CheckBox = Nothing
+
+        For i As Integer = 0 To Me.GV_ProductFamily.Rows.Count - 1
+            chk = Me.GV_ProductFamily.Rows(i).FindControl("CheckBox_SelecedPart")
+            
+            _Part_No = Me.GV_ProductFamily.Rows(i).Cells(1).Text
+            _Family_Name = Me.GV_ProductFamily.Rows(i).Cells(2).Text
+            
+            If chk.Checked AndAlso String.IsNullOrEmpty(_Part_No) = False AndAlso String.IsNullOrEmpty(_Family_Name) = False Then
+                
+                _Part_No = HttpUtility.HtmlDecode(_Part_No).Replace("'", "''")
+                _Family_Name = HttpUtility.HtmlDecode(_Family_Name).Replace("'", "''")
+                
+                _sql = "Delete FROM PRODUCT_FAMILY WHERE PART_NO=N'" & _Part_No & "' And FAMILY_NAME=N'" & _Family_Name & "'"
+                dbUtil.dbExecuteNoQuery("PIS", _sql)
+            End If
+        Next
+        Me.CheckBox_IsCheckAll.Checked = False
+        Button_Search_Click(sender, e)
+        
+    End Sub
+    'ICC 2015/1/12 Add a download button to download product family data
+    Protected Sub imgXls_Click(sender As Object, e As System.Web.UI.ImageClickEventArgs)
+        Dim _sql As New StringBuilder()
+        _sql.Append(" SELECT pf.PART_NO AS [Part No], pf.FAMILY_NAME AS [Family Name], ")
+        _sql.Append(" pf.ALTERNATIVE_GROUP AS [Alternative Group], sp.PRODUCT_GROUP AS [Product Group] ")
+        _sql.Append(" FROM PIS.dbo.PRODUCT_FAMILY pf  INNER JOIN SAP_PRODUCT sp ON pf.PART_NO = sp.PART_NO ")
+        Dim dt As DataTable = dbUtil.dbGetDataTable("MY", _sql.ToString)
+        If Not dt Is Nothing Then
+            Util.DataTable2ExcelDownload(dt, "ProductFamily.xls")
+        End If
+    End Sub
+</script>
+<asp:Content runat="server" ID="_main" ContentPlaceHolderID="_main">
+    <script type="text/javascript">
+        function GetAllCheckBox(cbAll) {
+            var items = document.getElementsByTagName("input");
+            for (i = 0; i < items.length; i++) {
+                if (items[i].type == "checkbox") {
+                    items[i].checked = cbAll.checked;
+                }
+            }
+        }
+    </script>
+    <div class="root">
+        <asp:HyperLink runat="server" ID="hlHome" NavigateUrl="~/home.aspx" Text="Home" />
+        > Maintain Product Family</div>
+    <br />
+    <div class="menu_title">
+        Maintain Product Family</div>
+    <br />
+    <asp:Panel DefaultButton="Button_Search" runat="server" ID="Panel1">
+        <table width="100%" class="rightcontant3">
+            <tr>
+                <td align="left">
+                 Upload Product Family：    <br />
+                    <asp:FileUpload ID="FileUpload1" runat="server" />
+                    <asp:Button ID="btnUpload" runat="server" Text="Upload" OnClick="btnUpload_Click" />
+                
+                </td>
+                <td width="536">
+                    <asp:HyperLink NavigateUrl="~/Files/ProductFamilySample.xls" runat="server" ID="HyperLink1"
+                        Text="Click Here for Downloadable Sample (MS Excel)"></asp:HyperLink>
+                    <asp:Image ID="Image2" runat="server" ImageUrl="~/Images/ProductFamilyExcelSample.png" />
+                </td>
+            </tr>
+        </table>
+        <br />
+        <table width="100%" class="rightcontant3">
+            <tr>
+                <td align="left" style="width: 110px">
+                    Part Number：
+                </td>
+                <td align="left" style="width: 220px">
+                    <asp:TextBox ID="TextBox_PART_NO" runat="server" Width="170px" />
+                </td>
+                <td align="left" style="width: 110px">
+                    Famliy Name：
+                </td>
+                <td align="left" style="width: 220px">
+                    <asp:TextBox ID="TextBox_FAMILY_NAME" runat="server" Width="170px" />
+                </td>
+                  <td align="left" style="width: 110px">
+                    Alternative Group：
+                </td>
+                <td align="left" style="width: 220px">
+                    <asp:TextBox ID="TextBox_AlternativeGroup" runat="server" Width="170px" />
+                </td>
+                <td align="left">
+                    <asp:Button ID="Button_Search" runat="server" Text="Search" OnClick="Button_Search_Click" />
+                </td>
+            </tr>
+            <tr>
+                <td align="left" style="width: 107px">
+                    <asp:CheckBox ID="CheckBox_IsCheckAll" runat="server" Text="Check All" OnClick="GetAllCheckBox(this)" />
+                </td>
+                <td align="left" style="width: 227px">
+                    <asp:Button ID="Button_Delet" runat="server" Text="Delete" OnClick="Button_Delet_Click" />&nbsp;
+                    <asp:ImageButton runat="server" ID="imgXls" ImageUrl="~/Images/excel.gif" 
+                        AlternateText="Download" onclick="imgXls_Click" />
+                </td>
+                <td align="left" style="width: 122px">
+                </td>
+                <td align="left">
+                </td>
+                <td align="left">
+                </td>
+                <td align="left">
+                </td>
+                <td align="left">
+                </td>
+            </tr>
+        </table>
+        <asp:GridView ID="GV_ProductFamily" runat="server" AutoGenerateColumns="False" EmptyDataText="No search results were found."
+            Width="100%" AllowPaging="True" AllowSorting="True" DataSourceID="SqlDataSource_ProductFamily"
+            PageSize="20">
+            <Columns>
+                <asp:TemplateField ItemStyle-Width="30px" ItemStyle-HorizontalAlign="Center">
+                    <HeaderTemplate>
+                        Check
+                    </HeaderTemplate>
+                    <ItemTemplate>
+                        <asp:CheckBox ID="CheckBox_SelecedPart" runat="server" />
+                    </ItemTemplate>
+                </asp:TemplateField>
+                <asp:BoundField ItemStyle-Width="200px" HeaderText="Part Number" DataField="PART_NO"
+                    ItemStyle-HorizontalAlign="left" SortExpression="PART_NO" />
+                <asp:BoundField ItemStyle-Width="200px" HeaderText="Family Name" DataField="FAMILY_NAME"
+                    ItemStyle-HorizontalAlign="left" SortExpression="FAMILY_NAME" />
+                <asp:BoundField ItemStyle-Width="200px" HeaderText="Recommend Group" DataField="ALTERNATIVE_GROUP"
+                    ItemStyle-HorizontalAlign="left" SortExpression="ALTERNATIVE_GROUP" />
+                <asp:BoundField ItemStyle-Width="200px" HeaderText="Last Update By" DataField="LAST_UPDATED_BY"
+                    ItemStyle-HorizontalAlign="left" SortExpression="LAST_UPDATED_BY" />
+                <asp:BoundField ItemStyle-Width="200px" HeaderText="Last Updated Time" DataField="LAST_UPDATED"
+                    ItemStyle-HorizontalAlign="left" SortExpression="LAST_UPDATED" />
+            </Columns>
+        </asp:GridView>
+        <asp:SqlDataSource ID="SqlDataSource_ProductFamily" runat="server" ConnectionString="<%$ ConnectionStrings:PIS %>"
+            SelectCommand="SELECT PART_NO,FAMILY_NAME,ALTERNATIVE_GROUP,LAST_UPDATED_BY,LAST_UPDATED FROM PRODUCT_FAMILY Order by LAST_UPDATED desc,PART_NO,FAMILY_NAME" />
+    </asp:Panel>
+</asp:Content>

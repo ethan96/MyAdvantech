@@ -1,0 +1,1032 @@
+﻿<%@ Page Language="VB" ValidateRequest="false" MasterPageFile="~/Includes/MyMaster.master" Title="EZ Catalog Admin" %>
+<%@ Register Assembly="J.WebControls" Namespace="J.WebControls" TagPrefix="cc1" %>
+<script runat="server">
+ Protected Sub DetailsView1_ItemInserting(ByVal sender As Object, ByVal e As System.Web.UI.WebControls.DetailsViewInsertEventArgs)
+        '/IMAGES/EZ_CBOM/ACP-1000Front.gif 
+        'Response.Write(e.Values.Count) ' : Response.End()
+        For i As Integer = 0 To e.Values.Count - 1
+            If e.Values(i) IsNot Nothing Then
+                'Response.Write(e.Values(i).ToString & "<br/>")
+            Else
+                e.Values(i) = "N/A"
+                'Response.Write("nothing:" & e.Values(i).ToString & "<br/>")
+            End If
+            
+            Select Case i
+                Case 0
+                    ViewState("CatalogId") = e.Values(i)
+                Case 3 ' system
+                    e.Values(i) = Request("sheInsertSystem")
+                Case 4 ' for image
+                    Dim fulImage As New FileUpload
+                    fulImage = CType(Me.DetailsView1.FindControl("fulImage"), FileUpload)
+                    If fulImage.PostedFile.FileName = "" Then
+                        'Me.Page.ClientScript.RegisterStartupScript(GetType(String), "alert", "<script>alert('Please upload the file!')</" & "script>")
+                        'fulImage.Focus()
+                        'Exit Sub
+                        'e.Cancel = True
+                        'Exit Sub
+                        e.Values(i) = ""
+                    Else
+                        Dim FileName As String = ""
+                        Dim strFileName As String()
+                        ' strFileType = Me.fulLogo.PostedFile.ContentType.Split("/")
+                        If fulImage.PostedFile.ContentLength > 1024 * 1024 * 10 Then
+                            Me.Page.ClientScript.RegisterStartupScript(GetType(String), "alert", "<script>alert('Please make sure the file size less than 10M!')</" & "script>")
+                            fulImage.Focus()
+                            e.Cancel = True
+                            Exit Sub
+                        End If
+                        strFileName = fulImage.PostedFile.FileName.Split("\")
+                        FileName = strFileName(strFileName.Length - 1)
+                        
+                        e.Values(i) = fulImage.FileName.Trim
+                        ''Response.Write(e.Values(i))
+                        fulImage.PostedFile.SaveAs("D:\b2b_aesc_net\Images\EZ_CBOM\" & FileName)
+                        
+                        e.Values(i) = "/Images/EZ_CBOM/" & FileName
+                    End If
+                Case 5 ' for PDF
+                    Dim fulPDF As New FileUpload
+                    fulPDF = CType(Me.DetailsView1.FindControl("fulPDF"), FileUpload)
+                    If fulPDF.PostedFile.FileName = "" Then
+                        'Me.Page.ClientScript.RegisterStartupScript(GetType(String), "alert", "<script>alert('Please upload the file!')</" & "script>")
+                        'fulPDF.Focus()
+                        'e.Cancel = True
+                        'Exit Sub
+                        e.Values(i) = ""
+                    Else
+                        Dim FileName As String = ""
+                        Dim strFileName As String()
+                        ' strFileType = Me.fulLogo.PostedFile.ContentType.Split("/")
+                        If fulPDF.PostedFile.ContentLength > 1024 * 1024 * 10 Then
+                            Me.Page.ClientScript.RegisterStartupScript(GetType(String), "alert", "<script>alert('Please make sure the file size less than 10M!')</" & "script>")
+                            fulPDF.Focus()
+                            Exit Sub
+                        End If
+                        strFileName = fulPDF.PostedFile.FileName.Split("\")
+                        FileName = strFileName(strFileName.Length - 1)
+                        
+                        e.Values(i) = fulPDF.FileName.Trim
+                        ''Response.Write(e.Values(i))
+                        fulPDF.PostedFile.SaveAs("D:\b2b_aesc_net\Images\EZ_PDF\" & FileName)
+                        
+                        e.Values(i) = "/Images/EZ_PDF/" & FileName
+                    End If
+                Case 5 + 1 ' DESCRIPTION
+                    e.Values(i) = Request("sheInsertDESCRIPTION")
+                Case 6 + 1 ' BUS
+                    e.Values(i) = Request("sheInsertBUS")
+                Case 7 + 1 ' KEY_FEATURE
+                    e.Values(i) = Request("sheInsertKEY_FEATURE")
+                Case 8 + 1 ' FORM_FACTOR
+                    e.Values(i) = Request("sheInsertFORM_FACTOR")
+                Case 9 + 1 ' CHIPSET
+                    e.Values(i) = Request("sheInsertCHIPSET")
+                Case 10 + 1 ' PROCESSOR
+                    e.Values(i) = Request("sheInsertPROCESSOR")
+                Case 11 + 1 ' FRONT_SIDE_BUS
+                    e.Values(i) = Request("sheInsertFRONT_SIDE_BUS")
+                Case 12 + 1 ' L2_CACHE
+                    e.Values(i) = Request("sheInsertL2_CACHE")
+                Case 13 + 1 ' MEMORY
+                    e.Values(i) = Request("sheInsertMEMORY")
+                Case 14 + 1 ' Controller
+                    e.Values(i) = Request("sheInsertController")
+                Case 15 + 1 ' VRAM
+                    e.Values(i) = Request("sheInsertVRAM")
+                Case 16 + 1 ' AGP
+                    e.Values(i) = Request("sheInsertAGP")
+                Case 17 + 1 ' ISA
+                    e.Values(i) = Request("sheInsertISA")
+                Case 18 + 1 ' PCI
+                    e.Values(i) = Request("sheInsertPCI")
+                Case 19 + 1 ' PCI_EXPRESS
+                    e.Values(i) = Request("sheInsertPCI_EXPRESS")
+                    
+                Case 20 + 1 ' CD_ROM
+                    e.Values(i) = Request("sheInsertCD_ROM")
+                Case 21 + 1 ' FLOPPY_DISK
+                    e.Values(i) = Request("sheInsertFLOPPY_DISK")
+                Case 22 + 1 ' HARD_DRIVE_DISK
+                    e.Values(i) = Request("sheInsertHARD_DRIVE_DISK")
+                Case 23 + 1 ' SLIM_CD_ROM
+                    e.Values(i) = Request("sheInsertSLIM_CD_ROM")
+                Case 24 + 1 ' FRONT_ACCESSIBLE
+                    e.Values(i) = Request("sheInsertFRONT_ACCESSIBLE")
+                Case 25 + 1 ' FRONT_ACCESSIBLE2
+                    e.Values(i) = Request("sheInsertFRONT_ACCESSIBLE2")
+                Case 26 + 1 ' MOBILE_RACK
+                    e.Values(i) = Request("sheInsertMOBILE_RACK")
+                Case 27 + 1 ' INTERNAL
+                    e.Values(i) = Request("sheInsertINTERNAL")
+                Case 28 + 1 ' ETHERNET_INTERFACE
+                    e.Values(i) = Request("sheInsertETHERNET_INTERFACE")
+                Case 29 + 1 ' ETHERNET_CONTROLLER
+                    e.Values(i) = Request("sheInsertETHERNET_CONTROLLER")
+                Case 30 + 1 ' FRONT_IO_PORTS
+                    e.Values(i) = Request("sheInsertFRONT_IO_PORTS")
+                Case 31 + 1 ' REAR_IO_PORTS
+                    e.Values(i) = Request("sheInsertREAR_IO_PORTS")
+                Case 32 + 1 ' OUTPUT
+                    e.Values(i) = Request("sheInsertOUTPUT")
+                Case 33 + 1 ' INTERVAL
+                    e.Values(i) = Request("sheInsertINTERVAL")
+                Case 34 + 1 ' RAID_CARD
+                    e.Values(i) = Request("sheInsertRAID_CARD")
+                Case 35 + 1 ' Operating_System
+                    e.Values(i) = Request("sheInsertOperating_System")
+                Case 36 + 1 ' POWER_OUTPUT_WATTAGE
+                    e.Values(i) = Request("sheInsertPOWER_OUTPUT_WATTAGE")
+                Case 37 + 1 ' TYPE
+                    e.Values(i) = Request("sheInsertTYPE")
+                Case 38 + 1 ' CHASSIS_FAN
+                    e.Values(i) = Request("sheInsertCHASSIS_FAN")
+                Case 39 + 1 ' AIR_FILTER
+                    e.Values(i) = Request("sheInsertAIR_FILTER")
+                Case 40 + 1 ' TEMPERATURE
+                    e.Values(i) = Request("sheInsertTEMPERATURE")
+                Case 41 + 1 ' TYPE
+                    e.Values(i) = Request("sheInsertHUMIDITY")
+                Case 42 + 1 ' CHASSIS_FAN
+                    e.Values(i) = Request("sheInsertCOLOR")
+                Case 43 + 1 ' DIMENSIONS
+                    e.Values(i) = Request("sheInsertDIMENSIONS")
+                Case 44 + 1 ' WEIGHT
+                    e.Values(i) = Request("sheInsertWEIGHT")
+            End Select
+                
+            'Response.Write("<br><b>" & e.Values(i) & "</b>")
+        Next
+        
+        If Not IsNumeric(e.Values(46).ToString) Then
+            e.Values(46) = 1
+        Else
+            e.Values(46) = CInt(e.Values(46))
+        End If
+        'Response.Write("e.Values(46)" & e.Values(46))
+        'Response.End()
+    End Sub
+
+    Protected Sub DetailsView1_ItemUpdating(ByVal sender As Object, ByVal e As System.Web.UI.WebControls.DetailsViewUpdateEventArgs)
+        ''Response.Write(e.NewValues.Count) : Response.End()
+        For i As Integer = 0 To e.NewValues.Count - 1
+            If e.NewValues(i) IsNot Nothing Then
+                'Response.Write(e.NewValues(i).ToString & "<br/>")
+            Else
+                e.NewValues(i) = "N/A"
+                'Response.Write("nothing:" & e.NewValues(i).ToString & "<br/>")
+            End If
+            Select Case i
+                Case 2 ' system
+                    e.NewValues(i) = Request("sheEditSystem")
+                Case 3 ' for image
+                    Dim fulImage As New FileUpload
+                    fulImage = CType(Me.DetailsView1.FindControl("FileUpload1"), FileUpload)
+                    If fulImage.PostedFile.FileName = "" Then
+                        'Me.Page.ClientScript.RegisterStartupScript(GetType(String), "alert", "<script>alert('Please upload the file!')</" & "script>")
+                        'fulImage.Focus()
+                        'Exit Sub
+                        'e.Cancel = True
+                        'Exit Sub
+                        e.NewValues(i) = CType(Me.DetailsView1.FindControl("txtImage"), TextBox).Text.Trim
+                    Else
+                        Dim FileName As String = ""
+                        Dim strFileName As String()
+                        ' strFileType = Me.fulLogo.PostedFile.ContentType.Split("/")
+                        If fulImage.PostedFile.ContentLength > 1024 * 1024 * 10 Then
+                            Me.Page.ClientScript.RegisterStartupScript(GetType(String), "alert", "<script>alert('Please make sure the file size less than 10M!')</" & "script>")
+                            fulImage.Focus()
+                            e.Cancel = True
+                            Exit Sub
+                        End If
+                        strFileName = fulImage.PostedFile.FileName.Split("\")
+                        FileName = strFileName(strFileName.Length - 1)
+                        
+                        e.NewValues(i) = fulImage.FileName.Trim
+                        ''Response.Write(e.Values(i))
+                        fulImage.PostedFile.SaveAs("D:\b2b_aesc_net\Images\EZ_CBOM\" & FileName)
+                        
+                        e.NewValues(i) = "/Images/EZ_CBOM/" & FileName
+                    End If
+                Case 4 ' for PDF
+                    Dim fulPDF As New FileUpload
+                    fulPDF = CType(Me.DetailsView1.FindControl("FileUpload2"), FileUpload)
+                    If fulPDF.PostedFile.FileName = "" Then
+                        'Me.Page.ClientScript.RegisterStartupScript(GetType(String), "alert", "<script>alert('Please upload the file!')</" & "script>")
+                        'fulPDF.Focus()
+                        'e.Cancel = True
+                        'Exit Sub
+                        e.NewValues(i) = CType(Me.DetailsView1.FindControl("txtPDF"), TextBox).Text.Trim
+                    Else
+                        Dim FileName As String = ""
+                        Dim strFileName As String()
+                        ' strFileType = Me.fulLogo.PostedFile.ContentType.Split("/")
+                        If fulPDF.PostedFile.ContentLength > 1024 * 1024 * 10 Then
+                            Me.Page.ClientScript.RegisterStartupScript(GetType(String), "alert", "<script>alert('Please make sure the file size less than 10M!')</" & "script>")
+                            fulPDF.Focus()
+                            Exit Sub
+                        End If
+                        strFileName = fulPDF.PostedFile.FileName.Split("\")
+                        FileName = strFileName(strFileName.Length - 1)
+                        
+                        e.NewValues(i) = fulPDF.FileName.Trim
+                        ''Response.Write(e.Values(i))
+                        fulPDF.PostedFile.SaveAs("D:\b2b_aesc_net\Images\EZ_PDF\" & FileName)
+                        
+                        e.NewValues(i) = "/Images/EZ_PDF/" & FileName
+                    End If
+                Case 5 ' DESCRIPTION
+                    e.NewValues(i) = Request("sheEditDESCRIPTION")
+                Case 6 ' BUS
+                    e.NewValues(i) = Request("sheEditBUS")
+                Case 7 ' KEY_FEATURE
+                    e.NewValues(i) = Request("sheEditKEY_FEATURE")
+                Case 8 ' FORM_FACTOR
+                    e.NewValues(i) = Request("sheEditFORM_FACTOR")
+                Case 9 ' CHIPSET
+                    e.NewValues(i) = Request("sheEditCHIPSET")
+                Case 10 ' PROCESSOR
+                    e.NewValues(i) = Request("sheEditPROCESSOR")
+                Case 11 ' FRONT_SIDE_BUS
+                    e.NewValues(i) = Request("sheEditFRONT_SIDE_BUS")
+                Case 12 ' L2_CACHE
+                    e.NewValues(i) = Request("sheEditL2_CACHE")
+                Case 13 ' MEMORY
+                    e.NewValues(i) = Request("sheEditMEMORY")
+                Case 14 ' Controller
+                    e.NewValues(i) = Request("sheEditController")
+                Case 15 ' VRAM
+                    e.NewValues(i) = Request("sheEditVRAM")
+                Case 16 ' AGP
+                    e.NewValues(i) = Request("sheEditAGP")
+                Case 17 ' ISA
+                    e.NewValues(i) = Request("sheEditISA")
+                Case 18 ' PCI
+                    e.NewValues(i) = Request("sheEditPCI")
+                Case 19 ' PCI_EXPRESS
+                    e.NewValues(i) = Request("sheEditPCI_EXPRESS")
+                    
+                Case 20 ' CD_ROM
+                    e.NewValues(i) = Request("sheEditCD_ROM")
+                Case 21 ' FLOPPY_DISK
+                    e.NewValues(i) = Request("sheEditFLOPPY_DISK")
+                Case 22 ' HARD_DRIVE_DISK
+                    e.NewValues(i) = Request("sheEditHARD_DRIVE_DISK")
+                Case 23 ' SLIM_CD_ROM
+                    e.NewValues(i) = Request("sheEditSLIM_CD_ROM")
+                Case 24 ' FRONT_ACCESSIBLE
+                    e.NewValues(i) = Request("sheEditFRONT_ACCESSIBLE")
+                Case 25 ' FRONT_ACCESSIBLE2
+                    e.NewValues(i) = Request("sheEditFRONT_ACCESSIBLE2")
+                Case 26 ' MOBILE_RACK
+                    e.NewValues(i) = Request("sheEditMOBILE_RACK")
+                Case 27 ' INTERNAL
+                    e.NewValues(i) = Request("sheEditINTERNAL")
+                Case 28 ' ETHERNET_INTERFACE
+                    e.NewValues(i) = Request("sheEditETHERNET_INTERFACE")
+                Case 29 ' ETHERNET_CONTROLLER
+                    e.NewValues(i) = Request("sheEditETHERNET_CONTROLLER")
+                Case 30 ' FRONT_IO_PORTS
+                    e.NewValues(i) = Request("sheEditFRONT_IO_PORTS")
+                Case 31 ' REAR_IO_PORTS
+                    e.NewValues(i) = Request("sheEditREAR_IO_PORTS")
+                Case 32 ' OUTPUT
+                    e.NewValues(i) = Request("sheEditOUTPUT")
+                Case 33 ' INTERVAL
+                    e.NewValues(i) = Request("sheEditINTERVAL")
+                Case 34 ' RAID_CARD
+                    e.NewValues(i) = Request("sheEditRAID_CARD")
+                Case 35 ' Operating_System
+                    e.NewValues(i) = Request("sheEditOperating_System")
+                Case 36 ' POWER_OUTPUT_WATTAGE
+                    e.NewValues(i) = Request("sheEditPOWER_OUTPUT_WATTAGE")
+                Case 37 ' TYPE
+                    e.NewValues(i) = Request("sheEditTYPE")
+                Case 38 ' CHASSIS_FAN
+                    e.NewValues(i) = Request("sheEditCHASSIS_FAN")
+                Case 39 ' AIR_FILTER
+                    e.NewValues(i) = Request("sheEditAIR_FILTER")
+                Case 40 ' TEMPERATURE
+                    e.NewValues(i) = Request("sheEditTEMPERATURE")
+                Case 41 ' TYPE
+                    e.NewValues(i) = Request("sheEditHUMIDITY")
+                Case 42 ' CHASSIS_FAN
+                    e.NewValues(i) = Request("sheEditCOLOR")
+                Case 43 ' DIMENSIONS
+                    e.NewValues(i) = Request("sheEditDIMENSIONS")
+                Case 44 ' WEIGHT
+                    e.NewValues(i) = Request("sheEditWEIGHT")
+            End Select
+            'Response.Write("<br><b>" & e.NewValues(i) & "</b>")
+        Next
+        
+        If Not IsNumeric(e.NewValues(45).ToString) Then
+            e.NewValues(45) = 1
+        Else
+            e.NewValues(45) = CInt(e.NewValues(45))
+        End If
+        'Response.Write("e.Values(45)" & e.NewValues(45))
+        'Response.End()
+    End Sub
+
+    Protected Sub DetailsView1_DataBinding(ByVal sender As Object, ByVal e As System.EventArgs)
+        
+        'If DetailsView1.CurrentMode = DetailsViewMode.Edit Then
+        '    Dim aa As FileUpload = CType(Me.DetailsView1.FindControl("FileUpload1"), FileUpload)
+        '    aa = New FileUpload
+        'End If
+    End Sub
+
+    Protected Sub DetailsView1_ItemInserted(ByVal sender As Object, ByVal e As System.Web.UI.WebControls.DetailsViewInsertedEventArgs)
+        Me.Page.Response.Redirect("../Admin/AdminEZCatalog_DetailView.aspx?Id=" & ViewState("CatalogId"))
+    End Sub
+
+    Protected Sub DetailsView1_ItemDeleted(ByVal sender As Object, ByVal e As System.Web.UI.WebControls.DetailsViewDeletedEventArgs)
+        Me.Page.Response.Redirect("../Admin/AdminEZCatalog_DetailView.aspx")
+    End Sub
+</script>
+
+<asp:Content ID="Content1" ContentPlaceHolderID="_main" Runat="Server">
+ <table style="height:100%" cellpadding="0" cellspacing="0" width="100%" border="0"> 
+            <tr>
+                <td valign="top">
+		            <table width="100%">
+		                <tr><!--Header-->
+		                    <td valign="top">
+                               
+                            </td>  
+		                </tr>
+                        <tr><!--Buffer-->
+                            <td style="height: 15px"></td>
+                        </tr>
+                        <tr><!--Title-->
+                            <td valign="top">
+                                <table>
+                                    <tr>
+                                        <td valign="top"><h2>EZ Catalog Admin</h2></td>
+                                    </tr>
+                                </table>
+                            </td>
+                        </tr>
+                        <tr><!--Content-->
+                        <td style="width:90%">
+                            <asp:DetailsView ID="DetailsView1" runat="server" AutoGenerateRows="False" BackColor="White"
+                                BorderColor="#999999" BorderStyle="None" BorderWidth="1px" CellPadding="3" DataKeyNames="CATALOG_ID"
+                                DataSourceID="SqlDataSource1" GridLines="Vertical" Height="50px" Width="60%" OnItemInserting="DetailsView1_ItemInserting" OnItemUpdating="DetailsView1_ItemUpdating" OnDataBinding="DetailsView1_DataBinding" OnItemInserted="DetailsView1_ItemInserted" OnItemDeleted="DetailsView1_ItemDeleted">
+                                <FooterStyle BackColor="#CCCCCC" ForeColor="Black" />
+                                <RowStyle BackColor="#EEEEEE" ForeColor="Black" />
+                                <PagerStyle BackColor="#999999" ForeColor="Black" HorizontalAlign="Center" />
+                                <Fields>
+                                    <asp:BoundField DataField="CATALOG_ID" HeaderText="CATALOG_ID" ReadOnly="True" SortExpression="CATALOG_ID" />
+                                    <asp:TemplateField HeaderText="CATALOG_NAME" SortExpression="CATALOG_NAME">
+                                        <EditItemTemplate>
+                                            <asp:TextBox ID="TextBox45" runat="server" Enabled="False" Text='<%# Bind("CATALOG_NAME") %>'></asp:TextBox>
+                                        </EditItemTemplate>
+                                        <InsertItemTemplate>
+                                            <asp:TextBox ID="TextBox45" runat="server" Text='<%# Bind("CATALOG_NAME") %>'></asp:TextBox>
+                                        </InsertItemTemplate>
+                                        <ItemTemplate>
+                                            <asp:Label ID="Label45" runat="server" Text='<%# Bind("CATALOG_NAME") %>'></asp:Label>
+                                        </ItemTemplate>
+                                    </asp:TemplateField>
+                                    <asp:TemplateField HeaderText="CATALOG_TYPE" SortExpression="CATALOG_TYPE">
+                                        <EditItemTemplate>
+                                            &nbsp;<asp:DropDownList ID="DropDownList1" runat="server" DataSourceID="SqlDataSource1"
+                                                DataTextField="EZ_CATALOG_ID" DataValueField="EZ_CATALOG_ID" SelectedValue='<%# Bind("CATALOG_TYPE") %>'>
+                                            </asp:DropDownList><asp:SqlDataSource ID="SqlDataSource1" runat="server" ConnectionString="<%$ ConnectionStrings:B2B %>"
+                                                SelectCommand="SELECT DISTINCT [EZ_CATALOG_ID] FROM [EZ_CATALOG_DEF]"></asp:SqlDataSource>
+                                        </EditItemTemplate>
+                                        <InsertItemTemplate>
+                                            &nbsp;<asp:DropDownList ID="DropDownList2" runat="server" DataSourceID="SqlDataSource1"
+                                                DataTextField="EZ_CATALOG_ID" DataValueField="EZ_CATALOG_ID" SelectedValue='<%# Bind("CATALOG_TYPE") %>'>
+                                            </asp:DropDownList><asp:SqlDataSource ID="SqlDataSource1" runat="server" ConnectionString="<%$ ConnectionStrings:B2B %>"
+                                                SelectCommand="SELECT DISTINCT EZ_CATALOG_ID FROM EZ_CATALOG_DEF"></asp:SqlDataSource>
+                                        </InsertItemTemplate>
+                                        <ItemTemplate>
+                                            <asp:Label ID="Label1" runat="server" Text='<%# Bind("CATALOG_TYPE") %>'></asp:Label>
+                                        </ItemTemplate>
+                                    </asp:TemplateField>
+                                    <asp:TemplateField HeaderText="SYSTEM" SortExpression="SYSTEM">
+                                        <EditItemTemplate>
+                                            <cc1:SimpleHtmlEditor ID="sheEditSystem" runat="server" Text='<%# Bind("SYSTEM") %>' Height="80px" Width="350px">
+                                            </cc1:SimpleHtmlEditor>
+                                        </EditItemTemplate>
+                                        <InsertItemTemplate>
+                                            <cc1:SimpleHtmlEditor ID="sheInsertSystem" runat="server" Text='<%# Bind("SYSTEM") %>' Height="80px" Width="350px">
+                                            </cc1:SimpleHtmlEditor>
+                                        </InsertItemTemplate>
+                                        <ItemTemplate>
+                                            <asp:Label ID="Label2" runat="server" Text='<%# Bind("SYSTEM") %>'></asp:Label>
+                                        </ItemTemplate>
+                                    </asp:TemplateField>
+                                    <asp:TemplateField HeaderText="IMAGE" SortExpression="IMAGE">
+                                        <EditItemTemplate>
+                                            &nbsp;<asp:FileUpload ID="FileUpload1" runat="server" />
+                                            <asp:TextBox ID="txtImage" runat="server" Text='<%# Bind("IMAGE") %>' Visible="false"></asp:TextBox>
+                                        </EditItemTemplate>
+                                        <InsertItemTemplate>
+                                            &nbsp;<asp:FileUpload ID="fulImage" runat="server" Enabled='<%# Bind("IMAGE") %>'  />
+                                        </InsertItemTemplate>
+                                        <ItemTemplate>
+                                            <asp:Label ID="Label3" runat="server" Text='<%# Bind("IMAGE") %>'></asp:Label>
+                                        </ItemTemplate>
+                                    </asp:TemplateField>
+                                    <asp:TemplateField HeaderText="PDF" SortExpression="PDF">
+                                        <EditItemTemplate>
+                                            &nbsp;<asp:FileUpload ID="FileUpload2" runat="server" />
+                                            <asp:TextBox ID="txtPdf" runat="server" Text='<%# Bind("PDF") %>' Visible="false"></asp:TextBox>
+                                        </EditItemTemplate>
+                                        <InsertItemTemplate>
+                                            &nbsp;<asp:FileUpload ID="fulPDF" runat="server" Enabled='<%# Bind("PDF") %>' />
+                                        </InsertItemTemplate>
+                                        <ItemTemplate>
+                                            <asp:Label ID="Label4" runat="server" Text='<%# Bind("PDF") %>'></asp:Label>
+                                        </ItemTemplate>
+                                    </asp:TemplateField>
+                                    <asp:TemplateField HeaderText="DESCRIPTION" SortExpression="DESCRIPTION">
+                                        <EditItemTemplate>
+                                              <cc1:SimpleHtmlEditor ID="sheEditDescription" runat="server" Text='<%# Bind("DESCRIPTION") %>' Height="80px" Width="350px" />
+                                        </EditItemTemplate>
+                                        <InsertItemTemplate>
+                                            <cc1:SimpleHtmlEditor ID="sheInsertDescription" runat="server" Text='<%# Bind("DESCRIPTION") %>' Height="80px" Width="350px" />
+                                        </InsertItemTemplate>
+                                        <ItemTemplate>
+                                            <asp:Label ID="Label5" runat="server" Text='<%# Bind("DESCRIPTION") %>'></asp:Label>
+                                        </ItemTemplate>
+                                    </asp:TemplateField>
+                                    <asp:TemplateField HeaderText="BUS" SortExpression="BUS">
+                                        <EditItemTemplate>
+                                            <cc1:SimpleHtmlEditor ID="sheEditBus" runat="server" Text='<%# Bind("BUS") %>' Height="80px" Width="350px" />
+                                        </EditItemTemplate>
+                                        <InsertItemTemplate>
+                                            <cc1:SimpleHtmlEditor ID="sheInsertBus" runat="server" Text='<%# Bind("BUS") %>' Height="80px" Width="350px" />
+                                        </InsertItemTemplate>
+                                        <ItemTemplate>
+                                            <asp:Label ID="Label6" runat="server" Text='<%# Bind("BUS") %>'></asp:Label>
+                                        </ItemTemplate>
+                                    </asp:TemplateField>
+                                    <asp:TemplateField HeaderText="KEY_FEATURE" SortExpression="KEY_FEATURE">
+                                        <EditItemTemplate>
+                                            <cc1:SimpleHtmlEditor ID="sheEditKEY_FEATURE" runat="server" Text='<%# Bind("KEY_FEATURE") %>' Height="150px" Width="350px" />
+                                        </EditItemTemplate>
+                                        <InsertItemTemplate>
+                                            <cc1:SimpleHtmlEditor ID="sheInsertKEY_FEATURE" runat="server" Text='<%# Bind("KEY_FEATURE") %>' Height="150px" Width="350px" />
+                                        </InsertItemTemplate>
+                                        <ItemTemplate>
+                                            <asp:Label ID="Label7" runat="server" Text='<%# Bind("KEY_FEATURE") %>'></asp:Label>
+                                        </ItemTemplate>
+                                    </asp:TemplateField>
+                                    <asp:TemplateField HeaderText="FORM_FACTOR" SortExpression="FORM_FACTOR">
+                                        <EditItemTemplate>
+                                            <cc1:SimpleHtmlEditor ID="sheEditFORM_FACTOR" runat="server" Text='<%# Bind("FORM_FACTOR") %>' Height="80px" Width="350px" />
+                                        </EditItemTemplate>
+                                        <InsertItemTemplate>
+                                            <cc1:SimpleHtmlEditor ID="sheInsertFORM_FACTOR" runat="server" Text='<%# Bind("FORM_FACTOR") %>' Height="80px" Width="350px" />
+                                        </InsertItemTemplate>
+                                        <ItemTemplate>
+                                            <asp:Label ID="Label8" runat="server" Text='<%# Bind("FORM_FACTOR") %>'></asp:Label>
+                                        </ItemTemplate>
+                                    </asp:TemplateField>
+                                    <asp:TemplateField HeaderText="CHIPSET" SortExpression="CHIPSET">
+                                        <EditItemTemplate>
+                                            <cc1:SimpleHtmlEditor ID="sheEditCHIPSET" runat="server" Text='<%# Bind("CHIPSET") %>' Height="80px" Width="350px" />
+                                        </EditItemTemplate>
+                                        <InsertItemTemplate>
+                                            <cc1:SimpleHtmlEditor ID="sheInsertCHIPSET" runat="server" Text='<%# Bind("CHIPSET") %>' Height="80px" Width="350px" />
+                                        </InsertItemTemplate>
+                                        <ItemTemplate>
+                                            <asp:Label ID="Label9" runat="server" Text='<%# Bind("CHIPSET") %>'></asp:Label>
+                                        </ItemTemplate>
+                                    </asp:TemplateField>
+                                    <asp:TemplateField HeaderText="PROCESSOR" SortExpression="PROCESSOR">
+                                        <EditItemTemplate>
+                                            <cc1:SimpleHtmlEditor ID="sheEditPROCESSOR" runat="server" Text='<%# Bind("PROCESSOR") %>' Height="80px" Width="350px" />
+                                        </EditItemTemplate>
+                                        <InsertItemTemplate>
+                                            <cc1:SimpleHtmlEditor ID="sheInsertPROCESSOR" runat="server" Text='<%# Bind("PROCESSOR") %>' Height="80px" Width="350px" />
+                                        </InsertItemTemplate>
+                                        <ItemTemplate>
+                                            <asp:Label ID="Label10" runat="server" Text='<%# Bind("PROCESSOR") %>'></asp:Label>
+                                        </ItemTemplate>
+                                    </asp:TemplateField>
+                                    <asp:TemplateField HeaderText="FRONT_SIDE_BUS" SortExpression="FRONT_SIDE_BUS">
+                                        <EditItemTemplate>
+                                            <cc1:SimpleHtmlEditor ID="sheEditFRONT_SIDE_BUS" runat="server" Text='<%# Bind("FRONT_SIDE_BUS") %>' Height="80px" Width="350px" />
+                                        </EditItemTemplate>
+                                        <InsertItemTemplate>
+                                            <cc1:SimpleHtmlEditor ID="sheInsertFRONT_SIDE_BUS" runat="server" Text='<%# Bind("FRONT_SIDE_BUS") %>' Height="80px" Width="350px" />
+                                        </InsertItemTemplate>
+                                        <ItemTemplate>
+                                            <asp:Label ID="Label11" runat="server" Text='<%# Bind("FRONT_SIDE_BUS") %>'></asp:Label>
+                                        </ItemTemplate>
+                                    </asp:TemplateField>
+                                    <asp:TemplateField HeaderText="L2_CACHE" SortExpression="L2_CACHE">
+                                        <EditItemTemplate>
+                                            <cc1:SimpleHtmlEditor ID="sheEditL2_CACHE" runat="server" Text='<%# Bind("L2_CACHE") %>' Height="80px" Width="350px" />
+                                        </EditItemTemplate>
+                                        <InsertItemTemplate>
+                                            <cc1:SimpleHtmlEditor ID="sheInsertL2_CACHE" runat="server" Text='<%# Bind("L2_CACHE") %>' Height="80px" Width="350px" />
+                                        </InsertItemTemplate>
+                                        <ItemTemplate>
+                                            <asp:Label ID="Label12" runat="server" Text='<%# Bind("L2_CACHE") %>'></asp:Label>
+                                        </ItemTemplate>
+                                    </asp:TemplateField>
+                                    <asp:TemplateField HeaderText="MEMORY" SortExpression="MEMORY">
+                                        <EditItemTemplate>
+                                            <cc1:SimpleHtmlEditor ID="sheEditMEMORY" runat="server" Text='<%# Bind("MEMORY") %>' Height="80px" Width="350px" />
+                                        </EditItemTemplate>
+                                        <InsertItemTemplate>
+                                            <cc1:SimpleHtmlEditor ID="sheInsertMEMORY" runat="server" Text='<%# Bind("MEMORY") %>' Height="80px" Width="350px" />
+                                        </InsertItemTemplate>
+                                        <ItemTemplate>
+                                            <asp:Label ID="Label13" runat="server" Text='<%# Bind("MEMORY") %>'></asp:Label>
+                                        </ItemTemplate>
+                                    </asp:TemplateField>
+                                    <asp:TemplateField HeaderText="Controller" SortExpression="Controller">
+                                        <EditItemTemplate>
+                                            <cc1:SimpleHtmlEditor ID="sheEditController" runat="server" Text='<%# Bind("Controller") %>' Height="80px" Width="350px" />
+                                        </EditItemTemplate>
+                                        <InsertItemTemplate>
+                                            <cc1:SimpleHtmlEditor ID="sheInsertController" runat="server" Text='<%# Bind("Controller") %>' Height="80px" Width="350px" />
+                                        </InsertItemTemplate>
+                                        <ItemTemplate>
+                                            <asp:Label ID="Label14" runat="server" Text='<%# Bind("Controller") %>'></asp:Label>
+                                        </ItemTemplate>
+                                    </asp:TemplateField>
+                                    <asp:TemplateField HeaderText="VRAM" SortExpression="VRAM">
+                                        <EditItemTemplate>
+                                            <cc1:SimpleHtmlEditor ID="sheEditVRAM" runat="server" Text='<%# Bind("VRAM") %>' Height="80px" Width="350px" />
+                                        </EditItemTemplate>
+                                        <InsertItemTemplate>
+                                            <cc1:SimpleHtmlEditor ID="sheInsertVRAM" runat="server" Text='<%# Bind("VRAM") %>' Height="80px" Width="350px" />
+                                        </InsertItemTemplate>
+                                        <ItemTemplate>
+                                            <asp:Label ID="Label15111" runat="server" Text='<%# Bind("VRAM") %>'></asp:Label>
+                                        </ItemTemplate>
+                                    </asp:TemplateField>
+                                    <%--<asp:BoundField DataField="AGP" HeaderText="AGP" SortExpression="AGP" />--%>
+                                     <asp:TemplateField HeaderText="AGP" SortExpression="AGP">
+                                        <EditItemTemplate>
+                                            <cc1:SimpleHtmlEditor ID="sheEditAGP" runat="server" Text='<%# Bind("AGP") %>' Height="80px" Width="350px" />
+                                        </EditItemTemplate>
+                                        <InsertItemTemplate>
+                                            <cc1:SimpleHtmlEditor ID="sheInsertAGP" runat="server" Text='<%# Bind("AGP") %>' Height="80px" Width="350px" />
+                                        </InsertItemTemplate>
+                                        <ItemTemplate>
+                                            <asp:Label ID="Label15" runat="server" Text='<%# Bind("AGP") %>'></asp:Label>
+                                        </ItemTemplate>
+                                    </asp:TemplateField>
+                                    
+                                    <asp:TemplateField HeaderText="ISA" SortExpression="ISA">
+                                        <EditItemTemplate>
+                                            <cc1:SimpleHtmlEditor ID="sheEditISA" runat="server" Text='<%# Bind("ISA") %>' Height="80px" Width="350px" />
+                                        </EditItemTemplate>
+                                        <InsertItemTemplate>
+                                            <cc1:SimpleHtmlEditor ID="sheInsertISA" runat="server" Text='<%# Bind("ISA") %>' Height="80px" Width="350px" />
+                                        </InsertItemTemplate>
+                                        <ItemTemplate>
+                                            <asp:Label ID="Label16" runat="server" Text='<%# Bind("ISA") %>'></asp:Label>
+                                        </ItemTemplate>
+                                    </asp:TemplateField>
+                                    <asp:TemplateField HeaderText="PCI" SortExpression="PCI">
+                                        <EditItemTemplate>
+                                            <cc1:SimpleHtmlEditor ID="sheEditPCI" runat="server" Text='<%# Bind("PCI") %>' Height="80px" Width="350px" />
+                                        </EditItemTemplate>
+                                        <InsertItemTemplate>
+                                            <cc1:SimpleHtmlEditor ID="sheInsertPCI" runat="server" Text='<%# Bind("PCI") %>' Height="80px" Width="350px" />
+                                        </InsertItemTemplate>
+                                        <ItemTemplate>
+                                            <asp:Label ID="Label17" runat="server" Text='<%# Bind("PCI") %>'></asp:Label>
+                                        </ItemTemplate>
+                                    </asp:TemplateField>
+                                    <asp:TemplateField HeaderText="PCI_EXPRESS" SortExpression="PCI_EXPRESS">
+                                        <EditItemTemplate>
+                                            <cc1:SimpleHtmlEditor ID="sheEditPCI_EXPRESS" runat="server" Text='<%# Bind("PCI_EXPRESS") %>' Height="80px" Width="350px" />
+                                        </EditItemTemplate>
+                                        <InsertItemTemplate>
+                                            <cc1:SimpleHtmlEditor ID="sheInsertPCI_EXPRESS" runat="server" Text='<%# Bind("PCI_EXPRESS") %>' Height="80px" Width="350px" />
+                                        </InsertItemTemplate>
+                                        <ItemTemplate>
+                                            <asp:Label ID="Label18" runat="server" Text='<%# Bind("PCI_EXPRESS") %>'></asp:Label>
+                                        </ItemTemplate>
+                                    </asp:TemplateField>
+                                    <asp:TemplateField HeaderText="CD_ROM" SortExpression="CD_ROM">
+                                        <EditItemTemplate>
+                                            <cc1:SimpleHtmlEditor ID="sheEditCD_ROM" runat="server" Text='<%# Bind("CD_ROM") %>' Height="80px" Width="350px" />
+                                        </EditItemTemplate>
+                                        <InsertItemTemplate>
+                                            <cc1:SimpleHtmlEditor ID="sheInsertCD_ROM" runat="server" Text='<%# Bind("CD_ROM") %>' Height="80px" Width="350px" />
+                                        </InsertItemTemplate>
+                                        <ItemTemplate>
+                                            <asp:Label ID="Label19" runat="server" Text='<%# Bind("CD_ROM") %>'></asp:Label>
+                                        </ItemTemplate>
+                                    </asp:TemplateField>
+                                    <asp:TemplateField HeaderText="FLOPPY_DISK" SortExpression="FLOPPY_DISK">
+                                        <EditItemTemplate>
+                                            <cc1:SimpleHtmlEditor ID="sheEditFLOPPY_DISK" runat="server" Text='<%# Bind("FLOPPY_DISK") %>' Height="80px" Width="350px" />
+                                        </EditItemTemplate>
+                                        <InsertItemTemplate>
+                                            <cc1:SimpleHtmlEditor ID="sheInsertFLOPPY_DISK" runat="server" Text='<%# Bind("FLOPPY_DISK") %>' Height="80px" Width="350px" />
+                                        </InsertItemTemplate>
+                                        <ItemTemplate>
+                                            <asp:Label ID="Label20" runat="server" Text='<%# Bind("FLOPPY_DISK") %>'></asp:Label>
+                                        </ItemTemplate>
+                                    </asp:TemplateField>
+                                    <asp:TemplateField HeaderText="HARD_DRIVE_DISK" SortExpression="HARD_DRIVE_DISK">
+                                        <EditItemTemplate>
+                                            <cc1:SimpleHtmlEditor ID="sheEditHARD_DRIVE_DISK" runat="server" Text='<%# Bind("HARD_DRIVE_DISK") %>' Height="80px" Width="350px" />
+                                        </EditItemTemplate>
+                                        <InsertItemTemplate>
+                                            <cc1:SimpleHtmlEditor ID="sheInsertHARD_DRIVE_DISK" runat="server" Text='<%# Bind("HARD_DRIVE_DISK") %>' Height="80px" Width="350px" />
+                                        </InsertItemTemplate>
+                                        <ItemTemplate>
+                                            <asp:Label ID="Label21" runat="server" Text='<%# Bind("HARD_DRIVE_DISK") %>'></asp:Label>
+                                        </ItemTemplate>
+                                    </asp:TemplateField>
+                                    <asp:TemplateField HeaderText="SLIM_CD_ROM" SortExpression="SLIM_CD_ROM">
+                                        <EditItemTemplate>
+                                            <cc1:SimpleHtmlEditor ID="sheEditSLIM_CD_ROM" runat="server" Text='<%# Bind("SLIM_CD_ROM") %>' Height="80px" Width="350px" />
+                                        </EditItemTemplate>
+                                        <InsertItemTemplate>
+                                            <cc1:SimpleHtmlEditor ID="sheInsertSLIM_CD_ROM" runat="server" Text='<%# Bind("SLIM_CD_ROM") %>' Height="80px" Width="350px" />
+                                        </InsertItemTemplate>
+                                        <ItemTemplate>
+                                            <asp:Label ID="Label22" runat="server" Text='<%# Bind("SLIM_CD_ROM") %>'></asp:Label>
+                                        </ItemTemplate>
+                                    </asp:TemplateField>
+                                    <asp:TemplateField HeaderText="FRONT_ACCESSIBLE" SortExpression="FRONT_ACCESSIBLE">
+                                        <EditItemTemplate>
+                                            <cc1:SimpleHtmlEditor ID="sheEditFRONT_ACCESSIBLE" runat="server" Text='<%# Bind("FRONT_ACCESSIBLE") %>' Height="80px" Width="350px" />
+                                        </EditItemTemplate>
+                                        <InsertItemTemplate>
+                                            <cc1:SimpleHtmlEditor ID="sheInsertFRONT_ACCESSIBLE" runat="server" Text='<%# Bind("FRONT_ACCESSIBLE") %>' Height="80px" Width="350px" />
+                                        </InsertItemTemplate>
+                                        <ItemTemplate>
+                                            <asp:Label ID="Label23" runat="server" Text='<%# Bind("FRONT_ACCESSIBLE") %>'></asp:Label>
+                                        </ItemTemplate>
+                                    </asp:TemplateField>
+                                    <asp:TemplateField HeaderText="FRONT_ACCESSIBLE2" SortExpression="FRONT_ACCESSIBLE2">
+                                        <EditItemTemplate>
+                                            <cc1:SimpleHtmlEditor ID="sheEditFRONT_ACCESSIBLE2" runat="server" Text='<%# Bind("FRONT_ACCESSIBLE2") %>' Height="80px" Width="350px" />
+                                        </EditItemTemplate>
+                                        <InsertItemTemplate>
+                                            <cc1:SimpleHtmlEditor ID="sheInsertFRONT_ACCESSIBLE2" runat="server" Text='<%# Bind("FRONT_ACCESSIBLE2") %>' Height="80px" Width="350px" />
+                                        </InsertItemTemplate>
+                                        <ItemTemplate>
+                                            <asp:Label ID="Label24" runat="server" Text='<%# Bind("FRONT_ACCESSIBLE2") %>'></asp:Label>
+                                        </ItemTemplate>
+                                    </asp:TemplateField>
+                                    <asp:TemplateField HeaderText="MOBILE_RACK" SortExpression="MOBILE_RACK">
+                                        <EditItemTemplate>
+                                            <cc1:SimpleHtmlEditor ID="sheEditMOBILE_RACK" runat="server" Text='<%# Bind("MOBILE_RACK") %>' Height="80px" Width="350px" />
+                                        </EditItemTemplate>
+                                        <InsertItemTemplate>
+                                            <cc1:SimpleHtmlEditor ID="sheInsertMOBILE_RACK" runat="server" Text='<%# Bind("MOBILE_RACK") %>' Height="80px" Width="350px" />
+                                        </InsertItemTemplate>
+                                        <ItemTemplate>
+                                            <asp:Label ID="Label25" runat="server" Text='<%# Bind("MOBILE_RACK") %>'></asp:Label>
+                                        </ItemTemplate>
+                                    </asp:TemplateField>
+                                    <asp:TemplateField HeaderText="INTERNAL" SortExpression="INTERNAL">
+                                        <EditItemTemplate>
+                                            <cc1:SimpleHtmlEditor ID="sheEditINTERNAL" runat="server" Text='<%# Bind("INTERNAL") %>' Height="80px" Width="350px" />
+                                        </EditItemTemplate>
+                                        <InsertItemTemplate>
+                                            <cc1:SimpleHtmlEditor ID="sheInsertINTERNAL" runat="server" Text='<%# Bind("INTERNAL") %>' Height="80px" Width="350px" />
+                                        </InsertItemTemplate>
+                                        <ItemTemplate>
+                                            <asp:Label ID="Label26" runat="server" Text='<%# Bind("INTERNAL") %>'></asp:Label>
+                                        </ItemTemplate>
+                                    </asp:TemplateField>
+                                    <asp:TemplateField HeaderText="ETHERNET_INTERFACE" SortExpression="ETHERNET_INTERFACE">
+                                        <EditItemTemplate>
+                                            <cc1:SimpleHtmlEditor ID="sheEditETHERNET_INTERFACE" runat="server" Text='<%# Bind("ETHERNET_INTERFACE") %>' Height="80px" Width="350px" />
+                                        </EditItemTemplate>
+                                        <InsertItemTemplate>
+                                            <cc1:SimpleHtmlEditor ID="sheInsertETHERNET_INTERFACE" runat="server" Text='<%# Bind("ETHERNET_INTERFACE") %>' Height="80px" Width="350px" />
+                                        </InsertItemTemplate>
+                                        <ItemTemplate>
+                                            <asp:Label ID="Label27" runat="server" Text='<%# Bind("ETHERNET_INTERFACE") %>'></asp:Label>
+                                        </ItemTemplate>
+                                    </asp:TemplateField>
+                                    <asp:TemplateField HeaderText="ETHERNET_CONTROLLER" SortExpression="ETHERNET_CONTROLLER">
+                                        <EditItemTemplate>
+                                            <cc1:SimpleHtmlEditor ID="sheEditETHERNET_CONTROLLER" runat="server" Text='<%# Bind("ETHERNET_CONTROLLER") %>' Height="80px" Width="350px" />
+                                        </EditItemTemplate>
+                                        <InsertItemTemplate>
+                                            <cc1:SimpleHtmlEditor ID="sheInsertETHERNET_CONTROLLER" runat="server" Text='<%# Bind("ETHERNET_CONTROLLER") %>' Height="80px" Width="350px" />
+                                        </InsertItemTemplate>
+                                        <ItemTemplate>
+                                            <asp:Label ID="Label28" runat="server" Text='<%# Bind("ETHERNET_CONTROLLER") %>'></asp:Label>
+                                        </ItemTemplate>
+                                    </asp:TemplateField>
+                                    <asp:TemplateField HeaderText="FRONT_IO_PORTS" SortExpression="FRONT_IO_PORTS">
+                                        <EditItemTemplate>
+                                            <cc1:SimpleHtmlEditor ID="sheEditFRONT_IO_PORTS" runat="server" Text='<%# Bind("FRONT_IO_PORTS") %>' Height="80px" Width="350px" />
+                                        </EditItemTemplate>
+                                        <InsertItemTemplate>
+                                            <cc1:SimpleHtmlEditor ID="sheInsertFRONT_IO_PORTS" runat="server" Text='<%# Bind("FRONT_IO_PORTS") %>' Height="80px" Width="350px" />
+                                        </InsertItemTemplate>
+                                        <ItemTemplate>
+                                            <asp:Label ID="Label29" runat="server" Text='<%# Bind("FRONT_IO_PORTS") %>'></asp:Label>
+                                        </ItemTemplate>
+                                    </asp:TemplateField>
+                                    <asp:TemplateField HeaderText="REAR_IO_PORTS" SortExpression="REAR_IO_PORTS">
+                                        <EditItemTemplate>
+                                            <cc1:SimpleHtmlEditor ID="sheEditREAR_IO_PORTS" runat="server" Text='<%# Bind("REAR_IO_PORTS") %>' Height="150px" Width="350px" />
+                                        </EditItemTemplate>
+                                        <InsertItemTemplate>
+                                            <cc1:SimpleHtmlEditor ID="sheInsertREAR_IO_PORTS" runat="server" Text='<%# Bind("REAR_IO_PORTS") %>' Height="150px" Width="350px" />
+                                        </InsertItemTemplate>
+                                        <ItemTemplate>
+                                            <asp:Label ID="Label30" runat="server" Text='<%# Bind("REAR_IO_PORTS") %>'></asp:Label>
+                                        </ItemTemplate>
+                                    </asp:TemplateField>
+                                    <asp:TemplateField HeaderText="OUTPUT" SortExpression="OUTPUT">
+                                        <EditItemTemplate>
+                                            <cc1:SimpleHtmlEditor ID="sheEditOUTPUT" runat="server" Text='<%# Bind("OUTPUT") %>' Height="80px" Width="350px" />
+                                        </EditItemTemplate>
+                                        <InsertItemTemplate>
+                                            <cc1:SimpleHtmlEditor ID="sheInsertOUTPUT" runat="server" Text='<%# Bind("OUTPUT") %>' Height="80px" Width="350px" />
+                                        </InsertItemTemplate>
+                                        <ItemTemplate>
+                                            <asp:Label ID="Label31" runat="server" Text='<%# Bind("OUTPUT") %>'></asp:Label>
+                                        </ItemTemplate>
+                                    </asp:TemplateField>
+                                    <asp:TemplateField HeaderText="INTERVAL" SortExpression="INTERVAL">
+                                        <EditItemTemplate>
+                                            <cc1:SimpleHtmlEditor ID="sheEditINTERVAL" runat="server" Text='<%# Bind("INTERVAL") %>' Height="80px" Width="350px" />
+                                        </EditItemTemplate>
+                                        <InsertItemTemplate>
+                                            <cc1:SimpleHtmlEditor ID="sheInsertINTERVAL" runat="server" Text='<%# Bind("INTERVAL") %>' Height="80px" Width="350px" />
+                                        </InsertItemTemplate>
+                                        <ItemTemplate>
+                                            <asp:Label ID="Label32" runat="server" Text='<%# Bind("INTERVAL") %>'></asp:Label>
+                                        </ItemTemplate>
+                                    </asp:TemplateField>
+                                    <asp:TemplateField HeaderText="RAID_CARD" SortExpression="RAID_CARD">
+                                         <EditItemTemplate>
+                                            <cc1:SimpleHtmlEditor ID="sheEditRAID_CARD" runat="server" Text='<%# Bind("RAID_CARD") %>' Height="80px" Width="350px" />
+                                        </EditItemTemplate>
+                                        <InsertItemTemplate>
+                                            <cc1:SimpleHtmlEditor ID="sheInsertRAID_CARD" runat="server" Text='<%# Bind("RAID_CARD") %>' Height="80px" Width="350px" />
+                                        </InsertItemTemplate>
+                                        <ItemTemplate>
+                                            <asp:Label ID="Label33" runat="server" Text='<%# Bind("RAID_CARD") %>'></asp:Label>
+                                        </ItemTemplate>
+                                    </asp:TemplateField>
+                                    <asp:TemplateField HeaderText="Operating_System" SortExpression="Operating_System">
+                                        <EditItemTemplate>
+                                            <cc1:SimpleHtmlEditor ID="sheEditOperating_System" runat="server" Text='<%# Bind("Operating_System") %>' Height="80px" Width="350px" />
+                                        </EditItemTemplate>
+                                        <InsertItemTemplate>
+                                            <cc1:SimpleHtmlEditor ID="sheInsertOperating_System" runat="server" Text='<%# Bind("Operating_System") %>' Height="80px" Width="350px" />
+                                        </InsertItemTemplate>
+                                        <ItemTemplate>
+                                            <asp:Label ID="Label34" runat="server" Text='<%# Bind("Operating_System") %>'></asp:Label>
+                                        </ItemTemplate>
+                                    </asp:TemplateField>
+                                    <asp:TemplateField HeaderText="POWER_OUTPUT_WATTAGE" SortExpression="POWER_OUTPUT_WATTAGE">
+                                         <EditItemTemplate>
+                                            <cc1:SimpleHtmlEditor ID="sheEditPOWER_OUTPUT_WATTAGE" runat="server" Text='<%# Bind("POWER_OUTPUT_WATTAGE") %>' Height="80px" Width="350px" />
+                                        </EditItemTemplate>
+                                        <InsertItemTemplate>
+                                            <cc1:SimpleHtmlEditor ID="sheInsertPOWER_OUTPUT_WATTAGE" runat="server" Text='<%# Bind("POWER_OUTPUT_WATTAGE") %>' Height="80px" Width="350px" />
+                                        </InsertItemTemplate>
+                                        <ItemTemplate>
+                                            <asp:Label ID="Label35" runat="server" Text='<%# Bind("POWER_OUTPUT_WATTAGE") %>'></asp:Label>
+                                        </ItemTemplate>
+                                    </asp:TemplateField>
+                                    <asp:TemplateField HeaderText="TYPE" SortExpression="TYPE">
+                                        <EditItemTemplate>
+                                            <cc1:SimpleHtmlEditor ID="sheEditTYPE" runat="server" Text='<%# Bind("TYPE") %>' Height="80px" Width="350px" />
+                                        </EditItemTemplate>
+                                        <InsertItemTemplate>
+                                            <cc1:SimpleHtmlEditor ID="sheInsertTYPE" runat="server" Text='<%# Bind("TYPE") %>' Height="80px" Width="350px" />
+                                        </InsertItemTemplate>
+                                        <ItemTemplate>
+                                            <asp:Label ID="Label36" runat="server" Text='<%# Bind("TYPE") %>'></asp:Label>
+                                        </ItemTemplate>
+                                    </asp:TemplateField>
+                                    <asp:TemplateField HeaderText="CHASSIS_FAN" SortExpression="CHASSIS_FAN">
+                                        <EditItemTemplate>
+                                            <cc1:SimpleHtmlEditor ID="sheEditCHASSIS_FAN" runat="server" Text='<%# Bind("CHASSIS_FAN") %>' Height="80px" Width="350px" />
+                                        </EditItemTemplate>
+                                        <InsertItemTemplate>
+                                            <cc1:SimpleHtmlEditor ID="sheInsertCHASSIS_FAN" runat="server" Text='<%# Bind("CHASSIS_FAN") %>' Height="80px" Width="350px" />
+                                        </InsertItemTemplate>
+                                        <ItemTemplate>
+                                            <asp:Label ID="Label37" runat="server" Text='<%# Bind("CHASSIS_FAN") %>'></asp:Label>
+                                        </ItemTemplate>
+                                    </asp:TemplateField>
+                                    <asp:TemplateField HeaderText="AIR_FILTER" SortExpression="AIR_FILTER">
+                                        <EditItemTemplate>
+                                            <cc1:SimpleHtmlEditor ID="sheEditAIR_FILTER" runat="server" Text='<%# Bind("AIR_FILTER") %>' Height="80px" Width="350px" />
+                                        </EditItemTemplate>
+                                        <InsertItemTemplate>
+                                            <cc1:SimpleHtmlEditor ID="sheInsertAIR_FILTER" runat="server" Text='<%# Bind("AIR_FILTER") %>' Height="80px" Width="350px" />
+                                        </InsertItemTemplate>
+                                        <ItemTemplate>
+                                            <asp:Label ID="Label38" runat="server" Text='<%# Bind("AIR_FILTER") %>'></asp:Label>
+                                        </ItemTemplate>
+                                    </asp:TemplateField>
+                                    <asp:TemplateField HeaderText="TEMPERATURE" SortExpression="TEMPERATURE">
+                                        <EditItemTemplate>
+                                            <cc1:SimpleHtmlEditor ID="sheEditTEMPERATURE" runat="server" Text='<%# Bind("TEMPERATURE") %>' Height="80px" Width="350px" />
+                                        </EditItemTemplate>
+                                        <InsertItemTemplate>
+                                            <cc1:SimpleHtmlEditor ID="sheInsertTEMPERATURE" runat="server" Text='<%# Bind("TEMPERATURE") %>' Height="80px" Width="350px" />
+                                        </InsertItemTemplate>
+                                        <ItemTemplate>
+                                            <asp:Label ID="Label39" runat="server" Text='<%# Bind("TEMPERATURE") %>'></asp:Label>
+                                        </ItemTemplate>
+                                    </asp:TemplateField>
+                                    <asp:TemplateField HeaderText="HUMIDITY" SortExpression="HUMIDITY">
+                                        <EditItemTemplate>
+                                            <cc1:SimpleHtmlEditor ID="sheEditHUMIDITY" runat="server" Text='<%# Bind("HUMIDITY") %>' Height="80px" Width="350px" />
+                                        </EditItemTemplate>
+                                        <InsertItemTemplate>
+                                            <cc1:SimpleHtmlEditor ID="sheInsertHUMIDITY" runat="server" Text='<%# Bind("HUMIDITY") %>' Height="80px" Width="350px" />
+                                        </InsertItemTemplate>
+                                        <ItemTemplate>
+                                            <asp:Label ID="Label40" runat="server" Text='<%# Bind("HUMIDITY") %>'></asp:Label>
+                                        </ItemTemplate>
+                                    </asp:TemplateField>
+                                    <asp:TemplateField HeaderText="COLOR" SortExpression="COLOR">
+                                        <EditItemTemplate>
+                                            <cc1:SimpleHtmlEditor ID="sheEditCOLOR" runat="server" Text='<%# Bind("COLOR") %>' Height="80px" Width="350px" />
+                                        </EditItemTemplate>
+                                        <InsertItemTemplate>
+                                            <cc1:SimpleHtmlEditor ID="sheInsertCOLOR" runat="server" Text='<%# Bind("COLOR") %>' Height="80px" Width="350px" />
+                                        </InsertItemTemplate>
+                                        <ItemTemplate>
+                                            <asp:Label ID="Label41" runat="server" Text='<%# Bind("COLOR") %>'></asp:Label>
+                                        </ItemTemplate>
+                                    </asp:TemplateField>
+                                    <asp:TemplateField HeaderText="DIMENSIONS" SortExpression="DIMENSIONS">
+                                        <EditItemTemplate>
+                                            <cc1:SimpleHtmlEditor ID="sheEditDIMENSIONS" runat="server" Text='<%# Bind("DIMENSIONS") %>' Height="80px" Width="350px" />
+                                        </EditItemTemplate>
+                                        <InsertItemTemplate>
+                                            <cc1:SimpleHtmlEditor ID="sheInsertDIMENSIONS" runat="server" Text='<%# Bind("DIMENSIONS") %>' Height="80px" Width="350px" />
+                                        </InsertItemTemplate>
+                                        <ItemTemplate>
+                                            <asp:Label ID="Label42" runat="server" Text='<%# Bind("DIMENSIONS") %>'></asp:Label>
+                                        </ItemTemplate>
+                                    </asp:TemplateField>
+                                    <asp:TemplateField HeaderText="WEIGHT" SortExpression="WEIGHT">
+                                        <EditItemTemplate>
+                                            <cc1:SimpleHtmlEditor ID="sheEditWEIGHT" runat="server" Text='<%# Bind("WEIGHT") %>' Height="80px" Width="350px" />
+                                        </EditItemTemplate>
+                                        <InsertItemTemplate>
+                                            <cc1:SimpleHtmlEditor ID="sheInsertWEIGHT" runat="server" Text='<%# Bind("WEIGHT") %>' Height="80px" Width="350px" />
+                                        </InsertItemTemplate>
+                                        <ItemTemplate>
+                                            <asp:Label ID="Label43" runat="server" Text='<%# Bind("WEIGHT") %>'></asp:Label>
+                                        </ItemTemplate>
+                                    </asp:TemplateField>
+                                    <asp:TemplateField HeaderText="SEQ_NO" SortExpression="SEQ_NO">
+                                        <EditItemTemplate>
+                                            <asp:TextBox TextMode="MultiLine" Width="300px" ID="TextBox44" runat="server" Text='<%# Bind("SEQ_NO") %>'></asp:TextBox>
+                                        </EditItemTemplate>
+                                        <InsertItemTemplate>
+                                            <asp:TextBox TextMode="MultiLine" Width="300px" ID="TextBox44" runat="server" Text='<%# Bind("SEQ_NO") %>'></asp:TextBox>
+                                        </InsertItemTemplate>
+                                        <ItemTemplate>
+                                            <asp:Label ID="Label44" runat="server" Text='<%# Bind("SEQ_NO") %>'></asp:Label>
+                                        </ItemTemplate>
+                                    </asp:TemplateField>
+                                    <asp:CommandField ShowDeleteButton="True" ShowEditButton="True" ShowInsertButton="True" />
+                                </Fields>
+                                <HeaderStyle BackColor="#000084" Font-Bold="True" ForeColor="White" />
+                                <AlternatingRowStyle BackColor="Gainsboro" />
+                            </asp:DetailsView>
+                            <asp:SqlDataSource ID="SqlDataSource1" runat="server" ConflictDetection="CompareAllValues"
+                                ConnectionString="<%$ ConnectionStrings:B2B %>" DeleteCommand="DELETE FROM [EZ_CBOM_CATALOG] WHERE [CATALOG_ID] = @original_CATALOG_ID"
+                                OldValuesParameterFormatString="original_{0}" SelectCommand="SELECT * FROM [EZ_CBOM_CATALOG] WHERE ([CATALOG_ID] = @CATALOG_ID)"
+                                InsertCommand="INSERT INTO [EZ_CBOM_CATALOG] ([CATALOG_ID], [CATALOG_NAME], [CATALOG_TYPE], [SYSTEM], [IMAGE], [PDF], [DESCRIPTION], [BUS], [KEY_FEATURE], [FORM_FACTOR], [CHIPSET], [PROCESSOR], [FRONT_SIDE_BUS], [L2_CACHE], [MEMORY], [Controller], [VRAM], [AGP], [ISA], [PCI], [PCI_EXPRESS], [CD_ROM], [FLOPPY_DISK], [HARD_DRIVE_DISK], [SLIM_CD_ROM], [FRONT_ACCESSIBLE], [FRONT_ACCESSIBLE2], [MOBILE_RACK], [INTERNAL], [ETHERNET_INTERFACE], [ETHERNET_CONTROLLER], [FRONT_IO_PORTS], [REAR_IO_PORTS], [OUTPUT], [INTERVAL], [RAID_CARD], [Operating_System], [POWER_OUTPUT_WATTAGE], [TYPE], [CHASSIS_FAN], [AIR_FILTER], [TEMPERATURE], [HUMIDITY], [COLOR], [DIMENSIONS], [WEIGHT], [SEQ_NO]) VALUES (@CATALOG_ID, @CATALOG_NAME, @CATALOG_TYPE, @SYSTEM, @IMAGE, @PDF, @DESCRIPTION, @BUS, @KEY_FEATURE, @FORM_FACTOR, @CHIPSET, @PROCESSOR, @FRONT_SIDE_BUS, @L2_CACHE, @MEMORY, @Controller, @VRAM, @AGP, @ISA, @PCI, @PCI_EXPRESS, @CD_ROM, @FLOPPY_DISK, @HARD_DRIVE_DISK, @SLIM_CD_ROM, @FRONT_ACCESSIBLE, @FRONT_ACCESSIBLE2, @MOBILE_RACK, @INTERNAL, @ETHERNET_INTERFACE, @ETHERNET_CONTROLLER, @FRONT_IO_PORTS, @REAR_IO_PORTS, @OUTPUT, @INTERVAL, @RAID_CARD, @Operating_System, @POWER_OUTPUT_WATTAGE, @TYPE, @CHASSIS_FAN, @AIR_FILTER, @TEMPERATURE, @HUMIDITY, @COLOR, @DIMENSIONS, @WEIGHT, @SEQ_NO)"
+                                UpdateCommand="UPDATE [EZ_CBOM_CATALOG] SET [CATALOG_NAME] = @CATALOG_NAME, [CATALOG_TYPE] = @CATALOG_TYPE, [SYSTEM] = @SYSTEM, [IMAGE] = @IMAGE, [PDF] = @PDF, [DESCRIPTION] = @DESCRIPTION, [BUS] = @BUS, [KEY_FEATURE] = @KEY_FEATURE, [FORM_FACTOR] = @FORM_FACTOR, [CHIPSET] = @CHIPSET, [PROCESSOR] = @PROCESSOR, [FRONT_SIDE_BUS] = @FRONT_SIDE_BUS, [L2_CACHE] = @L2_CACHE, [MEMORY] = @MEMORY, [Controller] = @Controller, [VRAM] = @VRAM, [AGP] = @AGP, [ISA] = @ISA, [PCI] = @PCI, [PCI_EXPRESS] = @PCI_EXPRESS, [CD_ROM] = @CD_ROM, [FLOPPY_DISK] = @FLOPPY_DISK, [HARD_DRIVE_DISK] = @HARD_DRIVE_DISK, [SLIM_CD_ROM] = @SLIM_CD_ROM, [FRONT_ACCESSIBLE] = @FRONT_ACCESSIBLE, [FRONT_ACCESSIBLE2] = @FRONT_ACCESSIBLE2, [MOBILE_RACK] = @MOBILE_RACK, [INTERNAL] = @INTERNAL, [ETHERNET_INTERFACE] = @ETHERNET_INTERFACE, [ETHERNET_CONTROLLER] = @ETHERNET_CONTROLLER, [FRONT_IO_PORTS] = @FRONT_IO_PORTS, [REAR_IO_PORTS] = @REAR_IO_PORTS, [OUTPUT] = @OUTPUT, [INTERVAL] = @INTERVAL, [RAID_CARD] = @RAID_CARD, [Operating_System] = @Operating_System, [POWER_OUTPUT_WATTAGE] = @POWER_OUTPUT_WATTAGE, [TYPE] = @TYPE, [CHASSIS_FAN] = @CHASSIS_FAN, [AIR_FILTER] = @AIR_FILTER, [TEMPERATURE] = @TEMPERATURE, [HUMIDITY] = @HUMIDITY, [COLOR] = @COLOR, [DIMENSIONS] = @DIMENSIONS, [WEIGHT] = @WEIGHT, [SEQ_NO] = @SEQ_NO WHERE [CATALOG_ID] = @original_CATALOG_ID">
+                                <DeleteParameters>
+                                    <asp:Parameter Name="original_CATALOG_ID" Type="String" />
+                                </DeleteParameters>
+                                <UpdateParameters>
+                                    <asp:Parameter Name="CATALOG_NAME" Type="String" />
+                                    <asp:Parameter Name="CATALOG_TYPE" Type="String" />
+                                    <asp:Parameter Name="SYSTEM" Type="String" />
+                                    <asp:Parameter Name="IMAGE" Type="String" />
+                                    <asp:Parameter Name="PDF" Type="String" />
+                                    <asp:Parameter Name="DESCRIPTION" Type="String" />
+                                    <asp:Parameter Name="BUS" Type="String" />
+                                    <asp:Parameter Name="KEY_FEATURE" Type="String" />
+                                    <asp:Parameter Name="FORM_FACTOR" Type="String" />
+                                    <asp:Parameter Name="CHIPSET" Type="String" />
+                                    <asp:Parameter Name="PROCESSOR" Type="String" />
+                                    <asp:Parameter Name="FRONT_SIDE_BUS" Type="String" />
+                                    <asp:Parameter Name="L2_CACHE" Type="String" />
+                                    <asp:Parameter Name="MEMORY" Type="String" />
+                                    <asp:Parameter Name="Controller" Type="String" />
+                                    <asp:Parameter Name="VRAM" Type="String" />
+                                    <asp:Parameter Name="AGP" Type="String" />
+                                    <asp:Parameter Name="ISA" Type="String" />
+                                    <asp:Parameter Name="PCI" Type="String" />
+                                    <asp:Parameter Name="PCI_EXPRESS" Type="String" />
+                                    <asp:Parameter Name="CD_ROM" Type="String" />
+                                    <asp:Parameter Name="FLOPPY_DISK" Type="String" />
+                                    <asp:Parameter Name="HARD_DRIVE_DISK" Type="String" />
+                                    <asp:Parameter Name="SLIM_CD_ROM" Type="String" />
+                                    <asp:Parameter Name="FRONT_ACCESSIBLE" Type="String" />
+                                    <asp:Parameter Name="FRONT_ACCESSIBLE2" Type="String" />
+                                    <asp:Parameter Name="MOBILE_RACK" Type="String" />
+                                    <asp:Parameter Name="INTERNAL" Type="String" />
+                                    <asp:Parameter Name="ETHERNET_INTERFACE" Type="String" />
+                                    <asp:Parameter Name="ETHERNET_CONTROLLER" Type="String" />
+                                    <asp:Parameter Name="FRONT_IO_PORTS" Type="String" />
+                                    <asp:Parameter Name="REAR_IO_PORTS" Type="String" />
+                                    <asp:Parameter Name="OUTPUT" Type="String" />
+                                    <asp:Parameter Name="INTERVAL" Type="String" />
+                                    <asp:Parameter Name="RAID_CARD" Type="String" />
+                                    <asp:Parameter Name="Operating_System" Type="String" />
+                                    <asp:Parameter Name="POWER_OUTPUT_WATTAGE" Type="String" />
+                                    <asp:Parameter Name="TYPE" Type="String" />
+                                    <asp:Parameter Name="CHASSIS_FAN" Type="String" />
+                                    <asp:Parameter Name="AIR_FILTER" Type="String" />
+                                    <asp:Parameter Name="TEMPERATURE" Type="String" />
+                                    <asp:Parameter Name="HUMIDITY" Type="String" />
+                                    <asp:Parameter Name="COLOR" Type="String" />
+                                    <asp:Parameter Name="DIMENSIONS" Type="String" />
+                                    <asp:Parameter Name="WEIGHT" Type="String" />
+                                    <asp:Parameter Name="SEQ_NO" Type="Int32" />
+                                    <asp:Parameter Name="original_CATALOG_ID" Type="String" />
+                                </UpdateParameters>
+                                <SelectParameters>
+                                    <asp:QueryStringParameter DefaultValue="SYS-1U1000-3A01" Name="CATALOG_ID" QueryStringField="ID"
+                                        Type="String" />
+                                </SelectParameters>
+                                <InsertParameters>
+                                    <asp:Parameter Name="CATALOG_ID" Type="String" />
+                                    <asp:Parameter Name="CATALOG_NAME" Type="String" />
+                                    <asp:Parameter Name="CATALOG_TYPE" Type="String" />
+                                    <asp:Parameter Name="SYSTEM" Type="String" />
+                                    <asp:Parameter Name="IMAGE" Type="String" />
+                                    <asp:Parameter Name="PDF" Type="String" />
+                                    <asp:Parameter Name="DESCRIPTION" Type="String" />
+                                    <asp:Parameter Name="BUS" Type="String" />
+                                    <asp:Parameter Name="KEY_FEATURE" Type="String" />
+                                    <asp:Parameter Name="FORM_FACTOR" Type="String" />
+                                    <asp:Parameter Name="CHIPSET" Type="String" />
+                                    <asp:Parameter Name="PROCESSOR" Type="String" />
+                                    <asp:Parameter Name="FRONT_SIDE_BUS" Type="String" />
+                                    <asp:Parameter Name="L2_CACHE" Type="String" />
+                                    <asp:Parameter Name="MEMORY" Type="String" />
+                                    <asp:Parameter Name="Controller" Type="String" />
+                                    <asp:Parameter Name="VRAM" Type="String" />
+                                    <asp:Parameter Name="AGP" Type="String" />
+                                    <asp:Parameter Name="ISA" Type="String" />
+                                    <asp:Parameter Name="PCI" Type="String" />
+                                    <asp:Parameter Name="PCI_EXPRESS" Type="String" />
+                                    <asp:Parameter Name="CD_ROM" Type="String" />
+                                    <asp:Parameter Name="FLOPPY_DISK" Type="String" />
+                                    <asp:Parameter Name="HARD_DRIVE_DISK" Type="String" />
+                                    <asp:Parameter Name="SLIM_CD_ROM" Type="String" />
+                                    <asp:Parameter Name="FRONT_ACCESSIBLE" Type="String" />
+                                    <asp:Parameter Name="FRONT_ACCESSIBLE2" Type="String" />
+                                    <asp:Parameter Name="MOBILE_RACK" Type="String" />
+                                    <asp:Parameter Name="INTERNAL" Type="String" />
+                                    <asp:Parameter Name="ETHERNET_INTERFACE" Type="String" />
+                                    <asp:Parameter Name="ETHERNET_CONTROLLER" Type="String" />
+                                    <asp:Parameter Name="FRONT_IO_PORTS" Type="String" />
+                                    <asp:Parameter Name="REAR_IO_PORTS" Type="String" />
+                                    <asp:Parameter Name="OUTPUT" Type="String" />
+                                    <asp:Parameter Name="INTERVAL" Type="String" />
+                                    <asp:Parameter Name="RAID_CARD" Type="String" />
+                                    <asp:Parameter Name="Operating_System" Type="String" />
+                                    <asp:Parameter Name="POWER_OUTPUT_WATTAGE" Type="String" />
+                                    <asp:Parameter Name="TYPE" Type="String" />
+                                    <asp:Parameter Name="CHASSIS_FAN" Type="String" />
+                                    <asp:Parameter Name="AIR_FILTER" Type="String" />
+                                    <asp:Parameter Name="TEMPERATURE" Type="String" />
+                                    <asp:Parameter Name="HUMIDITY" Type="String" />
+                                    <asp:Parameter Name="COLOR" Type="String" />
+                                    <asp:Parameter Name="DIMENSIONS" Type="String" />
+                                    <asp:Parameter Name="WEIGHT" Type="String" />
+                                    <asp:Parameter Name="SEQ_NO" Type="Int32" />
+                                </InsertParameters>
+                            </asp:SqlDataSource>
+                        
+                        </td>
+                        </tr>
+                    </table>
+                </td>
+            </tr>
+            <tr><!--Buffer-->
+                <td style="height: 25px"></td>
+            </tr>
+            <tr><!--Footer-->
+                 <td valign="bottom">
+                    
+                 </td>
+            </tr>
+        </table>
+</asp:Content>
+

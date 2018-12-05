@@ -1,0 +1,597 @@
+﻿<%@ Page Title="MyAdvantech - Channel Partner Home" Language="VB" MasterPageFile="~/Includes/MyMaster.master" %>
+<%@ Register Src="~/Includes/SupportBlock.ascx" TagName="SupportBlock" TagPrefix="uc9" %>
+<%@ Register Src="~/Includes/Banner.ascx" TagName="Banner" TagPrefix="uc10" %>
+<%@ Register Src="~/Includes/Opty/MyLeads.ascx" TagName="MyLeads" TagPrefix="uc7" %>
+<%@ Register src="~/Includes/ChangeCompany.ascx" TagName="ChgComp" TagPrefix="uc8" %>
+
+<script runat="server">
+    Public isPhones As Boolean = True, isUserIDs As Boolean = True
+    
+    Protected Sub LiTs_Load(ByVal sender As Object, ByVal e As System.EventArgs)
+        Dim Lit As Literal = CType(sender, Literal)
+        Dim LiTstr As String = Util.GetLANGLiT_text(Lit.ID.ToString.Trim)
+        If LiTstr.ToString.Trim <> "" Then
+            Lit.Text = LiTstr
+        End If
+    End Sub
+    
+    Protected Sub btnWiki_Click(ByVal sender As Object, ByVal e As System.EventArgs)
+        Dim ws As New SSO.MembershipWebservice
+        Dim p As SSO.SSOUSER = ws.getProfile(Session("user_id"), "MY")
+        If p IsNot Nothing Then
+            Response.Redirect(String.Format("http://wiki.advantech.com/apiLoginAdv.php?action=loginAdv&lgname={0}&lgpassword={1}", Session("user_id"), p.login_password))
+        End If
+    End Sub
+    
+    Sub SetPerfImg()
+        imgMyPerf.Src = "/Includes/MyPerf.ashx?Year=" + dlPerfYear.SelectedValue + "&Currency=" + dlPerCurr.SelectedValue
+    End Sub
+    
+    Protected Sub dlPerCurr_SelectedIndexChanged(ByVal sender As Object, ByVal e As System.EventArgs)
+        SetPerfImg()
+    End Sub
+
+    Protected Sub dlPerfYear_SelectedIndexChanged(ByVal sender As Object, ByVal e As System.EventArgs)
+        SetPerfImg()
+    End Sub
+
+    Protected Sub Page_Load(sender As Object, e As System.EventArgs)
+        If Session("account_status") IsNot Nothing Then
+            If Session("account_status") = "EZ" Then trChangeCompId.Visible = True
+        End If
+        If Not Page.IsPostBack Then
+            SetPerfImg()
+            
+            'JJ 2014/3/10 home頁只要是下列company ID："EURA004", "EGBR001", "ELVE001", "ELTG002", "EKZI003", "AHKP006", "ERUP002", "EURP001", "EURP011", "EUAJ001", "EURS006"的就隱藏
+            If Session("company_id") IsNot Nothing AndAlso Util.NoShowProjectRegistrationUser(Session("company_id")) Then
+                trProjectRegist.Visible = False : trProjectRegistlist.Visible = False
+            End If
+            
+        End If
+    End Sub
+    
+    Public Function IsPhone(ByVal value As String) As Boolean
+        If Trim(value) <> "" And Not IsNothing(value) Then
+            isPhones = True
+        Else
+            isPhones = False
+        End If
+        Return isPhones
+    End Function
+    
+    Public Function IsUserID(ByVal value As String) As Boolean
+        If Trim(value) <> "" And Not IsNothing(value) Then
+            isUserIDs = True
+        Else
+            isUserIDs = False
+        End If
+        Return isUserIDs
+    End Function
+    
+    Protected Sub hlUserID_DataBinding(ByVal sender As Object, ByVal e As System.EventArgs)
+        CType(sender, HyperLink).NavigateUrl = "mailto:" + CType(sender, HyperLink).NavigateUrl
+    End Sub
+    
+    <Services.WebMethod()> _
+    <Web.Script.Services.ScriptMethod()> _
+    Public Shared Function MyRecentOrderItems() As String
+        Try
+            Dim uid As String = "", cid As String = ""
+            If HttpContext.Current.Session IsNot Nothing AndAlso HttpContext.Current.Session("user_id") IsNot Nothing _
+            AndAlso HttpContext.Current.Session("user_id") <> "" Then
+                uid = HttpContext.Current.Session("user_id")
+            End If
+            Dim CanOrder As Boolean = True
+            If HttpContext.Current.Session Is Nothing OrElse HttpContext.Current.Session("company_id") Is Nothing _
+            OrElse HttpContext.Current.Session("company_id") = "EDDEAA01" OrElse _
+             AuthUtil.IsCanPlaceOrder(uid) = False Then
+                CanOrder = False
+                HttpContext.Current.Session("COMPANY_CURRENCY_SIGN") = "&euro;"
+            End If
+            Dim curcy_sign = HttpContext.Current.Session("COMPANY_CURRENCY_SIGN")
+            cid = HttpContext.Current.Session("company_id")
+            Dim dts(2) As DataTable
+            Dim nsb As New System.Text.StringBuilder
+            With nsb
+                .AppendFormat(" select top 6 a.part_no, a.tumbnail_image_id, a.model_no, a.product_desc, a.seq_no, a.end_date from hqdc_promotion_product a ")
+                .AppendFormat(" where '{0}' between a.start_date and a.end_date  ", Now.ToString("yyyy/MM/dd"))
+                .AppendFormat(" union ")
+                .AppendFormat(" select t.part_no, t.tumbnail_image_id, t.model_no, t.product_desc, '9999' as seq_no, '9999/12/31' as end_date from ")
+                .AppendLine(String.Format(" (select top 9 b.part_no, b.tumbnail_image_id, b.model_no, b.product_desc "))
+                .AppendLine(String.Format(" from sap_product a inner join PRODUCT_FULLTEXT_NEW b on a.part_no=b.part_no "))
+                .AppendLine(String.Format(" where b.tumbnail_image_id is not null and b.product_group not in ('Advantech Global Services','Others') and b.material_group in ('PRODUCT') ")) '
+                .AppendLine(String.Format(" order by a.create_date desc) as t "))
+                .AppendFormat(" order by seq_no,end_date")
+            End With
+            Dim n9dt As DataTable = dbUtil.dbGetDataTable("MY", nsb.ToString())
+            'If n9dt.Rows.Count = 9 Then
+            dts(0) = n9dt.Copy() : dts(1) = n9dt.Copy() : dts(2) = n9dt.Copy()
+            dts(0).Rows.Clear() : dts(1).Rows.Clear() : dts(2).Rows.Clear()
+            dts(0).ImportRow(n9dt.Rows(0)) : dts(0).ImportRow(n9dt.Rows(1)) : dts(0).ImportRow(n9dt.Rows(2))
+            dts(1).ImportRow(n9dt.Rows(3)) : dts(1).ImportRow(n9dt.Rows(4)) : dts(1).ImportRow(n9dt.Rows(5))
+            dts(2).ImportRow(n9dt.Rows(6)) : dts(2).ImportRow(n9dt.Rows(7)) : dts(2).ImportRow(n9dt.Rows(8))
+            'End If
+            'Util.SendEmail("tc.chen@advantech.eu", "ebiz.aeu@advantech.eu", "DTS", "1:" + Util.DataTableToXml(dts(0)) + "<br/>2:" + Util.DataTableToXml(dts(1)) + "<br/>3:" + Util.DataTableToXml(dts(2)), True, "", "")
+            'Dim SupportImgUrl As String = ConfigurationManager.AppSettings("SupportImgUrl")
+            Dim SupportImgUrl As String = "my.advantech.com"
+            Dim sb As New System.Text.StringBuilder
+            With sb
+                .AppendLine(String.Format("<table width='632'>"))
+                Dim dtc As Integer = 0
+                For Each dt As DataTable In dts
+                    dtc += 1
+                    If dtc = 3 Then Exit For
+                    .AppendLine(String.Format(" <tr align='center'>"))
+                    .AppendLine(String.Format("     <td align='center'>"))
+                    .AppendLine(String.Format("         <table width='200' style='height:190px'>"))
+                    .AppendLine("                           <tr>")
+                    If dt IsNot Nothing Then
+                        If dtc = 1 Then
+                            Dim i As Integer = 0
+                            For Each r As DataRow In dt.Rows
+                                If i = 3 Then Exit For
+                                .AppendLine("                           <td style='width:200' valign='top'>")
+                                .AppendLine("                               <table width='200' height='190'>")
+                                .AppendLine(String.Format("                     <tr><td valign='top' align='center' style='font-weight:bold;'><a href='/Product/Model_Detail.aspx?model_no={0}'>{1}</a></td></tr>", r.Item("model_no"), r.Item("part_no")))
+                                .AppendLine(String.Format("                     <tr><td valign='top' align='center'>{0}</td></tr>", r.Item("product_desc")))
+                                .AppendLine(String.Format("                     <tr><td valign='middle' align='center'><a href='/Product/Model_Detail.aspx?model_no={2}'><img style='height:200px;width:200px;border-width:0px;' src='http://" + SupportImgUrl + "/download/downloadlit.aspx?lit_id={0}' alt='{1}'/></a></td></tr>", r.Item("tumbnail_image_id"), r.Item("part_no"), r.Item("model_no")))
+                                If CanOrder Then .AppendLine(String.Format("                     <tr><td valign='bottom' align='center'><a href='/order/cart_add2cartline.aspx?part_no={0}'><img src='/Images/add2cart_yellow_en.gif' border='0px'/></a></td></tr>", r.Item("part_no")))
+                                .AppendLine("                               </table>")
+                                .AppendLine("                           </td>")
+                                
+                                i += 1
+                            Next
+                            
+                        Else
+                            For Each r As DataRow In dt.Rows
+                                .AppendLine("                           <td style='width:200'>")
+                                .AppendLine("                               <table width='200'>")
+                                .AppendLine(String.Format("                     <tr><td align='center' style='font-weight:bold;'><a href='/Product/Model_Detail.aspx?model_no={0}'>{1}</a></td></tr>", r.Item("model_no"), r.Item("part_no")))
+                                .AppendLine(String.Format("                     <tr><td align='center'>{0}</td></tr>", r.Item("product_desc")))
+                                .AppendLine(String.Format("                     <tr><td align='center'><a href='/Product/Model_Detail.aspx?model_no={2}'><img style='height:200px;width:200px;border-width:0px;' src='http://" + SupportImgUrl + "/download/downloadlit.aspx?lit_id={0}' alt='{1}'/></a></td></tr>", r.Item("tumbnail_image_id"), r.Item("part_no"), r.Item("model_no")))
+                                '.AppendLine(String.Format("                     <tr><th style='color:Navy' align='center'>{0}{1}</th></tr>", curcy_sign, Util.GetSAPPrice(r.Item("part_no"), cid)))
+                                If CanOrder Then .AppendLine(String.Format("                     <tr><td valign='top' align='center'><a href='/order/cart_add2cartline.aspx?part_no={0}'><img src='/Images/add2cart_yellow_en.gif' border='0px'/></a></td></tr>", r.Item("part_no")))
+                                .AppendLine("                               </table>")
+                                .AppendLine("                           </td>")
+                            Next
+                        End If
+                        
+                    End If
+                    .AppendLine("                           </tr>")
+                    .AppendLine(String.Format("         </table>"))
+                    .AppendLine(String.Format("     </td>"))
+                    .AppendLine(String.Format(" </tr>"))
+                Next
+                .AppendLine(String.Format("</table>"))
+            End With
+            Return sb.ToString()
+        Catch ex As Exception
+            Util.SendEmail("tc.chen@advantech.eu,rudy.wang@advantech.com.tw", "ebiz.aeu@advantech.eu", "Error Myrecent items by " + HttpContext.Current.Session("user_id"), ex.ToString, False, "", "")
+        End Try
+        Return ""
+    End Function
+
+    Protected Sub Page_Init(sender As Object, e As System.EventArgs)
+        If Session("account_status") IsNot Nothing Then
+            If Session("account_status") = "CP" And Session("RBU") = "HQDC" Then
+                
+            Else
+                If Session("account_status") = "CP" Then Response.Redirect("home_cp.aspx")
+                If Session("account_status") = "GA" Then Response.Redirect("home_ga.aspx")
+                If Session("account_status") = "KA" Then Response.Redirect("home_ka.aspx")
+            End If
+        End If
+    End Sub
+    
+</script>
+
+<asp:Content ID="Content1" ContentPlaceHolderID="_main" Runat="Server">
+<style type="text/css">
+    .text
+    {
+	    font-family: "Arial" , "Helvetica" , "sans-serif";
+	    font-size: 12px;
+	    color: #000000;
+    }
+</style>
+
+    <div class="left">
+        <table width="100%" border="0" cellspacing="0" cellpadding="0">
+            <tr>
+                <td height="5"></td>
+            </tr>
+            <tr>
+                <td height="24" class="menu_title">
+                <asp:Literal   ID="LiT0" runat="server" OnLoad="LiTs_Load">Online Ordering</asp:Literal>
+                </td>
+            </tr>
+            <tr>
+                <td>
+                <table width="100%" border="0" cellspacing="0" cellpadding="0" class="login" style="font-weight:bold;">
+                    <tr>
+                    <td height="10"></td>
+                    <td></td>
+                    </tr>
+                    <tr>
+                    <td height="20"></td>
+                    <td class="menu_list"><table width="100%" border="0" cellspacing="0" cellpadding="0">
+                        <tr>
+                            <td width="5%"></td>
+                            <td class="menu_list">
+                            <table width="100%" cellpadding="0" cellspacing="0" border="0">
+                                <tr>
+                                    <td height="25"></td>
+                                    <td><table width="100%" border="0" cellspacing="0" cellpadding="0">
+                                        <tr>
+                                            <td width="5%" valign="top"><img src="images/point_02.gif" alt="" width="7" height="14"/></td>
+                                            <td class="menu_title02">
+                                            <a href="../Order/cart_list.aspx">
+                                                <asp:Literal   ID="LiT16" runat="server" OnLoad="LiTs_Load">Place Component Orders</asp:Literal>
+                                            </a></td>
+                                        </tr>
+                                    </table></td>
+                                </tr>
+                                <tr>
+                                    <td height="25"></td>
+                                    <td><table width="100%" border="0" cellspacing="0" cellpadding="0">
+                                        <tr>
+                                            <td width="5%" valign="top"><img src="images/point_02.gif" alt="" width="7" height="14"/></td>
+                                            <td class="menu_title02">
+                                            <a href="../Order/btos_portal.aspx">
+                                                <asp:Literal   ID="LiT17" runat="server" OnLoad="LiTs_Load">System Configuration/Orders</asp:Literal>
+                                            </a></td>
+                                        </tr>
+                                    </table></td>
+                                </tr>
+                                <tr>
+                                    <td height="25"></td>
+                                    <td><table width="100%" border="0" cellspacing="0" cellpadding="0">
+                                        <tr>
+                                            <td width="5%" valign="top"><img src="images/point_02.gif" alt="" width="7" height="14"/></td>
+                                            <td class="menu_title02">
+                                            <asp:HyperLink runat="server" ID="hyUploadOrder" NavigateUrl="./order/UploadOrderFromExcel.aspx"  >
+                                                <asp:Literal ID="LiT32" runat="server" Text="Upload Order"  OnLoad="LiTs_Load"/>
+                                            </asp:HyperLink></td></tr></table></td></tr><tr>
+                                    <td height="25"></td>
+                                    <td><table width="100%" border="0" cellspacing="0" cellpadding="0">
+                                        <tr>
+                                            <td width="5%" valign="top"><img src="images/point_02.gif" alt="" width="7" height="14"/></td><td class="menu_title02">
+                                            <a href="../Order/PriceAndATP.aspx">
+                                                <asp:Literal ID="LiT15" runat="server" OnLoad="LiTs_Load">Check Price & Availability</asp:Literal></a></td></tr></table></td></tr><tr>
+                                    <td height="25"></td>
+                                    <td><table width="100%" border="0" cellspacing="0" cellpadding="0">
+                                        <tr>
+                                            <td width="5%" valign="top"><img src="images/point_02.gif" alt="" width="7" height="14"/></td><td class="menu_title02">
+                                            <a href="../Order/BO_OrderTracking.aspx" runat="server" id="lnkMyBO">
+                                                <asp:Literal   ID="LiT13" runat="server" OnLoad="LiTs_Load">Order Tracking</asp:Literal></a></td></tr></table></td></tr><tr>
+                                    <td height="25"></td>
+                                    <td><table width="100%" border="0" cellspacing="0" cellpadding="0">
+                                        <tr>
+                                            <td width="5%" valign="top"><img src="images/point_02.gif" alt="" width="7" height="14"/></td><td class="menu_title02">
+                                            <a href="../Order/CartHistory_List.aspx" runat="server" id="lnkCartHistory">
+                                                <asp:Literal ID="LiT34" runat="server" OnLoad="LiTs_Load">Cart History</asp:Literal></a></td></tr></table></td></tr></table></td></tr></table></td></tr><tr>
+                    <td height="10"></td>
+                    <td></td>
+                    </tr>
+                </table>      </td>
+            </tr>
+            <tr>
+                <td height="5"></td>
+            </tr>
+            <tr>
+                <td height="24" class="menu_title">
+                <asp:Literal   ID="LiT3" runat="server" OnLoad="LiTs_Load">Product Info.</asp:Literal></td></tr><tr>
+                <td>
+                <table width="100%" border="0" cellspacing="0" cellpadding="0" class="login">
+                    <tr>
+                    <td width="5%" height="10"></td>
+                    <td></td>
+                    </tr>
+                    <tr>
+                    <td height="25"></td>
+                    <td><table width="100%" border="0" cellspacing="0" cellpadding="0">
+                        <tr>
+                            <td width="5%" valign="top"><img src="images/point_02.gif" alt="" width="7" height="14"/></td><td class="menu_title02">
+                            <a href="../Product/ProductSearch.aspx">
+                                <asp:Literal   ID="LiT21" runat="server" OnLoad="LiTs_Load">Search</asp:Literal></a></td></tr></table></td></tr><tr>
+                    <td height="25"></td>
+                    <td><table width="100%" border="0" cellspacing="0" cellpadding="0">
+                        <tr>
+                            <td width="5%" valign="top"><img src="images/point_02.gif" alt="" width="7" height="14"/></td><td class="menu_title02">
+                            <a href="../Product/PhaseInOut.aspx">
+                                <asp:Literal   ID="LiT22" runat="server" OnLoad="LiTs_Load">Phase In/ Out</asp:Literal></a></td></tr></table></td></tr><tr>
+                    <td height="25"></td>
+                    <td><table width="100%" border="0" cellspacing="0" cellpadding="0">
+                        <tr>
+                            <td width="5%" valign="top"><img src="images/point_02.gif" alt="" width="7" height="14"/></td><td class="menu_title02">
+                            <a href="../Product/New_Product.aspx">
+                                <asp:Literal   ID="LiT23" runat="server" OnLoad="LiTs_Load">New Product Highlight</asp:Literal></a></td></tr></table></td></tr><tr>
+                    <td height="25"></td>
+                    <td><table width="100%" border="0" cellspacing="0" cellpadding="0">
+                        <tr>
+                            <td width="5%" valign="top"><img src="images/point_02.gif" alt="" width="7" height="14"/></td><td class="menu_title02">
+                           <asp:HyperLink ID="LiT24" runat="server" text="Warranty Lookup" navigateurl="~/Order/RMAWarrantyLookup.aspx" />
+                           <%-- <a href="../Order/MyWarrantyExpireItems.aspx">
+                                <asp:Literal   ID="LiT24" runat="server" OnLoad="LiTs_Load">Warranty Lookup</asp:Literal>
+                            </a>--%>
+                            </td>
+                        </tr>
+                    </table></td>
+                    </tr>
+          
+                    <tr>
+                    <td height="10"></td>
+                    <td></td>
+                    </tr>
+                </table>     </td>
+            </tr>
+            <tr>
+                <td height="5"></td>
+            </tr>
+            <tr>
+                <td height="24" class="menu_title">
+                <asp:Literal   ID="LiT4" runat="server" OnLoad="LiTs_Load">Support & Download</asp:Literal></td></tr><tr>
+                <td>
+                <uc9:SupportBlock runat="server" ID="ucSupportBlock" IsCP="true" />
+                </td>
+            </tr>
+            <tr>
+                <td height="5"></td>
+            </tr>
+            <tr>
+                <td height="24" class="menu_title">
+                <asp:Literal   ID="LiT10" runat="server" OnLoad="LiTs_Load">Functional Tools</asp:Literal></td></tr><tr>
+                <td>
+                <table width="100%" border="0" cellspacing="0" cellpadding="0" class="login">
+                    <tr>
+                    <td height="10"></td>
+                    <td></td>
+                    </tr>
+                    <tr runat="server" id="trProjectRegist">
+                    <td width="5%" height="25"></td>
+                    <td><table width="100%" border="0" cellspacing="0" cellpadding="0">
+                        <tr>
+                        <td width="5%" valign="top"><img src="images/point_02.gif" width="7" height="14"/></td><td class="menu_title02">
+                            <asp:HyperLink runat="server" ID="hyPrjReg" Text="" NavigateUrl="~/My/ProjectRegist.aspx" >
+                            <asp:Literal   ID="LiT30" runat="server" OnLoad="LiTs_Load">Project Registration</asp:Literal>/
+                            <asp:Literal   ID="LiT31" runat="server" OnLoad="LiTs_Load">Special Price Request</asp:Literal>
+                            </asp:HyperLink></td></tr></table></td></tr><tr runat="server" id="trProjectRegistlist">
+                    <td width="5%" height="25"></td>
+                    <td><table width="100%" border="0" cellspacing="0" cellpadding="0">
+                        <tr>
+                        <td width="5%" valign="top"><img src="images/point_02.gif" width="7" height="14"/></td><td class="menu_title02">
+                            <asp:HyperLink runat="server" ID="HyperLink1" Text="" NavigateUrl="~/My/ProjectRegList.aspx" >
+                                <asp:Literal   ID="LiT36" runat="server" OnLoad="LiTs_Load">My Registered Projects</asp:Literal>
+                            </asp:HyperLink></td></tr></table></td></tr><tr runat="server" id="LiT29TR">
+                    <td width="5%" height="25"></td>
+                    <td><table width="100%" border="0" cellspacing="0" cellpadding="0">
+                        <tr>
+                        <td width="5%" valign="top"><img src="images/point_02.gif" width="7" height="14"/></td><td class="menu_title02">
+                            <a href="../My/MyLeads.aspx">
+                                <asp:Literal   ID="LiT29" runat="server" OnLoad="LiTs_Load">Leads Management</asp:Literal></a></td></tr></table></td></tr><tr>
+                    <td width="5%" height="25"></td>
+                    <td><table width="100%" border="0" cellspacing="0" cellpadding="0">
+                        <tr>
+                        <td width="5%" valign="top"><img src="images/point_02.gif" width="7" height="14"/></td><td class="menu_title02">
+                            <asp:HyperLink runat="server" ID="hyEMarketing" 
+                                NavigateUrl="http://www.advantech-eautomation.com/emarketingprograms/ChannelPartner/Channel_Partner_ppt/Advantech_IA_EDMs.htm" 
+                                Target="_blank" Text="eMarketing" />
+                        </td>
+                        </tr>
+                        </table></td>
+                    </tr>
+                    <tr runat="server" id="Ecard_ATR">
+                        <td width="5%" height="25"></td>
+                        <td><table width="100%" border="0" cellspacing="0" cellpadding="0">
+                            <tr>
+                            <td width="5%" valign="top"><img src="images/point_02.gif" width="7" height="14"/></td><td class="menu_title02">
+                                <a href="http://partner.advantech.com.tw/Utility/App_Login.aspx?App=ecard" id="Ecard_A" runat="server" target="_blank">eCard System</a> <asp:LinkButton runat="server" ID="btnWiki" Text="AdvantechWiki" OnClick="btnWiki_Click"  Visible="false"/>
+                            </td>
+                            </tr>
+                        </table></td>
+                    </tr>
+                    <tr runat="server" id="trChangeCompId" visible="false">
+                        <td width="5%" height="25"></td>
+                        <td>
+                            <table width="100%" border="0" cellspacing="0" cellpadding="0">
+                                <tr>
+                                    <td width="5%" valign="top"><img src="images/point_02.gif" width="7" height="14"/></td><td class="menu_title02">
+                                        Change Company Id </td></tr><tr>
+                                    <td width="5%" valign="top"></td>
+                                    <td align="left"><uc8:ChgComp runat="server" ID="ChgComp1" /></td>
+                                </tr>
+                            </table>
+                        </td>
+                    </tr>                               
+                    <tr>
+                    <td height="10"></td>
+                    <td></td>
+                    </tr>
+                </table>      </td>
+            </tr>
+            <tr>
+                <td height="5"></td>
+            </tr>
+            <tr>
+                <td height="24" class="menu_title">
+                <asp:Literal   ID="Literal1" runat="server">Dashboard</asp:Literal></td></tr><tr>
+                <td>
+                <table width="100%" border="0" cellspacing="0" cellpadding="0" class="login">
+                    <tr>
+                    <td height="10"></td>
+                    <td></td>
+                    </tr>
+                    <tr>
+                    <td width="5%" height="25"></td>
+                    <td>
+                        <table width="100%" border="0" cellspacing="0" cellpadding="0">
+                            <tr>
+                                <td>
+                                    <asp:UpdatePanel runat="server" ID="upPerf" UpdateMode="Conditional">
+                                        <ContentTemplate>
+                                            <table width="100%" height:240px">
+                                                <tr valign="top">
+                                                    <td align="left" style="color:Navy;"><b>My Performance</b></td><td align="right">                      
+                                                        <table border="0" cellpadding="0" cellspacing="0">
+                                                            <tr>
+                                                                <td>
+                                                                    <asp:DropDownList runat="server" ID="dlPerfYear" AutoPostBack="true" OnSelectedIndexChanged="dlPerfYear_SelectedIndexChanged">
+                                                                        <asp:ListItem Text="2011" Value="2011" Selected="True" />
+                                                                        <asp:ListItem Text="2010" Value="2010" />
+                                                                        <asp:ListItem Text="2009" Value="2009" />
+                                                                    </asp:DropDownList>  
+                                                                </td>
+                                                                <td width="3"></td>
+                                                                <td>
+                                                                    <asp:DropDownList runat="server" ID="dlPerCurr" AutoPostBack="true" OnSelectedIndexChanged="dlPerCurr_SelectedIndexChanged">
+                                                                        <asp:ListItem Text="EUR" Value="EUR" Selected="True" />
+                                                                        <asp:ListItem Text="USD" Value="US_AMT" />
+                                                                    </asp:DropDownList>
+                                                                </td>
+                                                            </tr>
+                                                        </table>        
+                                                    </td>
+                                                </tr>
+                                                <tr valign="top">
+                                                    <td colspan="2" valign="top">
+                                                        <img runat="server" style="border-width:0px; vertical-align:top;" id="imgMyPerf" src="" alt="My Performance" width="232" height="200"/>
+                                                    </td>
+                                                </tr>
+                                            </table> 
+                                        </ContentTemplate>
+                                    </asp:UpdatePanel>
+                                </td>
+                            </tr>
+                        </table>
+                    </td>
+                    </tr>
+                </table>
+                </td>
+            </tr>
+            <tr>
+                <td height="5"></td>
+            </tr>
+            <tr> 
+                <td align="center">
+                    <table border="0" cellspacing="0" cellpadding="0">
+                        <tr>
+                            <td bgcolor="#999999">
+                                <table border="0" cellspacing="1" cellpadding="0">
+                                    <tr>
+                                        <td bgcolor="#FFFFFF">
+                                            <table border="0" cellspacing="0" cellpadding="0" width="190px">
+                                                <tr>
+                                                    <td ><a href="http://www.advantech.eu/contact/default.aspx"><img border="0" src="images/image_1.jpg" width="198" height="147" alt="" /></a></td></tr><tr><td height="20" align="center" valign="middle"><b>Your personal contact windows:</b></td></tr><tr>
+                                                    <td height="21" background="images/g_1.gif" align="left"><span class="text"><img src="images/clear.gif" width="10" height="10" alt="" /><b><font color="#0F4B0E">ePlatform</font></b></span></td></tr><tr>
+                                                    <td bgcolor="EDF3E4" align="left">
+                                                        <table width="90%" height="0%"  border="0" cellpadding="0" cellspacing="0" class="text">
+                                                            <tr>
+                                                                <td width="29" height="24"><div align="center"><img border="0" src="images/tel.gif" width="17" height="17" alt="" /></div></td><td width="169">00 0800 24 26 80 80</td></tr></table></td></tr><tr>
+                                                    <td height="20" style="background-color:#98C2C3" class="text" align="left">
+                                                        <img src="images/clear.gif" width="10" height="10" alt=""/><b><font color="214C80">eAutomation</font></b> </td></tr><tr>
+                                                    <td bgcolor="EDF3E4" align="left">
+                                                        <table width="100%" height="0%"  border="0" cellpadding="0" cellspacing="0" class="text">
+                                                            <tr>
+                                                                <td width="30" height="26"><div align="center"><img border="0" src="images/tel.gif" width="17" height="17" alt=""/></div></td><td width="168">00 0800 24 26 80 81</td></tr></table></td></tr><tr>
+                                                    <td bgcolor="818389" align="left">
+                                                        <table width="100%" height="0%"  border="0" cellpadding="0" cellspacing="0">
+                                                            <tr>
+                                                                <td width="28" height="24" style="background-color:#818389"><div align="center"><img src="images/mail.jpg" width="17" height="10" alt="" /></div></td><td width="170" class="text" style="background-color:#818389"><a href="mailto:Customercare@advantech.eu"><font color="#FFFFFF">Customercare@advantech.eu</font></a></td></tr></table></td></tr><tr>
+                                                    <td width="100%">
+                                                        <asp:GridView runat="server" ID="gv1" DataSourceID="SqlDataSource1" ShowHeader="false" AutoGenerateColumns="false" BorderWidth="0" Width="100%">
+                                                            <Columns>
+                                                                <asp:TemplateField>
+                                                                    <ItemTemplate>
+                                                                        <table border="0" cellpadding="0" cellspacing="0" width="100%">
+                                                                            <tr class="text">
+                                                                                <td height="21" bgcolor="#D5D5D5" align="left"><span class="text"><img src="images/clear.gif" width="10" height="10" alt="" /><b><font color="#214C80" class="text"><%#Eval("first_name")%></font></b></span></td>
+                                                                            </tr>
+                                                                            <tr runat="server" id="tr1" visible="false"><td><%#IsPhone(Eval("phone"))%></td></tr>
+                                                                            <%If isPhones = True Then%>
+                                                                            <tr class="text">
+                                                                                <td bgcolor="EDF3E4" align="left"><table width="100%" height="0%"  border="0" cellpadding="0" cellspacing="0" class="text">
+                                                                                    <tr>
+                                                                                        <td width="28" height="24" align="center" style="background-color:#EDF3E4"><div align="center"><img border="0" src="images/tel.gif" width="17" height="17"></div></td><td width="160" style="background-color:#EDF3E4"><asp:Label runat="server" ID="lblPhone" Font-Size="Smaller" CssClass="text" Text='<%# Eval("phone") %>' /></td>
+                                                                                    </tr>
+                                                                                </table></td>
+                                                                            </tr>
+                                                                            <%End If%>
+                                                                            <tr class="text" runat="server" id="tr2" visible="false"><td class="text"><%#IsUserID(Eval("userid"))%></td></tr>
+                                                                            <%If isUserIDs = True Then%>
+                                                                            <tr class="text">
+                                                                                <td bgcolor="818389" align="left"><table width="100%" height="0%"  border="0" cellpadding="0" cellspacing="0">
+                                                                                    <tr>
+                                                                                        <td width="28" height="24" align="center" style="background-color:#818389"><div align="center"><img src="images/mail.jpg" width="17" height="10"></div></td><td width="160" class="text" style="background-color:#818389"><asp:HyperLink runat="server" ID="hlUserID" NavigateUrl='<%# Eval("UserID") %>' ForeColor="#FFFFFF" Text='<%#Lcase(Eval("UserID")).replace(";","; ")%>' OnDataBinding="hlUserID_DataBinding" /></td>
+                                                                                    </tr>
+                                                                                </table></td>
+                                                                            </tr>
+                                                                            <%End If%>
+                                                                        </table>
+                                                                    </ItemTemplate>
+                                                                </asp:TemplateField>
+                                                            </Columns>
+                                                        </asp:GridView>
+                                                        <asp:SqlDataSource runat="server" ID="SqlDataSource1" ConnectionString="<%$ connectionStrings:B2B %>"
+                                                            SelectCommand="select distinct isnull(a.contact_email,'') as userid, isnull((select top 1 isnull(z.firstname,'')+' '+isnull(z.lastname,'') from SIEBEL_CONTACT z where z.EMAIL_ADDRESS=a.contact_email),'') as first_name,isnull(a.telnr_call,'') as phone from sap_company_contacts a where a.company_id=@company_id and a.CONTACT_EMAIL like '%@advantech%'">
+                                                            <SelectParameters>
+                                                                <asp:SessionParameter Name="company_id" SessionField="company_id" Type="String" />
+                                                            </SelectParameters>
+                                                        </asp:SqlDataSource>
+                                                    </td>
+                                                </tr>
+                                            </table>
+                                        </td>
+                                    </tr>
+                                </table>
+                            </td>
+                        </tr>
+                    </table>
+                </td> 
+            </tr>
+        </table>
+    </div>
+    <div class="right">
+        <table width="100%" cellpadding="0" cellspacing="0">
+            <tr><td height="10"></td></tr>
+            <tr runat="server" id="tr_banner1">
+                <td align="left">
+                    <uc10:Banner runat="server" ID="ucBanner" />
+                    <%--<asp:Hyperlink runat="server" ID="hlBanner" NavigateUrl="http://wiki.advantech.com/wiki/Solution_Day_Packages" ImageUrl="~/Images/banner_channel.jpg" Width="632" Height="111" target="_blank" />--%>
+                </td>
+            </tr>
+            <tr>
+                <td height="10"></td>
+            </tr>         
+            <tr>
+                <td valign="top" style="height:600px">
+                    <div id="div_myrecentitems" style="width:100%;">
+                        <center><img src="Images/loading2.gif" alt="Loading..." width="35" height="35" /></center></div><script type="text/javascript">
+                        var bg_image = new Image(); bg_image.src = './images/up.jpg'; bg_image.onload;
+                        var bg_image2 = new Image(); bg_image2.src = './images/arrow-list.gif'; bg_image2.onload;
+                        if (window.addEventListener) window.addEventListener("load", gethtml, false);
+                        else if (window.attachEvent) window.attachEvent("onload", gethtml);
+                        //
+                        function gethtml() {
+                            PageMethods.MyRecentOrderItems(
+                                function (pagedResult, eleid, methodName) {
+                                    document.getElementById('div_myrecentitems').innerHTML = pagedResult;
+                                    //setTimeout("GetQuoteDraft();", 100);
+                                },
+                                function (error, userContext, methodName) {
+                                    //alert(error.get_message());
+                                    document.getElementById('div_myrecentitems').innerHTML = "";
+                                });
+
+                        }
+                    </script></td></tr><tr>
+                <td height="10"></td>
+            </tr>         
+            <tr>
+                <td valign="top" style="height:600px">
+                    <uc7:MyLeads runat="server" ID="MyLeads1" />
+                </td>
+            </tr>   
+        </table>
+    </div>
+</asp:Content>
+

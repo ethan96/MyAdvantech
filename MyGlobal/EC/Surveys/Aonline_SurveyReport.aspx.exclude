@@ -1,0 +1,284 @@
+﻿<%@ Page Title="Aonline Survey Report" Language="VB" MasterPageFile="~/Includes/MyMaster.master" %>
+
+<script runat="server">
+
+    Protected Sub gv1_RowDataBound(sender As Object, e As System.Web.UI.WebControls.GridViewRowEventArgs)
+        If e.Row.RowType = DataControlRowType.DataRow Then
+            CType(e.Row.FindControl("sql2"), SqlDataSource).SelectParameters("ROW_ID").DefaultValue = DataBinder.Eval(e.Row.DataItem, "ROW_ID")
+        End If
+    End Sub
+
+    Protected Sub gv2_RowDataBound(sender As Object, e As System.Web.UI.WebControls.GridViewRowEventArgs)
+        If e.Row.RowType = DataControlRowType.DataRow Then
+            Dim lblAnswer As Label = CType(e.Row.FindControl("lblAnswer"), Label)
+            Dim question_id As String = DataBinder.Eval(e.Row.DataItem, "QUESTION_ID")
+            If DataBinder.Eval(e.Row.DataItem, "QUESTION_TYPE") = "Ranking" Then
+                Dim sb As New StringBuilder
+                Dim dt As DataTable = dbUtil.dbGetDataTable("MyLocal", String.Format("select answer_name from survey_answer where question_id='{0}' order by answer_index", question_id))
+                Dim answers() As String = lblAnswer.Text.Split("|")
+                For i As Integer = 0 To dt.Rows.Count - 1
+                    sb.AppendFormat("<font color='black'>" + dt.Rows(i).Item(0) + "</font> : " + answers(i) + "<br/>")
+                Next
+                If answers(dt.Rows.Count + 1) <> "" Then
+                    sb.AppendFormat("<font color='black'>" + answers(dt.Rows.Count + 1) + "</font> : " + answers(dt.Rows.Count) + "<br/>")
+                End If
+                lblAnswer.Text = sb.ToString
+            End If
+        End If
+    End Sub
+
+    Protected Sub Page_Load(sender As Object, e As System.EventArgs)
+        If Request("id") = "2" Then
+            panel1.Visible = False : panel2.Visible = True
+            sql1.SelectCommand = ""
+        Else
+            panel1.Visible = True : panel2.Visible = False
+            sqlS21.SelectCommand = ""
+        End If
+    End Sub
+
+    Protected Sub gvS2_RowDataBound(sender As Object, e As System.Web.UI.WebControls.GridViewRowEventArgs)
+        If e.Row.RowType = DataControlRowType.DataRow Then
+            Dim dt As DataTable = dbUtil.dbGetDataTable("MyLocal", String.Format("select question_id, isnull(answer,'') as answer from survey_result where row_id='{0}'", DataBinder.Eval(e.Row.DataItem, "ROW_ID")))
+            For Each row As DataRow In dt.Rows
+                If row.Item("question_id") = "s2q1" Then
+                    If row.Item("answer").ToString <> "" Then
+                        e.Row.FindControl("tb1").Visible = True
+                        Dim answer() As String = row.Item("answer").ToString.Split("|")
+                        Dim lblAnswer As Label = CType(e.Row.FindControl("lblAnswerQ1"), Label)
+                        For i As Integer = 0 To answer.Length - 1
+                            lblAnswer.Text += (i + 1).ToString + ". " + answer(i) + "<br/>"
+                        Next
+                    End If
+                End If
+                If row.Item("question_id") = "s2q2" Then
+                    If row.Item("answer").ToString <> "" Then
+                        e.Row.FindControl("tb2").Visible = True
+                        Dim answer() As String = row.Item("answer").ToString.Split("|")
+                        Dim lblAnswer As Label = CType(e.Row.FindControl("lblAnswerQ2"), Label)
+                        For i As Integer = 0 To answer.Length - 1
+                            lblAnswer.Text += answer(i) + "<br/>"
+                        Next
+                    End If
+                End If
+                If row.Item("question_id") = "s2q3" Then
+                    If row.Item("answer").ToString <> "" Then
+                        e.Row.FindControl("tb3").Visible = True
+                        Dim answer() As String = row.Item("answer").ToString.Split("|")
+                        Dim lblAnswer As Label = CType(e.Row.FindControl("lblAnswerQ3"), Label)
+                        For i As Integer = 0 To answer.Length - 1
+                            lblAnswer.Text += answer(i) + "<br/>"
+                        Next
+                    End If
+                End If
+                If row.Item("question_id") = "s2q4" Then
+                    If row.Item("answer").ToString <> "" Then
+                        e.Row.FindControl("tb4").Visible = True
+                        Dim lblAnswer As Label = CType(e.Row.FindControl("lblAnswerQ4"), Label)
+                        lblAnswer.Text = row.Item("answer").ToString
+                    End If
+                End If
+            Next
+        End If
+    End Sub
+
+    Protected Sub btnToXls1_Click(sender As Object, e As System.EventArgs)
+        Dim sb As New StringBuilder
+        With sb
+            .AppendFormat(" select distinct user_id, region, timestamp as date, ")
+            .AppendFormat(" isnull((select top 1 z.answer from survey_result z where z.question_id='8066ca1679' and z.row_id=a.row_id),'') as Q1, ")
+            .AppendFormat(" isnull((select top 1 z.answer from survey_result z where z.question_id='4662929a59' and z.row_id=a.row_id),'') as Q2, ")
+            .AppendFormat(" isnull((select top 1 z.answer from survey_result z where z.question_id='03acd43301' and z.row_id=a.row_id),'') as Q3, ")
+            .AppendFormat(" isnull((select top 1 z.answer from survey_result z where z.question_id='d534544b38' and z.row_id=a.row_id),'') as Q4, ")
+            .AppendFormat(" isnull((select top 1 z.answer from survey_result z where z.question_id='a57fdd7e90' and z.row_id=a.row_id),'') as Q5, ")
+            .AppendFormat(" isnull((select top 1 z.answer from survey_result z where z.question_id='9d36fd7ce2' and z.row_id=a.row_id),'') as Q6 ")
+            .AppendFormat(" from survey_result a ")
+            .AppendFormat(" where a.row_id in (select distinct row_id from survey_result where survey_id is null or survey_id='') ")
+        End With
+        Dim dt As DataTable = dbUtil.dbGetDataTable("MyLocal", sb.ToString)
+        For Each row As DataRow In dt.Rows
+            Dim answer() As String = row.Item("Q1").ToString.Split("|")
+            Dim dt1 As DataTable = dbUtil.dbGetDataTable("MyLocal", String.Format("select answer_name from survey_answer where question_id='8066ca1679' order by answer_index"))
+            Dim arr As New ArrayList
+            For i As Integer = 0 To dt1.Rows.Count - 1
+                arr.Add(dt1.Rows(i).Item(0) + " : " + answer(i))
+            Next
+            If answer(dt1.Rows.Count + 1) <> "" Then
+                arr.Add(answer(dt1.Rows.Count + 1) + " : " + answer(dt1.Rows.Count))
+            End If
+            row.Item("Q1") = String.Join(vbCrLf, arr.ToArray())
+            row.Item("Q3") = row.Item("Q3").ToString.Replace("<br/>", vbCrLf)
+            row.Item("Q4") = row.Item("Q4").ToString.Replace("<br/>", vbCrLf)
+            row.Item("Q5") = row.Item("Q5").ToString.Replace("<br/>", vbCrLf)
+            row.Item("Q6") = row.Item("Q6").ToString.Replace("<br/>", vbCrLf)
+            row.AcceptChanges()
+        Next
+        Util.DataTable2ExcelDownload(dt, "Survey Report.xls")
+    End Sub
+
+    Protected Sub btnToXls2_Click(sender As Object, e As System.EventArgs)
+        Dim sb As New StringBuilder
+        With sb
+            .AppendFormat(" select distinct user_id, region, timestamp as date, ")
+            .AppendFormat(" isnull((select top 1 z.answer from survey_result z where z.question_id='s2q1' and z.row_id=a.row_id),'') as Q1, ")
+            .AppendFormat(" isnull((select top 1 z.answer from survey_result z where z.question_id='s2q2' and z.row_id=a.row_id),'') as Q2, ")
+            .AppendFormat(" isnull((select top 1 z.answer from survey_result z where z.question_id='s2q3' and z.row_id=a.row_id),'') as Q3, ")
+            .AppendFormat(" isnull((select top 1 z.answer from survey_result z where z.question_id='s2q4' and z.row_id=a.row_id),'') as Q4 ")
+            .AppendFormat(" from survey_result a ")
+            .AppendFormat(" where a.row_id in (select distinct row_id from survey_result where survey_id ='2') ")
+        End With
+        Dim dt As DataTable = dbUtil.dbGetDataTable("MyLocal", sb.ToString)
+        For Each row As DataRow In dt.Rows
+            Dim answer() As String = row.Item("Q1").ToString.Split("|")
+            Dim arr As New ArrayList
+            For i As Integer = 0 To answer.Length - 1
+                arr.Add(answer(i))
+            Next
+            row.Item("Q1") = String.Join(vbCrLf, arr.ToArray())
+            arr.Clear()
+            answer = row.Item("Q2").ToString.Split("|")
+            For i As Integer = 0 To answer.Length - 1
+                arr.Add(answer(i))
+            Next
+            row.Item("Q2") = String.Join(vbCrLf, arr.ToArray())
+            arr.Clear()
+            answer = row.Item("Q3").ToString.Split("|")
+            For i As Integer = 0 To answer.Length - 1
+                arr.Add(answer(i))
+            Next
+            row.Item("Q3") = String.Join(vbCrLf, arr.ToArray())
+            row.Item("Q4") = row.Item("Q4").ToString.Replace("<br/>", vbCrLf)
+            row.AcceptChanges()
+        Next
+        Util.DataTable2ExcelDownload(dt, "Survey Report.xls")
+    End Sub
+</script>
+
+<asp:Content ID="Content1" ContentPlaceHolderID="_main" Runat="Server">
+    <table>
+        <tr><td height="10"></td></tr>
+        <tr>
+            <th align="left"><font size="4">Survey Report</font></th>
+        </tr>
+        <tr><td height="20"></td></tr>
+        <tr>
+            <td>
+                <asp:Panel runat="server" ID="panel1">
+                    <asp:Image runat="server" ID="imgExcel1" ImageUrl="~/Images/excel.gif" /><asp:LinkButton runat="server" ID="btnToXls1" Text="Export To Excel" OnClick="btnToXls1_Click" />
+                    <asp:GridView runat="server" ID="gv1" Width="100%" AutoGenerateColumns="false" DataSourceID="sql1" OnRowDataBound="gv1_RowDataBound">
+                        <Columns>
+                            <asp:BoundField DataField="user_id" HeaderText="Participate" />
+                            <asp:BoundField DataField="region" HeaderText="Region" />
+                            <asp:TemplateField HeaderText="Answer">
+                                <ItemTemplate>
+                                    <asp:GridView runat="server" ID="gv2" AutoGenerateColumns="false" EnableTheming="false" DataSourceID="sql2" ShowHeader="false" BorderWidth="0" BorderColor="White" OnRowDataBound="gv2_RowDataBound">
+                                        <Columns>
+                                            <asp:TemplateField>
+                                                <ItemTemplate>
+                                                    <table width="100%" border="0">
+                                                        <tr>
+                                                            <th width="20" align="left" valign="top">
+                                                                <font color="gray" size="3"><%# Container.DataItemIndex + 1 %>.</font>
+                                                            </th>
+                                                            <td align="left"><%#Eval("question_title")%></td>
+                                                        </tr>
+                                                        <tr><td colspan="2"></td></tr>
+                                                        <tr>
+                                                            <td></td>
+                                                            <td align="left"><asp:label runat="server" ID="lblAnswer" Text='<%#Eval("answer") %>' ForeColor="Red" /></td>
+                                                        </tr>
+                                                    </table>
+                                                </ItemTemplate>
+                                            </asp:TemplateField>
+                                        </Columns>
+                                    </asp:GridView>
+                                    <asp:SqlDataSource runat="server" ID="sql2" ConnectionString="<%$ connectionStrings:MYLocal %>"
+                                        SelectCommand="select a.*, b.question_title, b.question_type from survey_result a left join survey_question b on a.question_id=b.question_id where a.row_id=@ROW_ID">
+                                        <SelectParameters>
+                                            <asp:Parameter Name="ROW_ID" Type="String" />
+                                        </SelectParameters>
+                                    </asp:SqlDataSource>
+                                </ItemTemplate>
+                            </asp:TemplateField>
+                            <asp:BoundField DataField="timestamp" HeaderText="Date" />
+                        </Columns>
+                    </asp:GridView>
+                    <asp:SqlDataSource runat="server" ID="sql1" ConnectionString="<%$ connectionStrings:MYLocal %>"
+                        SelectCommand="select distinct row_id, user_id, region, timestamp, survey_id from survey_result where survey_id is null or survey_id='' order by timestamp desc">
+                    </asp:SqlDataSource>
+                </asp:Panel>
+                <asp:Panel runat="server" ID="panel2" Visible="false">
+                    <asp:Image runat="server" ID="imgExcel2" ImageUrl="~/Images/excel.gif" /><asp:LinkButton runat="server" ID="btnToXls2" Text="Export To Excel" OnClick="btnToXls2_Click" />
+                    <asp:GridView runat="server" ID="gvS2" Width="100%" AutoGenerateColumns="false" DataSourceID="sqlS21" OnRowDataBound="gvS2_RowDataBound">
+                        <Columns>
+                            <asp:BoundField DataField="user_id" HeaderText="Participate" />
+                            <asp:BoundField DataField="region" HeaderText="Region" />
+                            <asp:TemplateField HeaderText="Answer">
+                                <ItemTemplate>
+                                    <table width="100%" border="0" runat="server" id="tb1" visible="false">
+                                        <tr>
+                                            <th width="20" align="left" valign="top">
+                                                <font color="gray" size="3">1.</font>
+                                            </th>
+                                            <th align="left">List the functions or features that would improve your lead management process:</th>
+                                        </tr>
+                                        <tr><td colspan="2"></td></tr>
+                                        <tr>
+                                            <td></td>
+                                            <td align="left"><asp:label runat="server" ID="lblAnswerQ1" ForeColor="Red" /></td>
+                                        </tr>
+                                    </table>
+                                    <table width="100%" border="0" runat="server" id="tb2" visible="false">
+                                        <tr>
+                                            <th width="20" align="left" valign="top">
+                                                <font color="gray" size="3">2.</font>
+                                            </th>
+                                            <th align="left">Are you satisfied with the current way of data mining Siebel or MyAdvantech?</th>
+                                        </tr>
+                                        <tr><td colspan="2"></td></tr>
+                                        <tr>
+                                            <td></td>
+                                            <td align="left"><asp:label runat="server" ID="lblAnswerQ2" ForeColor="Red" /></td>
+                                        </tr>
+                                    </table>
+                                    <table width="100%" border="0" runat="server" id="tb3" visible="false">
+                                        <tr>
+                                            <th width="20" align="left" valign="top">
+                                                <font color="gray" size="3">3.</font>
+                                            </th>
+                                            <th align="left">Do you need help in performing any of the data mining functions? (such as list exporting, setting call list schedule)</th>
+                                        </tr>
+                                        <tr><td colspan="2"></td></tr>
+                                        <tr>
+                                            <td></td>
+                                            <td align="left"><asp:label runat="server" ID="lblAnswerQ3" ForeColor="Red" /></td>
+                                        </tr>
+                                    </table>
+                                    <table width="100%" border="0" runat="server" id="tb4" visible="false">
+                                        <tr>
+                                            <th width="20" align="left" valign="top">
+                                                <font color="gray" size="3">4.</font>
+                                            </th>
+                                            <th align="left">If there is a search criterion that is currently missing from Siebel or MyAdvantech, that you would like to see, what is it?</th>
+                                        </tr>
+                                        <tr><td colspan="2"></td></tr>
+                                        <tr>
+                                            <td></td>
+                                            <td align="left"><asp:label runat="server" ID="lblAnswerQ4" ForeColor="Red" /></td>
+                                        </tr>
+                                    </table>
+                                </ItemTemplate>
+                            </asp:TemplateField>
+                            <asp:BoundField DataField="timestamp" HeaderText="Date" />
+                        </Columns>
+                    </asp:GridView>
+                    <asp:SqlDataSource runat="server" ID="sqlS21" ConnectionString="<%$ connectionStrings:MYLocal %>"
+                        SelectCommand="select distinct row_id, user_id, region, timestamp, survey_id from survey_result where survey_id=2 order by timestamp desc">
+                    </asp:SqlDataSource>
+                </asp:Panel>
+            </td>
+        </tr>
+        <tr><td height="10"></td></tr>
+    </table>
+</asp:Content>
+

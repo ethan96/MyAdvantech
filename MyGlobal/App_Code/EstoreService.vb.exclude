@@ -1,0 +1,34 @@
+﻿Imports System.Web
+Imports System.Web.Services
+Imports System.Web.Services.Protocols
+
+' To allow this Web Service to be called from script, using ASP.NET AJAX, uncomment the following line.
+' <System.Web.Script.Services.ScriptService()> _
+<WebService(Namespace:="http://tempuri.org/")> _
+<WebServiceBinding(ConformsTo:=WsiProfiles.BasicProfile1_1)> _
+<Global.Microsoft.VisualBasic.CompilerServices.DesignerGenerated()> _
+Public Class EstoreService
+     Inherits System.Web.Services.WebService
+
+    'IC 2014/07/28 Supply web method for eStore to get SAP parts cost by ORG_ID and Part_No
+    <WebMethod()> _
+    Public Function GetSAPPNCost(ByVal PartNos() As String, ByVal OrgID As String) As DataTable
+        If PartNos.Count > 0 AndAlso Not String.IsNullOrEmpty(OrgID) Then
+            Dim sb As New StringBuilder()
+            For i = 0 To PartNos.Count - 1
+                PartNos(i) = Util.FormatToSAPPartNo(Util.RemovePrecedingZeros(PartNos(i))).ToUpper()
+                If i > 0 Then
+                    sb.Append(String.Format(" or a.matnr = '{0}' ", PartNos(i)))
+                Else
+                    sb.Append(String.Format(" a.matnr = '{0}' ", PartNos(i)))
+                End If
+            Next
+            Return OraDbUtil.dbGetDataTable("SAP_PRD", String.Format(" select distinct a.matnr as part_no, a.bwkey as plant, b.vkorg as sales_org, c.waers as currency, " & _
+                                                                  " a.STPRS as standard_price, a.VERPR as moving_price, a.VPRSV as price_control, a.PEINH as price_unit, a.STPRS as external_standard_price " & _
+                                                                  " from saprdp.mbew a inner join saprdp.tvkwz b on a.bwkey=b.werks inner join saprdp.t001 c on b.vkorg=c.bukrs " & _
+                                                                  " where a.mandt='168' and b.mandt='168' and c.mandt='168' and b.vkorg='{0}' and ({1})", OrgID, sb.ToString()))
+        Else
+            Return Nothing
+        End If
+    End Function
+End Class

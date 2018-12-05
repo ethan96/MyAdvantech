@@ -1,0 +1,1436 @@
+<?xml version="1.0" encoding="utf-8"?>
+<wsdl:definitions xmlns:http="http://schemas.xmlsoap.org/wsdl/http/" xmlns:soapenc="http://schemas.xmlsoap.org/soap/encoding/" xmlns:mime="http://schemas.xmlsoap.org/wsdl/mime/" xmlns:tns="http://tempuri.org/" xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/" xmlns:tm="http://microsoft.com/wsdl/mime/textMatching/" xmlns:s="http://www.w3.org/2001/XMLSchema" xmlns:soap12="http://schemas.xmlsoap.org/wsdl/soap12/" targetNamespace="http://tempuri.org/" xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/">
+  <wsdl:types>
+    <s:schema elementFormDefault="qualified" targetNamespace="http://tempuri.org/">
+      <s:element name="AddRating">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="title" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="url" type="s:string" />
+            <s:element minOccurs="1" maxOccurs="1" name="rate" type="s:int" />
+            <s:element minOccurs="0" maxOccurs="1" name="userid" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="comments" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="IP" type="s:string" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="AddRatingResponse">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="1" maxOccurs="1" name="AddRatingResult" type="s:boolean" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="AddRating2">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="title" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="url" type="s:string" />
+            <s:element minOccurs="1" maxOccurs="1" name="rate" type="s:int" />
+            <s:element minOccurs="0" maxOccurs="1" name="userid" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="comments" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="IP" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="from_email" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="type" type="s:string" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="AddRating2Response">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="1" maxOccurs="1" name="AddRating2Result" type="s:boolean" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="GetAverageRate">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="url" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="type" type="s:string" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="GetAverageRateResponse">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="1" maxOccurs="1" name="GetAverageRateResult" type="s:int" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="GetRating">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="url" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="userid" type="s:string" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="GetRatingResponse">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="1" maxOccurs="1" name="GetRatingResult" type="s:int" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="GetRating2">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="url" type="s:string" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="GetRating2Response">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="1" maxOccurs="1" name="GetRating2Result" type="s:int" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="getPartnerInfo">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="strID" type="s:string" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="getPartnerInfoResponse">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="getPartnerInfoResult">
+              <s:complexType>
+                <s:sequence>
+                  <s:element ref="s:schema" />
+                  <s:any />
+                </s:sequence>
+              </s:complexType>
+            </s:element>
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="getRBUInfoByCountryBU">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="Country" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="BU" type="s:string" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="getRBUInfoByCountryBUResponse">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="getRBUInfoByCountryBUResult">
+              <s:complexType>
+                <s:sequence>
+                  <s:element ref="s:schema" />
+                  <s:any />
+                </s:sequence>
+              </s:complexType>
+            </s:element>
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="getChannelPartnerList">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="BU" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="country" type="s:string" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="getChannelPartnerListResponse">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="getChannelPartnerListResult">
+              <s:complexType>
+                <s:sequence>
+                  <s:element ref="s:schema" />
+                  <s:any />
+                </s:sequence>
+              </s:complexType>
+            </s:element>
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="getPartnerID">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="email" type="s:string" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="getPartnerIDResponse">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="getPartnerIDResult" type="s:string" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="AddBannerLog">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="1" maxOccurs="1" name="ID" type="s:int" />
+            <s:element minOccurs="0" maxOccurs="1" name="Type" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="site" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="IP" type="s:string" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="AddBannerLogResponse">
+        <s:complexType />
+      </s:element>
+      <s:element name="AddProductLog">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="CATEGORY_ID" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="PARENT_CATEGORY_ID" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="BU" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="site" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="IP" type="s:string" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="AddProductLogResponse">
+        <s:complexType />
+      </s:element>
+      <s:element name="AddProductTypeLog">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="CATEGORY_ID" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="PARENT_CATEGORY_ID" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="BU" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="site" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="IP" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="Type" type="s:string" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="AddProductTypeLogResponse">
+        <s:complexType />
+      </s:element>
+      <s:element name="AddCMSView">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="RECORD_ID" type="s:string" />
+            <s:element minOccurs="1" maxOccurs="1" name="add" type="s:boolean" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="AddCMSViewResponse">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="1" maxOccurs="1" name="AddCMSViewResult" type="s:int" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="GetCount">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="url" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="type" type="s:string" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="GetCountResponse">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="1" maxOccurs="1" name="GetCountResult" type="s:int" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="AddPageInfo">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="title" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="keywords" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="description" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="lang" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="path" type="s:string" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="AddPageInfoResponse">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="1" maxOccurs="1" name="AddPageInfoResult" type="s:boolean" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="UpdatePageInfo">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="title" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="keywords" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="description" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="lang" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="path" type="s:string" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="UpdatePageInfoResponse">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="1" maxOccurs="1" name="UpdatePageInfoResult" type="s:boolean" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="AddPageInfoWithUser">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="title" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="keywords" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="description" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="lang" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="path" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="userEmail" type="s:string" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="AddPageInfoWithUserResponse">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="1" maxOccurs="1" name="AddPageInfoWithUserResult" type="s:boolean" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="UpdatePageInfoWithUser">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="title" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="keywords" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="description" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="lang" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="path" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="userEmail" type="s:string" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="UpdatePageInfoWithUserResponse">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="1" maxOccurs="1" name="UpdatePageInfoWithUserResult" type="s:boolean" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="DeletePageInfo">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="title" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="keywords" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="description" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="lang" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="path" type="s:string" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="DeletePageInfoResponse">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="1" maxOccurs="1" name="DeletePageInfoResult" type="s:boolean" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="GetPageInfoUserAccess">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="UserID" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="lang" type="s:string" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="GetPageInfoUserAccessResponse">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="1" maxOccurs="1" name="GetPageInfoUserAccessResult" type="s:boolean" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="SetPageViews">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="PageID" type="s:string" />
+            <s:element minOccurs="1" maxOccurs="1" name="ViewDate" type="s:dateTime" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="SetPageViewsResponse">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="1" maxOccurs="1" name="SetPageViewsResult" type="s:int" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="GetPageViews">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="PageID" type="s:string" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="GetPageViewsResponse">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="1" maxOccurs="1" name="GetPageViewsResult" type="s:int" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="GetPageViewsByDate">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="PageID" type="s:string" />
+            <s:element minOccurs="1" maxOccurs="1" name="ViewDate" type="s:dateTime" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="GetPageViewsByDateResponse">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="1" maxOccurs="1" name="GetPageViewsByDateResult" type="s:int" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="IsSEOAdminAccess">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="ID" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="Lang" type="s:string" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="IsSEOAdminAccessResponse">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="1" maxOccurs="1" name="IsSEOAdminAccessResult" type="s:boolean" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="checkUser">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="UserName" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="Password" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="Domain" type="s:string" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="checkUserResponse">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="checkUserResult" type="s:string" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="GetPartnerLogoByAccountRowID">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="AccountRowID" type="s:string" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="GetPartnerLogoByAccountRowIDResponse">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="GetPartnerLogoByAccountRowIDResult" type="s:string" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="Comment_GetByRecord_ID">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="RECORD_ID" type="s:string" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="Comment_GetByRecord_IDResponse">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="Comment_GetByRecord_IDResult">
+              <s:complexType>
+                <s:sequence>
+                  <s:element ref="s:schema" />
+                  <s:any />
+                </s:sequence>
+              </s:complexType>
+            </s:element>
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="Comment_GetReplyBySID">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="1" maxOccurs="1" name="intSID" type="s:int" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="Comment_GetReplyBySIDResponse">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="Comment_GetReplyBySIDResult">
+              <s:complexType>
+                <s:sequence>
+                  <s:element ref="s:schema" />
+                  <s:any />
+                </s:sequence>
+              </s:complexType>
+            </s:element>
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="Comment_AddByRecord_IDandUser_ID">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="strRECORD_ID" type="s:string" />
+            <s:element minOccurs="1" maxOccurs="1" name="intSID" type="s:int" />
+            <s:element minOccurs="0" maxOccurs="1" name="strUser_ID" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="strComments" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="strCountry" type="s:string" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="Comment_AddByRecord_IDandUser_IDResponse">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="1" maxOccurs="1" name="Comment_AddByRecord_IDandUser_IDResult" type="s:boolean" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="Comment_DeleteBySID">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="1" maxOccurs="1" name="intSID" type="s:int" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="Comment_DeleteBySIDResponse">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="1" maxOccurs="1" name="Comment_DeleteBySIDResult" type="s:boolean" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="get_eCatalog">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="strRbu" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="strType" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="strKey" type="s:string" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="get_eCatalogResponse">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="get_eCatalogResult">
+              <s:complexType>
+                <s:sequence>
+                  <s:any minOccurs="0" maxOccurs="unbounded" namespace="http://www.w3.org/2001/XMLSchema" processContents="lax" />
+                  <s:any minOccurs="1" namespace="urn:schemas-microsoft-com:xml-diffgram-v1" processContents="lax" />
+                </s:sequence>
+              </s:complexType>
+            </s:element>
+            <s:element minOccurs="0" maxOccurs="1" name="strRbu" type="s:string" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+    </s:schema>
+  </wsdl:types>
+  <wsdl:message name="AddRatingSoapIn">
+    <wsdl:part name="parameters" element="tns:AddRating" />
+  </wsdl:message>
+  <wsdl:message name="AddRatingSoapOut">
+    <wsdl:part name="parameters" element="tns:AddRatingResponse" />
+  </wsdl:message>
+  <wsdl:message name="AddRating2SoapIn">
+    <wsdl:part name="parameters" element="tns:AddRating2" />
+  </wsdl:message>
+  <wsdl:message name="AddRating2SoapOut">
+    <wsdl:part name="parameters" element="tns:AddRating2Response" />
+  </wsdl:message>
+  <wsdl:message name="GetAverageRateSoapIn">
+    <wsdl:part name="parameters" element="tns:GetAverageRate" />
+  </wsdl:message>
+  <wsdl:message name="GetAverageRateSoapOut">
+    <wsdl:part name="parameters" element="tns:GetAverageRateResponse" />
+  </wsdl:message>
+  <wsdl:message name="GetRatingSoapIn">
+    <wsdl:part name="parameters" element="tns:GetRating" />
+  </wsdl:message>
+  <wsdl:message name="GetRatingSoapOut">
+    <wsdl:part name="parameters" element="tns:GetRatingResponse" />
+  </wsdl:message>
+  <wsdl:message name="GetRating2SoapIn">
+    <wsdl:part name="parameters" element="tns:GetRating2" />
+  </wsdl:message>
+  <wsdl:message name="GetRating2SoapOut">
+    <wsdl:part name="parameters" element="tns:GetRating2Response" />
+  </wsdl:message>
+  <wsdl:message name="getPartnerInfoSoapIn">
+    <wsdl:part name="parameters" element="tns:getPartnerInfo" />
+  </wsdl:message>
+  <wsdl:message name="getPartnerInfoSoapOut">
+    <wsdl:part name="parameters" element="tns:getPartnerInfoResponse" />
+  </wsdl:message>
+  <wsdl:message name="getRBUInfoByCountryBUSoapIn">
+    <wsdl:part name="parameters" element="tns:getRBUInfoByCountryBU" />
+  </wsdl:message>
+  <wsdl:message name="getRBUInfoByCountryBUSoapOut">
+    <wsdl:part name="parameters" element="tns:getRBUInfoByCountryBUResponse" />
+  </wsdl:message>
+  <wsdl:message name="getChannelPartnerListSoapIn">
+    <wsdl:part name="parameters" element="tns:getChannelPartnerList" />
+  </wsdl:message>
+  <wsdl:message name="getChannelPartnerListSoapOut">
+    <wsdl:part name="parameters" element="tns:getChannelPartnerListResponse" />
+  </wsdl:message>
+  <wsdl:message name="getPartnerIDSoapIn">
+    <wsdl:part name="parameters" element="tns:getPartnerID" />
+  </wsdl:message>
+  <wsdl:message name="getPartnerIDSoapOut">
+    <wsdl:part name="parameters" element="tns:getPartnerIDResponse" />
+  </wsdl:message>
+  <wsdl:message name="AddBannerLogSoapIn">
+    <wsdl:part name="parameters" element="tns:AddBannerLog" />
+  </wsdl:message>
+  <wsdl:message name="AddBannerLogSoapOut">
+    <wsdl:part name="parameters" element="tns:AddBannerLogResponse" />
+  </wsdl:message>
+  <wsdl:message name="AddProductLogSoapIn">
+    <wsdl:part name="parameters" element="tns:AddProductLog" />
+  </wsdl:message>
+  <wsdl:message name="AddProductLogSoapOut">
+    <wsdl:part name="parameters" element="tns:AddProductLogResponse" />
+  </wsdl:message>
+  <wsdl:message name="AddProductTypeLogSoapIn">
+    <wsdl:part name="parameters" element="tns:AddProductTypeLog" />
+  </wsdl:message>
+  <wsdl:message name="AddProductTypeLogSoapOut">
+    <wsdl:part name="parameters" element="tns:AddProductTypeLogResponse" />
+  </wsdl:message>
+  <wsdl:message name="AddCMSViewSoapIn">
+    <wsdl:part name="parameters" element="tns:AddCMSView" />
+  </wsdl:message>
+  <wsdl:message name="AddCMSViewSoapOut">
+    <wsdl:part name="parameters" element="tns:AddCMSViewResponse" />
+  </wsdl:message>
+  <wsdl:message name="GetCountSoapIn">
+    <wsdl:part name="parameters" element="tns:GetCount" />
+  </wsdl:message>
+  <wsdl:message name="GetCountSoapOut">
+    <wsdl:part name="parameters" element="tns:GetCountResponse" />
+  </wsdl:message>
+  <wsdl:message name="AddPageInfoSoapIn">
+    <wsdl:part name="parameters" element="tns:AddPageInfo" />
+  </wsdl:message>
+  <wsdl:message name="AddPageInfoSoapOut">
+    <wsdl:part name="parameters" element="tns:AddPageInfoResponse" />
+  </wsdl:message>
+  <wsdl:message name="UpdatePageInfoSoapIn">
+    <wsdl:part name="parameters" element="tns:UpdatePageInfo" />
+  </wsdl:message>
+  <wsdl:message name="UpdatePageInfoSoapOut">
+    <wsdl:part name="parameters" element="tns:UpdatePageInfoResponse" />
+  </wsdl:message>
+  <wsdl:message name="AddPageInfoWithUserSoapIn">
+    <wsdl:part name="parameters" element="tns:AddPageInfoWithUser" />
+  </wsdl:message>
+  <wsdl:message name="AddPageInfoWithUserSoapOut">
+    <wsdl:part name="parameters" element="tns:AddPageInfoWithUserResponse" />
+  </wsdl:message>
+  <wsdl:message name="UpdatePageInfoWithUserSoapIn">
+    <wsdl:part name="parameters" element="tns:UpdatePageInfoWithUser" />
+  </wsdl:message>
+  <wsdl:message name="UpdatePageInfoWithUserSoapOut">
+    <wsdl:part name="parameters" element="tns:UpdatePageInfoWithUserResponse" />
+  </wsdl:message>
+  <wsdl:message name="DeletePageInfoSoapIn">
+    <wsdl:part name="parameters" element="tns:DeletePageInfo" />
+  </wsdl:message>
+  <wsdl:message name="DeletePageInfoSoapOut">
+    <wsdl:part name="parameters" element="tns:DeletePageInfoResponse" />
+  </wsdl:message>
+  <wsdl:message name="GetPageInfoUserAccessSoapIn">
+    <wsdl:part name="parameters" element="tns:GetPageInfoUserAccess" />
+  </wsdl:message>
+  <wsdl:message name="GetPageInfoUserAccessSoapOut">
+    <wsdl:part name="parameters" element="tns:GetPageInfoUserAccessResponse" />
+  </wsdl:message>
+  <wsdl:message name="SetPageViewsSoapIn">
+    <wsdl:part name="parameters" element="tns:SetPageViews" />
+  </wsdl:message>
+  <wsdl:message name="SetPageViewsSoapOut">
+    <wsdl:part name="parameters" element="tns:SetPageViewsResponse" />
+  </wsdl:message>
+  <wsdl:message name="GetPageViewsSoapIn">
+    <wsdl:part name="parameters" element="tns:GetPageViews" />
+  </wsdl:message>
+  <wsdl:message name="GetPageViewsSoapOut">
+    <wsdl:part name="parameters" element="tns:GetPageViewsResponse" />
+  </wsdl:message>
+  <wsdl:message name="GetPageViewsByDateSoapIn">
+    <wsdl:part name="parameters" element="tns:GetPageViewsByDate" />
+  </wsdl:message>
+  <wsdl:message name="GetPageViewsByDateSoapOut">
+    <wsdl:part name="parameters" element="tns:GetPageViewsByDateResponse" />
+  </wsdl:message>
+  <wsdl:message name="IsSEOAdminAccessSoapIn">
+    <wsdl:part name="parameters" element="tns:IsSEOAdminAccess" />
+  </wsdl:message>
+  <wsdl:message name="IsSEOAdminAccessSoapOut">
+    <wsdl:part name="parameters" element="tns:IsSEOAdminAccessResponse" />
+  </wsdl:message>
+  <wsdl:message name="checkUserSoapIn">
+    <wsdl:part name="parameters" element="tns:checkUser" />
+  </wsdl:message>
+  <wsdl:message name="checkUserSoapOut">
+    <wsdl:part name="parameters" element="tns:checkUserResponse" />
+  </wsdl:message>
+  <wsdl:message name="GetPartnerLogoByAccountRowIDSoapIn">
+    <wsdl:part name="parameters" element="tns:GetPartnerLogoByAccountRowID" />
+  </wsdl:message>
+  <wsdl:message name="GetPartnerLogoByAccountRowIDSoapOut">
+    <wsdl:part name="parameters" element="tns:GetPartnerLogoByAccountRowIDResponse" />
+  </wsdl:message>
+  <wsdl:message name="Comment_GetByRecord_IDSoapIn">
+    <wsdl:part name="parameters" element="tns:Comment_GetByRecord_ID" />
+  </wsdl:message>
+  <wsdl:message name="Comment_GetByRecord_IDSoapOut">
+    <wsdl:part name="parameters" element="tns:Comment_GetByRecord_IDResponse" />
+  </wsdl:message>
+  <wsdl:message name="Comment_GetReplyBySIDSoapIn">
+    <wsdl:part name="parameters" element="tns:Comment_GetReplyBySID" />
+  </wsdl:message>
+  <wsdl:message name="Comment_GetReplyBySIDSoapOut">
+    <wsdl:part name="parameters" element="tns:Comment_GetReplyBySIDResponse" />
+  </wsdl:message>
+  <wsdl:message name="Comment_AddByRecord_IDandUser_IDSoapIn">
+    <wsdl:part name="parameters" element="tns:Comment_AddByRecord_IDandUser_ID" />
+  </wsdl:message>
+  <wsdl:message name="Comment_AddByRecord_IDandUser_IDSoapOut">
+    <wsdl:part name="parameters" element="tns:Comment_AddByRecord_IDandUser_IDResponse" />
+  </wsdl:message>
+  <wsdl:message name="Comment_DeleteBySIDSoapIn">
+    <wsdl:part name="parameters" element="tns:Comment_DeleteBySID" />
+  </wsdl:message>
+  <wsdl:message name="Comment_DeleteBySIDSoapOut">
+    <wsdl:part name="parameters" element="tns:Comment_DeleteBySIDResponse" />
+  </wsdl:message>
+  <wsdl:message name="get_eCatalogSoapIn">
+    <wsdl:part name="parameters" element="tns:get_eCatalog" />
+  </wsdl:message>
+  <wsdl:message name="get_eCatalogSoapOut">
+    <wsdl:part name="parameters" element="tns:get_eCatalogResponse" />
+  </wsdl:message>
+  <wsdl:portType name="AdvantechWebServiceSoap">
+    <wsdl:operation name="AddRating">
+      <wsdl:input message="tns:AddRatingSoapIn" />
+      <wsdl:output message="tns:AddRatingSoapOut" />
+    </wsdl:operation>
+    <wsdl:operation name="AddRating2">
+      <wsdl:input message="tns:AddRating2SoapIn" />
+      <wsdl:output message="tns:AddRating2SoapOut" />
+    </wsdl:operation>
+    <wsdl:operation name="GetAverageRate">
+      <wsdl:input message="tns:GetAverageRateSoapIn" />
+      <wsdl:output message="tns:GetAverageRateSoapOut" />
+    </wsdl:operation>
+    <wsdl:operation name="GetRating">
+      <wsdl:input message="tns:GetRatingSoapIn" />
+      <wsdl:output message="tns:GetRatingSoapOut" />
+    </wsdl:operation>
+    <wsdl:operation name="GetRating2">
+      <wsdl:input message="tns:GetRating2SoapIn" />
+      <wsdl:output message="tns:GetRating2SoapOut" />
+    </wsdl:operation>
+    <wsdl:operation name="getPartnerInfo">
+      <wsdl:input message="tns:getPartnerInfoSoapIn" />
+      <wsdl:output message="tns:getPartnerInfoSoapOut" />
+    </wsdl:operation>
+    <wsdl:operation name="getRBUInfoByCountryBU">
+      <wsdl:input message="tns:getRBUInfoByCountryBUSoapIn" />
+      <wsdl:output message="tns:getRBUInfoByCountryBUSoapOut" />
+    </wsdl:operation>
+    <wsdl:operation name="getChannelPartnerList">
+      <wsdl:input message="tns:getChannelPartnerListSoapIn" />
+      <wsdl:output message="tns:getChannelPartnerListSoapOut" />
+    </wsdl:operation>
+    <wsdl:operation name="getPartnerID">
+      <wsdl:input message="tns:getPartnerIDSoapIn" />
+      <wsdl:output message="tns:getPartnerIDSoapOut" />
+    </wsdl:operation>
+    <wsdl:operation name="AddBannerLog">
+      <wsdl:documentation xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/">Add Banner Log</wsdl:documentation>
+      <wsdl:input message="tns:AddBannerLogSoapIn" />
+      <wsdl:output message="tns:AddBannerLogSoapOut" />
+    </wsdl:operation>
+    <wsdl:operation name="AddProductLog">
+      <wsdl:documentation xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/">Add Product Log</wsdl:documentation>
+      <wsdl:input message="tns:AddProductLogSoapIn" />
+      <wsdl:output message="tns:AddProductLogSoapOut" />
+    </wsdl:operation>
+    <wsdl:operation name="AddProductTypeLog">
+      <wsdl:documentation xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/">Add Product Log with Type</wsdl:documentation>
+      <wsdl:input message="tns:AddProductTypeLogSoapIn" />
+      <wsdl:output message="tns:AddProductTypeLogSoapOut" />
+    </wsdl:operation>
+    <wsdl:operation name="AddCMSView">
+      <wsdl:documentation xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/">Add CMS ClickTime</wsdl:documentation>
+      <wsdl:input message="tns:AddCMSViewSoapIn" />
+      <wsdl:output message="tns:AddCMSViewSoapOut" />
+    </wsdl:operation>
+    <wsdl:operation name="GetCount">
+      <wsdl:input message="tns:GetCountSoapIn" />
+      <wsdl:output message="tns:GetCountSoapOut" />
+    </wsdl:operation>
+    <wsdl:operation name="AddPageInfo">
+      <wsdl:documentation xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/">Add Page Info</wsdl:documentation>
+      <wsdl:input message="tns:AddPageInfoSoapIn" />
+      <wsdl:output message="tns:AddPageInfoSoapOut" />
+    </wsdl:operation>
+    <wsdl:operation name="UpdatePageInfo">
+      <wsdl:documentation xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/">Update Page Info</wsdl:documentation>
+      <wsdl:input message="tns:UpdatePageInfoSoapIn" />
+      <wsdl:output message="tns:UpdatePageInfoSoapOut" />
+    </wsdl:operation>
+    <wsdl:operation name="AddPageInfoWithUser">
+      <wsdl:documentation xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/">Add Page Info</wsdl:documentation>
+      <wsdl:input message="tns:AddPageInfoWithUserSoapIn" />
+      <wsdl:output message="tns:AddPageInfoWithUserSoapOut" />
+    </wsdl:operation>
+    <wsdl:operation name="UpdatePageInfoWithUser">
+      <wsdl:documentation xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/">Update Page Info</wsdl:documentation>
+      <wsdl:input message="tns:UpdatePageInfoWithUserSoapIn" />
+      <wsdl:output message="tns:UpdatePageInfoWithUserSoapOut" />
+    </wsdl:operation>
+    <wsdl:operation name="DeletePageInfo">
+      <wsdl:documentation xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/">Delete Page Info</wsdl:documentation>
+      <wsdl:input message="tns:DeletePageInfoSoapIn" />
+      <wsdl:output message="tns:DeletePageInfoSoapOut" />
+    </wsdl:operation>
+    <wsdl:operation name="GetPageInfoUserAccess">
+      <wsdl:documentation xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/">Get User Access for PageInfo</wsdl:documentation>
+      <wsdl:input message="tns:GetPageInfoUserAccessSoapIn" />
+      <wsdl:output message="tns:GetPageInfoUserAccessSoapOut" />
+    </wsdl:operation>
+    <wsdl:operation name="SetPageViews">
+      <wsdl:input message="tns:SetPageViewsSoapIn" />
+      <wsdl:output message="tns:SetPageViewsSoapOut" />
+    </wsdl:operation>
+    <wsdl:operation name="GetPageViews">
+      <wsdl:input message="tns:GetPageViewsSoapIn" />
+      <wsdl:output message="tns:GetPageViewsSoapOut" />
+    </wsdl:operation>
+    <wsdl:operation name="GetPageViewsByDate">
+      <wsdl:input message="tns:GetPageViewsByDateSoapIn" />
+      <wsdl:output message="tns:GetPageViewsByDateSoapOut" />
+    </wsdl:operation>
+    <wsdl:operation name="IsSEOAdminAccess">
+      <wsdl:documentation xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/">Check if the user has the access to SEO Tool</wsdl:documentation>
+      <wsdl:input message="tns:IsSEOAdminAccessSoapIn" />
+      <wsdl:output message="tns:IsSEOAdminAccessSoapOut" />
+    </wsdl:operation>
+    <wsdl:operation name="checkUser">
+      <wsdl:input message="tns:checkUserSoapIn" />
+      <wsdl:output message="tns:checkUserSoapOut" />
+    </wsdl:operation>
+    <wsdl:operation name="GetPartnerLogoByAccountRowID">
+      <wsdl:input message="tns:GetPartnerLogoByAccountRowIDSoapIn" />
+      <wsdl:output message="tns:GetPartnerLogoByAccountRowIDSoapOut" />
+    </wsdl:operation>
+    <wsdl:operation name="Comment_GetByRecord_ID">
+      <wsdl:documentation xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/">Get Comment By RECORD_ID</wsdl:documentation>
+      <wsdl:input message="tns:Comment_GetByRecord_IDSoapIn" />
+      <wsdl:output message="tns:Comment_GetByRecord_IDSoapOut" />
+    </wsdl:operation>
+    <wsdl:operation name="Comment_GetReplyBySID">
+      <wsdl:documentation xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/">Get Reply Comment By SID</wsdl:documentation>
+      <wsdl:input message="tns:Comment_GetReplyBySIDSoapIn" />
+      <wsdl:output message="tns:Comment_GetReplyBySIDSoapOut" />
+    </wsdl:operation>
+    <wsdl:operation name="Comment_AddByRecord_IDandUser_ID">
+      <wsdl:documentation xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/">Add Comment By RECORD_ID and User_ID</wsdl:documentation>
+      <wsdl:input message="tns:Comment_AddByRecord_IDandUser_IDSoapIn" />
+      <wsdl:output message="tns:Comment_AddByRecord_IDandUser_IDSoapOut" />
+    </wsdl:operation>
+    <wsdl:operation name="Comment_DeleteBySID">
+      <wsdl:documentation xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/">Delete Comment By SID</wsdl:documentation>
+      <wsdl:input message="tns:Comment_DeleteBySIDSoapIn" />
+      <wsdl:output message="tns:Comment_DeleteBySIDSoapOut" />
+    </wsdl:operation>
+    <wsdl:operation name="get_eCatalog">
+      <wsdl:documentation xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/">Get eCatalog by RBU, Type or Key Value&lt;br /&gt;&lt;br /&gt;&lt;b&gt;RBU&lt;/b&gt;&lt;ul&gt;&lt;li&gt;en-US&lt;/li&gt;&lt;li&gt;JA-JP&lt;/li&gt;&lt;li&gt;ko-KR&lt;/li&gt;&lt;li&gt;zh-CN&lt;/li&gt;&lt;li&gt;zh-TW&lt;/li&gt;&lt;/ul&gt;&lt;b&gt;Type&lt;/b&gt;&lt;ul&gt;&lt;li&gt;AC&lt;/li&gt;&lt;li&gt;advantech&lt;/li&gt;&lt;li&gt;eA&lt;/li&gt;&lt;li&gt;EC&lt;/li&gt;&lt;li&gt;INC&lt;/li&gt;&lt;li&gt;SAG&lt;/li&gt;&lt;/ul&gt;&lt;b&gt;Key Value&lt;/b&gt;&lt;ul&gt;&lt;li&gt;Search By Name&lt;/li&gt;&lt;/ul&gt;</wsdl:documentation>
+      <wsdl:input message="tns:get_eCatalogSoapIn" />
+      <wsdl:output message="tns:get_eCatalogSoapOut" />
+    </wsdl:operation>
+  </wsdl:portType>
+  <wsdl:binding name="AdvantechWebServiceSoap" type="tns:AdvantechWebServiceSoap">
+    <soap:binding transport="http://schemas.xmlsoap.org/soap/http" />
+    <wsdl:operation name="AddRating">
+      <soap:operation soapAction="http://tempuri.org/AddRating" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="AddRating2">
+      <soap:operation soapAction="http://tempuri.org/AddRating2" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="GetAverageRate">
+      <soap:operation soapAction="http://tempuri.org/GetAverageRate" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="GetRating">
+      <soap:operation soapAction="http://tempuri.org/GetRating" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="GetRating2">
+      <soap:operation soapAction="http://tempuri.org/GetRating2" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="getPartnerInfo">
+      <soap:operation soapAction="http://tempuri.org/getPartnerInfo" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="getRBUInfoByCountryBU">
+      <soap:operation soapAction="http://tempuri.org/getRBUInfoByCountryBU" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="getChannelPartnerList">
+      <soap:operation soapAction="http://tempuri.org/getChannelPartnerList" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="getPartnerID">
+      <soap:operation soapAction="http://tempuri.org/getPartnerID" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="AddBannerLog">
+      <soap:operation soapAction="http://tempuri.org/AddBannerLog" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="AddProductLog">
+      <soap:operation soapAction="http://tempuri.org/AddProductLog" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="AddProductTypeLog">
+      <soap:operation soapAction="http://tempuri.org/AddProductTypeLog" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="AddCMSView">
+      <soap:operation soapAction="http://tempuri.org/AddCMSView" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="GetCount">
+      <soap:operation soapAction="http://tempuri.org/GetCount" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="AddPageInfo">
+      <soap:operation soapAction="http://tempuri.org/AddPageInfo" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="UpdatePageInfo">
+      <soap:operation soapAction="http://tempuri.org/UpdatePageInfo" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="AddPageInfoWithUser">
+      <soap:operation soapAction="http://tempuri.org/AddPageInfoWithUser" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="UpdatePageInfoWithUser">
+      <soap:operation soapAction="http://tempuri.org/UpdatePageInfoWithUser" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="DeletePageInfo">
+      <soap:operation soapAction="http://tempuri.org/DeletePageInfo" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="GetPageInfoUserAccess">
+      <soap:operation soapAction="http://tempuri.org/GetPageInfoUserAccess" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="SetPageViews">
+      <soap:operation soapAction="http://tempuri.org/SetPageViews" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="GetPageViews">
+      <soap:operation soapAction="http://tempuri.org/GetPageViews" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="GetPageViewsByDate">
+      <soap:operation soapAction="http://tempuri.org/GetPageViewsByDate" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="IsSEOAdminAccess">
+      <soap:operation soapAction="http://tempuri.org/IsSEOAdminAccess" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="checkUser">
+      <soap:operation soapAction="http://tempuri.org/checkUser" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="GetPartnerLogoByAccountRowID">
+      <soap:operation soapAction="http://tempuri.org/GetPartnerLogoByAccountRowID" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="Comment_GetByRecord_ID">
+      <soap:operation soapAction="http://tempuri.org/Comment_GetByRecord_ID" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="Comment_GetReplyBySID">
+      <soap:operation soapAction="http://tempuri.org/Comment_GetReplyBySID" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="Comment_AddByRecord_IDandUser_ID">
+      <soap:operation soapAction="http://tempuri.org/Comment_AddByRecord_IDandUser_ID" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="Comment_DeleteBySID">
+      <soap:operation soapAction="http://tempuri.org/Comment_DeleteBySID" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="get_eCatalog">
+      <soap:operation soapAction="http://tempuri.org/get_eCatalog" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+  </wsdl:binding>
+  <wsdl:binding name="AdvantechWebServiceSoap12" type="tns:AdvantechWebServiceSoap">
+    <soap12:binding transport="http://schemas.xmlsoap.org/soap/http" />
+    <wsdl:operation name="AddRating">
+      <soap12:operation soapAction="http://tempuri.org/AddRating" style="document" />
+      <wsdl:input>
+        <soap12:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap12:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="AddRating2">
+      <soap12:operation soapAction="http://tempuri.org/AddRating2" style="document" />
+      <wsdl:input>
+        <soap12:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap12:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="GetAverageRate">
+      <soap12:operation soapAction="http://tempuri.org/GetAverageRate" style="document" />
+      <wsdl:input>
+        <soap12:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap12:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="GetRating">
+      <soap12:operation soapAction="http://tempuri.org/GetRating" style="document" />
+      <wsdl:input>
+        <soap12:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap12:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="GetRating2">
+      <soap12:operation soapAction="http://tempuri.org/GetRating2" style="document" />
+      <wsdl:input>
+        <soap12:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap12:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="getPartnerInfo">
+      <soap12:operation soapAction="http://tempuri.org/getPartnerInfo" style="document" />
+      <wsdl:input>
+        <soap12:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap12:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="getRBUInfoByCountryBU">
+      <soap12:operation soapAction="http://tempuri.org/getRBUInfoByCountryBU" style="document" />
+      <wsdl:input>
+        <soap12:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap12:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="getChannelPartnerList">
+      <soap12:operation soapAction="http://tempuri.org/getChannelPartnerList" style="document" />
+      <wsdl:input>
+        <soap12:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap12:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="getPartnerID">
+      <soap12:operation soapAction="http://tempuri.org/getPartnerID" style="document" />
+      <wsdl:input>
+        <soap12:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap12:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="AddBannerLog">
+      <soap12:operation soapAction="http://tempuri.org/AddBannerLog" style="document" />
+      <wsdl:input>
+        <soap12:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap12:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="AddProductLog">
+      <soap12:operation soapAction="http://tempuri.org/AddProductLog" style="document" />
+      <wsdl:input>
+        <soap12:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap12:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="AddProductTypeLog">
+      <soap12:operation soapAction="http://tempuri.org/AddProductTypeLog" style="document" />
+      <wsdl:input>
+        <soap12:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap12:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="AddCMSView">
+      <soap12:operation soapAction="http://tempuri.org/AddCMSView" style="document" />
+      <wsdl:input>
+        <soap12:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap12:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="GetCount">
+      <soap12:operation soapAction="http://tempuri.org/GetCount" style="document" />
+      <wsdl:input>
+        <soap12:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap12:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="AddPageInfo">
+      <soap12:operation soapAction="http://tempuri.org/AddPageInfo" style="document" />
+      <wsdl:input>
+        <soap12:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap12:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="UpdatePageInfo">
+      <soap12:operation soapAction="http://tempuri.org/UpdatePageInfo" style="document" />
+      <wsdl:input>
+        <soap12:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap12:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="AddPageInfoWithUser">
+      <soap12:operation soapAction="http://tempuri.org/AddPageInfoWithUser" style="document" />
+      <wsdl:input>
+        <soap12:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap12:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="UpdatePageInfoWithUser">
+      <soap12:operation soapAction="http://tempuri.org/UpdatePageInfoWithUser" style="document" />
+      <wsdl:input>
+        <soap12:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap12:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="DeletePageInfo">
+      <soap12:operation soapAction="http://tempuri.org/DeletePageInfo" style="document" />
+      <wsdl:input>
+        <soap12:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap12:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="GetPageInfoUserAccess">
+      <soap12:operation soapAction="http://tempuri.org/GetPageInfoUserAccess" style="document" />
+      <wsdl:input>
+        <soap12:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap12:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="SetPageViews">
+      <soap12:operation soapAction="http://tempuri.org/SetPageViews" style="document" />
+      <wsdl:input>
+        <soap12:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap12:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="GetPageViews">
+      <soap12:operation soapAction="http://tempuri.org/GetPageViews" style="document" />
+      <wsdl:input>
+        <soap12:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap12:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="GetPageViewsByDate">
+      <soap12:operation soapAction="http://tempuri.org/GetPageViewsByDate" style="document" />
+      <wsdl:input>
+        <soap12:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap12:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="IsSEOAdminAccess">
+      <soap12:operation soapAction="http://tempuri.org/IsSEOAdminAccess" style="document" />
+      <wsdl:input>
+        <soap12:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap12:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="checkUser">
+      <soap12:operation soapAction="http://tempuri.org/checkUser" style="document" />
+      <wsdl:input>
+        <soap12:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap12:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="GetPartnerLogoByAccountRowID">
+      <soap12:operation soapAction="http://tempuri.org/GetPartnerLogoByAccountRowID" style="document" />
+      <wsdl:input>
+        <soap12:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap12:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="Comment_GetByRecord_ID">
+      <soap12:operation soapAction="http://tempuri.org/Comment_GetByRecord_ID" style="document" />
+      <wsdl:input>
+        <soap12:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap12:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="Comment_GetReplyBySID">
+      <soap12:operation soapAction="http://tempuri.org/Comment_GetReplyBySID" style="document" />
+      <wsdl:input>
+        <soap12:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap12:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="Comment_AddByRecord_IDandUser_ID">
+      <soap12:operation soapAction="http://tempuri.org/Comment_AddByRecord_IDandUser_ID" style="document" />
+      <wsdl:input>
+        <soap12:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap12:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="Comment_DeleteBySID">
+      <soap12:operation soapAction="http://tempuri.org/Comment_DeleteBySID" style="document" />
+      <wsdl:input>
+        <soap12:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap12:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="get_eCatalog">
+      <soap12:operation soapAction="http://tempuri.org/get_eCatalog" style="document" />
+      <wsdl:input>
+        <soap12:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap12:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+  </wsdl:binding>
+  <wsdl:service name="AdvantechWebService">
+    <wsdl:port name="AdvantechWebServiceSoap" binding="tns:AdvantechWebServiceSoap">
+      <soap:address location="http://www.advantech.com.tw/webservice/advantechwebservice.asmx" />
+    </wsdl:port>
+    <wsdl:port name="AdvantechWebServiceSoap12" binding="tns:AdvantechWebServiceSoap12">
+      <soap12:address location="http://www.advantech.com.tw/webservice/advantechwebservice.asmx" />
+    </wsdl:port>
+  </wsdl:service>
+</wsdl:definitions>

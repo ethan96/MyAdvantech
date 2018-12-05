@@ -1,0 +1,153 @@
+﻿<%@ Page Language="VB" MasterPageFile="~/Includes/MyMaster.master" Title="MyAdvantech - PIS Interested Product and Sector Mapping"
+    ValidateRequest="false" %>
+
+<%@ Import Namespace="System.Data.SqlClient" %>
+
+<script runat="server">
+
+    Protected Sub Button_Search_Click(sender As Object, e As System.EventArgs)
+
+        Dim count As Integer = 0, _IntProdCategoryID As String = String.Empty, _SectorID As String = String.Empty
+        Dim _sql As String = String.Empty, chk As CheckBox = Nothing
+
+        For i As Integer = 0 To Me.GV_IntProd_Sector.Rows.Count - 1
+            chk = Me.GV_IntProd_Sector.Rows(i).FindControl("CheckBox_SelecedItem")
+            
+            _IntProdCategoryID = Me.GV_IntProd_Sector.DataKeys(i).Values("INTERESTED_PRODUCT_CATEGORY_ID").ToString
+            _SectorID = Me.GV_IntProd_Sector.DataKeys(i).Values("SECTOR_ID").ToString
+            
+            If chk.Checked AndAlso String.IsNullOrEmpty(_IntProdCategoryID) = False AndAlso String.IsNullOrEmpty(_SectorID) = False Then
+                
+                _IntProdCategoryID = HttpUtility.HtmlDecode(_IntProdCategoryID).Replace("'", "''")
+                _SectorID = HttpUtility.HtmlDecode(_SectorID).Replace("'", "''")
+                
+                _sql = "Delete From PIS_INTERESTED_PRODUCT_SECTOR Where INTERESTED_PRODUCT_CATEGORY_ID='" & _IntProdCategoryID & "'"
+                _sql &= " and SECTOR_ID='" & _SectorID & "'"
+                dbUtil.dbExecuteNoQuery("MY", _sql)
+            End If
+        Next
+        
+        Me.GV_IntProd_Sector.DataBind()
+        
+        'Me.CheckBox_IsCheckAll.Checked = False
+        'Button_Search_Click(sender, e)
+
+        
+    End Sub
+
+    Protected Sub ButtonAdd_Click(sender As Object, e As System.EventArgs)
+        Dim _IntProdCategoryID As String = Me.LBIntProd.SelectedValue
+        Dim _SectorID As String = Me.LBSector.SelectedValue
+        
+        If String.IsNullOrEmpty(_IntProdCategoryID) Then Exit Sub
+        If String.IsNullOrEmpty(_SectorID) Then Exit Sub
+        
+        
+        _IntProdCategoryID = _IntProdCategoryID.Replace("'", "''") : _SectorID = _SectorID.Replace("'", "''")
+        
+        Dim _sql_remove As String = "Delete From PIS_INTERESTED_PRODUCT_SECTOR Where INTERESTED_PRODUCT_CATEGORY_ID='" & _IntProdCategoryID & "'"
+        _sql_remove &= " and SECTOR_ID='" & _SectorID & "'"
+        Dim _sql_insert As String = "Insert into PIS_INTERESTED_PRODUCT_SECTOR values ('" & _IntProdCategoryID & "','" & _SectorID & "') "
+
+        dbUtil.dbExecuteNoQuery("MY", _sql_remove & ";" & _sql_insert)
+        
+        
+        Me.GV_IntProd_Sector.DataBind()
+        
+    End Sub
+
+    Protected Sub Page_Load(sender As Object, e As System.EventArgs)
+
+        If Not IsPostBack Then
+            Dim _sql1 As String = "SELECT CATEGORY_ID,'[' + PARENT_CATEGORY_DISPLAY_NAME + '] ' + CATEGORY_DISPLAY_NAME as InterestedProduct"
+            _sql1 &= " FROM [PISBackend].[dbo].V_INTERESTED_PRODUCT "
+            _sql1 &= " Order by PARENT_CATEGORY_DISPLAY_NAME,SEQ_NO "
+            Dim _dtintprod As DataTable = dbUtil.dbGetDataTable("PIS_BackEnd", _sql1)
+            Me.LBIntProd.DataTextField = "InterestedProduct"
+            Me.LBIntProd.DataValueField = "CATEGORY_ID"
+            Me.LBIntProd.DataSource = _dtintprod
+            Me.LBIntProd.DataBind()
+
+            Dim _sql2 As String = "SELECT distinct GLOBAL_SECTOR,SECTOR_ID "
+            _sql2 &= " FROM SIEBEL_ACCOUNT_SECTOR "
+            _sql2 &= " Order by GLOBAL_SECTOR "
+            Dim _dtsector As DataTable = dbUtil.dbGetDataTable("MY", _sql2)
+            Me.LBSector.DataTextField = "GLOBAL_SECTOR"
+            Me.LBSector.DataValueField = "SECTOR_ID"
+            Me.LBSector.DataSource = _dtsector
+            Me.LBSector.DataBind()
+
+        End If
+        
+    End Sub
+    
+    
+    
+</script>
+
+<asp:Content runat="server" ID="_main" ContentPlaceHolderID="_main">
+
+
+    <div class="root">
+        <asp:HyperLink runat="server" ID="hlHome" NavigateUrl="~/home.aspx" Text="Home" />
+        > Maintain PIS Interested Product & Sector Mapping</div>
+    <br />
+    <div class="menu_title">
+        Maintain PIS Interested Product & Sector Mapping</div>
+    <br />
+    <asp:Panel DefaultButton="ButtonAdd" runat="server" ID="Panel1">
+        <table width="100%" class="rightcontant3">
+            <tr>
+                <td align="left">
+                    PIS Interested Product:<br />
+                    <asp:ListBox ID="LBIntProd" runat="server" Rows="10" />
+                </td>
+                <td align="left">
+                    Sector:<br />
+                    <asp:ListBox ID="LBSector" runat="server" Rows="10" />
+                </td>
+            </tr>
+            <tr>
+                <td align="left">
+                    <asp:Button ID="ButtonAdd" runat="server" Text="Add" 
+                        onclick="ButtonAdd_Click"  />
+                    <asp:Button ID="ButtonDelete" runat="server" Text="Delete" onclick="Button_Search_Click" />
+                </td>
+                <td align="left">
+                </td>
+            </tr>
+        </table>
+        <br />
+        <asp:Button ID="Button_Search" runat="server" Text="Search" 
+            onclick="Button_Search_Click" Visible="false" />
+        <asp:GridView ID="GV_IntProd_Sector" runat="server" AutoGenerateColumns="False" EmptyDataText="No search results were found."
+            Width="100%" AllowPaging="True" AllowSorting="True" DataSourceID="SqlDataSource_ProductFamily"
+            PageSize="20" DataKeyNames="INTERESTED_PRODUCT_CATEGORY_ID,SECTOR_ID">
+            <Columns>
+                <asp:TemplateField ItemStyle-Width="30px" ItemStyle-HorizontalAlign="Center">
+                    <HeaderTemplate>
+                        Check
+                    </HeaderTemplate>
+                    <ItemTemplate>
+                        <asp:CheckBox ID="CheckBox_SelecedItem" runat="server" />
+                    </ItemTemplate>
+                </asp:TemplateField>
+<%--                <asp:BoundField ItemStyle-Width="200px" HeaderText="INTERESTED PRODUCT CATEGORY ID" DataField="INTERESTED_PRODUCT_CATEGORY_ID"
+                    ItemStyle-HorizontalAlign="left" SortExpression="INTERESTED_PRODUCT_CATEGORY_ID" />
+                <asp:BoundField ItemStyle-Width="200px" HeaderText="SECTOR ID" DataField="SECTOR_ID"
+                    ItemStyle-HorizontalAlign="left" SortExpression="SECTOR_ID" />
+--%>                <asp:BoundField ItemStyle-Width="200px" HeaderText="Interested Product" DataField="Interested_Product"
+                    ItemStyle-HorizontalAlign="left" SortExpression="Interested_Product" />
+                <asp:BoundField ItemStyle-Width="200px" HeaderText="Global Sector" DataField="GLOBAL_SECTOR"
+                    ItemStyle-HorizontalAlign="left" SortExpression="GLOBAL_SECTOR" />
+            </Columns>
+        </asp:GridView>
+        <asp:SqlDataSource ID="SqlDataSource_ProductFamily" runat="server" ConnectionString="<%$ ConnectionStrings:MY %>"
+            SelectCommand="SELECT a.INTERESTED_PRODUCT_CATEGORY_ID,b.DISPLAY_NAME as Interested_Product,a.SECTOR_ID,c.GLOBAL_SECTOR 
+            FROM PIS_INTERESTED_PRODUCT_SECTOR a left join PIS.dbo.CATEGORY b on a.INTERESTED_PRODUCT_CATEGORY_ID=b.CATEGORY_ID
+            left join SIEBEL_ACCOUNT_SECTOR c on a.SECTOR_ID=c.SECTOR_ID
+            group by a.INTERESTED_PRODUCT_CATEGORY_ID,b.DISPLAY_NAME,a.SECTOR_ID,c.GLOBAL_SECTOR
+            Order by b.DISPLAY_NAME,c.GLOBAL_SECTOR" />
+    </asp:Panel>
+
+</asp:Content>

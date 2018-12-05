@@ -1,0 +1,207 @@
+<?xml version="1.0" encoding="utf-8"?>
+<wsdl:definitions xmlns:http="http://schemas.xmlsoap.org/wsdl/http/" xmlns:soapenc="http://schemas.xmlsoap.org/soap/encoding/" xmlns:mime="http://schemas.xmlsoap.org/wsdl/mime/" xmlns:tns="http://tempuri.org/" xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/" xmlns:tm="http://microsoft.com/wsdl/mime/textMatching/" xmlns:s="http://www.w3.org/2001/XMLSchema" xmlns:soap12="http://schemas.xmlsoap.org/wsdl/soap12/" targetNamespace="http://tempuri.org/" xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/">
+  <wsdl:types>
+    <s:schema elementFormDefault="qualified" targetNamespace="http://tempuri.org/">
+      <s:element name="GetApprovalList">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="CompanyID" type="s:string" />
+            <s:element minOccurs="1" maxOccurs="1" name="CurrentGP" type="s:decimal" />
+            <s:element minOccurs="0" maxOccurs="1" name="type" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="ApproveList">
+              <s:complexType>
+                <s:sequence>
+                  <s:element ref="s:schema" />
+                  <s:any />
+                </s:sequence>
+              </s:complexType>
+            </s:element>
+            <s:element minOccurs="0" maxOccurs="1" name="strErrMsg" type="s:string" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="GetApprovalListResponse">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="1" maxOccurs="1" name="GetApprovalListResult" type="s:int" />
+            <s:element minOccurs="0" maxOccurs="1" name="ApproveList">
+              <s:complexType>
+                <s:sequence>
+                  <s:element ref="s:schema" />
+                  <s:any />
+                </s:sequence>
+              </s:complexType>
+            </s:element>
+            <s:element minOccurs="0" maxOccurs="1" name="strErrMsg" type="s:string" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="Do_GP">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="DTHeader">
+              <s:complexType>
+                <s:sequence>
+                  <s:any minOccurs="0" maxOccurs="unbounded" namespace="http://www.w3.org/2001/XMLSchema" processContents="lax" />
+                  <s:any minOccurs="1" namespace="urn:schemas-microsoft-com:xml-diffgram-v1" processContents="lax" />
+                </s:sequence>
+              </s:complexType>
+            </s:element>
+            <s:element minOccurs="0" maxOccurs="1" name="DTDetail">
+              <s:complexType>
+                <s:sequence>
+                  <s:any minOccurs="0" maxOccurs="unbounded" namespace="http://www.w3.org/2001/XMLSchema" processContents="lax" />
+                  <s:any minOccurs="1" namespace="urn:schemas-microsoft-com:xml-diffgram-v1" processContents="lax" />
+                </s:sequence>
+              </s:complexType>
+            </s:element>
+            <s:element minOccurs="0" maxOccurs="1" name="Applicant" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="strErrMsg" type="s:string" />
+            <s:element minOccurs="1" maxOccurs="1" name="TypeInt" type="s:int" />
+            <s:element minOccurs="0" maxOccurs="1" name="DTAll">
+              <s:complexType>
+                <s:sequence>
+                  <s:element ref="s:schema" />
+                  <s:any />
+                </s:sequence>
+              </s:complexType>
+            </s:element>
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="Do_GPResponse">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="1" maxOccurs="1" name="Do_GPResult" type="s:int" />
+            <s:element minOccurs="0" maxOccurs="1" name="strErrMsg" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="DTAll">
+              <s:complexType>
+                <s:sequence>
+                  <s:element ref="s:schema" />
+                  <s:any />
+                </s:sequence>
+              </s:complexType>
+            </s:element>
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="UpdateGPapprovalStatus">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="QuoteID" type="s:string" />
+            <s:element minOccurs="1" maxOccurs="1" name="status" type="s:int" />
+            <s:element minOccurs="0" maxOccurs="1" name="Message" type="s:string" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="UpdateGPapprovalStatusResponse">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="1" maxOccurs="1" name="UpdateGPapprovalStatusResult" type="s:int" />
+            <s:element minOccurs="0" maxOccurs="1" name="Message" type="s:string" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+    </s:schema>
+  </wsdl:types>
+  <wsdl:message name="GetApprovalListSoapIn">
+    <wsdl:part name="parameters" element="tns:GetApprovalList" />
+  </wsdl:message>
+  <wsdl:message name="GetApprovalListSoapOut">
+    <wsdl:part name="parameters" element="tns:GetApprovalListResponse" />
+  </wsdl:message>
+  <wsdl:message name="Do_GPSoapIn">
+    <wsdl:part name="parameters" element="tns:Do_GP" />
+  </wsdl:message>
+  <wsdl:message name="Do_GPSoapOut">
+    <wsdl:part name="parameters" element="tns:Do_GPResponse" />
+  </wsdl:message>
+  <wsdl:message name="UpdateGPapprovalStatusSoapIn">
+    <wsdl:part name="parameters" element="tns:UpdateGPapprovalStatus" />
+  </wsdl:message>
+  <wsdl:message name="UpdateGPapprovalStatusSoapOut">
+    <wsdl:part name="parameters" element="tns:UpdateGPapprovalStatusResponse" />
+  </wsdl:message>
+  <wsdl:portType name="B2B_GP_WSSoap">
+    <wsdl:operation name="GetApprovalList">
+      <wsdl:input message="tns:GetApprovalListSoapIn" />
+      <wsdl:output message="tns:GetApprovalListSoapOut" />
+    </wsdl:operation>
+    <wsdl:operation name="Do_GP">
+      <wsdl:input message="tns:Do_GPSoapIn" />
+      <wsdl:output message="tns:Do_GPSoapOut" />
+    </wsdl:operation>
+    <wsdl:operation name="UpdateGPapprovalStatus">
+      <wsdl:input message="tns:UpdateGPapprovalStatusSoapIn" />
+      <wsdl:output message="tns:UpdateGPapprovalStatusSoapOut" />
+    </wsdl:operation>
+  </wsdl:portType>
+  <wsdl:binding name="B2B_GP_WSSoap" type="tns:B2B_GP_WSSoap">
+    <soap:binding transport="http://schemas.xmlsoap.org/soap/http" />
+    <wsdl:operation name="GetApprovalList">
+      <soap:operation soapAction="http://tempuri.org/GetApprovalList" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="Do_GP">
+      <soap:operation soapAction="http://tempuri.org/Do_GP" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="UpdateGPapprovalStatus">
+      <soap:operation soapAction="http://tempuri.org/UpdateGPapprovalStatus" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+  </wsdl:binding>
+  <wsdl:binding name="B2B_GP_WSSoap12" type="tns:B2B_GP_WSSoap">
+    <soap12:binding transport="http://schemas.xmlsoap.org/soap/http" />
+    <wsdl:operation name="GetApprovalList">
+      <soap12:operation soapAction="http://tempuri.org/GetApprovalList" style="document" />
+      <wsdl:input>
+        <soap12:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap12:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="Do_GP">
+      <soap12:operation soapAction="http://tempuri.org/Do_GP" style="document" />
+      <wsdl:input>
+        <soap12:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap12:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="UpdateGPapprovalStatus">
+      <soap12:operation soapAction="http://tempuri.org/UpdateGPapprovalStatus" style="document" />
+      <wsdl:input>
+        <soap12:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap12:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+  </wsdl:binding>
+  <wsdl:service name="B2B_GP_WS">
+    <wsdl:port name="B2B_GP_WSSoap" binding="tns:B2B_GP_WSSoap">
+      <soap:address location="http://myadvan-global:9000/B2B_GP_WS.asmx" />
+    </wsdl:port>
+    <wsdl:port name="B2B_GP_WSSoap12" binding="tns:B2B_GP_WSSoap12">
+      <soap12:address location="http://myadvan-global:9000/B2B_GP_WS.asmx" />
+    </wsdl:port>
+  </wsdl:service>
+</wsdl:definitions>

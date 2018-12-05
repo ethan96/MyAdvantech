@@ -1,0 +1,251 @@
+﻿<%@ Page Title="eSurvey - Survey Content" Language="VB" MasterPageFile="~/Includes/MyMaster.master" %>
+<%@ Register Src="~/EC/Surveys/Aonline_PageDetail.ascx" TagName="PageDetail" TagPrefix="uc3" %>
+
+<script runat="server">
+    Protected Sub btnSubmit_Click(ByVal sender As Object, ByVal e As System.EventArgs)
+        If ucPageDetail.CheckValid = False Then lblMsg.Text = "Some questions are required at least one answer." : Exit Sub
+        Dim ds As DataSet = ucPageDetail.GetAnswer()
+        Dim dt As DataTable = ds.Tables(0), dtComment As DataTable = ds.Tables(1)
+        Dim dtContactInfo As DataTable = ucPageDetail.GetContactInfo()
+        Dim row_id As String = NewId("SURVEY_RESULT")
+        Dim email As String = "", name As String = "", company As String = "", phone As String = "", job As String = "", address As String = "", country As String = "", city As String = "", zip As String = ""
+        Dim d As Date = Now
+        Try
+            If dtContactInfo IsNot Nothing AndAlso dtContactInfo.Rows.Count > 0 Then
+                With dtContactInfo.Rows(0)
+                    email = .Item("EMAIL") : name = .Item("NAME") : company = .Item("COMPANY") : phone = .Item("PHONE") : job = .Item("JOB")
+                    address = .Item("ADDRESS") : country = .Item("COUNTRY") : city = .Item("CITY") : zip = .Item("ZIP")
+                End With
+            End If
+            If Request("sid") = "b756c53c0f" Then
+                email = txtEmail.Text.Replace("'", "''").Trim
+                lblMsg.Text = ""
+                If email = "" Then lblMsg.Text += "Email<font color='black'>尚未填寫</font><br/>"
+                If txtName.Text.Trim.Replace("'", "''") = "" Then lblMsg.Text += "姓名<font color='black'>尚未填寫</font><br/>"
+                If txtCompany.Text.Trim.Replace("'", "''") = "" Then lblMsg.Text += "公司名稱<font color='black'>尚未填寫</font><br/>"
+                If txtJob.Text.Trim.Replace("'", "''") = "" Then lblMsg.Text += "職稱<font color='black'>尚未填寫</font><br/>"
+                If txtPhone.Text.Trim.Replace("'", "''") = "" Then lblMsg.Text += "聯絡電話<font color='black'>尚未填寫</font><br/>"
+            End If
+            
+            If email = "" AndAlso Session("user_id") IsNot Nothing Then email = Session("user_id")
+            If dt IsNot Nothing AndAlso dt.Rows.Count > 0 Then
+                For Each row As DataRow In dt.Rows
+                    dbUtil.dbExecuteNoQuery("MyLocal", String.Format("insert into survey_result (question_id, answer, user_id, row_id, timestamp, survey_id, client_ip, answer_id, comment_id) values ('{0}',N'{1}',N'{2}',N'{3}','{4}','{5}','{6}','{7}','{8}')", row.Item(0), row.Item(1), email, row_id, d, Request("sid"), Util.GetClientIP(), row.Item(2), row.Item(3)))
+                Next
+            End If
+            If dtComment IsNot Nothing AndAlso dtComment.Rows.Count > 0 Then
+                For Each row As DataRow In dtComment.Rows
+                    dbUtil.dbExecuteNoQuery("MyLocal", String.Format("insert into survey_result_comment (row_id, comment) values ('{0}',N'{1}')", row.Item(0), row.Item(1)))
+                Next
+            End If
+            Dim tmp_id As String = NewId("SURVEY_PERSONAL_INFO")
+            dbUtil.dbExecuteNoQuery("MyLocal", String.Format("insert into survey_personal_info (row_id, result_id, email, name, company, job, phone, address, country, city, zip) values ('{0}','{1}',N'{2}',N'{3}',N'{4}',N'{5}',N'{6}',N'{7}',N'{8}',N'{9}',N'{10}')", tmp_id, row_id, email, name, company, job, phone, address, country, city, zip))
+            'Util.JSAlert(Page, "Thank you for your feedback.")
+            mView1.ActiveViewIndex = 1
+            Dim dtResult As DataTable = dbUtil.dbGetDataTable("MYLOCAL", String.Format("select * from survey_master where row_id='{0}'", Request("sid")))
+            If dtResult.Rows.Count > 0 Then
+                With dtResult.Rows(0)
+                    If CBool(.Item("show_result")) Then btnViewResult_Click(sender, e)
+                    If CBool(.Item("show_thank_msg")) Then lblThankYou.Text = .Item("survey_thank_msg").ToString : lblThankYou.Visible = CBool(.Item("show_thank_msg"))
+                End With
+            End If
+            
+        Catch ex As Exception
+            Util.SendEmail("rudy.wang@advantech.com.tw", "ebiz.aeu@advantech.eu", "error", ex.ToString, True, "", "")
+        End Try
+        
+    End Sub
+    
+    Private Shared Function NewId(ByVal TableName As String) As String
+        Dim tmpRowId As String = ""
+        Do While True
+            tmpRowId = System.Guid.NewGuid.ToString().Replace("-", "").Substring(0, 10)
+            If CInt( _
+              dbUtil.dbExecuteScalar("MYLocal", String.Format("select count(row_id) as counts from {1} where row_id='{0}'", tmpRowId, TableName)) _
+               ) = 0 Then
+                Exit Do
+            End If
+        Loop
+        Return tmpRowId
+    End Function
+
+    Protected Sub Page_Load(ByVal sender As Object, ByVal e As System.EventArgs)
+        Master.FindControl("table1").Visible = False : Master.FindControl("table2").Visible = False ': Master.FindControl("tableFooter").Visible = False
+        If CInt(dbUtil.dbExecuteScalar("MYLOCAL", String.Format("select count(question_id) from survey_question where survey_id='{0}'", Request("sid")))) = 0 Then mView1.Visible = False : Exit Sub
+        Dim dt As DataTable = dbUtil.dbGetDataTable("MYLOCAL", String.Format("select * from survey_master where row_id='{0}'", Request("sid")))
+        If dt.Rows.Count > 0 Then
+            With dt.Rows(0)
+                btnSubmit.Text = .Item("submit_form_text").ToString
+                tdSubmit.Align = .Item("submit_form_align").ToString
+                ucPageDetail.ShowIndex = CBool(.Item("show_index")) : ViewState("ShowIndex") = CBool(.Item("show_index"))
+                PanelShowResult.Visible = CBool(.Item("show_result"))
+            End With
+        End If
+        If Request("sid") = "b756c53c0f" Then
+            btnSubmit.Text = "提交"
+            PanelPerInfo.Visible = True
+            PanelThank.Visible = True
+        End If
+    End Sub
+
+    Protected Sub btnViewResult_Click(ByVal sender As Object, ByVal e As System.EventArgs)
+        Dim dtQ As DataTable = dbUtil.dbGetDataTable("MYLOCAL", String.Format("select question_id, question_index, question_title, question_type, has_other_field, repeat_direction, repeat_columns, question_seq, horizontal_position, question_bg_color, question_interval from survey_question where survey_id='{0}' order by question_index", Request("sid")))
+        gvQuestion.DataSource = dtQ
+        gvQuestion.DataBind()
+        gvQuestion.Visible = True
+        mView1.ActiveViewIndex = 1
+    End Sub
+
+    Protected Sub gvQuestion_RowDataBound(ByVal sender As Object, ByVal e As System.Web.UI.WebControls.GridViewRowEventArgs)
+        If e.Row.RowType = DataControlRowType.DataRow Then
+            If DataBinder.Eval(e.Row.DataItem, "QUESTION_SEQ").ToString = "" Then
+                CType(e.Row.Cells(0).FindControl("lblQuestionSeq"), Label).Text = ""
+                CType(e.Row.Cells(0).FindControl("lblQuestionTitle"), Label).Font.Bold = False
+                CType(e.Row.Cells(0).FindControl("tdQuestionSeq"), HtmlTableCell).Width = "0"
+            Else
+                CType(e.Row.Cells(0).FindControl("tdQuestionSeq"), HtmlTableCell).Width = "20"
+            End If
+            CType(e.Row.Cells(0).FindControl("tdQuestionSeq"), HtmlTableCell).Visible = ViewState("ShowIndex")
+            If Not ViewState("ShowIndex") Then CType(e.Row.Cells(0).FindControl("tdQuestionTitle"), HtmlTableCell).ColSpan = 2
+            CType(e.Row.Cells(0).FindControl("tbQuestion"), HtmlTable).BgColor = DataBinder.Eval(e.Row.DataItem, "question_bg_color")
+            Dim gvA As GridView = CType(e.Row.Cells(0).FindControl("gvAnswer"), GridView)
+            Dim dtA As New DataTable
+            Select Case DataBinder.Eval(e.Row.DataItem, "QUESTION_TYPE").ToString
+                Case "MultipleChoiceOneAnswer", "MultipleChoiceMultipleAnswers"
+                    dtA = dbUtil.dbGetDataTable("MYLOCAL", String.Format("select a.answer_name, a.answer_id, a.answer_index, count(b.answer) as num, '0%' as percentage, '0%' as bar_percentage, '#CCCCCC' as bar_color from survey_answer a left join survey_result b on a.answer_id=b.answer_id where a.survey_id='{0}' and a.question_id='{1}' and a.is_comment=0 group by a.answer_name, a.answer_id, a.answer_index order by a.answer_index", Request("sid"), DataBinder.Eval(e.Row.DataItem, "QUESTION_ID").ToString))
+                    Dim total As Integer = 0, max As Integer = 0
+                    For Each row As DataRow In dtA.Rows
+                        total += CInt(row.Item("num"))
+                        If CInt(row.Item("num")) > max Then max = CInt(row.Item("num"))
+                    Next
+                    For Each row As DataRow In dtA.Rows
+                        If total <> 0 Then
+                            row.Item("percentage") = Decimal.Round(Convert.ToDecimal((CDbl(row.Item("num")) / CDbl(total)) * 100), 1).ToString + "%"
+                            row.Item("bar_percentage") = Decimal.Round(Convert.ToDecimal((CDbl(row.Item("num")) / CDbl(max)) * 100), 1).ToString + "%"
+                            If CInt(row.Item("num")) = max Then row.Item("bar_color") = "#FFC07E"
+                        End If
+                    Next
+                    dtA.AcceptChanges()
+            End Select
+            gvA.DataSource = dtA : gvA.DataBind()
+        End If
+    End Sub
+</script>
+
+<asp:Content ID="Content1" ContentPlaceHolderID="_main" Runat="Server">
+    <asp:UpdatePanel runat="server" ID="upResult" UpdateMode="Conditional">
+        <ContentTemplate>
+            <asp:MultiView runat="server" ID="mView1" ActiveViewIndex="0">
+                <asp:View runat="server" ID="View1">
+                    <table width="100%" cellspacing="0" cellpadding="0" style="border-color:#ebebeb; border-bottom-width:1px; border-bottom-style:solid; border-left-width:1px; border-left-style:solid; border-right-width:1px; border-right-style:solid; border-top-width:1px; border-top-style:solid">
+                        <tr>
+                            <td height="10"></td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <asp:Panel runat="server" ID="PanelPerInfo" Visible="false">
+                                    <table width="900">
+                                        <tr><th colspan="2" align="center" style="font-size:x-large;text-decoration: underline;">3/7 升級人機介面WebOP-2000T線上研討會</th></tr>
+                                        <tr><td height="10" colspan="2"></td></tr>
+                                        <tr><th colspan="2" align="left">*基本資料*</th></tr>
+                                        <tr><td width="80"><font color="red">* </font>Email：</td><td><asp:TextBox runat="server" ID="txtEmail" Width="250px"></asp:TextBox></td></tr>
+                                        <tr><td width="80"><font color="red">* </font>公司名稱：</td><td><asp:TextBox runat="server" ID="txtCompany" Width="250px"></asp:TextBox></td></tr>
+                                        <tr><td width="80"><font color="red">* </font>姓名：</td><td><asp:TextBox runat="server" ID="txtName" Width="250px"></asp:TextBox></td></tr>
+                                        <tr><td width="80"><font color="red">* </font>職稱：</td><td><asp:TextBox runat="server" ID="txtJob" Width="250px"></asp:TextBox></td></tr>
+                                        <tr><td width="80"><font color="red">* </font>聯絡電話：</td><td><asp:TextBox runat="server" ID="txtPhone" Width="250px"></asp:TextBox></td></tr>
+                                    </table>
+                                </asp:Panel>
+                            </td>
+                        </tr>
+                        <tr><td height="10"></td></tr>
+                        <tr>
+                            <td><uc3:PageDetail runat="server" ID="ucPageDetail" /></td>
+                        </tr>
+                        <tr><td style="font-size:medium"><asp:Panel runat="server" ID="PanelThank" Visible="false"><asp:label runat="server" ID="lblThank" Text="感謝您的參與和支持，您的寶貴意見，將是我們持續改善的動力！" /></asp:Panel></td></tr>
+                        <tr>
+                            <td runat="server" id="tdSubmit">
+                                <table>
+                                    <tr>
+                                        <td width="10"></td>
+                                        <td>
+                                            <asp:Button runat="server" ID="btnSubmit" Text="Submit" Height="30" OnClick="btnSubmit_Click" /><br />
+                                            <asp:Label runat="server" ID="lblMsg" ForeColor="Red" />
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td></td>
+                                        <td>
+                                            <asp:Panel runat="server" ID="PanelShowResult">
+                                                <table>
+                                                    <tr><td>Or </td><td><asp:LinkButton runat="server" ID="btnViewResult" Text="view results" CausesValidation="false" OnClick="btnViewResult_Click" /></td></tr>
+                                                </table>
+                                            </asp:Panel>
+                                        </td>
+                                    </tr>
+                                </table>
+                            </td>
+                        </tr>
+                        <tr><td height="10"></td></tr>
+                    </table>
+                </asp:View>
+                <asp:View runat="server" ID="View2">
+                    <table width="100%">
+                        <tr><td height="20"></td></tr>
+                        <tr><td align="center" style="font-size:large; color:Red"><asp:Label runat="server" ID="lblThankYou" Visible="false" /></td></tr>
+                        <tr><td height="20"></td></tr>
+                        <tr>
+                            <td>
+                                <asp:GridView runat="server" ID="gvQuestion" AutoGenerateColumns="false" Visible="false" ShowHeader="false" EnableTheming="false" BorderWidth="0" BorderColor="White" RowStyle-BorderWidth="0" HeaderStyle-BorderWidth="0" PagerStyle-BorderWidth="0" AlternatingRowStyle-BorderWidth="0" OnRowDataBound="gvQuestion_RowDataBound">
+                                    <Columns>
+                                        <asp:TemplateField>
+                                            <ItemTemplate>
+                                                <table runat="server" id="tbQuestion" border="0" cellpadding="0" cellspacing="0" style="padding:5px;">
+                                                    <tr>
+                                                        <th align="left" valign="top" runat="server" id="tdQuestionSeq">
+                                                            <font color="gray" size="3"><asp:Label runat="server" ID="lblQuestionSeq" Text='<%# Eval("question_seq")+"." %>' /></font>
+                                                        </th>
+                                                        <td runat="server" id="tdQuestionTitle" align='<%#Eval("horizontal_position") %>'><asp:Label runat="server" ID="lblQuestionTitle" Text='<%#Eval("question_title")%>' Font-Bold="true" /></td>
+                                                    </tr>
+                                                    <tr><td height="2" colspan="2"></td></tr>
+                                                    <tr>
+                                                        <td align="left" colspan="2">
+                                                            <asp:GridView runat="server" ID="gvAnswer" Width="100%" AutoGenerateColumns="false" ShowHeader="false" EnableTheming="false" BorderWidth="0" BorderColor="White" RowStyle-BorderWidth="0" HeaderStyle-BorderWidth="0" PagerStyle-BorderWidth="0" AlternatingRowStyle-BorderWidth="0">
+                                                                <Columns>
+                                                                    <asp:TemplateField>
+                                                                        <ItemTemplate>
+                                                                            <table width="100%">
+                                                                                <tr><td><%# Eval("answer_name")%></td></tr>
+                                                                                <tr>
+                                                                                    <td>
+                                                                                        <table cellpadding="0" cellspacing="0" width="100%">
+                                                                                            <tr>
+                                                                                                <td width='<%# Eval("bar_percentage")%>' style='background-color:<%# Eval("bar_color")%>'></td>
+                                                                                                <td width="5"></td>
+                                                                                                <td><%# Eval("percentage")%></td>
+                                                                                            </tr>
+                                                                                        </table>
+                                                                                    </td>
+                                                                                </tr>
+                                                                            </table>
+                                                                        </ItemTemplate>
+                                                                    </asp:TemplateField>
+                                                                </Columns>
+                                                            </asp:GridView>
+                                                        </td>
+                                                    </tr>
+                                                    <tr><td height='<%#Eval("question_interval") %>' colspan="2"></td></tr>
+                                                </table>
+                                            </ItemTemplate>
+                                        </asp:TemplateField>
+                                    </Columns>
+                                </asp:GridView>
+                            </td>
+                        </tr>
+                        <tr><td height="20"></td></tr>
+                    </table>
+                </asp:View>
+            </asp:MultiView>
+        </ContentTemplate>
+    </asp:UpdatePanel>
+</asp:Content>
+

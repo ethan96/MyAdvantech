@@ -1,0 +1,1037 @@
+﻿<%@ Page Language="VB" MasterPageFile="~/Includes/MyMaster.master" Title="My Dashboard" Culture="en-US" %>
+<%@ Implements Interface="System.Web.UI.ICallbackEventHandler" %>
+<%@ Import Namespace="System.IO" %>
+<%@ Import Namespace="System.Globalization" %>
+<%@ Register src="../Includes/ChangeCompany.ascx" tagname="ChangeCompany" tagprefix="uc1" %>
+<%@ Register src="~/Includes/Outlook.ascx" tagname="Outlook" tagprefix="uc1" %>
+<%@ Register TagName="PriceListBlock" TagPrefix="uc1" Src="~/Includes/MyPriceList.ascx" %>
+
+<script runat="server">
+
+    Protected Sub Page_Load(ByVal sender As Object, ByVal e As System.EventArgs)
+        'Me.drpYear.Attributes.Add("onchange", "CallServer2(this)")
+        'Me.cblYear.Items(0).Attributes.Add("onclick", "CallServer3(""" + cblYear.Items(0).Value + """)")
+        'Me.cblYear.Items(1).Attributes.Add("onclick", "CallServer3(""" + cblYear.Items(1).Value + """)")
+        If Page.IsPostBack = False Then
+            Dim Cust As New Company(Session("company_id"))
+            With Cust
+                ltCustAddr.Text = ._addr : ltCustName.Text = ._companyName : ltCustType.Text = ._type : ltCustUrl.Text = ._url : ltCity.Text = ._city
+            End With
+            Me.WeatherRow.Visible = (New GoogleWeather).GetWeather(Cust._city, ltCond.Text, ltTemp.Text, ltHumid.Text, imgIcon.ImageUrl, ltWind.Text)
+            'InitScoreBoard()
+        End If
+    End Sub
+    
+    Private serverReturn As String
+    Public Function GetCallbackResult() As String Implements ICallbackEventHandler.GetCallbackResult
+        InitScoreBoard(serverReturn)
+        Return RenderControl(testP)
+        
+    End Function
+    Public Sub RaiseCallbackEvent(ByVal eventArgument As String) Implements ICallbackEventHandler.RaiseCallbackEvent
+        serverReturn = eventArgument
+    End Sub
+    Private Overloads Function RenderControl(ByVal Control As System.Web.UI.Control) As String
+        Dim writer1 As New StringWriter(CultureInfo.InvariantCulture)
+        Dim writer2 As New HtmlTextWriter(writer1)
+        Control.RenderControl(writer2)
+        writer2.Flush()
+        writer2.Close()
+        Return writer1.ToString
+    End Function
+    
+    Private Sub InitScoreBoard(ByVal year As String)
+        Me.testP.Visible = True
+        Dim g_Company_Name As String = ltCustName.Text
+        Dim dataPerf() As Double = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}
+        Dim dataBackOrder() As Double = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}
+        Dim DataOrderEntry() As Double = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}
+        Dim ACLDataPerf() As Double = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}
+        Dim aclPerfFlag As Integer = 0
+        Dim conn1 As SqlClient.SqlConnection = Nothing
+        Dim sqlBackorder As String = String.Format("select month(due_date) as m, sum({1}) as Amount from eai_sale_fact where " & _
+                                                    "Customer_Id='{0}' and sam_sw='N' and year(due_date)='" & year & "' " & _
+                                                    "and tran_type='Backlog' and fact_1234=1 and factyear='" & year & "' and (fact_zone='Europe' or " & _
+                                                    "(fact_zone = 'D&MS(E2E)' and org like 'E%')) and eur<>0 " & _
+                                                    "group by month(due_date) order by month(due_date)", Session("company_id"), ddlCurr.SelectedValue)
+        Dim sqlOrderEntry As String = String.Format("select month(b.order_date) as m, sum(a.unit_price*a.qty) as Amount" & _
+                                                    " from order_detail a inner join order_master b on a.order_id=b.order_id " & _
+                                                    "where b.soldto_id='{0}' and year(b.order_date)>='" & year & "' group by month(b.order_date)" & _
+                                                    " order by month(b.order_date)", Session("company_id"))
+        Dim sqlInvoice As String = String.Format("select month(efftive_date) as m, sum({1}) as Amount from g_sale_fact where " & _
+                                                    "Customer_Id='{0}' and tran_type='Shipment' and fact_1234=1 " & _
+                                                    "and year(efftive_date)='" & year & "' " & _
+                                                    "and dec01>=0 and (fact_zone='Europe' or fact_zone = 'D&MS(E2E)') " & _
+                                                    "and eur<>0 and bomseq>=0 " & _
+                                                    "group by month(efftive_date) order by month(efftive_date)", Session("company_id"), ddlCurr.SelectedValue)
+        Dim aclSqlInvoice As String = String.Format("select month(due_date) as m, sum({1}) as Amount from eai_sale_fact where " & _
+                                                    "Customer_Id='{0}' and sam_sw='N' and year(due_date)='" & year & "' " & _
+                                                    "and tran_type='Shipment' and fact_1234=1 and factyear='" & year & "' and sale_type='ACL-FOB' and eur<>0 " & _
+                                                    "group by month(due_date) order by month(due_date) ", Session("company_id"), ddlCurr.SelectedValue)
+        Dim dbcmd1 As SqlClient.SqlCommand = Nothing, _
+        dbcmd2 As SqlClient.SqlCommand = Nothing, _
+        dbcmd3 As SqlClient.SqlCommand = Nothing, _
+        dbcmd4 As SqlClient.SqlCommand = Nothing
+        'Response.Write(sqlInvoice) : Response.End()
+        Dim ia1 As IAsyncResult = dbUtil.dbGetReaderAsync("B2B", sqlOrderEntry, conn1, dbcmd1)
+        Dim ia2 As IAsyncResult = dbUtil.dbGetReaderAsync("RFM", sqlBackorder, conn1, dbcmd2)
+        Dim ia3 As IAsyncResult = dbUtil.dbGetReaderAsync("eai", sqlInvoice, conn1, dbcmd3)
+        Dim ia4 As IAsyncResult = dbUtil.dbGetReaderAsync("RFM", aclSqlInvoice, conn1, dbcmd4)
+        ia1.AsyncWaitHandle.WaitOne() : ia2.AsyncWaitHandle.WaitOne() _
+        : ia3.AsyncWaitHandle.WaitOne() : ia4.AsyncWaitHandle.WaitOne()
+        Dim oeDt As DataTable = dbUtil.Reader2DataTable(dbcmd1.EndExecuteReader(ia1)), _
+        boDt As DataTable = dbUtil.Reader2DataTable(dbcmd2.EndExecuteReader(ia2)), _
+        invDt As DataTable = dbUtil.Reader2DataTable(dbcmd3.EndExecuteReader(ia3)), _
+        ACLinvDt As DataTable = dbUtil.Reader2DataTable(dbcmd4.EndExecuteReader(ia4))
+        If ACLinvDt.Rows.Count > 0 Then
+            aclPerfFlag = 1
+        End If
+        conn1.Close()
+        For Each r As DataRow In oeDt.Rows
+            DataOrderEntry(CInt(r.Item("m")) - 1) = CDbl(String.Format("{0:F}", CDbl(r.Item("Amount")) / 1000))
+        Next
+        For Each r As DataRow In boDt.Rows
+            dataBackOrder(CInt(r.Item("m")) - 1) = CDbl(String.Format("{0:F}", CDbl(r.Item("Amount")) / 1000))
+        Next
+        For Each r As DataRow In invDt.Rows
+            dataPerf(CInt(r.Item("m")) - 1) = CDbl(String.Format("{0:F}", CDbl(r.Item("Amount")) / 1000))
+        Next
+        If aclPerfFlag = 1 Then
+            For Each r As DataRow In ACLinvDt.Rows
+                ACLDataPerf(CInt(r.Item("m")) - 1) = CDbl(String.Format("{0:F}", CDbl(r.Item("Amount")) / 1000))
+            Next
+        End If
+        Dim labels() As String = {"Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"}
+        Dim scoreDt As New DataTable
+        With scoreDt.Columns
+            .Add("Category") : .Add("Year")
+            For Each strMNonth As String In labels
+                .Add(strMNonth, Type.GetType("System.Double"))
+            Next
+            .Add("YTD", Type.GetType("System.Double")) : .Add("url")
+        End With
+        Dim invR As DataRow = scoreDt.NewRow, ACLinvR As DataRow = scoreDt.NewRow, oeR As DataRow = scoreDt.NewRow, boR As DataRow = scoreDt.NewRow
+        oeR.Item(0) = "Order Entry" : oeR.Item(1) = year : boR.Item(0) = "Back Order" : boR.Item(1) = year : invR.Item(0) = "Shipment" : invR.Item(1) = year
+        If aclPerfFlag = 1 Then
+            ACLinvR.Item(0) = "Shipment(ACL)" : ACLinvR.Item(1) = year
+        End If
+        For i As Integer = 2 To 13
+            oeR.Item(i) = DataOrderEntry(i - 2) : boR.Item(i) = dataBackOrder(i - 2) _
+          : invR.Item(i) = dataPerf(i - 2)
+            If aclPerfFlag = 1 Then
+                ACLinvR.Item(i) = ACLDataPerf(i - 2)
+            End If
+        Next
+        oeR.Item(14) = 0 : boR.Item(14) = 0 : invR.Item(14) = 0
+        If aclPerfFlag = 1 Then ACLinvR.Item(14) = 0
+        With scoreDt.Rows
+            .Add(invR)
+            If aclPerfFlag = 1 Then
+                .Add(ACLinvR)
+            End If
+            .Add(oeR) : .Add(boR)
+        End With
+        Me.gvCustPerf.DataSource = scoreDt : Me.gvCustPerf.DataBind()
+        Dim c As XYChart = New XYChart(583, 330, &HFFFFFF, &HC7D5F1)
+        With c
+            .setPlotArea(50, 45, 510, 240, &HFFFFFF, -1, -1, &HC0C0C0, -1) : .addLegend(35, 20, False, "", 8).setBackground(Chart.Transparent) : .addTitle("Customer: " & g_Company_Name, "Arial Bold Italic", 11, &H333333).setBackground(&HECECEC, &HC7D5F1) : .yAxis().setTitle("Amount (Unit=1K Euro)") : .xAxis().setLabels(labels) : .xAxis().setTitle(" ")
+        End With
+       
+        Dim layer As LineLayer = c.addLineLayer2()
+        With layer
+            .setLineWidth(2) _
+          : .addDataSet(dataPerf, &HCC00, year + " Performance").setDataSymbol(Chart.DiamondSymbol, 6, &HCC00) _
+          : .addDataSet(dataBackOrder, &HDE0023, year + " Backlog").setDataSymbol(Chart.CrossSymbol, 6, &HFF0000) _
+          : .addDataSet(DataOrderEntry, &HFF9900, year + " Order Entry").setDataSymbol(Chart.CrossSymbol, 6, &HFF0000)
+            If aclPerfFlag = 1 Then
+                .addDataSet(ACLDataPerf, &HFF, year + " Performance of ACL").setDataSymbol(Chart.CrossSymbol, 6, &HFF)
+            End If
+        End With
+        If Request("PDFFlag") Is Nothing Then
+        
+        Else
+            Dim filechart1 As String = c.makeTmpFile(Server.MapPath("/tmp_chart"))
+            'Me.ChartImage1.ImageUrl = "../tmp_chart/" & filechart1
+        End If
+        'output the chart
+        WebChartViewer1.Image = c.makeWebImage(Chart.PNG) : WebChartViewer1.ImageMap = c.getHTMLImageMap("", "", "title='[{dataSetName}] Month {xLabel}: {value} Account'")
+    End Sub
+
+    Protected Sub gvCustPerf_RowDataBound(ByVal sender As Object, ByVal e As System.Web.UI.WebControls.GridViewRowEventArgs)
+        If e.Row.RowType = DataControlRowType.DataRow Then
+            Dim rowTotal As Double = 0
+            For i As Integer = 2 To 13
+                Dim tmpValue As Double = 0
+                If Double.TryParse(e.Row.Cells(i).Text, tmpValue) Then
+                    rowTotal += tmpValue
+                End If
+            Next
+            e.Row.Cells(14).Text = rowTotal
+            e.Row.BackColor = Drawing.Color.White
+        End If
+        gvCustPerf.Columns(14).ItemStyle.HorizontalAlign = HorizontalAlign.Center
+    End Sub
+
+    Protected Sub gvCustPerf_RowCreated(ByVal sender As Object, ByVal e As System.Web.UI.WebControls.GridViewRowEventArgs)
+        Dim oRowGrid As GridViewRow = CType(e.Row, GridViewRow)
+        If oRowGrid.RowType = DataControlRowType.Footer Then
+            Dim oRowGridAdd As New GridViewRow(2, 2, DataControlRowType.Header, DataControlRowState.Normal)
+            Dim oCell As New TableCell
+            gvCustPerf.Controls(0).Controls(0).Controls.RemoveAt(0) : gvCustPerf.Controls(0).Controls(0).Controls.RemoveAt(0)
+            oCell.Text = "Category" : oCell.RowSpan = "2" : oCell.CssClass = "hdrstyle02" : oRowGridAdd.Cells.Add(oCell)
+            oCell = New TableCell : oCell.Text = "Year" : oCell.RowSpan = "2" : oCell.CssClass = "hdrstyle02" : oRowGridAdd.Cells.Add(oCell)
+            oCell = New TableCell : oCell.Text = "Q1" : oCell.ColumnSpan = 3 : oCell.CssClass = "hdrstyle02" : oRowGridAdd.Cells.Add(oCell)
+            oCell = New TableCell : oCell.Text = "Q2" : oCell.ColumnSpan = 3 : oCell.CssClass = "hdrstyle02" : oRowGridAdd.Cells.Add(oCell)
+            oCell = New TableCell : oCell.Text = "Q3" : oCell.ColumnSpan = 3 : oCell.CssClass = "hdrstyle02" : oRowGridAdd.Cells.Add(oCell)
+            oCell = New TableCell : oCell.Text = "Q4" : oCell.ColumnSpan = 3 : oCell.CssClass = "hdrstyle02" : oRowGridAdd.Cells.Add(oCell)
+            oCell = New TableCell : oCell.Text = "YTD" : oCell.RowSpan = "2" : oCell.CssClass = "hdrstyle02" : oRowGridAdd.Cells.Add(oCell)
+            gvCustPerf.Controls(0).Controls(0).Controls.RemoveAt(12) : gvCustPerf.Controls(0).Controls.AddAt(0, oRowGridAdd)
+        End If
+    End Sub
+
+    Private Sub SetBackOrderOfVisibleMonth()
+        ViewState("DDTable") = dbUtil.dbGetDataTable("B2B", _
+            String.Format(" select MaterialNo, PONo, OrderNo, OrderLine, DueDate from factOrder " + _
+                          " where CustomerId='{0}' and (DueDate between '{1}' and '{2}' )", Session("company_id"), calendar1.VisibleDate.ToString("yyyy-MM-01"), Util.GetLastDateOfMonth(calendar1.VisibleDate).ToString("yyyy-MM-dd")))
+    End Sub
+    
+    Protected Sub calendar1_Load(ByVal sender As Object, ByVal e As System.EventArgs)
+        If Not Page.IsPostBack Then
+            calendar1.VisibleDate = Now : SetBackOrderOfVisibleMonth()
+        End If
+    End Sub
+
+    Protected Sub calendar1_VisibleMonthChanged(ByVal sender As Object, ByVal e As System.Web.UI.WebControls.MonthChangedEventArgs)
+        SetBackOrderOfVisibleMonth()
+    End Sub
+
+    Protected Sub calendar1_DayRender(ByVal sender As Object, ByVal e As System.Web.UI.WebControls.DayRenderEventArgs)
+        Dim d As CalendarDay = e.Day, dLink As New HyperLink
+        With dLink
+            .Text = d.Date.Day.ToString() : .ForeColor = Drawing.Color.Black : .Target = "_blank"
+        End With
+       
+        e.Cell.Controls.Clear() : e.Cell.Controls.Add(dLink)
+        Dim rs() As DataRow = CType(ViewState("DDTable"), DataTable).Select(String.Format("DueDate='{0}'", d.Date.ToString("yyyy-MM-dd")))
+        If rs.Length > 0 Then
+            dLink.Font.Bold = True : dLink.ToolTip = GetBOInfo(rs)
+            dLink.NavigateUrl = String.Format("~/Order/BO_BackorderInquiry.aspx?txtPN={0}&txtOrderDateFrom={1}&txtOrderDateTo={2}", rs(0).Item("MaterialNo"), DateAdd(DateInterval.Month, -4, Now).ToString("yyyy/MM/dd"), Now.ToString("yyyy/MM/dd"))
+        Else
+            dLink.ForeColor = Drawing.Color.Gray
+        End If
+    End Sub
+    
+    Private Shared Function GetBOInfo(ByVal dr As DataRow()) As String
+        Dim sb As New System.Text.StringBuilder
+        For Each r As DataRow In dr
+            sb.AppendLine(String.Format("{0} : {1} ", r.Item("PONo"), r.Item("MaterialNo")))
+        Next
+        Return sb.ToString()
+    End Function
+
+    Protected Sub calendar1_SelectionChanged(ByVal sender As Object, ByVal e As System.EventArgs)
+        'Util.AjaxRedirect(UpCal, "/Order/BO_BackorderInquiry.aspx?")
+    End Sub
+
+    Protected Sub SalesGv_RowDataBoundDataRow(ByVal sender As Object, ByVal e As System.Web.UI.WebControls.GridViewRowEventArgs)
+        'If e.Row.RowType = DataControlRowType.DataRow Then
+        '    Select Case e.Row.Cells(0).Text.ToUpper()
+        '        Case "VE" : e.Row.Cells(0).Text = "Sales"
+        '        Case "Z2" : e.Row.Cells(0).Text = "SA"
+        '        Case "ZM" : e.Row.Cells(0).Text = "OP"
+        '    End Select
+        '    Select Case e.Row.Cells(2).Text.ToUpper()
+        '        Case "MAIL"
+        '            e.Row.Cells(2).Text = "<img alt='email' src='/Images/icon_mail.jpg' />" : e.Row.Cells(3).Text = String.Format("<a href='mailto:{0}'>{0}</a>", LCase(e.Row.Cells(3).Text))
+        '        Case "0020" : e.Row.Cells(2).Text = "<img alt='phone' src='/Images/icon_phone.jpg' />"
+        '    End Select
+        'End If
+    End Sub
+
+    Protected Sub Page_Init(ByVal sender As Object, ByVal e As System.EventArgs)
+        'If Request.ServerVariables("SERVER_PORT") = "8000" Then
+        ifol.Visible = True
+        'End If
+    End Sub
+
+    Protected Sub hlInvoiceNo_DataBinding(ByVal sender As Object, ByVal e As System.EventArgs)
+        Dim hl As HyperLink = CType(sender, HyperLink)
+        hl.NavigateUrl = "/Order/BO_InvoiceInquiry.aspx?inv_no=" + CInt(hl.Text).ToString()
+        hl.Target = "_blank"
+    End Sub
+
+    Protected Sub hlBackorder_DataBinding(ByVal sender As Object, ByVal e As System.EventArgs)
+        Dim hl As HyperLink = CType(sender, HyperLink)
+        If Integer.TryParse(hl.Text, Integer.MaxValue) Then
+            hl.NavigateUrl = "/Order/BO_BackOrderInquiry.aspx?txtSONO=" + CInt(hl.Text).ToString()
+        Else
+            hl.NavigateUrl = "/Order/BO_BackOrderInquiry.aspx?txtSONO=" + hl.Text
+        End If
+        hl.Target = "_blank"
+    End Sub
+
+    Protected Sub hlAR_DataBinding(ByVal sender As Object, ByVal e As System.EventArgs)
+        Dim hl As HyperLink = CType(sender, HyperLink)
+        hl.NavigateUrl = "/Order/ARInquiry_WS.aspx?inv_no=" + CInt(hl.Text).ToString()
+        hl.Target = "_blank"
+    End Sub
+
+    Protected Sub gvBackorder_RowDataBoundDataRow(ByVal sender As Object, ByVal e As System.Web.UI.WebControls.GridViewRowEventArgs)
+        If e.Row.RowType = DataControlRowType.DataRow Then
+            e.Row.Cells(2).Text = PricingUtil.GetCurrencyCode(DataBinder.Eval(e.Row.DataItem, "Currency")) & e.Row.Cells(2).Text
+        End If
+    End Sub
+
+    Protected Sub gvInvoice_RowDataBoundDataRow(ByVal sender As Object, ByVal e As System.Web.UI.WebControls.GridViewRowEventArgs)
+        If e.Row.RowType = DataControlRowType.DataRow Then
+            e.Row.Cells(1).Text = PricingUtil.GetCurrencyCode(DataBinder.Eval(e.Row.DataItem, "currency")) & e.Row.Cells(1).Text
+        End If
+    End Sub
+
+    Protected Sub gvAR_RowDataBoundDataRow(ByVal sender As Object, ByVal e As System.Web.UI.WebControls.GridViewRowEventArgs)
+        If e.Row.RowType = DataControlRowType.DataRow Then
+            e.Row.Cells(1).Text = PricingUtil.GetCurrencyCode(DataBinder.Eval(e.Row.DataItem, "currency")) & e.Row.Cells(1).Text
+        End If
+    End Sub
+
+    Protected Sub lblRole_DataBinding(ByVal sender As Object, ByVal e As System.EventArgs)
+        Select Case CType(sender, Label).Text
+            Case "VE" : CType(sender, Label).Text = "Sales"
+            Case "Z2" : CType(sender, Label).Text = "SA"
+            Case "ZM" : CType(sender, Label).Text = "OP"
+        End Select
+    End Sub
+
+    Protected Sub lblsubty_DataBinding(ByVal sender As Object, ByVal e As System.EventArgs)
+        
+    End Sub
+
+    Protected Sub lbluseridLong_DataBinding(ByVal sender As Object, ByVal e As System.EventArgs)
+        Select Case CType(CType(CType(sender, Label).NamingContainer, GridViewRow).FindControl("lblsubty"), Label).Text
+            Case "MAIL"
+                CType(CType(CType(sender, Label).NamingContainer, GridViewRow).FindControl("lblsubty"), Label).Text = "<img alt='email' src='/Images/icon_mail.jpg' />"
+                CType(sender, Label).Text = String.Format("<a href='mailto:{0}'>{0}</a>", LCase(CType(sender, Label).Text))
+            Case "0020" : CType(CType(CType(sender, Label).NamingContainer, GridViewRow).FindControl("lblsubty"), Label).Text = "<img alt='phone' src='/Images/icon_phone.jpg' />"
+        End Select
+    End Sub
+    
+    Protected Sub Export2XLS() Handles BtnSave2Excel.Click
+        Dim DT As DataTable = dbUtil.dbGetDataTable("EAI", "select ITEM_NO AS Material,CUSTOMER_ID as customer_ID, " & _
+                                                            "left(TRAN_ID,8) AS InvoiceNo,right(TRAN_ID,4) as InvoiceLine,Order_No as OrderNo, " & _
+                                                            "Org,Qty,EUR/qty as PriceEuro,EUR AS InvoiceTotalEuro,Sector,tr_curr as Currency, " & _
+                                                            "efftive_date as InvoiceDate,Product_line as ProductLine from g_sale_fact " & _
+                                                            "where Customer_Id='ECAA003' and sam_sw='N' and year(due_date) in (" & GetYear() & ") " & _
+                                                            "and tran_type='Shipment' and fact_1234=1 and (sale_type='ACL-FOB' or (fact_zone='Europe' or " & _
+                                                    "(fact_zone = 'D&MS(E2E)' and org like 'E%'))) and eur<>0  and qty<>0")
+        Global_Inc.Datatable2excel(DT)
+    End Sub
+    Private Function GetYear() As String
+        Dim itemArray As New ArrayList
+        For Each item As ListItem In cblYear.Items
+            If item.Selected Then itemArray.Add("'" + item.Value + "'")
+        Next
+        Return String.Join(",", itemArray.ToArray(GetType(System.String)))
+    End Function
+
+    Protected Sub cblYear_SelectedIndexChanged(ByVal sender As Object, ByVal e As System.EventArgs)
+        
+    End Sub
+
+    Protected Sub btnSearch_Click(ByVal sender As Object, ByVal e As System.EventArgs)
+        GetScoreBoard()
+    End Sub
+    
+    Private Sub GetScoreBoard()
+        Me.testP.Visible = True
+        Dim g_Company_Name As String = ltCustName.Text
+        Dim labels() As String = {"Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"}
+        Dim c As XYChart = New XYChart(583, 370, &HFFFFFF, &HC7D5F1)
+        With c
+            .setPlotArea(50, 70, 510, 280, &HFFFFFF, -1, -1, &HC0C0C0, -1) : .addLegend(35, 20, False, "", 8).setBackground(Chart.Transparent) : .addTitle("Customer: " & g_Company_Name, "Arial Bold Italic", 11, &H333333).setBackground(&HECECEC, &HC7D5F1) : .yAxis().setTitle("Amount (Unit=1K Euro)") : .xAxis().setLabels(labels) : .xAxis().setTitle(" ")
+        End With
+        Dim layer As LineLayer = c.addLineLayer2()
+        
+        Dim scoreDt As New DataTable
+        With scoreDt.Columns
+            .Add("Category") : .Add("Year")
+            For Each strMNonth As String In labels
+                .Add(strMNonth, Type.GetType("System.Double"))
+            Next
+            .Add("YTD", Type.GetType("System.Double")) : .Add("url")
+        End With
+        
+        For Each item As ListItem In cblYear.Items
+            If item.Selected Then
+                Dim dataPerf() As Double = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}
+                Dim dataBackOrder() As Double = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}
+                Dim DataOrderEntry() As Double = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}
+                Dim ACLDataPerf() As Double = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}
+                Dim aclPerfFlag As Integer = 0
+                Dim conn1 As SqlClient.SqlConnection = Nothing
+                Dim sqlBackorder As String = String.Format("select month(due_date) as m, sum({1}) as Amount from eai_sale_fact where " & _
+                                                            "Customer_Id='{0}' and sam_sw='N' and year(due_date)='" & item.Value & "' " & _
+                                                            "and tran_type='Backlog' and fact_1234=1 and factyear='" & item.Value & "' and (fact_zone='Europe' or " & _
+                                                            "(fact_zone = 'D&MS(E2E)' and org like 'E%')) and eur<>0 " & _
+                                                            "group by month(due_date) order by month(due_date)", Session("company_id"), ddlCurr.SelectedValue)
+                Dim sqlOrderEntry As String = String.Format("select month(b.order_date) as m, sum(a.unit_price*a.qty) as Amount" & _
+                                                            " from order_detail a inner join order_master b on a.order_id=b.order_id " & _
+                                                            "where b.soldto_id='{0}' and year(b.order_date)>='" & item.Value & "' group by month(b.order_date)" & _
+                                                            " order by month(b.order_date)", Session("company_id"))
+                Dim sqlInvoice As String = String.Format("select month(efftive_date) as m, sum({1}) as Amount from g_sale_fact where " & _
+                                                            "Customer_Id='{0}' and tran_type='Shipment' and fact_1234=1 " & _
+                                                            "and year(efftive_date)='" & item.Value & "' " & _
+                                                            "and dec01>=0 and (fact_zone='Europe' or fact_zone = 'D&MS(E2E)') " & _
+                                                            "and eur<>0 and bomseq>=0 " & _
+                                                            "group by month(efftive_date) order by month(efftive_date)", Session("company_id"), ddlCurr.SelectedValue)
+                Dim aclSqlInvoice As String = String.Format("select month(due_date) as m, sum({1}) as Amount from eai_sale_fact where " & _
+                                                            "Customer_Id='{0}' and sam_sw='N' and year(due_date)='" & item.Value & "' " & _
+                                                            "and tran_type='Shipment' and fact_1234=1 and factyear='" & item.Value & "' and sale_type='ACL-FOB' and eur<>0 " & _
+                                                            "group by month(due_date) order by month(due_date) ", Session("company_id"), ddlCurr.SelectedValue)
+                Dim dbcmd1 As SqlClient.SqlCommand = Nothing, _
+                dbcmd2 As SqlClient.SqlCommand = Nothing, _
+                dbcmd3 As SqlClient.SqlCommand = Nothing, _
+                dbcmd4 As SqlClient.SqlCommand = Nothing
+                Dim ia1 As IAsyncResult = dbUtil.dbGetReaderAsync("B2B", sqlOrderEntry, conn1, dbcmd1)
+                Dim ia2 As IAsyncResult = dbUtil.dbGetReaderAsync("RFM", sqlBackorder, conn1, dbcmd2)
+                Dim ia3 As IAsyncResult = dbUtil.dbGetReaderAsync("eai", sqlInvoice, conn1, dbcmd3)
+                Dim ia4 As IAsyncResult = dbUtil.dbGetReaderAsync("RFM", aclSqlInvoice, conn1, dbcmd4)
+                ia1.AsyncWaitHandle.WaitOne() : ia2.AsyncWaitHandle.WaitOne() _
+                : ia3.AsyncWaitHandle.WaitOne() : ia4.AsyncWaitHandle.WaitOne()
+                Dim oeDt As DataTable = dbUtil.Reader2DataTable(dbcmd1.EndExecuteReader(ia1)), _
+                boDt As DataTable = dbUtil.Reader2DataTable(dbcmd2.EndExecuteReader(ia2)), _
+                invDt As DataTable = dbUtil.Reader2DataTable(dbcmd3.EndExecuteReader(ia3)), _
+                ACLinvDt As DataTable = dbUtil.Reader2DataTable(dbcmd4.EndExecuteReader(ia4))
+                If ACLinvDt.Rows.Count > 0 Then
+                    aclPerfFlag = 1
+                End If
+                conn1.Close()
+                For Each r As DataRow In oeDt.Rows
+                    DataOrderEntry(CInt(r.Item("m")) - 1) = CDbl(String.Format("{0:F}", CDbl(r.Item("Amount")) / 1000))
+                Next
+                For Each r As DataRow In boDt.Rows
+                    dataBackOrder(CInt(r.Item("m")) - 1) = CDbl(String.Format("{0:F}", CDbl(r.Item("Amount")) / 1000))
+                Next
+                For Each r As DataRow In invDt.Rows
+                    dataPerf(CInt(r.Item("m")) - 1) = CDbl(String.Format("{0:F}", CDbl(r.Item("Amount")) / 1000))
+                Next
+                If aclPerfFlag = 1 Then
+                    For Each r As DataRow In ACLinvDt.Rows
+                        ACLDataPerf(CInt(r.Item("m")) - 1) = CDbl(String.Format("{0:F}", CDbl(r.Item("Amount")) / 1000))
+                    Next
+                End If
+                
+                'Set ScoreBoard
+                Dim invR As DataRow = scoreDt.NewRow(), ACLinvR As DataRow = scoreDt.NewRow(), oeR As DataRow = scoreDt.NewRow, boR As DataRow = scoreDt.NewRow
+                oeR.Item(0) = "Order Entry" : oeR.Item(1) = item.Value : boR.Item(0) = "Back Order" : boR.Item(1) = item.Value : invR.Item(0) = "Shipment" : invR.Item(1) = item.Value
+                If aclPerfFlag = 1 Then
+                    ACLinvR.Item(0) = "Shipment(ACL)" : ACLinvR.Item(1) = item.Value
+                End If
+                For i As Integer = 2 To 13
+                    oeR.Item(i) = DataOrderEntry(i - 2) : boR.Item(i) = dataBackOrder(i - 2) _
+                  : invR.Item(i) = dataPerf(i - 2)
+                    If aclPerfFlag = 1 Then
+                        ACLinvR.Item(i) = ACLDataPerf(i - 2)
+                    End If
+                Next
+                oeR.Item(14) = 0 : boR.Item(14) = 0 : invR.Item(14) = 0
+                If aclPerfFlag = 1 Then
+                    ACLinvR.Item(14) = 0
+                End If
+                With scoreDt.Rows
+                    .Add(oeR) : .Add(boR) : .Add(invR)
+                    If aclPerfFlag = 1 Then
+                        .Add(ACLinvR)
+                    End If
+                End With
+                
+                'Set Chart
+                With layer
+                    .setLineWidth(2) _
+                  : .addDataSet(dataPerf, GetLineColor(item.Value, "Performance"), item.Value + " Performance").setDataSymbol(Chart.DiamondSymbol, 6, GetLineColor(item.Value, "Performance")) _
+                  : .addDataSet(dataBackOrder, GetLineColor(item.Value, "Backlog"), item.Value + " Backlog").setDataSymbol(Chart.CrossSymbol, 6, GetLineColor(item.Value, "Backlog")) _
+                  : .addDataSet(DataOrderEntry, GetLineColor(item.Value, "Order Entry"), item.Value + " Order Entry").setDataSymbol(Chart.CrossSymbol, 6, GetLineColor(item.Value, "Order Entry"))
+                    If aclPerfFlag = 1 Then .addDataSet(ACLDataPerf, GetLineColor(item.Value, "Performance of ACL"), item.Value + " Performance of ACL").setDataSymbol(Chart.CrossSymbol, 6, GetLineColor(item.Value, "Performance of ACL"))
+                End With
+                If Request("PDFFlag") Is Nothing Then
+        
+                Else
+                    Dim filechart1 As String = c.makeTmpFile(Server.MapPath("/tmp_chart"))
+                    'Me.ChartImage1.ImageUrl = "../tmp_chart/" & filechart1
+                End If
+                'output the chart
+                
+            End If
+        Next
+        Dim dv As DataView = scoreDt.DefaultView
+        dv.Sort = "Category desc"
+        Me.gvCustPerf.DataSource = dv.ToTable : Me.gvCustPerf.DataBind()
+        WebChartViewer1.Image = c.makeWebImage(Chart.PNG) : WebChartViewer1.ImageMap = c.getHTMLImageMap("", "", "title='[{dataSetName}] Month {xLabel}: {value} Account'")
+    End Sub
+    
+    Private Function GetLineColor(ByVal year As String, ByVal category As String) As Integer
+        Select Case year
+            Case cblYear.Items(0).Value
+                Select Case category
+                    Case "Performance"
+                        Return &HCC00
+                    Case "Backlog"
+                        Return &HDE0023
+                    Case "Order Entry"
+                        Return &HFF9900
+                    Case "Performance of ACL"
+                        Return &HFF
+                End Select
+            Case cblYear.Items(1).Value
+                Select Case category
+                    Case "Performance"
+                        Return &H9900FF
+                    Case "Backlog"
+                        Return &HA0BDC4
+                    Case "Order Entry"
+                        Return &HFFFF00
+                    Case "Performance of ACL"
+                        Return &H808080
+                End Select
+            Case cblYear.Items(2).Value
+                Select Case category
+                    Case "Performance"
+                        Return &H2284CC
+                    Case "Backlog"
+                        Return &HF423B3
+                    Case "Order Entry"
+                        Return &H38A966
+                    Case "Performance of ACL"
+                        Return &H7823F3
+                End Select
+        End Select
+    End Function
+    
+    Protected Sub gvCustPerf_PreRender(ByVal sender As Object, ByVal e As System.EventArgs)
+        Dim i As Integer = 1
+        For Each wkItem As GridViewRow In gvCustPerf.Rows
+            If wkItem.RowIndex <> 0 Then
+                If wkItem.Cells(0).Text.Trim() = gvCustPerf.Rows((wkItem.RowIndex - i)).Cells(0).Text.Trim() Then
+                    gvCustPerf.Rows((wkItem.RowIndex - i)).Cells(0).RowSpan += 1
+                    wkItem.Cells(0).Visible = False
+                    i = i + 1
+                Else
+                    gvCustPerf.Rows((wkItem.RowIndex)).Cells(0).RowSpan = 1
+                    i = 1
+                End If
+            Else
+                wkItem.Cells(0).RowSpan = 1
+            End If
+        Next
+    End Sub
+    
+    Private Function GetCurrency() As String
+        If ddlCurr.SelectedValue = "EUR" Then Return "&euro;"
+        Return "$"
+    End Function
+
+    Protected Sub btnMyPrice_Click(ByVal sender As Object, ByVal e As System.EventArgs)
+        Response.Redirect("/My/MyPriceList.aspx")
+    End Sub
+</script>
+<asp:Content runat="server" ID="_main" ContentPlaceHolderID="_main">
+<script type="text/javascript">
+  window.attachEvent("onload",CallServer1)   
+  function CallServer1()
+        {
+            context = gridspan;
+            context.innerHTML = "<img src='../images/loading1.gif'>Loading...";
+            arg = "2009";
+            <%= ClientScript.GetCallbackEventReference(me, "arg", "ReceiveServerData2", "context")%>;
+        }
+        function CallServer2(obj)
+        {
+            context = gridspan;
+            context.innerHTML = "<img src='../images/loading1.gif'>Loading...";
+            arg = obj.value;
+            <%= ClientScript.GetCallbackEventReference(me, "arg", "ReceiveServerData2", "context")%>;
+        }
+        function CallServer3(obj)
+        {
+            context = gridspan;
+            context.innerHTML = "<img src='../images/loading1.gif'>Loading...";
+            arg = obj;
+            <%= ClientScript.GetCallbackEventReference(me, "arg", "ReceiveServerData2", "context")%>;
+        }
+        function ReceiveServerData2(result, context)
+        {
+            context.innerHTML = result;
+        }
+    </script>
+    <table width="100%">
+        <tr>
+            <td style="width:20%" valign="top">
+                <table width="100%">
+                    <tr>
+                        <td>
+                            <table width="100%" border="0" cellpadding="0" cellspacing="0" style="border:#CCCCCC 1px solid">
+                                 <tr>
+                                    <td height="22" valign="middle" bgcolor="C7D5F1" class="text">
+			                            <table width="100%" border="0" cellpadding="0" cellspacing="0" class="text" ID="Table3">
+				                            <tr>
+					                            <td width="190" align="center"><b><font color="2D56A7" size="2pt">Customer Profile</font></b></td>
+				                            </tr>
+			                            </table>          
+                                    </td>
+                                 </tr>
+                                 <tr>
+                                     <td bgcolor="F7F7F7">
+                                         <table id="DashLmenu1_CustomerProfile" cellspacing="0" cellpadding="0" border="0" class="text" border="0" style="width:100%;border-collapse:collapse;">
+	                                        <tr>
+		                                        <td colspan="2" style="height:1px;class="text" align="center" bgcolor="#F7F7F7"">&nbsp;</td>
+	                                        </tr>
+	                                        <tr>
+		                                        <td colspan="2" style="class="text" align="center" bgcolor="#F7F7F7"">
+		                                            <font color="#333333"><b><asp:Literal runat="server" ID="ltCustName" /></b></font>
+		                                        </td>
+	                                        </tr>
+	                                        <tr>
+		                                        <td colspan="2" style="class="text" align="center" bgcolor="#F7F7F7"">
+		                                            <font color="#333333"><b>( <%=Session("company_id")%> )</b></font>
+		                                        </td>
+	                                        </tr>
+	                                        <tr>
+		                                        <td colspan="2" style="height:1px;class="text" align="center" bgcolor="#F7F7F7"">&nbsp;</td>
+	                                        </tr>
+	                                        <tr valign="middle" style="height:20px;">
+		                                        <td style="class="text" align="right" bgcolor="#F7F7F7" valign="top">
+		                                            <font color="#7F7F7F">&nbsp;<b>Type:</b>&nbsp;</font>
+		                                        </td>
+		                                        <td style="class="text" align="left" bgcolor="#F7F7F7" valign="top">
+		                                            <font color="#6666CC"><asp:Literal runat="server" ID="ltCustType" /></font>
+		                                        </td>
+	                                        </tr>
+	                                        <tr valign="middle" style="height:20px;">
+		                                        <td style="class="text" align="right" bgcolor="#F7F7F7" valign="top">
+		                                            <font color="#7F7F7F">&nbsp;<b>Addr.:</b>&nbsp;</font>
+		                                        </td>
+		                                        <td style="class="text" align="left" bgcolor="#F7F7F7" valign="top">
+		                                            <font color="#6666CC">
+		                                                <asp:Literal runat="server" ID="ltCustAddr" />    
+		                                            </font>
+		                                        </td>
+	                                        </tr>
+	                                        <tr runat="server" visible="false" id="WeatherRow">
+	                                            <td colspan="2" align="center">
+	                                                <table width="80%">
+	                                                    <tr>
+	                                                        <td align="left">
+	                                                            <table width="100%">
+	                                                                <tr>
+	                                                                    <td>
+	                                                                        <b><asp:Literal runat="server" ID="ltCity" /></b>
+	                                                                    </td>
+	                                                                </tr>
+	                                                                <tr>
+	                                                                    <td>
+	                                                                        <asp:Literal runat="server" ID="ltCond" />
+	                                                                    </td>
+	                                                                </tr>
+	                                                                <tr>
+	                                                                    <td>
+	                                                                        <asp:Literal runat="server" ID="ltTemp" /> °C
+	                                                                    </td>
+	                                                                </tr>
+	                                                                <tr>
+	                                                                    <td>
+	                                                                        <asp:Literal runat="server" ID="ltHumid" />
+	                                                                    </td>
+	                                                                </tr>
+	                                                                <tr>
+	                                                                    <td>
+	                                                                        <asp:Literal runat="server" ID="ltWind" />
+	                                                                    </td>
+	                                                                </tr>
+	                                                            </table>
+	                                                        </td>
+	                                                        <td valign="bottom">
+	                                                            <asp:Image runat="server" ID="imgIcon" />
+	                                                        </td>
+	                                                    </tr>
+	                                                </table>	
+	                                            </td>
+	                                        </tr>
+	                                        <tr valign="middle" style="height:20px;">
+		                                        <td style="class="text" align="right" bgcolor="#F7F7F7" valign="top">
+		                                            <font color="#7F7F7F">&nbsp;<b>URL:</b>&nbsp;</font>
+		                                        </td>
+		                                        <td style="class="text" align="left" bgcolor="#F7F7F7" valign="top">
+		                                            <font color="#6666CC">
+		                                                <asp:Literal runat="server" ID="ltCustUrl" />
+		                                            </font>
+		                                        </td>
+	                                        </tr>
+	                                        <tr valign="middle" style="height:20px;">
+	                                            <td colspan="2">
+	                                                <sgv:SmartGridView runat="server" ID="SalesGv" ShowHeader="false" AutoGenerateColumns="false" DataSourceID="sapDS" Width="99%" OnRowDataBoundDataRow="SalesGv_RowDataBoundDataRow">
+	                                                    <Columns>
+	                                                        <asp:TemplateField>
+	                                                            <ItemTemplate>
+	                                                                <table border="0" cellpadding="0" cellspacing="0" width="100%">
+	                                                                    <tr>
+	                                                                        <td>
+	                                                                            <asp:Label runat="server" ID="lblRole" Text='<%#Eval("parvw") %>' OnDataBinding="lblRole_DataBinding" />
+	                                                                            <asp:Label runat="server" ID="lblName" Text='<%#Eval("ename") %>' />
+	                                                                        </td>
+	                                                                    </tr>
+	                                                                    <tr>
+	                                                                        <td>
+	                                                                            <asp:Label runat="server" ID="lblsubty" Text='<%#Eval("subty") %>' OnDataBinding="lblsubty_DataBinding" />
+	                                                                            <asp:Label runat="server" ID="lbluseridLong" Text='<%#Eval("userid_long") %>' OnDataBinding="lbluseridLong_DataBinding" />
+	                                                                        </td>
+	                                                                    </tr>
+	                                                                </table>
+	                                                            </ItemTemplate>
+	                                                        </asp:TemplateField>
+	                                                    </Columns>
+	                                                </sgv:SmartGridView>	                                                 	                                               
+	                                                <asp:SqlDataSource runat="server" ID="sapDS" ProviderName="Oracle.DataAccess.Client" ConnectionString="<%$ ConnectionStrings:SAP_PRD %>" SelectCommand="select a.parvw, b.ename, c.subty, lower(c.usrid_long) as userid_long from saprdp.knvp a inner join saprdp.pa0001 b on a.pernr=b.pernr left join saprdp.pa0105 c on b.pernr=c.pernr where a.kunnr=:CustomerId and a.vkorg='EU10' and a.parvw in ('VE') and c.subty in ('MAIL','0002')">
+	                                                    <SelectParameters>
+	                                                        <asp:SessionParameter SessionField="company_id" Name="CustomerId" Type="String" />
+	                                                    </SelectParameters>
+	                                                </asp:SqlDataSource> 
+	                                            </td>
+	                                        </tr>
+	                                        <tr valign="middle" style="height:20px;">
+	                                            <td colspan="2">
+	                                                <sgv:SmartGridView runat="server" ID="rankGv" AutoGenerateColumns="false" DataSourceID="SqlDataSource5" 
+	                                                    Width="99%">
+	                                                    <Columns>
+	                                                        <asp:HyperLinkField HeaderText="PCP Rank" DataTextField="Rank" SortExpression="Rank" ItemStyle-HorizontalAlign="Center" NavigateUrl="~/My/PCPRank.aspx" />
+                                                            <asp:BoundField DataField="Achievement" HeaderText="Achv. %" SortExpression="Achievement" ItemStyle-HorizontalAlign="Center" /> 
+                                                            <asp:BoundField DataField="Growth" HeaderText="Growth %" SortExpression="Growth" ItemStyle-HorizontalAlign="Center" />
+	                                                    </Columns>
+	                                                </sgv:SmartGridView>	                                                 	                                               
+	                                                <asp:SqlDataSource runat="server" ID="SqlDataSource5" ConnectionString="<%$ ConnectionStrings:MY %>" 
+	                                                    SelectCommand="SELECT [Rank], Company_Name, Achievement, Growth FROM PZ_PCPRANK where Company_Name=@CNAME">
+	                                                    <SelectParameters>
+	                                                        <asp:SessionParameter SessionField="company_name" Name="CNAME" Type="String" />
+	                                                    </SelectParameters>
+	                                                </asp:SqlDataSource> 
+	                                            </td>
+	                                        </tr>
+                                        </table>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <asp:LoginView runat="server" ID="ChangeCompanyView">
+                                            <RoleGroups>
+                                                <asp:RoleGroup Roles="Logistics,Administrator">
+                                                    <ContentTemplate>
+                                                        Change Company:<uc1:ChangeCompany ID="ChangeCompany1" runat="server"/>
+                                                    </ContentTemplate>
+                                                </asp:RoleGroup>
+                                            </RoleGroups>
+                                        </asp:LoginView>
+                                    </td>
+                                </tr>
+                            </table>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <table width="100%">
+                                <tr>
+                                    <td align="center">
+                                        <asp:HyperLink runat="server" ID="lnkBigCalender" Text="Shipping Calendar" NavigateUrl="~/Order/ShippingCalendar.aspx" Target="_blank" />                              
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td style="border-width:1px">
+                                        <asp:UpdatePanel runat="server" ID="UpCal">
+                                            <ContentTemplate>
+                                                <asp:Calendar runat="server" ID="calendar1" Width="100%" 
+                                                    OnLoad="calendar1_Load" OnVisibleMonthChanged="calendar1_VisibleMonthChanged" 
+                                                    OnDayRender="calendar1_DayRender"
+                                                    OnSelectionChanged="calendar1_SelectionChanged" BackColor="White" 
+                                                    BorderColor="White" BorderWidth="1px" Font-Names="Verdana" Font-Size="9pt" 
+                                                    ForeColor="Black" Height="190px" NextPrevFormat="FullMonth" >
+                                                    <SelectedDayStyle BackColor="#333399" ForeColor="White" />
+                                                    <TodayDayStyle BackColor="#CCCCCC" />
+                                                    <OtherMonthDayStyle ForeColor="#999999" />
+                                                    <NextPrevStyle Font-Bold="True" Font-Size="8pt" ForeColor="#333333" 
+                                                        VerticalAlign="Bottom" />
+                                                    <DayHeaderStyle Font-Bold="True" Font-Size="8pt" />
+                                                    <TitleStyle BackColor="White" BorderColor="Black" BorderWidth="4px" 
+                                                        Font-Bold="True" Font-Size="12pt" ForeColor="#333399" />
+                                                </asp:Calendar>
+                                            </ContentTemplate>
+                                        </asp:UpdatePanel>   
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td style="background-color:#E5ECF9" align="center">
+                                        <h5 style="color:#2D56A7"><a style="color:#2D56A7" target="_blank" href="MyOutlook.aspx">My Outlook</a></h5>
+                                        <iframe runat="server" id="ifol" visible="false" src="http://7.gmodules.com/ig/ifr?url=http://andyast.googlepages.com/MSOutlookWidget.xml&nocache=0&up_DefaultView=Inbox&upt_DefaultView=enum&lang=zh-TW&country=tw&.lang=zh-TW&.country=tw&synd=ig&mid=7&ifpctok=-5127121936294431743&parent=http://my.advantech.eu" 
+                                            width="100%" height="200px" style="border:0px;" scrolling="yes"></iframe>                                        
+                                    </td>
+                                </tr>                                
+                            </table>                                                   
+                        </td>
+                    </tr>                    
+                </table>
+            </td>
+            <td style="width:60%" valign="top">
+            <table width="100%"><tr>
+                        <td style="font-family:Arial;">
+                            <h2>My Dashboard</h2>
+                        </td>
+                        <td align="right"><table><tr>
+                         <td align="right" valign="top"><%--<b>Year : </b> 
+                            <asp:DropDownList runat ="server" ID= "drpYear">
+                            <asp:ListItem Value="2008">2008</asp:ListItem>
+                            <asp:ListItem Value="2007">2007</asp:ListItem>
+                            </asp:DropDownList>--%>
+                            <table>
+                                <tr>
+                                    <td valign="top"><font color="#eeeeee">Export shipment detail to XLS by year</font></td>
+                                    <td valign="top"><asp:ImageButton runat="server" ID="BtnSave2Excel" OnClick ="Export2XLS" ImageUrl="~/images/excel.gif" ToolTip="Save To Excel"/></td>    
+                                    <td><b>Currency : </b></td>
+                                    <td>
+                                        <asp:DropDownList runat="server" ID="ddlCurr">
+                                            <asp:ListItem Text="EUR" Value="EUR"></asp:ListItem>
+                                            <asp:ListItem Text="US" Value="Us_Amt"></asp:ListItem>
+                                        </asp:DropDownList>
+                                    </td>
+                                    <td><b>Year : </b> </td>
+                                    <td>
+                                        <asp:CheckBoxList runat="server" ID="cblYear" RepeatDirection="Horizontal" OnSelectedIndexChanged="cblYear_SelectedIndexChanged">
+                                            <asp:ListItem Text="2009" Value="2009" Selected="True"></asp:ListItem>
+                                            <asp:ListItem Text="2008" Value="2008"></asp:ListItem>
+                                            <asp:ListItem Text="2007" Value="2007"></asp:ListItem>
+                                        </asp:CheckBoxList>
+                                    </td>
+                                    <td><asp:Button runat="server" ID="btnSearch" Text="Go" OnClick="btnSearch_Click" /></td>
+                                </tr>
+                            </table>
+                        </td> 
+                        </tr></table>
+                        </td>                    
+                    </tr></table>
+                <span id="gridspan">
+                    <asp:Panel ID="testP" runat="server" Visible="false">
+                        <asp:UpdatePanel runat="server" ID="upCenter">
+                            <ContentTemplate>
+                                <table width="100%">
+                                    <tr>
+                                        <td align="center" colspan="2">
+                                       
+                                            <chartdir:WebChartViewer runat="server" ID="WebChartViewer1"/>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td colspan="2">
+                                            <table class="text" width="100%" border="0" cellspacing="0" cellpadding="0" bgcolor="#C7D5F1">
+                                                <tr>
+                                                    <td bgcolor="#ECECEC" width="100%" height="20px">
+                                                        <div>
+                                                            <font color="#333333" size="2"><b>&nbsp;Customer Information</b></font></div>
+                                                    </td>
+                                                    <td bgcolor="#ECECEC" width="100%" height="20px" align="right">
+                                                        <font color="666666">(amount unit = 1000<%=GetCurrency()%>)</font>&nbsp;
+                                                        &nbsp;&nbsp;
+                                                        <asp:ImageButton runat="server" ID="BtnSave2PDF" Visible="false" ImageUrl="~/images/pdf_icon.jpg"
+                                                            ToolTip="Save To PDF"/>&nbsp;&nbsp;&nbsp;
+                                                    </td>
+                                                </tr>
+                                                <tr>
+                                                    <td width="100%" colspan="2">
+                                                        <asp:GridView runat="server" ID="gvCustPerf" AutoGenerateColumns="false" Font-Names="Verdana" Font-Size="7pt" width="100%" OnRowDataBound="gvCustPerf_RowDataBound" OnRowCreated="gvCustPerf_RowCreated" OnPreRender="gvCustPerf_PreRender">
+                                                            <Columns>
+                                                                <asp:BoundField ItemStyle-Width="110px" DataField="category" HeaderText="Category" HeaderStyle-CssClass="hdrstyle02" ItemStyle-CssClass="rodstyle01" />
+                                                                <asp:BoundField ItemStyle-Width="30px" DataField="year" HeaderText="Year" HeaderStyle-CssClass="hdrstyle02" ItemStyle-CssClass="rodstyle01" />
+                                                                <asp:BoundField HeaderStyle-Width="30px" DataField="Jan" HeaderText="Jan" HeaderStyle-CssClass="hdrstyle02" ItemStyle-CssClass="rodstyle02" />
+                                                                <asp:BoundField HeaderStyle-Width="30px" DataField="Feb" HeaderText="Feb" HeaderStyle-CssClass="hdrstyle02" ItemStyle-CssClass="rodstyle02" />
+                                                                <asp:BoundField HeaderStyle-Width="30px" DataField="Mar" HeaderText="Mar" HeaderStyle-CssClass="hdrstyle02" ItemStyle-CssClass="rodstyle02" />
+                                                                <asp:BoundField HeaderStyle-Width="30px" DataField="Apr" HeaderText="Apr" HeaderStyle-CssClass="hdrstyle02" ItemStyle-CssClass="rodstyle02" />
+                                                                <asp:BoundField HeaderStyle-Width="30px" DataField="May" HeaderText="May" HeaderStyle-CssClass="hdrstyle02" ItemStyle-CssClass="rodstyle02" />
+                                                                <asp:BoundField HeaderStyle-Width="30px" DataField="Jun" HeaderText="Jun" HeaderStyle-CssClass="hdrstyle02" ItemStyle-CssClass="rodstyle02" />
+                                                                <asp:BoundField HeaderStyle-Width="30px" DataField="Jul" HeaderText="Jul" HeaderStyle-CssClass="hdrstyle02" ItemStyle-CssClass="rodstyle02" />
+                                                                <asp:BoundField HeaderStyle-Width="30px" DataField="Aug" HeaderText="Aug" HeaderStyle-CssClass="hdrstyle02" ItemStyle-CssClass="rodstyle02" />
+                                                                <asp:BoundField HeaderStyle-Width="30px" DataField="Sep" HeaderText="Sep" HeaderStyle-CssClass="hdrstyle02" ItemStyle-CssClass="rodstyle02" />
+                                                                <asp:BoundField HeaderStyle-Width="30px" DataField="Oct" HeaderText="Oct" HeaderStyle-CssClass="hdrstyle02" ItemStyle-CssClass="rodstyle02" />
+                                                                <asp:BoundField HeaderStyle-Width="30px" DataField="Nov" HeaderText="Nov" HeaderStyle-CssClass="hdrstyle02" ItemStyle-CssClass="rodstyle02" />
+                                                                <asp:BoundField HeaderStyle-Width="30px" DataField="Dec" HeaderText="Dec" HeaderStyle-CssClass="hdrstyle02" ItemStyle-CssClass="rodstyle02" />
+                                                                <asp:HyperLinkField DataNavigateUrlFields="url" DataTextField="ytd" HeaderText="YTD" HeaderStyle-CssClass="hdrstyle02" ItemStyle-CssClass="rodstyle02" />
+                                                            </Columns>
+                                                        </asp:GridView>
+                                                         
+                                                    </td>
+                                                </tr>
+                                            </table>
+                                            <asp:Button runat="server" ID="btnMyPrice" Text="Get My Price List" OnClick="btnMyPrice_Click" />
+                                        </td>
+                                    </tr>
+                                </table>
+                            </ContentTemplate>
+                            <Triggers>
+                                <asp:AsyncPostBackTrigger ControlID="btnSearch" EventName="Click" />
+                            </Triggers>
+                        </asp:UpdatePanel>
+                    </asp:Panel>
+                </span> 
+            </td>
+            <td style="width:20%" valign="top">
+                <table width="100%" style="background-color:#C7D5F1" border="0" cellspacing="1" cellpadding="0">
+                    <tr>
+                        <td height="140" valign="top" bgcolor="FFFFFF">
+                            <table width="100%" border="0" cellspacing="0" cellpadding="0">
+                                <tr>
+                                    <td height="20" bgcolor="E5ECF9">
+                                        <div align="center"><asp:hyperlink runat="server" ID="hlOpenOrderStatus" NavigateUrl="~/Order/BO_BackOrderInquiry.aspx" Text="Open Order Status" Font-Size="Small" ForeColor="#2D56A7" Font-Bold="true" /></div>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td height="8">
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td height="100" valign="top">
+                                        <sgv:SmartGridView ShowWhenEmpty="true" runat="server" ID="gvBackorder" AutoGenerateColumns="false" DataSourceID="SqlDataSource1" Width="100%" OnRowDataBoundDataRow="gvBackorder_RowDataBoundDataRow">
+                                            <Columns>
+                                                <asp:TemplateField HeaderText="SO No." HeaderStyle-ForeColor="#666666" HeaderStyle-HorizontalAlign="Center" HeaderStyle-Width="33%" ItemStyle-ForeColor="#003399" ItemStyle-HorizontalAlign="Center" ItemStyle-Width="33%">
+                                                    <ItemTemplate>
+                                                        <asp:HyperLink runat="server" ID="hlBackorder" Text='<%# Eval("OrderNo") %>' OnDataBinding="hlBackorder_DataBinding" />
+                                                    </ItemTemplate>
+                                                </asp:TemplateField>
+                                                <asp:BoundField DataField="SchdLineDueDate" HeaderText="Due Date" HeaderStyle-ForeColor="#666666" HeaderStyle-HorizontalAlign="Center" HeaderStyle-Width="33%" ItemStyle-ForeColor="#000000" ItemStyle-HorizontalAlign="Center" ItemStyle-Width="33%" />
+                                                <asp:BoundField DataField="Amount" HeaderText="Amount" HeaderStyle-ForeColor="#666666" HeaderStyle-HorizontalAlign="Center" HeaderStyle-Width="34%" ItemStyle-ForeColor="#000000" ItemStyle-HorizontalAlign="Center" ItemStyle-Width="34%" />
+                                            </Columns>
+                                            <HeaderStyle BackColor="#F7F7F7" />
+                                            <RowStyle BackColor="#FFFFFF" />
+                                        </sgv:SmartGridView>                                        
+                                        <asp:SqlDataSource ID="SqlDataSource1" runat="server" ConnectionString="<%$ ConnectionStrings:B2B %>" 
+                                            SelectCommand="select top 3 OrderNo,TransactionOrg,SchdLineDueDate as SchdLineDueDate,cast(sum(OpenSubTotalEuro) as decimal(9,2)) as Amount,currency FROM [factOrder] WHERE ([CustomerId] = @CustomerId) and SchdLineStatus <> 'C' group by OrderNo,TransactionOrg,SchdLineDueDate,currency  ORDER BY SchdLineDueDate,OrderNo,TransactionOrg">
+                                            <SelectParameters>
+                                                <asp:SessionParameter Name="CustomerId" SessionField="company_id" Type="String" />
+                                            </SelectParameters>
+                                        </asp:SqlDataSource>
+                                    </td>
+                                </tr>
+                                <tr><td align="right" height="12"><asp:HyperLink runat="server" ID="hlBackOrder" NavigateUrl="~/Order/BO_BackOrderInquiry.aspx" Text="More..." Target="_blank" /></td></tr>
+                            </table>
+                        </td>
+                    </tr> 
+                    <tr>
+                        <td height="140" valign="top" bgcolor="FFFFFF">
+                            <table width="100%" border="0" cellspacing="0" cellpadding="0">
+                                <tr>
+                                    <td height="20" bgcolor="E5ECF9">
+                                        <div align="center"><asp:hyperlink runat="server" ID="hlBillingInformation" NavigateUrl="~/Order/BO_InvoiceInquiry.aspx" Text="Billing Information" Font-Size="Small" ForeColor="#2D56A7" Font-Bold="true" /></div>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td height="8">
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td height="100" valign="top">
+                                        <sgv:SmartGridView ShowWhenEmpty="true" runat="server" ID="gvInvoice" AutoGenerateColumns="false" DataSourceID="SqlDataSource2" Width="100%" OnRowDataBoundDataRow="gvInvoice_RowDataBoundDataRow">
+                                            <Columns>
+                                                <asp:TemplateField HeaderText="Invoice No." HeaderStyle-ForeColor="#666666" HeaderStyle-HorizontalAlign="Center" HeaderStyle-Width="33%" ItemStyle-ForeColor="#003399" ItemStyle-HorizontalAlign="Center" ItemStyle-Width="33%">
+                                                    <ItemTemplate>
+                                                        <asp:HyperLink runat="server" ID="hlInvoiceNo" Text='<%# Eval("InvoiceNo") %>' OnDataBinding="hlInvoiceNo_DataBinding" />
+                                                    </ItemTemplate>
+                                                </asp:TemplateField>
+                                                <asp:BoundField DataField="Amount" HeaderText="Amount" HeaderStyle-ForeColor="#666666" HeaderStyle-HorizontalAlign="Center" HeaderStyle-Width="34%" ItemStyle-ForeColor="#000000" ItemStyle-HorizontalAlign="Center" ItemStyle-Width="34%" />
+                                                <asp:BoundField DataField="InvoiceDate" HeaderText="Invoice Date" HeaderStyle-ForeColor="#666666" HeaderStyle-HorizontalAlign="Center" HeaderStyle-Width="33%" ItemStyle-ForeColor="#000000" ItemStyle-HorizontalAlign="Center" ItemStyle-Width="33%" />                                                
+                                            </Columns>
+                                            <HeaderStyle BackColor="#F7F7F7" />
+                                            <RowStyle BackColor="#FFFFFF" />
+                                        </sgv:SmartGridView>                                        
+                                        <asp:SqlDataSource ID="SqlDataSource2" runat="server" ConnectionString="<%$ ConnectionStrings:B2B %>" 
+                                            SelectCommand="select top 3 str(InvoiceNo) as InvoiceNo,TransactionOrg,InvoiceDate as InvoiceDate,cast(sum(SubTotalEuro) as decimal(9,2)) as Amount,currency from factShipment Where CustomerID=@CustomerId and InvoiceStatus = 'Valid' group by InvoiceNo,TransactionOrg,InvoiceDate,currency Order by InvoiceDate desc,InvoiceNo desc,TransactionOrg">
+                                            <SelectParameters>
+                                                <asp:SessionParameter Name="CustomerId" SessionField="company_id" Type="String" />
+                                            </SelectParameters>
+                                        </asp:SqlDataSource>
+                                    </td>
+                                </tr>
+                                <tr><td align="right" height="12"><asp:HyperLink runat="server" ID="hlInvoiceInquiry" NavigateUrl="~/Order/BO_InvoiceInquiry.aspx" Text="More..." Target="_blank" /></td></tr>
+                            </table>
+                        </td>
+                    </tr> 
+                    <tr>
+                        <td height="140" valign="top" bgcolor="FFFFFF">
+                            <table width="100%" border="0" cellspacing="0" cellpadding="0">
+                                <tr>
+                                    <td height="20" bgcolor="E5ECF9">
+                                        <div align="center"><asp:hyperlink runat="server" ID="hlAPInquiry" NavigateUrl="~/Order/ARInquiry_WS.aspx" Text="Over Due A/P Status" Font-Size="Small" ForeColor="#2D56A7" Font-Bold="true" /></div>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td height="8">
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td valign="top" height="100">
+                                        <sgv:SmartGridView ShowWhenEmpty="true" runat="server" ID="gvAR" AutoGenerateColumns="false" DataSourceID="SqlDataSource3" Width="100%" OnRowDataBoundDataRow="gvAR_RowDataBoundDataRow">
+                                            <Columns>
+                                                <asp:TemplateField HeaderText="AR No." HeaderStyle-ForeColor="#666666" HeaderStyle-HorizontalAlign="Center" HeaderStyle-Width="33%" ItemStyle-ForeColor="#003399" ItemStyle-HorizontalAlign="Center" ItemStyle-Width="33%">
+                                                    <ItemTemplate>
+                                                        <asp:HyperLink runat="server" ID="hlAR" Text='<%# Eval("ARNo") %>' OnDataBinding="hlAR_DataBinding" />
+                                                    </ItemTemplate>
+                                                </asp:TemplateField>
+                                                <asp:BoundField DataField="OpenAmount" HeaderText="Open Amount" HeaderStyle-ForeColor="#666666" HeaderStyle-HorizontalAlign="Center" HeaderStyle-Width="34%" ItemStyle-ForeColor="#000000" ItemStyle-HorizontalAlign="Center" ItemStyle-Width="34%" />
+                                                <asp:BoundField DataField="ARDueDate" HeaderText="Due Date" HeaderStyle-ForeColor="#666666" HeaderStyle-HorizontalAlign="Center" HeaderStyle-Width="33%" ItemStyle-ForeColor="#000000" ItemStyle-HorizontalAlign="Center" ItemStyle-Width="33%" />                                                
+                                            </Columns>
+                                            <HeaderStyle BackColor="#F7F7F7" />
+                                            <RowStyle BackColor="#FFFFFF" />
+                                        </sgv:SmartGridView>                                        
+                                        <asp:SqlDataSource ID="SqlDataSource3" runat="server" ConnectionString="<%$ ConnectionStrings:ESALES %>" 
+                                            SelectCommand="select top 3 ARNo,TransactionOrg,(OpenAmount * IsNull(ExchangeRate2Euro,1.00)) as OpenAmount,ARDueDate as ARDueDate,currency from factAR Where SoldToID=@CustomerId and OpenAmount <> 0 and ARDueDate < getdate() group by ARNo,TransactionOrg,OpenAmount,ARDueDate,currency,ExchangeRate2Euro Order by ARDueDate,ARNo desc,TransactionOrg">
+                                            <SelectParameters>
+                                                <asp:SessionParameter Name="CustomerId" SessionField="company_id" Type="String" />
+                                            </SelectParameters>
+                                        </asp:SqlDataSource>
+                                    </td>
+                                </tr>
+                                <tr><td align="right" height="12"><asp:HyperLink runat="server" ID="hlARInquiry" NavigateUrl="~/Order/ARInquiry_WS.aspx" Text="More..." Target="_blank" /></td></tr>
+                            </table>
+                        </td>
+                    </tr> 
+                    <tr>
+                        <td height="140" valign="top" bgcolor="FFFFFF">
+                            <table width="100%" border="0" cellspacing="0" cellpadding="0">
+                                <tr>
+                                    <td height="20" bgcolor="E5ECF9">
+                                        <div align="center"><asp:hyperlink runat="server" ID="hlRMATracking" NavigateUrl="~/Order/MyRMA.aspx" Text="Open RMA Tracking" Font-Size="Small" ForeColor="#2D56A7" Font-Bold="true" /></div>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td height="8">
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td valign="top" height="100">
+                                        <sgv:SmartGridView ShowWhenEmpty="true" runat="server" ID="gvRMA" AutoGenerateColumns="false" DataSourceID="SqlDataSource4" Width="100%">
+                                            <Columns>
+                                                <asp:HyperLinkField HeaderText="RMA No." DataTextField="RMA_NO" DataNavigateUrlFields="RMA_NO" DataNavigateUrlFormatString="/Order/MyRMA.aspx?order_no={0}" HeaderStyle-ForeColor="#666666" HeaderStyle-HorizontalAlign="Center" HeaderStyle-Width="33%" ItemStyle-ForeColor="#003399" ItemStyle-HorizontalAlign="Center" ItemStyle-Width="33%" />
+                                                <asp:BoundField DataField="Product_Name" HeaderText="P/N" HeaderStyle-ForeColor="#666666" HeaderStyle-HorizontalAlign="Center" HeaderStyle-Width="34%" ItemStyle-ForeColor="#000000" ItemStyle-HorizontalAlign="Center" ItemStyle-Width="34%" />
+                                                <asp:BoundField DataField="Status" HeaderText="Status" HeaderStyle-ForeColor="#666666" HeaderStyle-HorizontalAlign="Center" HeaderStyle-Width="33%" ItemStyle-ForeColor="#000000" ItemStyle-HorizontalAlign="Center" ItemStyle-Width="33%" />                                                
+                                            </Columns>
+                                            <HeaderStyle BackColor="#F7F7F7" />
+                                            <RowStyle BackColor="#FFFFFF" />
+                                        </sgv:SmartGridView>                                        
+                                        <asp:SqlDataSource ID="SqlDataSource4" runat="server" ConnectionString="<%$ ConnectionStrings:MY %>" 
+                                            SelectCommand="select top 3 RMA_NO=a.Order_NO+'-'+Cast(a.Item_No as varchar(4)),a.Product_Name,Status=isnull(a.Now_Stage,'Request') from RMA_My_Request_OrderList a where a.Bill_ID=@CustomerId and a.Now_Stage <> 'Ship' and datediff(d,a.Order_DT,getdate()) >= 28 order by a.Order_DT, a.Order_No desc">
+                                            <SelectParameters>
+                                                <asp:SessionParameter Name="CustomerId" SessionField="company_id" Type="String" />
+                                            </SelectParameters>
+                                        </asp:SqlDataSource>
+                                    </td>
+                                </tr>
+                                <tr><td align="right" height="12"><asp:HyperLink runat="server" ID="hlRMA" NavigateUrl="~/Order/MyRMA.aspx" Text="More..." Target="_blank" /></td></tr>
+                            </table>
+                        </td>
+                    </tr>                  
+                </table>
+            </td>
+        </tr>
+    </table>
+</asp:Content>

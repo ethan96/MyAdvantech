@@ -1,0 +1,36 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<ordesignerObjectsDiagram dslVersion="1.0.0.0" absoluteBounds="0, 0, 11, 15" name="eQuotationDB">
+  <DataContextMoniker Name="/eQuotationDBDataContext" />
+  <nestedChildShapes>
+    <classShape Id="fcd09adc-e6d7-4b2d-ba1c-6e8b783a6beb" absoluteBounds="5, 0.5, 2, 3.8862125651041666">
+      <DataClassMoniker Name="/eQuotationDBDataContext/EQPARTNER" />
+      <nestedChildShapes>
+        <elementListCompartment Id="108f2e76-356a-4f74-9a86-7ad210231974" absoluteBounds="5.015, 0.96, 1.9700000000000002, 3.3262125651041665" name="DataPropertiesCompartment" titleTextColor="Black" itemTextColor="Black" />
+      </nestedChildShapes>
+    </classShape>
+    <classShape Id="50e93421-2bc0-4107-8d80-9d6b538ecb72" absoluteBounds="5, 4.25, 2, 1.3862939453124996">
+      <DataClassMoniker Name="/eQuotationDBDataContext/QuotationNote" />
+      <nestedChildShapes>
+        <elementListCompartment Id="7b93de29-5197-4963-822a-149a18138b86" absoluteBounds="5.0150000000000006, 4.71, 1.9700000000000002, 0.8262939453125" name="DataPropertiesCompartment" titleTextColor="Black" itemTextColor="Black" />
+      </nestedChildShapes>
+    </classShape>
+    <classShape Id="c6944bd4-8236-4b55-bd21-8dcdfa7045b7" absoluteBounds="7.25, 0.625, 2, 1.7708968098958331">
+      <DataClassMoniker Name="/eQuotationDBDataContext/optyQuote" />
+      <nestedChildShapes>
+        <elementListCompartment Id="91688683-ffba-412a-a74e-2d1213850001" absoluteBounds="7.2650000000000006, 1.085, 1.9700000000000002, 1.2108968098958333" name="DataPropertiesCompartment" titleTextColor="Black" itemTextColor="Black" />
+      </nestedChildShapes>
+    </classShape>
+    <classShape Id="490a34d3-7808-4ab5-a374-570670d6669f" absoluteBounds="0.5, 0.5, 2, 14.270489908854165">
+      <DataClassMoniker Name="/eQuotationDBDataContext/QuotationMaster" />
+      <nestedChildShapes>
+        <elementListCompartment Id="3c7d9e4a-5aed-4a9a-bb0c-fdcb0e90dcc5" absoluteBounds="0.515, 0.96, 1.9700000000000002, 13.710489908854166" name="DataPropertiesCompartment" titleTextColor="Black" itemTextColor="Black" />
+      </nestedChildShapes>
+    </classShape>
+    <classShape Id="b0851cfc-5c92-4cfd-80b4-32a02e4d824c" absoluteBounds="2.75, 1, 2, 7.1553369140625005">
+      <DataClassMoniker Name="/eQuotationDBDataContext/QuotationDetail" />
+      <nestedChildShapes>
+        <elementListCompartment Id="c0d57a25-b8f6-44b8-b2d7-eafcff8b6510" absoluteBounds="2.765, 1.46, 1.9700000000000002, 6.5953369140625" name="DataPropertiesCompartment" titleTextColor="Black" itemTextColor="Black" />
+      </nestedChildShapes>
+    </classShape>
+  </nestedChildShapes>
+</ordesignerObjectsDiagram>

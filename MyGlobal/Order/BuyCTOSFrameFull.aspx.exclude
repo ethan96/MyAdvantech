@@ -1,0 +1,86 @@
+﻿<%@ Page Title="MyAdvantech - US CTOS Frame" Language="VB" MasterPageFile="~/Includes/MyMaster.master" %>
+
+<script runat="server">    
+    Public strCompanyID As String = ""
+    Public strSite As String = ""
+    Protected Sub Page_Load(ByVal sender As Object, ByVal e As System.EventArgs)
+        Dim strTmpCompanyID As String = Session("company_id")
+        If Not String.IsNullOrEmpty(strTmpCompanyID) Then
+            strCompanyID = strTmpCompanyID
+        Else
+            Response.Redirect("../home.aspx")
+        End If
+
+        Dim strTmpSite As String = ""
+        strTmpSite = Request.Url.DnsSafeHost
+        strSite = "my"
+    End Sub
+</script>
+
+<asp:Content ID="Content1" ContentPlaceHolderID="_main" Runat="Server">    
+    <script language="javascript" type="text/javascript">
+        function SetupFrame() {
+            var ctosFrameObj = document.getElementById("CTOSFrame");
+            ctosFrameObj.style.height = "700px";
+            clientX = f_clientWidth();
+            clientY = f_clientHeight();
+            
+            //alert("Client X:" + clientX + " Y:" + clientY);
+
+            if (clientY < 700) {
+                ctosFrameObj.style.height = clientY + "px";
+            }
+            
+            //ctosFrameObj = document.getElementById("CTOSFrame")   ;
+            
+            //ctosFrameX = ctosFrameObj.style.width;
+            //ctosFrameY = ctosFrameObj.style.height;
+
+            //alert("CTOSFrame X:" + ctosFrameX + " Y:" + ctosFrameY);
+        }
+
+        function f_clientWidth() {
+            return f_filterResults(
+		        window.innerWidth ? window.innerWidth : 0,
+		        document.documentElement ? document.documentElement.clientWidth : 0,
+		        document.body ? document.body.clientWidth : 0
+            );
+        }
+        function f_clientHeight() {
+            return f_filterResults(
+		        window.innerHeight ? window.innerHeight : 0,
+		        document.documentElement ? document.documentElement.clientHeight : 0,
+		        document.body ? document.body.clientHeight : 0
+	        );
+        }
+        function f_scrollLeft() {
+            return f_filterResults(
+		        window.pageXOffset ? window.pageXOffset : 0,
+		        document.documentElement ? document.documentElement.scrollLeft : 0,
+		        document.body ? document.body.scrollLeft : 0
+	        );
+        }
+        function f_scrollTop() {
+            return f_filterResults(
+		        window.pageYOffset ? window.pageYOffset : 0,
+		        document.documentElement ? document.documentElement.scrollTop : 0,
+		        document.body ? document.body.scrollTop : 0
+	        );
+        }
+        function f_filterResults(n_win, n_docel, n_body) {
+            var n_result = n_win ? n_win : 0;
+            if (n_docel && (!n_result || (n_result > n_docel)))
+                n_result = n_docel;
+            return n_body && (!n_result || (n_result > n_body)) ? n_body : n_result;
+        }
+
+        function change_parent_url(url) {
+            document.location = url;
+        }
+    </script>
+    <iframe id="CTOSFrame" frameborder="0" marginheight="0" marginwidth="0" width="100%" height="700px"  
+        src="http://myctos.advantech.com/configsystems/myshopall.aspx?ERPID=<%=strCompanyID %>&st=<%=strSite %>"></iframe>
+    <script type="text/javascript">
+        SetupFrame();
+    </script>
+</asp:Content>

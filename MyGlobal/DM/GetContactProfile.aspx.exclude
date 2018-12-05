@@ -1,0 +1,141 @@
+﻿<%@ Page Title="MyAdvantech - Get SIEBEL Contact Profile by Email" Language="VB" MasterPageFile="~/Includes/MyMaster.master" %>
+<%@ MasterType VirtualPath="~/Includes/MyMaster.master" %>
+<%@ Import Namespace="System.Data.SqlClient" %>
+
+<script runat="server">
+
+    Protected Sub btnGet_Click(ByVal sender As Object, ByVal e As System.EventArgs)
+        Dim dt As DataTable = GetProfileDt()
+        gv1.DataSource = dt : gv1.DataBind()
+    End Sub
+    
+    Function GetProfileDt() As DataTable
+        lbMsg.Text = ""
+        'Me.txtEmails.Text = Replace(Me.txtEmails.Text, vbLf, vbCrLf)
+        'Me.txtEmails.Text = Replace(Me.txtEmails.Text, vbCr, vbCrLf)
+        'Dim mails() As String = Nothing
+        'If Request.Browser.IsBrowser("Firefox") Then
+        '    mails = Split(Me.txtEmails.Text, vbLf)
+        'Else
+        '    mails = Split(Me.txtEmails.Text, vbCrLf)
+        'End If
+        Dim gdt As New DataTable
+        Dim mails() As String = Split(Me.txtEmails.Text, vbCrLf)
+        Dim arr As New ArrayList
+        For Each m As String In mails
+            If m.Trim() <> "" Then
+                arr.Add("'" + Trim(m).Replace("'", "''") + "'")
+            End If
+        Next
+        
+        If arr.Count > 0 Then
+            Dim sb As New System.Text.StringBuilder
+            With sb
+                .AppendLine(String.Format(" SELECT 'Y' as Exist, IsNull(a.FirstName, '') as FirstName, IsNull(a.LastName, '') as LastName, a.EMAIL_ADDRESS, IsNull(a.ACCOUNT, '') as company, "))
+                .AppendLine(String.Format(" IsNull(a.JOB_TITLE, '') as Title, IsNull(b.COUNTRY, '') as COUNTRY, IsNull(b.CITY,'') as City, IsNull(b.ADDRESS,'') as Company_Address, IsNull(a.OrgID, '') as CONTACT_ORG, IsNull(a.ACCOUNT_STATUS, '') as ACCOUNT_STATUS,  "))
+                .AppendLine(String.Format(" IsNull(b.PRIMARY_SALES_EMAIL, '') as PRIMARY_SALES_EMAIL, IsNull(b.RBU, '') as ACCOUNT_ORG, IsNull(b.BAA, '') as BAA,  "))
+                .AppendLine(String.Format(" IsNull( "))
+                .AppendLine(String.Format(" 		( "))
+                .AppendLine(String.Format(" 			select top 1 z.NAME  "))
+                .AppendLine(String.Format(" 			from SIEBEL_CONTACT_INTERESTED_PRODUCT z  "))
+                .AppendLine(String.Format(" 			where z.CONTACT_ROW_ID=a.ROW_ID  "))
+                .AppendLine(String.Format(" 			order by z.PRIMARY_FLAG desc  "))
+                .AppendLine(String.Format(" 		),'') as Interested_Product, IsNull(b.ZIPCODE,'') as ZIPCODE "))
+                .AppendLine(String.Format(" FROM         SIEBEL_CONTACT AS a LEFT OUTER JOIN "))
+                .AppendLine(String.Format("                       SIEBEL_ACCOUNT AS b ON a.ACCOUNT_ROW_ID = b.ROW_ID "))
+                .AppendLine(String.Format(" WHERE     (a.EMAIL_ADDRESS in ({0})) ", String.Join(",", arr.ToArray())))
+            End With
+            gdt = dbUtil.dbGetDataTable("MY", sb.ToString())
+            'gdt.TableName = "Contacts"
+            For Each m As String In mails
+                If m.Trim() <> "" Then
+                    If gdt.Select("EMAIL_ADDRESS='" + Trim(m).Replace("'", "''") + "'").Length = 0 Then
+                        Dim r As DataRow = gdt.NewRow()
+                        With r
+                            .Item("Exist") = "N"
+                            .Item("FirstName") = "" : .Item("LastName") = "" : .Item("EMAIL_ADDRESS") = m : .Item("company") = ""
+                            .Item("Company_Address") = ""
+                            .Item("Title") = ""
+                            .Item("COUNTRY") = "" : .Item("CITY") = "" :
+                            : .Item("CONTACT_ORG") = "" : .Item("ACCOUNT_STATUS") = "" : .Item("PRIMARY_SALES_EMAIL") = "" : .Item("ACCOUNT_ORG") = ""
+                            : .Item("Interested_Product") = ""
+                        End With
+                        gdt.Rows.InsertAt(r, 0)
+                    End If
+                End If
+            Next
+            'gdt.Merge(dt)
+            gdt.AcceptChanges()
+        Else
+            lbMsg.Text = "No email provided" : Return gdt
+        End If
+        Return gdt
+    End Function
+    
+    Protected Sub btnXls_Click(ByVal sender As Object, ByVal e As System.Web.UI.ImageClickEventArgs)
+        Dim dt As DataTable = GetProfileDt()
+        'gv1.DataSource = dt : gv1.DataBind()
+        If dt IsNot Nothing Then
+            'Me.txtEmails.Text = Util.DataTableToXml(dt)
+            Util.DataTable2ExcelDownload(dt, "AEUIT_Contacts_" + Now.ToString("yyyyMMddHHmmss") + ".xls")
+        End If
+    End Sub
+
+    Protected Sub Page_Load(ByVal sender As Object, ByVal e As System.EventArgs)
+        If Not Page.IsPostBack Then
+            Me.Master.LogoImgPath = "~/Images/dm_logo.JPG"
+        End If
+    End Sub
+</script>
+
+<asp:Content ID="Content1" ContentPlaceHolderID="_main" Runat="Server">
+    <table width="100%">
+        <tr>
+            <td>        
+                Emails:        
+                <asp:UpdatePanel runat="server" ID="UpdatePanel1" UpdateMode="Conditional">
+                    <ContentTemplate>
+                        <asp:TextBox runat="server" ID="txtEmails" Width="200px" TextMode="MultiLine" Height="200px" />
+                    </ContentTemplate>
+                    <Triggers>
+                        <asp:AsyncPostBackTrigger ControlID="btnGet" EventName="Click" />
+                    </Triggers>
+                </asp:UpdatePanel>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <asp:Button runat="server" ID="btnGet" Text="Get Profile From SIEBEL" OnClick="btnGet_Click" />
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <asp:UpdatePanel runat="server" ID="upMsg" UpdateMode="Conditional">
+                    <ContentTemplate>
+                        <asp:Label runat="server" ID="lbMsg" Font-Bold="true" ForeColor="Tomato" />
+                    </ContentTemplate>
+                    <Triggers>
+                        <asp:AsyncPostBackTrigger ControlID="btnGet" EventName="Click" />
+                    </Triggers>
+                </asp:UpdatePanel>
+            </td>
+        </tr>
+        <tr>            
+            <td>
+                <asp:ImageButton runat="server" ID="btnXls" ImageUrl="~/Images/excel.gif" AlternateText="Download Excel" OnClick="btnXls_Click" />
+                <asp:UpdatePanel runat="server" ID="up1" UpdateMode="Conditional">
+                    <ContentTemplate>
+                        <asp:GridView runat="server" ID="gv1" Width="100%" AutoGenerateColumns="true">
+                            <Columns>
+                        
+                            </Columns>
+                        </asp:GridView>
+                    </ContentTemplate>
+                    <Triggers>
+                        <asp:AsyncPostBackTrigger ControlID="btnGet" EventName="Click" />
+                    </Triggers>
+                </asp:UpdatePanel>                
+            </td>
+        </tr>
+    </table>
+</asp:Content>

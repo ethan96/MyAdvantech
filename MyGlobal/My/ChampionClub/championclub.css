@@ -1,0 +1,513 @@
+@charset "utf-8";
+/*----------------------------------------
+  Reset
+----------------------------------------*/
+html, body, div, span, applet, object, iframe, h1, h2, h3, h4, h5, h6, p, blockquote, pre, a, abbr, acronym, address, big, cite, code, del, dfn, em, font, img, ins, kbd, q, s, samp, small, strike, strong, sub, sup, tt, var, b, u, i, center, dl, dt, dd, ol, ul, li, fieldset, form, label, caption {
+	margin: 0;
+	padding: 0;
+	border: 0;
+	outline: 0;
+	background: transparent;
+}
+/*----------------------------------------
+  Basic
+----------------------------------------*/
+body {
+	color:#333;
+	background:#fff;
+	font-family: Arial, sans-serif;
+	font-size:12px;
+}
+div, p, a, li, td {
+	-webkit-text-size-adjust:none;
+!important
+}
+br {
+	height: 1px;
+	font-size: 1px;
+}
+a {
+    color:#004181;
+    text-decoration: none;
+}
+a:hover, a:active, a:focus {
+	text-decoration: underline;
+}
+a img {
+	border: none;
+}
+.clear {
+	background: none;
+	border: 0;
+	clear: both;
+	display: block;
+	float: none;
+	font-size: 0;
+	list-style: none;
+	margin: 0;
+	padding: 0;
+	overflow: hidden;
+	visibility: hidden;
+	width: 0;
+	height: 0;
+}
+.clearfix:after {
+	clear: both;
+	content: '.';
+	display: block;
+	visibility: hidden;
+	height: 0;
+}
+/*----------------------------------------
+  cpclub Style
+----------------------------------------*/
+/* original css */
+#container {
+	width: 900px;
+	margin: 0 auto;
+}
+/*----------------------------------------
+  Heading
+----------------------------------------*/
+#cpclub-heading-wrapper {
+	width: 890px;
+	padding: 5px 0px 15px 10px;
+}
+/*  Breadcrumb
+----------------------------------------*/
+.cpclub-breadcrumb {
+	height:15px;
+	line-height: 15px;
+	list-style:none;
+}
+.cpclub-breadcrumb li {
+	display:inline;
+}
+.cpclub-breadcrumb li.lastCrumb {
+	font-weight: bold;
+}
+.cpclub-breadcrumb li a {
+	color: #333;
+}
+/*----------------------------------------
+  Content
+----------------------------------------*/
+#cpclub-content-warpper {
+	background: #FFF;
+	margin-top: 20px;
+	margin-bottom:10px;	
+	width: 900px;
+}
+/*----------------------------------------
+  Content Sidebar
+----------------------------------------*/
+.cpclub-content-sidebar {
+	width: 220px;
+	float: left;
+	margin-bottom: 30px;
+	margin-right: 10px;
+}
+/*----------------------------------------
+  Content Main
+----------------------------------------*/
+.cpclub-content-main {
+	width: 618px;
+	float: right;
+	background-image: url(img/contantbg.jpg);
+	background-repeat: repeat-x;
+	padding: 20px;
+	border: 1px solid #d7d0d0;
+	list-style-type: decimal;
+	margin-top: 23px;
+}
+/*----------------------------------------
+  Content
+----------------------------------------*/
+.cpclub-content-main .intro-heading {
+	font-family:Arial, Helvetica, sans-serif;
+	font-size:15px;
+	color:#f29702;
+	font-weight:bold;
+	margin-bottom: 8px;
+	}
+.cpclub-content-main .main-intro p{
+	margin-top: 15px;
+	font-size: 12px;
+	line-height: 18px;
+}
+.cpclub-content-main .main-content .content-heading{
+	margin-top: 30px;
+	font-size: 14px;
+	padding-bottom: 5px;
+	border-bottom: 1px solid #ccc;
+	font-weight:bold;
+	color: #8c8c8c;
+}
+.cpclub-content-main .main-content ul{
+	margin-top: 15px;	
+}
+.cpclub-content-main .main-content ul li{
+	margin-left: 20px;
+	margin-bottom: 20px;
+	list-style-type: upper-alpha;
+}
+.cpclub-content-main .main-content ol{
+	margin-top: 15px;	
+}
+.cpclub-content-main .main-content ol li{
+	
+	margin-bottom: 20px;
+	
+}
+.cpclub-content-main .main-content p{
+	margin-top: 10px;
+	line-height: 16px;	
+}
+/*----------------------------------------
+  Meili
+----------------------------------------*/
+.intro-heading span.intro-title{
+	width: 591px;
+	display: block;
+	height: 30px;
+	border-bottom: 1px solid #8f898b;
+}
+.prize-select{
+	width: 591px;
+	height: auto;
+	overflow: hidden;
+}
+.prize-select ol li{
+	list-style: none;	
+}
+.prize-select td.select-type{
+	height: 40px;
+}
+.prize_table{
+	margin-top: 20px;	
+}
+.prize_table td{
+	line-height: 37px;	
+}
+.prize_table .table_title01{
+	text-align: right;	
+}
+.prize_table input,.prize_table select{
+	margin-left: 8px;
+	height: 25px;
+	border: 1px solid #d6d8d7;
+}
+.prize_table select{
+	width: 152px;
+	height: 30px;
+	padding: 5px;
+}
+.prize_table input.sure{
+	width: 100px;
+	height: 24px;
+	border: 0;
+	color: #FFF;
+	background: url(img/button.gif) no-repeat;
+}
+.sure{
+	width: 100px;
+	height: 24px;
+	border: 0; text-align:center;
+	float:right; line-height:24PX; 
+	color: #FFF;
+	background: url(img/button.gif) no-repeat;
+}
+.sure a
+{ font-weight:bold;
+    color: #FFF;
+    }
+.prize-list{
+	width: 591px;
+	float: left;
+	border-bottom: 1px solid #eeeeee;
+	margin: 10px 0 10px 0;
+	padding-bottom: 10px;
+}
+.prizeListImg{
+	width: 200px;
+	float: left;
+}
+.prizeListImg img{
+	padding-left: 15px;	
+}
+.prizeListCon{
+	width: 360px;
+	float: right;
+}
+.prizeListCon ul li.title01{
+	color: #014a97;
+	line-height: 26px;
+	font-weight: bold;
+}
+.prizeListCon ul li.title02{
+	color: #970303;
+	font-size: 16px;
+	line-height: 26px;
+	font-weight: bold;
+}
+.prizeListCon .rating-star { 
+	background:url(img/star.gif) left -75px no-repeat; 
+	width:70px; 
+	height:19px;	
+}
+.prizeListCon ul li.text{
+	line-height: 18px;	
+}
+.prizeListCon .prizeButton{
+	width: 100px;
+	margin-top: 25px;
+	height: 24px;
+	text-align: center;
+	padding-top: 4px;
+	background: url(img/button.gif) no-repeat;
+}
+.prizeListCon .prizeButton a{
+	color: #FFF;
+	text-decoration: none;
+}
+.prizePoint{
+	width: 591px;
+	padding: 10px 0 10px 0;
+	/* [disabled]margin-left: 20px; */
+	background-color: #eeeeee; margin-bottom:5px;
+}
+.prizePoint ol li{
+	list-style: none;
+	font-size: 14px;
+	font-weight: bold;
+}
+.prizePoint li input{
+	width: 50px;
+	color: #970301;
+	font-size: 18px;
+	font-weight: bold;
+	border: 0;
+	background: none;
+	border-bottom: 1px solid #970301;
+}
+/*----------------------------------------
+  Table
+----------------------------------------*/
+#Opp_table{
+	border-left-width:1px;
+	border-bottom-width:1px;
+	margin-top: 15px;
+	border-top-width: 1px;
+	border-top-style: solid;
+	border-bottom-style: solid;
+	border-left-style: solid;
+	border-top-color: #d7d0d0;
+	border-bottom-color: #d7d0d0;
+	border-left-color: #d7d0d0;
+}
+#Opp_table2{
+	border-left-width:1px;
+	border-bottom-width:1px;
+	margin-top: 5px;
+	border-top-width: 1px;
+	border-top-style: solid;
+	border-bottom-style: solid;
+	border-left-style: solid;
+	border-top-color: #d7d0d0;
+	border-bottom-color: #d7d0d0;
+	border-left-color: #d7d0d0;
+}
+table, tr, th, td {
+	margin: 0;
+	padding: 0;
+	border-collapse: collapse;
+}
+thead tr th {
+	background:#dcdcdc;
+	padding:5px;
+	text-align: center;
+	color: #333;
+	font-weight: bold;
+	border-right:#ccc 1px solid;
+}
+tbody tr.odd0 td{
+	border-top:#ccc 1px solid;
+    text-align: center;
+	background: #fff;
+	color: #333;
+	height:50px;
+	border-right:#ccc 1px solid;
+}
+tbody tr.odd1 td{
+    text-align: center;
+	background: #ebebeb;
+	color: #333;
+	height:50px;
+	border-top:#ccc 1px solid;
+	border-right:#ccc 1px solid;
+}
+/*----------------------------------------
+  FAQ - Content
+----------------------------------------*/
+.cpclub-content-main ol{
+	padding: 0px 20px;
+}
+.cpclub-content-main li{
+	list-style-type: decimal;
+	font-size:13px;
+}
+.cpclub-content-main .faq-question {
+	margin-top: 30px;
+	font-size: 13px;
+	padding-bottom: 5px;
+	border-bottom: 1px solid #ccc;
+	font-weight:bold;
+	color: #666666;
+}
+.cpclub-content-main .faq-answer {
+	font-size:13px;
+	line-height: 17px;
+	margin-top: 5px;	
+	margin-bottom:30px;
+}
+/*----------------------------------------
+  MENU
+----------------------------------------*/
+.cpclub-content-sidebar .menu-heading{
+	margin-top: 0px;
+	font-size: 14px;
+	padding-bottom: 5px;
+	font-weight:bold;
+	color: #8c8c8c;
+	padding-left: 10px;
+}
+
+.hide { display:none;}
+
+/*----------------------------------------
+  Ranking List
+----------------------------------------*/
+.rank_list{
+	display:block;
+	padding:10px 50px 20px 50px;
+	margin-bottom:0px;
+}
+
+.cpclub-rank-title{
+	height:52px;
+	line-height:60px;
+	background-image:url(img/icon_crown.gif);
+	background-position:left bottom;
+	background-repeat:no-repeat;
+	color:#BC6600;
+	font-size:18px;
+	font-weight:bold;
+	padding-left:95px;
+}
+
+.cpclub-repeat-head{
+	display:block;
+	background-color: #ffdea7;
+	margin-bottom:3px;
+	height:30px;
+	line-height:30px;
+	color: #9f4200;
+	font-weight:bold;
+	font-size:15px;
+}
+
+.cpclub-head-number{
+	width:10%;
+	display:block;
+	float:left;
+	text-align:center;
+	padding-left:5%;
+}
+.cpclub-head-arrow{
+	width:16%;
+	display:block;
+	float:left;
+	text-align:center;
+	padding-left:4%;
+}
+.cpclub-head-name{
+	width:28%;		
+	display:block;
+	float:left;
+	text-align:left;
+	padding-left:7%;	
+}
+.cpclub-head-pointnum{
+	width:30%;		
+	display:block;
+	float:left;
+	text-align:center;
+
+}
+
+
+.cpclub-repeat-odd{
+	display:block;
+	background-color:#fff;
+	margin-bottom:3px;
+	height:30px;
+	line-height:30px;
+	font-size:14px;
+}
+.cpclub-repeat-even{
+	display:block;
+	background-color:#fff6ef;
+	height:30px;
+	line-height:30px;	
+	margin-bottom:3px;
+	font-size:14px;
+		
+}
+.cpclub-rank10-number{
+	width:10%;
+	display:block;
+	float:left;
+	text-align:center;
+	font-weight:bold;
+	padding-left:5%;
+}
+
+.rank_topthree{
+	font-size:16px;
+	color:#CC0000;
+}
+
+
+.cpclub-rank10-arrow{
+	width:16%;	
+	display:block;
+	float:left;
+	text-align:center;
+	padding-left:4%;	
+		
+}
+.cpclub-rank10-name{
+	width:28%;		
+	display:block;
+	float:left;
+	padding-left:7%;
+}
+.cpclub-rank10-pointnum{
+	width:30%;		
+	display:block;
+	float:left;
+	text-align:center;
+	color:#6a61b2;
+}
+.sure_point{
+	padding:0px 5px;
+	height: 24px;
+	border: 0;
+	float:right;
+	color: #FFF;
+	font-weight:bold;
+	background: url(img/button.gif) repeat;
+	cursor:pointer;
+	margin-right:50px;
+	margin-bottom:15px;
+}

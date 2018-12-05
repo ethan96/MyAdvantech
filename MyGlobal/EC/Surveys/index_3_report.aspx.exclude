@@ -1,0 +1,48 @@
+﻿<%@ Page Title="MyAdvantech - UNO Survey Report" Language="VB" MasterPageFile="~/Includes/MyMaster.master" %>
+
+<script runat="server">
+    Public Function GetSql() As String
+        Return "select distinct CONTACT_NAME,CONTACT_COMPANY,CONTACT_TEL,CONTACT_EMAIL,CONTACT_ADDRESS,replace(INTERESTED_COURSES,'|',', ') as INTERESTED_COURSES,replace(PRODUCT,'|',', ') as PRODUCT,SUBMIT_TIME from campaign_surveys where camp_id='UNO Campaign'"
+    End Function
+    
+    Protected Sub btnToXls_Click(ByVal sender As Object, ByVal e As System.EventArgs)
+        Dim dt As DataTable = dbUtil.dbGetDataTable("MYLOCAL", GetSql())
+        Util.DataTable2ExcelDownload(dt, "Survey Report.xls")
+    End Sub
+
+    Protected Sub sql1_Load(ByVal sender As Object, ByVal e As System.EventArgs)
+        sql1.SelectCommand = GetSql()
+    End Sub
+</script>
+
+<asp:Content ID="Content1" ContentPlaceHolderID="_main" Runat="Server">
+    <table>
+        <tr><td height="10"></td></tr>
+        <tr>
+            <td>
+                <asp:LinkButton runat="server" ID="btnToXls" Text="Export to Excel" OnClick="btnToXls_Click" />
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <asp:GridView runat="server" ID="gv1" AutoGenerateColumns="false" AllowPaging="true" AllowSorting="true" PageSize="50" DataSourceID="sql1">
+                    <Columns>
+                        <asp:BoundField DataField="CONTACT_NAME" HeaderText="Name" SortExpression="CONTACT_NAME" />
+                        <asp:BoundField DataField="CONTACT_COMPANY" HeaderText="Company" SortExpression="CONTACT_COMPANY" />
+                        <asp:BoundField DataField="CONTACT_TEL" HeaderText="Phone" SortExpression="CONTACT_TEL" />
+                        <asp:BoundField DataField="CONTACT_EMAIL" HeaderText="Email" SortExpression="CONTACT_EMAIL" />
+                        <asp:BoundField DataField="CONTACT_ADDRESS" HeaderText="Address" SortExpression="CONTACT_ADDRESS" />
+                        <asp:BoundField DataField="INTERESTED_COURSES" HeaderText="Domain" SortExpression="INTERESTED_COURSES" />
+                        <asp:BoundField DataField="PRODUCT" HeaderText="Product" SortExpression="PRODUCT" />
+                        <asp:BoundField DataField="SUBMIT_TIME" HeaderText="Date" SortExpression="SUBMIT_TIME" />
+                    </Columns>
+                </asp:GridView>
+                <asp:SqlDataSource runat="server" ID="sql1" ConnectionString="<%$ connectionStrings: MYLOCAL %>"
+                    SelectCommand="" OnLoad="sql1_Load">
+                </asp:SqlDataSource>
+            </td>
+        </tr>
+        <tr><td height="10"></td></tr>
+    </table>
+</asp:Content>
+

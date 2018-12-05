@@ -1,0 +1,3289 @@
+<?xml version="1.0" encoding="utf-8"?>
+<wsdl:definitions xmlns:soapenc="http://schemas.xmlsoap.org/soap/encoding/" xmlns:mime="http://schemas.xmlsoap.org/wsdl/mime/" xmlns:tns="http://tempuri.org/" xmlns:s="http://www.w3.org/2001/XMLSchema" xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/" xmlns:tm="http://microsoft.com/wsdl/mime/textMatching/" xmlns:http="http://schemas.xmlsoap.org/wsdl/http/" xmlns:soap12="http://schemas.xmlsoap.org/wsdl/soap12/" targetNamespace="http://tempuri.org/" xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/">
+  <wsdl:types>
+    <s:schema elementFormDefault="qualified" targetNamespace="http://tempuri.org/">
+      <s:element name="AddRating">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="title" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="url" type="s:string" />
+            <s:element minOccurs="1" maxOccurs="1" name="rate" type="s:int" />
+            <s:element minOccurs="0" maxOccurs="1" name="comments" type="s:string" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="AddRatingResponse">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="1" maxOccurs="1" name="AddRatingResult" type="s:boolean" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="getPressroomNews">
+        <s:complexType />
+      </s:element>
+      <s:element name="getPressroomNewsResponse">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="getPressroomNewsResult">
+              <s:complexType>
+                <s:sequence>
+                  <s:element ref="s:schema" />
+                  <s:any />
+                </s:sequence>
+              </s:complexType>
+            </s:element>
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="getCorpEvents">
+        <s:complexType />
+      </s:element>
+      <s:element name="getCorpEventsResponse">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="getCorpEventsResult">
+              <s:complexType>
+                <s:sequence>
+                  <s:element ref="s:schema" />
+                  <s:any />
+                </s:sequence>
+              </s:complexType>
+            </s:element>
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="getCorpEventsByRBU">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="RBU" type="s:string" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="getCorpEventsByRBUResponse">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="getCorpEventsByRBUResult">
+              <s:complexType>
+                <s:sequence>
+                  <s:element ref="s:schema" />
+                  <s:any />
+                </s:sequence>
+              </s:complexType>
+            </s:element>
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="getCMS_CategoryName_ListBy">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="strCatalogName" type="s:string" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="getCMS_CategoryName_ListByResponse">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="getCMS_CategoryName_ListByResult" type="tns:ArrayOfString" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:complexType name="ArrayOfString">
+        <s:sequence>
+          <s:element minOccurs="0" maxOccurs="unbounded" name="string" nillable="true" type="s:string" />
+        </s:sequence>
+      </s:complexType>
+      <s:element name="getCMS_Category_ListBy">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="strCatalogName" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="strFilter" type="s:string" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="getCMS_Category_ListByResponse">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="getCMS_Category_ListByResult">
+              <s:complexType>
+                <s:sequence>
+                  <s:any minOccurs="0" maxOccurs="unbounded" namespace="http://www.w3.org/2001/XMLSchema" processContents="lax" />
+                  <s:any minOccurs="1" namespace="urn:schemas-microsoft-com:xml-diffgram-v1" processContents="lax" />
+                </s:sequence>
+              </s:complexType>
+            </s:element>
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="getCMS">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="stringBUList" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="stringCMSType" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="stringRBU" type="s:string" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="getCMSResponse">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="getCMSResult">
+              <s:complexType>
+                <s:sequence>
+                  <s:element ref="s:schema" />
+                  <s:any />
+                </s:sequence>
+              </s:complexType>
+            </s:element>
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="getCMSByBAA">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="stringBAAList" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="stringCMSType" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="stringRBU" type="s:string" />
+            <s:element minOccurs="1" maxOccurs="1" name="intReturnRow" type="s:int" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="getCMSByBAAResponse">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="getCMSByBAAResult">
+              <s:complexType>
+                <s:sequence>
+                  <s:element ref="s:schema" />
+                  <s:any />
+                </s:sequence>
+              </s:complexType>
+            </s:element>
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="getCMSBy">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="strCMSType" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="strRBU" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="list_CL" type="tns:ArrayOfString" />
+            <s:element minOccurs="0" maxOccurs="1" name="list_BU" type="tns:ArrayOfString" />
+            <s:element minOccurs="0" maxOccurs="1" name="list_PD" type="tns:ArrayOfString" />
+            <s:element minOccurs="0" maxOccurs="1" name="list_BAA" type="tns:ArrayOfString" />
+            <s:element minOccurs="0" maxOccurs="1" name="list_eJF" type="tns:ArrayOfString" />
+            <s:element minOccurs="0" maxOccurs="1" name="list_eL" type="tns:ArrayOfString" />
+            <s:element minOccurs="0" maxOccurs="1" name="list_Activity" type="tns:ArrayOfString" />
+            <s:element minOccurs="0" maxOccurs="1" name="strContactLocation" type="s:string" />
+            <s:element minOccurs="1" maxOccurs="1" name="intReturnRow" type="s:int" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="getCMSByResponse">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="getCMSByResult">
+              <s:complexType>
+                <s:sequence>
+                  <s:element ref="s:schema" />
+                  <s:any />
+                </s:sequence>
+              </s:complexType>
+            </s:element>
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="getCMSByVer2">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="strCMSType" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="strRBU" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="list_CL" type="tns:ArrayOfString" />
+            <s:element minOccurs="0" maxOccurs="1" name="list_BU" type="tns:ArrayOfString" />
+            <s:element minOccurs="0" maxOccurs="1" name="list_PD" type="tns:ArrayOfString" />
+            <s:element minOccurs="0" maxOccurs="1" name="list_BAA" type="tns:ArrayOfString" />
+            <s:element minOccurs="0" maxOccurs="1" name="list_eJF" type="tns:ArrayOfString" />
+            <s:element minOccurs="0" maxOccurs="1" name="list_eL" type="tns:ArrayOfString" />
+            <s:element minOccurs="0" maxOccurs="1" name="list_Activity" type="tns:ArrayOfString" />
+            <s:element minOccurs="0" maxOccurs="1" name="list_Tag" type="tns:ArrayOfString" />
+            <s:element minOccurs="0" maxOccurs="1" name="strContactLocation" type="s:string" />
+            <s:element minOccurs="1" maxOccurs="1" name="intReturnRow" type="s:int" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="getCMSByVer2Response">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="getCMSByVer2Result">
+              <s:complexType>
+                <s:sequence>
+                  <s:element ref="s:schema" />
+                  <s:any />
+                </s:sequence>
+              </s:complexType>
+            </s:element>
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="getCMSTagList">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="cmsID" type="s:string" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="getCMSTagListResponse">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="getCMSTagListResult">
+              <s:complexType>
+                <s:sequence>
+                  <s:element ref="s:schema" />
+                  <s:any />
+                </s:sequence>
+              </s:complexType>
+            </s:element>
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="getCMSByPartNumber">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="list_CMSType" type="tns:ArrayOfString" />
+            <s:element minOccurs="0" maxOccurs="1" name="list_PartNumber" type="tns:ArrayOfString" />
+            <s:element minOccurs="0" maxOccurs="1" name="strRBU" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="strContactLocation" type="s:string" />
+            <s:element minOccurs="1" maxOccurs="1" name="intReturnRow" type="s:int" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="getCMSByPartNumberResponse">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="getCMSByPartNumberResult">
+              <s:complexType>
+                <s:sequence>
+                  <s:element ref="s:schema" />
+                  <s:any />
+                </s:sequence>
+              </s:complexType>
+            </s:element>
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="getCMSMaster">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="cmsID" type="s:string" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="getCMSMasterResponse">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="getCMSMasterResult">
+              <s:complexType>
+                <s:sequence>
+                  <s:element ref="s:schema" />
+                  <s:any />
+                </s:sequence>
+              </s:complexType>
+            </s:element>
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="getCMSDetailContent">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="cmsID" type="s:string" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="getCMSDetailContentResponse">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="getCMSDetailContentResult" type="s:string" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="getCMS_ProductCategoryList">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="CMSID" type="s:string" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="getCMS_ProductCategoryListResponse">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="getCMS_ProductCategoryListResult">
+              <s:complexType>
+                <s:sequence>
+                  <s:any minOccurs="0" maxOccurs="unbounded" namespace="http://www.w3.org/2001/XMLSchema" processContents="lax" />
+                  <s:any minOccurs="1" namespace="urn:schemas-microsoft-com:xml-diffgram-v1" processContents="lax" />
+                </s:sequence>
+              </s:complexType>
+            </s:element>
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="GetLogFromOn24">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="strEvent" type="s:string" />
+            <s:element minOccurs="1" maxOccurs="1" name="sDt" type="s:dateTime" />
+            <s:element minOccurs="1" maxOccurs="1" name="eDt" type="s:dateTime" />
+            <s:element minOccurs="0" maxOccurs="1" name="strType" type="s:string" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="GetLogFromOn24Response">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="GetLogFromOn24Result">
+              <s:complexType>
+                <s:sequence>
+                  <s:any minOccurs="0" maxOccurs="unbounded" namespace="http://www.w3.org/2001/XMLSchema" processContents="lax" />
+                  <s:any minOccurs="1" namespace="urn:schemas-microsoft-com:xml-diffgram-v1" processContents="lax" />
+                </s:sequence>
+              </s:complexType>
+            </s:element>
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="GetRating">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="url" type="s:string" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="GetRatingResponse">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="1" maxOccurs="1" name="GetRatingResult" type="s:int" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="getModelInfo">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="keyword" type="s:string" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="getModelInfoResponse">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="getModelInfoResult">
+              <s:complexType>
+                <s:sequence>
+                  <s:any minOccurs="0" maxOccurs="unbounded" namespace="http://www.w3.org/2001/XMLSchema" processContents="lax" />
+                  <s:any minOccurs="1" namespace="urn:schemas-microsoft-com:xml-diffgram-v1" processContents="lax" />
+                </s:sequence>
+              </s:complexType>
+            </s:element>
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="getProductInfoByPartNumber">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="strPartNumber" type="s:string" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="getProductInfoByPartNumberResponse">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="getProductInfoByPartNumberResult" type="tns:ProductInfo" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:complexType name="ProductInfo">
+        <s:complexContent mixed="false">
+          <s:extension base="tns:BaseClass">
+            <s:sequence>
+              <s:element minOccurs="0" maxOccurs="1" name="Model_ID" type="s:string" />
+              <s:element minOccurs="0" maxOccurs="1" name="Model_Name" type="s:string" />
+              <s:element minOccurs="0" maxOccurs="1" name="DisplayName" type="s:string" />
+              <s:element minOccurs="0" maxOccurs="1" name="Parent_Category_ID" type="s:string" />
+              <s:element minOccurs="0" maxOccurs="1" name="Description" type="s:string" />
+              <s:element minOccurs="0" maxOccurs="1" name="Model_EXTENTED_DESC" type="s:string" />
+              <s:element minOccurs="0" maxOccurs="1" name="Model_Status" type="s:string" />
+              <s:element minOccurs="0" maxOccurs="1" name="Model_Type" type="s:string" />
+              <s:element minOccurs="0" maxOccurs="1" name="Product_ID" type="s:string" />
+              <s:element minOccurs="0" maxOccurs="1" name="PRODUCT_DESC" type="s:string" />
+              <s:element minOccurs="0" maxOccurs="1" name="PRODUCT_DESC2" type="s:string" />
+              <s:element minOccurs="0" maxOccurs="1" name="EXTENDED_DESC" type="s:string" />
+              <s:element minOccurs="0" maxOccurs="1" name="STATUS" type="s:string" />
+              <s:element minOccurs="0" maxOccurs="1" name="PRIMARY_ORG_ID" type="s:string" />
+              <s:element minOccurs="0" maxOccurs="1" name="VERSION" type="s:string" />
+              <s:element minOccurs="0" maxOccurs="1" name="UOM" type="s:string" />
+              <s:element minOccurs="0" maxOccurs="1" name="PRODUCT_LINE" type="s:string" />
+              <s:element minOccurs="0" maxOccurs="1" name="PRODUCT_GROUP" type="s:string" />
+              <s:element minOccurs="0" maxOccurs="1" name="TUMBNAIL_IMAGE_ID" type="s:string" />
+              <s:element minOccurs="0" maxOccurs="1" name="TUMBNAIL_IMAGE_NAME" type="s:string" />
+              <s:element minOccurs="0" maxOccurs="1" name="IMAGE_ID" type="s:string" />
+              <s:element minOccurs="0" maxOccurs="1" name="TYPE" type="s:string" />
+              <s:element minOccurs="0" maxOccurs="1" name="ONLINE_PUBLISH" type="s:string" />
+              <s:element minOccurs="0" maxOccurs="1" name="Catalog_ID" type="s:string" />
+              <s:element minOccurs="0" maxOccurs="1" name="IMAGE_FILE_NAME" type="s:string" />
+              <s:element minOccurs="0" maxOccurs="1" name="IMAGE_FILE_NAME_WS" type="s:string" />
+              <s:element minOccurs="0" maxOccurs="1" name="KEYWORD" type="s:string" />
+              <s:element minOccurs="0" maxOccurs="1" name="Primary_Keyword" type="s:string" />
+              <s:element minOccurs="0" maxOccurs="1" name="META_DESC" type="s:string" />
+              <s:element minOccurs="1" maxOccurs="1" name="NEW_PRODUCT_DATE" type="s:dateTime" />
+              <s:element minOccurs="1" maxOccurs="1" name="ship_weight" type="s:decimal" />
+              <s:element minOccurs="1" maxOccurs="1" name="net_weight" type="s:decimal" />
+              <s:element minOccurs="1" maxOccurs="1" name="Product_RoHS_Status" type="s:boolean" />
+              <s:element minOccurs="0" maxOccurs="1" name="FeatureTable">
+                <s:complexType>
+                  <s:sequence>
+                    <s:any minOccurs="0" maxOccurs="unbounded" namespace="http://www.w3.org/2001/XMLSchema" processContents="lax" />
+                    <s:any minOccurs="1" namespace="urn:schemas-microsoft-com:xml-diffgram-v1" processContents="lax" />
+                  </s:sequence>
+                </s:complexType>
+              </s:element>
+              <s:element minOccurs="0" maxOccurs="1" name="BundleTable">
+                <s:complexType>
+                  <s:sequence>
+                    <s:any minOccurs="0" maxOccurs="unbounded" namespace="http://www.w3.org/2001/XMLSchema" processContents="lax" />
+                    <s:any minOccurs="1" namespace="urn:schemas-microsoft-com:xml-diffgram-v1" processContents="lax" />
+                  </s:sequence>
+                </s:complexType>
+              </s:element>
+              <s:element minOccurs="0" maxOccurs="1" name="DownloadTable">
+                <s:complexType>
+                  <s:sequence>
+                    <s:any minOccurs="0" maxOccurs="unbounded" namespace="http://www.w3.org/2001/XMLSchema" processContents="lax" />
+                    <s:any minOccurs="1" namespace="urn:schemas-microsoft-com:xml-diffgram-v1" processContents="lax" />
+                  </s:sequence>
+                </s:complexType>
+              </s:element>
+              <s:element minOccurs="0" maxOccurs="1" name="KBTable">
+                <s:complexType>
+                  <s:sequence>
+                    <s:any minOccurs="0" maxOccurs="unbounded" namespace="http://www.w3.org/2001/XMLSchema" processContents="lax" />
+                    <s:any minOccurs="1" namespace="urn:schemas-microsoft-com:xml-diffgram-v1" processContents="lax" />
+                  </s:sequence>
+                </s:complexType>
+              </s:element>
+              <s:element minOccurs="0" maxOccurs="1" name="LiteratureTable">
+                <s:complexType>
+                  <s:sequence>
+                    <s:any minOccurs="0" maxOccurs="unbounded" namespace="http://www.w3.org/2001/XMLSchema" processContents="lax" />
+                    <s:any minOccurs="1" namespace="urn:schemas-microsoft-com:xml-diffgram-v1" processContents="lax" />
+                  </s:sequence>
+                </s:complexType>
+              </s:element>
+              <s:element minOccurs="0" maxOccurs="1" name="ProductTable">
+                <s:complexType>
+                  <s:sequence>
+                    <s:any minOccurs="0" maxOccurs="unbounded" namespace="http://www.w3.org/2001/XMLSchema" processContents="lax" />
+                    <s:any minOccurs="1" namespace="urn:schemas-microsoft-com:xml-diffgram-v1" processContents="lax" />
+                  </s:sequence>
+                </s:complexType>
+              </s:element>
+              <s:element minOccurs="0" maxOccurs="1" name="RelatedProudctLocalTable">
+                <s:complexType>
+                  <s:sequence>
+                    <s:any minOccurs="0" maxOccurs="unbounded" namespace="http://www.w3.org/2001/XMLSchema" processContents="lax" />
+                    <s:any minOccurs="1" namespace="urn:schemas-microsoft-com:xml-diffgram-v1" processContents="lax" />
+                  </s:sequence>
+                </s:complexType>
+              </s:element>
+              <s:element minOccurs="0" maxOccurs="1" name="ProductAwardList" type="tns:ArrayOfString" />
+              <s:element minOccurs="0" maxOccurs="1" name="TUMBNAIL_IMAGE_URL" type="s:string" />
+              <s:element minOccurs="0" maxOccurs="1" name="Lang_ID" type="s:string" />
+              <s:element minOccurs="1" maxOccurs="1" name="LangSetting" type="tns:ListOfLangID" />
+              <s:element minOccurs="0" maxOccurs="1" name="ProductPrice" type="s:string" />
+              <s:element minOccurs="0" maxOccurs="1" name="ProductDownloadLink">
+                <s:complexType>
+                  <s:sequence>
+                    <s:any minOccurs="0" maxOccurs="unbounded" namespace="http://www.w3.org/2001/XMLSchema" processContents="lax" />
+                    <s:any minOccurs="1" namespace="urn:schemas-microsoft-com:xml-diffgram-v1" processContents="lax" />
+                  </s:sequence>
+                </s:complexType>
+              </s:element>
+              <s:element minOccurs="0" maxOccurs="1" name="ProductSpectInfo" type="tns:SpecInfo" />
+              <s:element minOccurs="0" maxOccurs="1" name="ProductSpecInfoFromEstore" type="tns:SpecInfo" />
+              <s:element minOccurs="1" maxOccurs="1" name="LastUpdated" type="s:dateTime" />
+              <s:element minOccurs="1" maxOccurs="1" name="CreateDate" type="s:dateTime" />
+              <s:element minOccurs="0" maxOccurs="1" name="LAST_UPDATED_BY" type="s:string" />
+            </s:sequence>
+          </s:extension>
+        </s:complexContent>
+      </s:complexType>
+      <s:complexType name="BaseClass" />
+      <s:simpleType name="ListOfLangID">
+        <s:restriction base="s:string">
+          <s:enumeration value="EUS" />
+          <s:enumeration value="CHT" />
+          <s:enumeration value="CHS" />
+          <s:enumeration value="JPN" />
+          <s:enumeration value="KOR" />
+          <s:enumeration value="RU" />
+        </s:restriction>
+      </s:simpleType>
+      <s:complexType name="SpecInfo">
+        <s:sequence>
+          <s:element minOccurs="0" maxOccurs="1" name="productSpecData" type="tns:ArrayOfProductSpecData" />
+          <s:element minOccurs="0" maxOccurs="1" name="productSpecDataOri" type="tns:ArrayOfProductSpecData" />
+          <s:element minOccurs="0" maxOccurs="1" name="productSearchSpecData" type="tns:ArrayOfProductSpecData" />
+          <s:element minOccurs="0" maxOccurs="1" name="ModelID" type="s:string" />
+          <s:element minOccurs="0" maxOccurs="1" name="ParentCategoryID" type="s:string" />
+          <s:element minOccurs="0" maxOccurs="1" name="specCatName" type="tns:ArrayOfSpecCatName" />
+          <s:element minOccurs="0" maxOccurs="1" name="partNumbers" type="tns:ArrayOfPartNumbers" />
+          <s:element minOccurs="0" maxOccurs="1" name="CategoryIDList" type="tns:ArrayOfString" />
+          <s:element minOccurs="1" maxOccurs="1" name="IsGetDBFromUSEstoreDB" type="s:boolean" />
+          <s:element minOccurs="1" maxOccurs="1" name="IsSpecExist" type="s:boolean" />
+        </s:sequence>
+      </s:complexType>
+      <s:complexType name="ArrayOfProductSpecData">
+        <s:sequence>
+          <s:element minOccurs="0" maxOccurs="unbounded" name="ProductSpecData" nillable="true" type="tns:ProductSpecData" />
+        </s:sequence>
+      </s:complexType>
+      <s:complexType name="ProductSpecData">
+        <s:complexContent mixed="false">
+          <s:extension base="tns:PartNumbers">
+            <s:sequence>
+              <s:element minOccurs="0" maxOccurs="1" name="displayName" type="s:string" />
+              <s:element minOccurs="0" maxOccurs="1" name="AttrValue" type="s:string" />
+              <s:element minOccurs="0" maxOccurs="1" name="CategoryID" type="s:string" />
+              <s:element minOccurs="0" maxOccurs="1" name="ParentCategoryID" type="s:string" />
+            </s:sequence>
+          </s:extension>
+        </s:complexContent>
+      </s:complexType>
+      <s:complexType name="PartNumbers">
+        <s:complexContent mixed="false">
+          <s:extension base="tns:SpecCatName">
+            <s:sequence>
+              <s:element minOccurs="0" maxOccurs="1" name="partNumber" type="s:string" />
+            </s:sequence>
+          </s:extension>
+        </s:complexContent>
+      </s:complexType>
+      <s:complexType name="SpecCatName">
+        <s:sequence>
+          <s:element minOccurs="0" maxOccurs="1" name="AttrCatName" type="s:string" />
+          <s:element minOccurs="0" maxOccurs="1" name="AttrName" type="s:string" />
+          <s:element minOccurs="1" maxOccurs="1" name="Seq" type="s:int" />
+          <s:element minOccurs="1" maxOccurs="1" name="SpecCount" type="s:int" />
+        </s:sequence>
+      </s:complexType>
+      <s:complexType name="ArrayOfSpecCatName">
+        <s:sequence>
+          <s:element minOccurs="0" maxOccurs="unbounded" name="SpecCatName" nillable="true" type="tns:SpecCatName" />
+        </s:sequence>
+      </s:complexType>
+      <s:complexType name="ArrayOfPartNumbers">
+        <s:sequence>
+          <s:element minOccurs="0" maxOccurs="unbounded" name="PartNumbers" nillable="true" type="tns:PartNumbers" />
+        </s:sequence>
+      </s:complexType>
+      <s:element name="Add">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="1" maxOccurs="1" name="a" type="s:int" />
+            <s:element minOccurs="1" maxOccurs="1" name="b" type="s:int" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="AddResponse">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="AddResult" type="s:string" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="getModelList">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="keyword" type="s:string" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="getModelListResponse">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="getModelListResult" type="tns:ArrayOfModelDataList" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:complexType name="ArrayOfModelDataList">
+        <s:sequence>
+          <s:element minOccurs="0" maxOccurs="unbounded" name="ModelDataList" nillable="true" type="tns:ModelDataList" />
+        </s:sequence>
+      </s:complexType>
+      <s:complexType name="ModelDataList">
+        <s:sequence>
+          <s:element minOccurs="0" maxOccurs="1" name="CATEGORY_ID" type="s:string" />
+          <s:element minOccurs="0" maxOccurs="1" name="CATALOG_ID" type="s:string" />
+          <s:element minOccurs="0" maxOccurs="1" name="DISPLAY_NAME" type="s:string" />
+          <s:element minOccurs="0" maxOccurs="1" name="INTROD" type="s:string" />
+          <s:element minOccurs="0" maxOccurs="1" name="TUMBNAIL_IMAGE_ID" type="s:string" />
+          <s:element minOccurs="0" maxOccurs="1" name="PRODUCT_DESC" type="s:string" />
+        </s:sequence>
+      </s:complexType>
+      <s:element name="GetModelCategoryIDList">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="keyword" type="s:string" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="GetModelCategoryIDListResponse">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="GetModelCategoryIDListResult" type="tns:ArrayOfModelCategoryIDList" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:complexType name="ArrayOfModelCategoryIDList">
+        <s:sequence>
+          <s:element minOccurs="0" maxOccurs="unbounded" name="ModelCategoryIDList" nillable="true" type="tns:ModelCategoryIDList" />
+        </s:sequence>
+      </s:complexType>
+      <s:complexType name="ModelCategoryIDList">
+        <s:sequence>
+          <s:element minOccurs="0" maxOccurs="1" name="CATEGORY_ID" type="s:string" />
+        </s:sequence>
+      </s:complexType>
+      <s:element name="GetModelDetailInfo">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="categoryid" type="s:string" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="GetModelDetailInfoResponse">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="GetModelDetailInfoResult" type="tns:ArrayOfModelDetail" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:complexType name="ArrayOfModelDetail">
+        <s:sequence>
+          <s:element minOccurs="0" maxOccurs="unbounded" name="ModelDetail" nillable="true" type="tns:ModelDetail" />
+        </s:sequence>
+      </s:complexType>
+      <s:complexType name="ModelDetail">
+        <s:sequence>
+          <s:element minOccurs="0" maxOccurs="1" name="CATEGORY_ID" type="s:string" />
+          <s:element minOccurs="0" maxOccurs="1" name="ModelName" type="s:string" />
+          <s:element minOccurs="0" maxOccurs="1" name="ImgCategory" type="s:string" />
+          <s:element minOccurs="0" maxOccurs="1" name="H2Desc" type="s:string" />
+          <s:element minOccurs="0" maxOccurs="1" name="FeatureList" type="tns:ArrayOfFeatureTable" />
+          <s:element minOccurs="0" maxOccurs="1" name="Description" type="s:string" />
+        </s:sequence>
+      </s:complexType>
+      <s:complexType name="ArrayOfFeatureTable">
+        <s:sequence>
+          <s:element minOccurs="0" maxOccurs="unbounded" name="FeatureTable" nillable="true" type="tns:FeatureTable" />
+        </s:sequence>
+      </s:complexType>
+      <s:complexType name="FeatureTable">
+        <s:sequence>
+          <s:element minOccurs="0" maxOccurs="1" name="Feature_desc" type="s:string" />
+        </s:sequence>
+      </s:complexType>
+      <s:element name="AddBannerLog">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="1" maxOccurs="1" name="ID" type="s:int" />
+            <s:element minOccurs="0" maxOccurs="1" name="Type" type="s:string" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="AddBannerLogResponse">
+        <s:complexType />
+      </s:element>
+      <s:element name="AddProductLog">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="CATEGORY_ID" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="PARENT_CATEGORY_ID" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="BU" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="Type" type="s:string" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="AddProductLogResponse">
+        <s:complexType />
+      </s:element>
+      <s:element name="CheckeStoreProduct">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="PN" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="CTOSsiteID" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="ElementID" type="s:string" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="CheckeStoreProductResponse">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="CheckeStoreProductResult" type="s:string" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="CheckBuyProduct">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="PN" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="SiteID" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="ElementID" type="s:string" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="CheckBuyProductResponse">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="CheckBuyProductResult" type="s:string" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="getOnlineUser">
+        <s:complexType />
+      </s:element>
+      <s:element name="getOnlineUserResponse">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="1" maxOccurs="1" name="getOnlineUserResult" type="s:int" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="getSEOAdminLink">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="Path" type="s:string" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="getSEOAdminLinkResponse">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="getSEOAdminLinkResult" type="s:string" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="getModelImage">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="partNumber" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="LitType" type="s:string" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="getModelImageResponse">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="getModelImageResult" type="s:string" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="checkProductDownloadFile">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="displayName" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="objectID" type="s:string" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="checkProductDownloadFileResponse">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="checkProductDownloadFileResult" type="s:string" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="getModelDownloadInString">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="partNumber" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="dataType" type="s:string" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="getModelDownloadInStringResponse">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="getModelDownloadInStringResult" type="s:string" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="getRBUInfoByStoreID">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="storeID" type="s:string" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="getRBUInfoByStoreIDResponse">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="getRBUInfoByStoreIDResult">
+              <s:complexType>
+                <s:sequence>
+                  <s:element ref="s:schema" />
+                  <s:any />
+                </s:sequence>
+              </s:complexType>
+            </s:element>
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="CheckURLRedirection">
+        <s:complexType />
+      </s:element>
+      <s:element name="CheckURLRedirectionResponse">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="CheckURLRedirectionResult" type="s:string" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="CheckSpecDataExist">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="categoryID" type="s:string" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="CheckSpecDataExistResponse">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="CheckSpecDataExistResult" type="s:string" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="GetCompletionList">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="prefixText" type="s:string" />
+            <s:element minOccurs="1" maxOccurs="1" name="count" type="s:int" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="GetCompletionListResponse">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="GetCompletionListResult" type="tns:ArrayOfString" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="boolean" type="s:boolean" />
+      <s:element name="DataSet" nillable="true">
+        <s:complexType>
+          <s:sequence>
+            <s:element ref="s:schema" />
+            <s:any />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="ArrayOfString" nillable="true" type="tns:ArrayOfString" />
+      <s:element name="DataTable" nillable="true">
+        <s:complexType>
+          <s:sequence>
+            <s:any minOccurs="0" maxOccurs="unbounded" namespace="http://www.w3.org/2001/XMLSchema" processContents="lax" />
+            <s:any minOccurs="1" namespace="urn:schemas-microsoft-com:xml-diffgram-v1" processContents="lax" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="string" nillable="true" type="s:string" />
+      <s:element name="int" type="s:int" />
+      <s:element name="ProductInfo" nillable="true" type="tns:ProductInfo" />
+      <s:element name="ArrayOfModelDataList" nillable="true" type="tns:ArrayOfModelDataList" />
+      <s:element name="ArrayOfModelCategoryIDList" nillable="true" type="tns:ArrayOfModelCategoryIDList" />
+      <s:element name="ArrayOfModelDetail" nillable="true" type="tns:ArrayOfModelDetail" />
+    </s:schema>
+  </wsdl:types>
+  <wsdl:message name="AddRatingSoapIn">
+    <wsdl:part name="parameters" element="tns:AddRating" />
+  </wsdl:message>
+  <wsdl:message name="AddRatingSoapOut">
+    <wsdl:part name="parameters" element="tns:AddRatingResponse" />
+  </wsdl:message>
+  <wsdl:message name="getPressroomNewsSoapIn">
+    <wsdl:part name="parameters" element="tns:getPressroomNews" />
+  </wsdl:message>
+  <wsdl:message name="getPressroomNewsSoapOut">
+    <wsdl:part name="parameters" element="tns:getPressroomNewsResponse" />
+  </wsdl:message>
+  <wsdl:message name="getCorpEventsSoapIn">
+    <wsdl:part name="parameters" element="tns:getCorpEvents" />
+  </wsdl:message>
+  <wsdl:message name="getCorpEventsSoapOut">
+    <wsdl:part name="parameters" element="tns:getCorpEventsResponse" />
+  </wsdl:message>
+  <wsdl:message name="getCorpEventsByRBUSoapIn">
+    <wsdl:part name="parameters" element="tns:getCorpEventsByRBU" />
+  </wsdl:message>
+  <wsdl:message name="getCorpEventsByRBUSoapOut">
+    <wsdl:part name="parameters" element="tns:getCorpEventsByRBUResponse" />
+  </wsdl:message>
+  <wsdl:message name="getCMS_CategoryName_ListBySoapIn">
+    <wsdl:part name="parameters" element="tns:getCMS_CategoryName_ListBy" />
+  </wsdl:message>
+  <wsdl:message name="getCMS_CategoryName_ListBySoapOut">
+    <wsdl:part name="parameters" element="tns:getCMS_CategoryName_ListByResponse" />
+  </wsdl:message>
+  <wsdl:message name="getCMS_Category_ListBySoapIn">
+    <wsdl:part name="parameters" element="tns:getCMS_Category_ListBy" />
+  </wsdl:message>
+  <wsdl:message name="getCMS_Category_ListBySoapOut">
+    <wsdl:part name="parameters" element="tns:getCMS_Category_ListByResponse" />
+  </wsdl:message>
+  <wsdl:message name="getCMSSoapIn">
+    <wsdl:part name="parameters" element="tns:getCMS" />
+  </wsdl:message>
+  <wsdl:message name="getCMSSoapOut">
+    <wsdl:part name="parameters" element="tns:getCMSResponse" />
+  </wsdl:message>
+  <wsdl:message name="getCMSByBAASoapIn">
+    <wsdl:part name="parameters" element="tns:getCMSByBAA" />
+  </wsdl:message>
+  <wsdl:message name="getCMSByBAASoapOut">
+    <wsdl:part name="parameters" element="tns:getCMSByBAAResponse" />
+  </wsdl:message>
+  <wsdl:message name="getCMSBySoapIn">
+    <wsdl:part name="parameters" element="tns:getCMSBy" />
+  </wsdl:message>
+  <wsdl:message name="getCMSBySoapOut">
+    <wsdl:part name="parameters" element="tns:getCMSByResponse" />
+  </wsdl:message>
+  <wsdl:message name="getCMSByVer2SoapIn">
+    <wsdl:part name="parameters" element="tns:getCMSByVer2" />
+  </wsdl:message>
+  <wsdl:message name="getCMSByVer2SoapOut">
+    <wsdl:part name="parameters" element="tns:getCMSByVer2Response" />
+  </wsdl:message>
+  <wsdl:message name="getCMSTagListSoapIn">
+    <wsdl:part name="parameters" element="tns:getCMSTagList" />
+  </wsdl:message>
+  <wsdl:message name="getCMSTagListSoapOut">
+    <wsdl:part name="parameters" element="tns:getCMSTagListResponse" />
+  </wsdl:message>
+  <wsdl:message name="getCMSByPartNumberSoapIn">
+    <wsdl:part name="parameters" element="tns:getCMSByPartNumber" />
+  </wsdl:message>
+  <wsdl:message name="getCMSByPartNumberSoapOut">
+    <wsdl:part name="parameters" element="tns:getCMSByPartNumberResponse" />
+  </wsdl:message>
+  <wsdl:message name="getCMSMasterSoapIn">
+    <wsdl:part name="parameters" element="tns:getCMSMaster" />
+  </wsdl:message>
+  <wsdl:message name="getCMSMasterSoapOut">
+    <wsdl:part name="parameters" element="tns:getCMSMasterResponse" />
+  </wsdl:message>
+  <wsdl:message name="getCMSDetailContentSoapIn">
+    <wsdl:part name="parameters" element="tns:getCMSDetailContent" />
+  </wsdl:message>
+  <wsdl:message name="getCMSDetailContentSoapOut">
+    <wsdl:part name="parameters" element="tns:getCMSDetailContentResponse" />
+  </wsdl:message>
+  <wsdl:message name="getCMS_ProductCategoryListSoapIn">
+    <wsdl:part name="parameters" element="tns:getCMS_ProductCategoryList" />
+  </wsdl:message>
+  <wsdl:message name="getCMS_ProductCategoryListSoapOut">
+    <wsdl:part name="parameters" element="tns:getCMS_ProductCategoryListResponse" />
+  </wsdl:message>
+  <wsdl:message name="GetLogFromOn24SoapIn">
+    <wsdl:part name="parameters" element="tns:GetLogFromOn24" />
+  </wsdl:message>
+  <wsdl:message name="GetLogFromOn24SoapOut">
+    <wsdl:part name="parameters" element="tns:GetLogFromOn24Response" />
+  </wsdl:message>
+  <wsdl:message name="GetRatingSoapIn">
+    <wsdl:part name="parameters" element="tns:GetRating" />
+  </wsdl:message>
+  <wsdl:message name="GetRatingSoapOut">
+    <wsdl:part name="parameters" element="tns:GetRatingResponse" />
+  </wsdl:message>
+  <wsdl:message name="getModelInfoSoapIn">
+    <wsdl:part name="parameters" element="tns:getModelInfo" />
+  </wsdl:message>
+  <wsdl:message name="getModelInfoSoapOut">
+    <wsdl:part name="parameters" element="tns:getModelInfoResponse" />
+  </wsdl:message>
+  <wsdl:message name="getProductInfoByPartNumberSoapIn">
+    <wsdl:part name="parameters" element="tns:getProductInfoByPartNumber" />
+  </wsdl:message>
+  <wsdl:message name="getProductInfoByPartNumberSoapOut">
+    <wsdl:part name="parameters" element="tns:getProductInfoByPartNumberResponse" />
+  </wsdl:message>
+  <wsdl:message name="AddSoapIn">
+    <wsdl:part name="parameters" element="tns:Add" />
+  </wsdl:message>
+  <wsdl:message name="AddSoapOut">
+    <wsdl:part name="parameters" element="tns:AddResponse" />
+  </wsdl:message>
+  <wsdl:message name="getModelListSoapIn">
+    <wsdl:part name="parameters" element="tns:getModelList" />
+  </wsdl:message>
+  <wsdl:message name="getModelListSoapOut">
+    <wsdl:part name="parameters" element="tns:getModelListResponse" />
+  </wsdl:message>
+  <wsdl:message name="GetModelCategoryIDListSoapIn">
+    <wsdl:part name="parameters" element="tns:GetModelCategoryIDList" />
+  </wsdl:message>
+  <wsdl:message name="GetModelCategoryIDListSoapOut">
+    <wsdl:part name="parameters" element="tns:GetModelCategoryIDListResponse" />
+  </wsdl:message>
+  <wsdl:message name="GetModelDetailInfoSoapIn">
+    <wsdl:part name="parameters" element="tns:GetModelDetailInfo" />
+  </wsdl:message>
+  <wsdl:message name="GetModelDetailInfoSoapOut">
+    <wsdl:part name="parameters" element="tns:GetModelDetailInfoResponse" />
+  </wsdl:message>
+  <wsdl:message name="AddBannerLogSoapIn">
+    <wsdl:part name="parameters" element="tns:AddBannerLog" />
+  </wsdl:message>
+  <wsdl:message name="AddBannerLogSoapOut">
+    <wsdl:part name="parameters" element="tns:AddBannerLogResponse" />
+  </wsdl:message>
+  <wsdl:message name="AddProductLogSoapIn">
+    <wsdl:part name="parameters" element="tns:AddProductLog" />
+  </wsdl:message>
+  <wsdl:message name="AddProductLogSoapOut">
+    <wsdl:part name="parameters" element="tns:AddProductLogResponse" />
+  </wsdl:message>
+  <wsdl:message name="CheckeStoreProductSoapIn">
+    <wsdl:part name="parameters" element="tns:CheckeStoreProduct" />
+  </wsdl:message>
+  <wsdl:message name="CheckeStoreProductSoapOut">
+    <wsdl:part name="parameters" element="tns:CheckeStoreProductResponse" />
+  </wsdl:message>
+  <wsdl:message name="CheckBuyProductSoapIn">
+    <wsdl:part name="parameters" element="tns:CheckBuyProduct" />
+  </wsdl:message>
+  <wsdl:message name="CheckBuyProductSoapOut">
+    <wsdl:part name="parameters" element="tns:CheckBuyProductResponse" />
+  </wsdl:message>
+  <wsdl:message name="getOnlineUserSoapIn">
+    <wsdl:part name="parameters" element="tns:getOnlineUser" />
+  </wsdl:message>
+  <wsdl:message name="getOnlineUserSoapOut">
+    <wsdl:part name="parameters" element="tns:getOnlineUserResponse" />
+  </wsdl:message>
+  <wsdl:message name="getSEOAdminLinkSoapIn">
+    <wsdl:part name="parameters" element="tns:getSEOAdminLink" />
+  </wsdl:message>
+  <wsdl:message name="getSEOAdminLinkSoapOut">
+    <wsdl:part name="parameters" element="tns:getSEOAdminLinkResponse" />
+  </wsdl:message>
+  <wsdl:message name="getModelImageSoapIn">
+    <wsdl:part name="parameters" element="tns:getModelImage" />
+  </wsdl:message>
+  <wsdl:message name="getModelImageSoapOut">
+    <wsdl:part name="parameters" element="tns:getModelImageResponse" />
+  </wsdl:message>
+  <wsdl:message name="checkProductDownloadFileSoapIn">
+    <wsdl:part name="parameters" element="tns:checkProductDownloadFile" />
+  </wsdl:message>
+  <wsdl:message name="checkProductDownloadFileSoapOut">
+    <wsdl:part name="parameters" element="tns:checkProductDownloadFileResponse" />
+  </wsdl:message>
+  <wsdl:message name="getModelDownloadInStringSoapIn">
+    <wsdl:part name="parameters" element="tns:getModelDownloadInString" />
+  </wsdl:message>
+  <wsdl:message name="getModelDownloadInStringSoapOut">
+    <wsdl:part name="parameters" element="tns:getModelDownloadInStringResponse" />
+  </wsdl:message>
+  <wsdl:message name="getRBUInfoByStoreIDSoapIn">
+    <wsdl:part name="parameters" element="tns:getRBUInfoByStoreID" />
+  </wsdl:message>
+  <wsdl:message name="getRBUInfoByStoreIDSoapOut">
+    <wsdl:part name="parameters" element="tns:getRBUInfoByStoreIDResponse" />
+  </wsdl:message>
+  <wsdl:message name="CheckURLRedirectionSoapIn">
+    <wsdl:part name="parameters" element="tns:CheckURLRedirection" />
+  </wsdl:message>
+  <wsdl:message name="CheckURLRedirectionSoapOut">
+    <wsdl:part name="parameters" element="tns:CheckURLRedirectionResponse" />
+  </wsdl:message>
+  <wsdl:message name="CheckSpecDataExistSoapIn">
+    <wsdl:part name="parameters" element="tns:CheckSpecDataExist" />
+  </wsdl:message>
+  <wsdl:message name="CheckSpecDataExistSoapOut">
+    <wsdl:part name="parameters" element="tns:CheckSpecDataExistResponse" />
+  </wsdl:message>
+  <wsdl:message name="GetCompletionListSoapIn">
+    <wsdl:part name="parameters" element="tns:GetCompletionList" />
+  </wsdl:message>
+  <wsdl:message name="GetCompletionListSoapOut">
+    <wsdl:part name="parameters" element="tns:GetCompletionListResponse" />
+  </wsdl:message>
+  <wsdl:message name="AddRatingHttpGetIn">
+    <wsdl:part name="title" type="s:string" />
+    <wsdl:part name="url" type="s:string" />
+    <wsdl:part name="rate" type="s:string" />
+    <wsdl:part name="comments" type="s:string" />
+  </wsdl:message>
+  <wsdl:message name="AddRatingHttpGetOut">
+    <wsdl:part name="Body" element="tns:boolean" />
+  </wsdl:message>
+  <wsdl:message name="getPressroomNewsHttpGetIn" />
+  <wsdl:message name="getPressroomNewsHttpGetOut">
+    <wsdl:part name="Body" element="tns:DataSet" />
+  </wsdl:message>
+  <wsdl:message name="getCorpEventsHttpGetIn" />
+  <wsdl:message name="getCorpEventsHttpGetOut">
+    <wsdl:part name="Body" element="tns:DataSet" />
+  </wsdl:message>
+  <wsdl:message name="getCorpEventsByRBUHttpGetIn">
+    <wsdl:part name="RBU" type="s:string" />
+  </wsdl:message>
+  <wsdl:message name="getCorpEventsByRBUHttpGetOut">
+    <wsdl:part name="Body" element="tns:DataSet" />
+  </wsdl:message>
+  <wsdl:message name="getCMS_CategoryName_ListByHttpGetIn">
+    <wsdl:part name="strCatalogName" type="s:string" />
+  </wsdl:message>
+  <wsdl:message name="getCMS_CategoryName_ListByHttpGetOut">
+    <wsdl:part name="Body" element="tns:ArrayOfString" />
+  </wsdl:message>
+  <wsdl:message name="getCMS_Category_ListByHttpGetIn">
+    <wsdl:part name="strCatalogName" type="s:string" />
+    <wsdl:part name="strFilter" type="s:string" />
+  </wsdl:message>
+  <wsdl:message name="getCMS_Category_ListByHttpGetOut">
+    <wsdl:part name="Body" element="tns:DataTable" />
+  </wsdl:message>
+  <wsdl:message name="getCMSHttpGetIn">
+    <wsdl:part name="stringBUList" type="s:string" />
+    <wsdl:part name="stringCMSType" type="s:string" />
+    <wsdl:part name="stringRBU" type="s:string" />
+  </wsdl:message>
+  <wsdl:message name="getCMSHttpGetOut">
+    <wsdl:part name="Body" element="tns:DataSet" />
+  </wsdl:message>
+  <wsdl:message name="getCMSByBAAHttpGetIn">
+    <wsdl:part name="stringBAAList" type="s:string" />
+    <wsdl:part name="stringCMSType" type="s:string" />
+    <wsdl:part name="stringRBU" type="s:string" />
+    <wsdl:part name="intReturnRow" type="s:string" />
+  </wsdl:message>
+  <wsdl:message name="getCMSByBAAHttpGetOut">
+    <wsdl:part name="Body" element="tns:DataSet" />
+  </wsdl:message>
+  <wsdl:message name="getCMSTagListHttpGetIn">
+    <wsdl:part name="cmsID" type="s:string" />
+  </wsdl:message>
+  <wsdl:message name="getCMSTagListHttpGetOut">
+    <wsdl:part name="Body" element="tns:DataSet" />
+  </wsdl:message>
+  <wsdl:message name="getCMSMasterHttpGetIn">
+    <wsdl:part name="cmsID" type="s:string" />
+  </wsdl:message>
+  <wsdl:message name="getCMSMasterHttpGetOut">
+    <wsdl:part name="Body" element="tns:DataSet" />
+  </wsdl:message>
+  <wsdl:message name="getCMSDetailContentHttpGetIn">
+    <wsdl:part name="cmsID" type="s:string" />
+  </wsdl:message>
+  <wsdl:message name="getCMSDetailContentHttpGetOut">
+    <wsdl:part name="Body" element="tns:string" />
+  </wsdl:message>
+  <wsdl:message name="getCMS_ProductCategoryListHttpGetIn">
+    <wsdl:part name="CMSID" type="s:string" />
+  </wsdl:message>
+  <wsdl:message name="getCMS_ProductCategoryListHttpGetOut">
+    <wsdl:part name="Body" element="tns:DataTable" />
+  </wsdl:message>
+  <wsdl:message name="GetLogFromOn24HttpGetIn">
+    <wsdl:part name="strEvent" type="s:string" />
+    <wsdl:part name="sDt" type="s:string" />
+    <wsdl:part name="eDt" type="s:string" />
+    <wsdl:part name="strType" type="s:string" />
+  </wsdl:message>
+  <wsdl:message name="GetLogFromOn24HttpGetOut">
+    <wsdl:part name="Body" element="tns:DataTable" />
+  </wsdl:message>
+  <wsdl:message name="GetRatingHttpGetIn">
+    <wsdl:part name="url" type="s:string" />
+  </wsdl:message>
+  <wsdl:message name="GetRatingHttpGetOut">
+    <wsdl:part name="Body" element="tns:int" />
+  </wsdl:message>
+  <wsdl:message name="getModelInfoHttpGetIn">
+    <wsdl:part name="keyword" type="s:string" />
+  </wsdl:message>
+  <wsdl:message name="getModelInfoHttpGetOut">
+    <wsdl:part name="Body" element="tns:DataTable" />
+  </wsdl:message>
+  <wsdl:message name="getProductInfoByPartNumberHttpGetIn">
+    <wsdl:part name="strPartNumber" type="s:string" />
+  </wsdl:message>
+  <wsdl:message name="getProductInfoByPartNumberHttpGetOut">
+    <wsdl:part name="Body" element="tns:ProductInfo" />
+  </wsdl:message>
+  <wsdl:message name="AddHttpGetIn">
+    <wsdl:part name="a" type="s:string" />
+    <wsdl:part name="b" type="s:string" />
+  </wsdl:message>
+  <wsdl:message name="AddHttpGetOut">
+    <wsdl:part name="Body" element="tns:string" />
+  </wsdl:message>
+  <wsdl:message name="getModelListHttpGetIn">
+    <wsdl:part name="keyword" type="s:string" />
+  </wsdl:message>
+  <wsdl:message name="getModelListHttpGetOut">
+    <wsdl:part name="Body" element="tns:ArrayOfModelDataList" />
+  </wsdl:message>
+  <wsdl:message name="GetModelCategoryIDListHttpGetIn">
+    <wsdl:part name="keyword" type="s:string" />
+  </wsdl:message>
+  <wsdl:message name="GetModelCategoryIDListHttpGetOut">
+    <wsdl:part name="Body" element="tns:ArrayOfModelCategoryIDList" />
+  </wsdl:message>
+  <wsdl:message name="GetModelDetailInfoHttpGetIn">
+    <wsdl:part name="categoryid" type="s:string" />
+  </wsdl:message>
+  <wsdl:message name="GetModelDetailInfoHttpGetOut">
+    <wsdl:part name="Body" element="tns:ArrayOfModelDetail" />
+  </wsdl:message>
+  <wsdl:message name="AddBannerLogHttpGetIn">
+    <wsdl:part name="ID" type="s:string" />
+    <wsdl:part name="Type" type="s:string" />
+  </wsdl:message>
+  <wsdl:message name="AddBannerLogHttpGetOut" />
+  <wsdl:message name="AddProductLogHttpGetIn">
+    <wsdl:part name="CATEGORY_ID" type="s:string" />
+    <wsdl:part name="PARENT_CATEGORY_ID" type="s:string" />
+    <wsdl:part name="BU" type="s:string" />
+    <wsdl:part name="Type" type="s:string" />
+  </wsdl:message>
+  <wsdl:message name="AddProductLogHttpGetOut" />
+  <wsdl:message name="CheckeStoreProductHttpGetIn">
+    <wsdl:part name="PN" type="s:string" />
+    <wsdl:part name="CTOSsiteID" type="s:string" />
+    <wsdl:part name="ElementID" type="s:string" />
+  </wsdl:message>
+  <wsdl:message name="CheckeStoreProductHttpGetOut">
+    <wsdl:part name="Body" element="tns:string" />
+  </wsdl:message>
+  <wsdl:message name="CheckBuyProductHttpGetIn">
+    <wsdl:part name="PN" type="s:string" />
+    <wsdl:part name="SiteID" type="s:string" />
+    <wsdl:part name="ElementID" type="s:string" />
+  </wsdl:message>
+  <wsdl:message name="CheckBuyProductHttpGetOut">
+    <wsdl:part name="Body" element="tns:string" />
+  </wsdl:message>
+  <wsdl:message name="getOnlineUserHttpGetIn" />
+  <wsdl:message name="getOnlineUserHttpGetOut">
+    <wsdl:part name="Body" element="tns:int" />
+  </wsdl:message>
+  <wsdl:message name="getSEOAdminLinkHttpGetIn">
+    <wsdl:part name="Path" type="s:string" />
+  </wsdl:message>
+  <wsdl:message name="getSEOAdminLinkHttpGetOut">
+    <wsdl:part name="Body" element="tns:string" />
+  </wsdl:message>
+  <wsdl:message name="getModelImageHttpGetIn">
+    <wsdl:part name="partNumber" type="s:string" />
+    <wsdl:part name="LitType" type="s:string" />
+  </wsdl:message>
+  <wsdl:message name="getModelImageHttpGetOut">
+    <wsdl:part name="Body" element="tns:string" />
+  </wsdl:message>
+  <wsdl:message name="checkProductDownloadFileHttpGetIn">
+    <wsdl:part name="displayName" type="s:string" />
+    <wsdl:part name="objectID" type="s:string" />
+  </wsdl:message>
+  <wsdl:message name="checkProductDownloadFileHttpGetOut">
+    <wsdl:part name="Body" element="tns:string" />
+  </wsdl:message>
+  <wsdl:message name="getModelDownloadInStringHttpGetIn">
+    <wsdl:part name="partNumber" type="s:string" />
+    <wsdl:part name="dataType" type="s:string" />
+  </wsdl:message>
+  <wsdl:message name="getModelDownloadInStringHttpGetOut">
+    <wsdl:part name="Body" element="tns:string" />
+  </wsdl:message>
+  <wsdl:message name="getRBUInfoByStoreIDHttpGetIn">
+    <wsdl:part name="storeID" type="s:string" />
+  </wsdl:message>
+  <wsdl:message name="getRBUInfoByStoreIDHttpGetOut">
+    <wsdl:part name="Body" element="tns:DataSet" />
+  </wsdl:message>
+  <wsdl:message name="CheckURLRedirectionHttpGetIn" />
+  <wsdl:message name="CheckURLRedirectionHttpGetOut">
+    <wsdl:part name="Body" element="tns:string" />
+  </wsdl:message>
+  <wsdl:message name="CheckSpecDataExistHttpGetIn">
+    <wsdl:part name="categoryID" type="s:string" />
+  </wsdl:message>
+  <wsdl:message name="CheckSpecDataExistHttpGetOut">
+    <wsdl:part name="Body" element="tns:string" />
+  </wsdl:message>
+  <wsdl:message name="GetCompletionListHttpGetIn">
+    <wsdl:part name="prefixText" type="s:string" />
+    <wsdl:part name="count" type="s:string" />
+  </wsdl:message>
+  <wsdl:message name="GetCompletionListHttpGetOut">
+    <wsdl:part name="Body" element="tns:ArrayOfString" />
+  </wsdl:message>
+  <wsdl:message name="AddRatingHttpPostIn">
+    <wsdl:part name="title" type="s:string" />
+    <wsdl:part name="url" type="s:string" />
+    <wsdl:part name="rate" type="s:string" />
+    <wsdl:part name="comments" type="s:string" />
+  </wsdl:message>
+  <wsdl:message name="AddRatingHttpPostOut">
+    <wsdl:part name="Body" element="tns:boolean" />
+  </wsdl:message>
+  <wsdl:message name="getPressroomNewsHttpPostIn" />
+  <wsdl:message name="getPressroomNewsHttpPostOut">
+    <wsdl:part name="Body" element="tns:DataSet" />
+  </wsdl:message>
+  <wsdl:message name="getCorpEventsHttpPostIn" />
+  <wsdl:message name="getCorpEventsHttpPostOut">
+    <wsdl:part name="Body" element="tns:DataSet" />
+  </wsdl:message>
+  <wsdl:message name="getCorpEventsByRBUHttpPostIn">
+    <wsdl:part name="RBU" type="s:string" />
+  </wsdl:message>
+  <wsdl:message name="getCorpEventsByRBUHttpPostOut">
+    <wsdl:part name="Body" element="tns:DataSet" />
+  </wsdl:message>
+  <wsdl:message name="getCMS_CategoryName_ListByHttpPostIn">
+    <wsdl:part name="strCatalogName" type="s:string" />
+  </wsdl:message>
+  <wsdl:message name="getCMS_CategoryName_ListByHttpPostOut">
+    <wsdl:part name="Body" element="tns:ArrayOfString" />
+  </wsdl:message>
+  <wsdl:message name="getCMS_Category_ListByHttpPostIn">
+    <wsdl:part name="strCatalogName" type="s:string" />
+    <wsdl:part name="strFilter" type="s:string" />
+  </wsdl:message>
+  <wsdl:message name="getCMS_Category_ListByHttpPostOut">
+    <wsdl:part name="Body" element="tns:DataTable" />
+  </wsdl:message>
+  <wsdl:message name="getCMSHttpPostIn">
+    <wsdl:part name="stringBUList" type="s:string" />
+    <wsdl:part name="stringCMSType" type="s:string" />
+    <wsdl:part name="stringRBU" type="s:string" />
+  </wsdl:message>
+  <wsdl:message name="getCMSHttpPostOut">
+    <wsdl:part name="Body" element="tns:DataSet" />
+  </wsdl:message>
+  <wsdl:message name="getCMSByBAAHttpPostIn">
+    <wsdl:part name="stringBAAList" type="s:string" />
+    <wsdl:part name="stringCMSType" type="s:string" />
+    <wsdl:part name="stringRBU" type="s:string" />
+    <wsdl:part name="intReturnRow" type="s:string" />
+  </wsdl:message>
+  <wsdl:message name="getCMSByBAAHttpPostOut">
+    <wsdl:part name="Body" element="tns:DataSet" />
+  </wsdl:message>
+  <wsdl:message name="getCMSTagListHttpPostIn">
+    <wsdl:part name="cmsID" type="s:string" />
+  </wsdl:message>
+  <wsdl:message name="getCMSTagListHttpPostOut">
+    <wsdl:part name="Body" element="tns:DataSet" />
+  </wsdl:message>
+  <wsdl:message name="getCMSMasterHttpPostIn">
+    <wsdl:part name="cmsID" type="s:string" />
+  </wsdl:message>
+  <wsdl:message name="getCMSMasterHttpPostOut">
+    <wsdl:part name="Body" element="tns:DataSet" />
+  </wsdl:message>
+  <wsdl:message name="getCMSDetailContentHttpPostIn">
+    <wsdl:part name="cmsID" type="s:string" />
+  </wsdl:message>
+  <wsdl:message name="getCMSDetailContentHttpPostOut">
+    <wsdl:part name="Body" element="tns:string" />
+  </wsdl:message>
+  <wsdl:message name="getCMS_ProductCategoryListHttpPostIn">
+    <wsdl:part name="CMSID" type="s:string" />
+  </wsdl:message>
+  <wsdl:message name="getCMS_ProductCategoryListHttpPostOut">
+    <wsdl:part name="Body" element="tns:DataTable" />
+  </wsdl:message>
+  <wsdl:message name="GetLogFromOn24HttpPostIn">
+    <wsdl:part name="strEvent" type="s:string" />
+    <wsdl:part name="sDt" type="s:string" />
+    <wsdl:part name="eDt" type="s:string" />
+    <wsdl:part name="strType" type="s:string" />
+  </wsdl:message>
+  <wsdl:message name="GetLogFromOn24HttpPostOut">
+    <wsdl:part name="Body" element="tns:DataTable" />
+  </wsdl:message>
+  <wsdl:message name="GetRatingHttpPostIn">
+    <wsdl:part name="url" type="s:string" />
+  </wsdl:message>
+  <wsdl:message name="GetRatingHttpPostOut">
+    <wsdl:part name="Body" element="tns:int" />
+  </wsdl:message>
+  <wsdl:message name="getModelInfoHttpPostIn">
+    <wsdl:part name="keyword" type="s:string" />
+  </wsdl:message>
+  <wsdl:message name="getModelInfoHttpPostOut">
+    <wsdl:part name="Body" element="tns:DataTable" />
+  </wsdl:message>
+  <wsdl:message name="getProductInfoByPartNumberHttpPostIn">
+    <wsdl:part name="strPartNumber" type="s:string" />
+  </wsdl:message>
+  <wsdl:message name="getProductInfoByPartNumberHttpPostOut">
+    <wsdl:part name="Body" element="tns:ProductInfo" />
+  </wsdl:message>
+  <wsdl:message name="AddHttpPostIn">
+    <wsdl:part name="a" type="s:string" />
+    <wsdl:part name="b" type="s:string" />
+  </wsdl:message>
+  <wsdl:message name="AddHttpPostOut">
+    <wsdl:part name="Body" element="tns:string" />
+  </wsdl:message>
+  <wsdl:message name="getModelListHttpPostIn">
+    <wsdl:part name="keyword" type="s:string" />
+  </wsdl:message>
+  <wsdl:message name="getModelListHttpPostOut">
+    <wsdl:part name="Body" element="tns:ArrayOfModelDataList" />
+  </wsdl:message>
+  <wsdl:message name="GetModelCategoryIDListHttpPostIn">
+    <wsdl:part name="keyword" type="s:string" />
+  </wsdl:message>
+  <wsdl:message name="GetModelCategoryIDListHttpPostOut">
+    <wsdl:part name="Body" element="tns:ArrayOfModelCategoryIDList" />
+  </wsdl:message>
+  <wsdl:message name="GetModelDetailInfoHttpPostIn">
+    <wsdl:part name="categoryid" type="s:string" />
+  </wsdl:message>
+  <wsdl:message name="GetModelDetailInfoHttpPostOut">
+    <wsdl:part name="Body" element="tns:ArrayOfModelDetail" />
+  </wsdl:message>
+  <wsdl:message name="AddBannerLogHttpPostIn">
+    <wsdl:part name="ID" type="s:string" />
+    <wsdl:part name="Type" type="s:string" />
+  </wsdl:message>
+  <wsdl:message name="AddBannerLogHttpPostOut" />
+  <wsdl:message name="AddProductLogHttpPostIn">
+    <wsdl:part name="CATEGORY_ID" type="s:string" />
+    <wsdl:part name="PARENT_CATEGORY_ID" type="s:string" />
+    <wsdl:part name="BU" type="s:string" />
+    <wsdl:part name="Type" type="s:string" />
+  </wsdl:message>
+  <wsdl:message name="AddProductLogHttpPostOut" />
+  <wsdl:message name="CheckeStoreProductHttpPostIn">
+    <wsdl:part name="PN" type="s:string" />
+    <wsdl:part name="CTOSsiteID" type="s:string" />
+    <wsdl:part name="ElementID" type="s:string" />
+  </wsdl:message>
+  <wsdl:message name="CheckeStoreProductHttpPostOut">
+    <wsdl:part name="Body" element="tns:string" />
+  </wsdl:message>
+  <wsdl:message name="CheckBuyProductHttpPostIn">
+    <wsdl:part name="PN" type="s:string" />
+    <wsdl:part name="SiteID" type="s:string" />
+    <wsdl:part name="ElementID" type="s:string" />
+  </wsdl:message>
+  <wsdl:message name="CheckBuyProductHttpPostOut">
+    <wsdl:part name="Body" element="tns:string" />
+  </wsdl:message>
+  <wsdl:message name="getOnlineUserHttpPostIn" />
+  <wsdl:message name="getOnlineUserHttpPostOut">
+    <wsdl:part name="Body" element="tns:int" />
+  </wsdl:message>
+  <wsdl:message name="getSEOAdminLinkHttpPostIn">
+    <wsdl:part name="Path" type="s:string" />
+  </wsdl:message>
+  <wsdl:message name="getSEOAdminLinkHttpPostOut">
+    <wsdl:part name="Body" element="tns:string" />
+  </wsdl:message>
+  <wsdl:message name="getModelImageHttpPostIn">
+    <wsdl:part name="partNumber" type="s:string" />
+    <wsdl:part name="LitType" type="s:string" />
+  </wsdl:message>
+  <wsdl:message name="getModelImageHttpPostOut">
+    <wsdl:part name="Body" element="tns:string" />
+  </wsdl:message>
+  <wsdl:message name="checkProductDownloadFileHttpPostIn">
+    <wsdl:part name="displayName" type="s:string" />
+    <wsdl:part name="objectID" type="s:string" />
+  </wsdl:message>
+  <wsdl:message name="checkProductDownloadFileHttpPostOut">
+    <wsdl:part name="Body" element="tns:string" />
+  </wsdl:message>
+  <wsdl:message name="getModelDownloadInStringHttpPostIn">
+    <wsdl:part name="partNumber" type="s:string" />
+    <wsdl:part name="dataType" type="s:string" />
+  </wsdl:message>
+  <wsdl:message name="getModelDownloadInStringHttpPostOut">
+    <wsdl:part name="Body" element="tns:string" />
+  </wsdl:message>
+  <wsdl:message name="getRBUInfoByStoreIDHttpPostIn">
+    <wsdl:part name="storeID" type="s:string" />
+  </wsdl:message>
+  <wsdl:message name="getRBUInfoByStoreIDHttpPostOut">
+    <wsdl:part name="Body" element="tns:DataSet" />
+  </wsdl:message>
+  <wsdl:message name="CheckURLRedirectionHttpPostIn" />
+  <wsdl:message name="CheckURLRedirectionHttpPostOut">
+    <wsdl:part name="Body" element="tns:string" />
+  </wsdl:message>
+  <wsdl:message name="CheckSpecDataExistHttpPostIn">
+    <wsdl:part name="categoryID" type="s:string" />
+  </wsdl:message>
+  <wsdl:message name="CheckSpecDataExistHttpPostOut">
+    <wsdl:part name="Body" element="tns:string" />
+  </wsdl:message>
+  <wsdl:message name="GetCompletionListHttpPostIn">
+    <wsdl:part name="prefixText" type="s:string" />
+    <wsdl:part name="count" type="s:string" />
+  </wsdl:message>
+  <wsdl:message name="GetCompletionListHttpPostOut">
+    <wsdl:part name="Body" element="tns:ArrayOfString" />
+  </wsdl:message>
+  <wsdl:portType name="AdvantechWebServiceLocalSoap">
+    <wsdl:operation name="AddRating">
+      <wsdl:input message="tns:AddRatingSoapIn" />
+      <wsdl:output message="tns:AddRatingSoapOut" />
+    </wsdl:operation>
+    <wsdl:operation name="getPressroomNews">
+      <wsdl:input message="tns:getPressroomNewsSoapIn" />
+      <wsdl:output message="tns:getPressroomNewsSoapOut" />
+    </wsdl:operation>
+    <wsdl:operation name="getCorpEvents">
+      <wsdl:documentation xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/">Get the corp. events</wsdl:documentation>
+      <wsdl:input message="tns:getCorpEventsSoapIn" />
+      <wsdl:output message="tns:getCorpEventsSoapOut" />
+    </wsdl:operation>
+    <wsdl:operation name="getCorpEventsByRBU">
+      <wsdl:documentation xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/">Get the corp. events by RBU.</wsdl:documentation>
+      <wsdl:input message="tns:getCorpEventsByRBUSoapIn" />
+      <wsdl:output message="tns:getCorpEventsByRBUSoapOut" />
+    </wsdl:operation>
+    <wsdl:operation name="getCMS_CategoryName_ListBy">
+      <wsdl:documentation xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/">Get Category Name List By Catalog Name</wsdl:documentation>
+      <wsdl:input message="tns:getCMS_CategoryName_ListBySoapIn" />
+      <wsdl:output message="tns:getCMS_CategoryName_ListBySoapOut" />
+    </wsdl:operation>
+    <wsdl:operation name="getCMS_Category_ListBy">
+      <wsdl:documentation xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/">Get Category List By Catalog Name</wsdl:documentation>
+      <wsdl:input message="tns:getCMS_Category_ListBySoapIn" />
+      <wsdl:output message="tns:getCMS_Category_ListBySoapOut" />
+    </wsdl:operation>
+    <wsdl:operation name="getCMS">
+      <wsdl:documentation xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/">Get the CMS by RBU, BU/PD and Type. LOV:&lt;br /&gt;&lt;b&gt;BU&lt;/b&gt;(String, Multi value, seperated by comma.)&lt;ul&gt;&lt;li&gt;AC&lt;/li&gt;&lt;li&gt;BUILDING_AUTOMATION_SYSTEM&lt;/li&gt;&lt;li&gt;CHASSIS&lt;/li&gt;&lt;li&gt;CONTROLLERS_SOFTWARE&lt;/li&gt;&lt;li&gt;CORP&lt;/li&gt;&lt;li&gt;CPCI&lt;/li&gt;&lt;li&gt;DATA-ACQUSITION-CONTROL&lt;/li&gt;&lt;li&gt;DIGITAL_SIGNAGE&lt;/li&gt;&lt;li&gt;DIGITAL_SURVEILLANCE&lt;/li&gt;&lt;li&gt;DIGITAL_VIDEO&lt;/li&gt;&lt;li&gt;DISPLAY-SOLUTION&lt;/li&gt;&lt;li&gt;DISTRIBUTED_IO&lt;/li&gt;&lt;li&gt;DS&lt;/li&gt;&lt;li&gt;EAUTOMATION&lt;/li&gt;&lt;li&gt;EBC&lt;/li&gt;&lt;li&gt;EMBEDDED_AUTOMATION_COMPUTERS&lt;/li&gt;&lt;li&gt;EPLATFORM&lt;/li&gt;&lt;li&gt;EVIDEO&lt;/li&gt;&lt;li&gt;HMI&lt;/li&gt;&lt;li&gt;HOME-AUTOMATION&lt;/li&gt;&lt;li&gt;INDUSTRIAL_COMMUNICATION&lt;/li&gt;&lt;li&gt;INDUSTRIAL_IO&lt;/li&gt;&lt;li&gt;INDUSTRIAL-MOBILE-COMPUTERS&lt;/li&gt;&lt;li&gt;MEDICAL&lt;/li&gt;&lt;li&gt;MOBILE_COMPUTING&lt;/li&gt;&lt;li&gt;MOTHERBOARDS&lt;/li&gt;&lt;li&gt;NA&lt;/li&gt;&lt;li&gt;NCG&lt;/li&gt;&lt;li&gt;NETWORK&lt;/li&gt;&lt;li&gt;PANEL-PC&lt;/li&gt;&lt;li&gt;PICMG_SBC&lt;/li&gt;&lt;li&gt;PUBLIC_SERVICE&lt;/li&gt;&lt;li&gt;RISC&lt;/li&gt;&lt;li&gt;SBC&lt;/li&gt;&lt;li&gt;SELFSERVICE&lt;/li&gt;&lt;li&gt;SELF-SERVICE-SOLUTIONS&lt;/li&gt;&lt;li&gt;SOM&lt;/li&gt;&lt;li&gt;STACKABLESBC&lt;/li&gt;&lt;li&gt;UBIQ&lt;/li&gt;&lt;li&gt;VIDEO-SURVEILLANCE-SOLUTION&lt;/li&gt;&lt;/ul&gt;&lt;b&gt;Sector(Vertical Market)&lt;/b&gt;&lt;ul&gt;&lt;li&gt;(Sector)BuildingAutomation&lt;/li&gt;&lt;li&gt;(Sector)CommunicationsandNetworking&lt;/li&gt;&lt;li&gt;(Sector)EnvironmentalFacilityManagement&lt;/li&gt;&lt;li&gt;(Sector)Gaming&lt;/li&gt;&lt;li&gt;(Sector)GreenEnergy&lt;/li&gt;&lt;li&gt;(Sector)MachineAutomation&lt;/li&gt;&lt;li&gt;(Sector)Medical&lt;/li&gt;&lt;li&gt;(Sector)PowerEnergy&lt;/li&gt;&lt;li&gt;(Sector)PowerGenerationDistribution&lt;/li&gt;&lt;li&gt;(Sector)RealEstateIntelligence&lt;/li&gt;&lt;li&gt;(Sector)SelfService&lt;/li&gt;&lt;li&gt;(Sector)Transportation&lt;/li&gt;&lt;li&gt;(Sector)VehicleComputing&lt;/li&gt;&lt;/ul&gt;&lt;b&gt;RBU&lt;/b&gt;&lt;ul&gt;&lt;li&gt;AUS&lt;/li&gt;&lt;li&gt;ACL&lt;/li&gt;&lt;li&gt;ATW&lt;/li&gt;&lt;li&gt;AEU&lt;/li&gt;&lt;li&gt;AAU&lt;/li&gt;&lt;li&gt;ACN&lt;/li&gt;&lt;li&gt;AJP&lt;/li&gt;&lt;li&gt;AKR&lt;/li&gt;&lt;li&gt;SAP&lt;/li&gt;&lt;/ul&gt;&lt;b&gt;CMS Type&lt;/b&gt;&lt;ul&gt;&lt;li&gt;Case EVENT&lt;/li&gt;&lt;li&gt;NEWS&lt;/li&gt;&lt;li&gt;VIDEO&lt;/li&gt;&lt;li&gt;CASE STUDY&lt;/li&gt;&lt;li&gt;WHITE PAPER&lt;/li&gt;&lt;li&gt;PODCAST&lt;/li&gt;&lt;li&gt;WEBCAST&lt;/li&gt;&lt;li&gt;TRAINING&lt;/li&gt;&lt;/ul&gt;</wsdl:documentation>
+      <wsdl:input message="tns:getCMSSoapIn" />
+      <wsdl:output message="tns:getCMSSoapOut" />
+    </wsdl:operation>
+    <wsdl:operation name="getCMSByBAA">
+      <wsdl:documentation xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/">Get the CMS by RBU, BAA and Type. LOV:&lt;br /&gt;&lt;b&gt;BAA&lt;/b&gt;(String, Multi value, seperated by comma.)&lt;ul&gt;&lt;li&gt;Aircraft/aerospace&lt;/li&gt;&lt;li&gt;Automated Optical Inspection(AOI)&lt;/li&gt;&lt;li&gt;Automotive&lt;/li&gt;&lt;li&gt;Building Automation&lt;/li&gt;&lt;li&gt;Chemical&lt;/li&gt;&lt;li&gt;Consulting/Engineering/System Integrator&lt;/li&gt;&lt;li&gt;Data Processing/Ent eBusiness/ERP Integration&lt;/li&gt;&lt;li&gt;Digi Signage/Info Display/Narrow Casting/Streaming&lt;/li&gt;&lt;li&gt;Education/eLearning&lt;/li&gt;&lt;li&gt;Entertainment/Gaming&lt;/li&gt;&lt;li&gt;Factory Automation&lt;/li&gt;&lt;li&gt;Food/Beverage&lt;/li&gt;&lt;li&gt;Government/Military&lt;/li&gt;&lt;li&gt;Home Automation&lt;/li&gt;&lt;li&gt;Industrial Equipment Manufacturing&lt;/li&gt;&lt;li&gt;Internet Security&lt;/li&gt;&lt;li&gt;Internet Service Provider&lt;/li&gt;&lt;li&gt;In-vehicle Computing&lt;/li&gt;&lt;li&gt;KIOSK/Point of Sale Terminals&lt;/li&gt;&lt;li&gt;Logistics/Warehouse Management&lt;/li&gt;&lt;li&gt;M2M&lt;/li&gt;&lt;li&gt;Machine Automation&lt;/li&gt;&lt;li&gt;Marine&lt;/li&gt;&lt;li&gt;Metals/Mining&lt;/li&gt;&lt;li&gt;Others&lt;/li&gt;&lt;li&gt;Packaging&lt;/li&gt;&lt;li&gt;Petroleum&lt;/li&gt;&lt;li&gt;Pharmaceutical/Medical/Healthcare&lt;/li&gt;&lt;li&gt;Plastics/Textiles/Fibers&lt;/li&gt;&lt;li&gt;Power &amp; Energy&lt;/li&gt;&lt;li&gt;Pharmaceutical/Medical/Healthcare&lt;/li&gt;&lt;li&gt;Pulp/Paper&lt;/li&gt;&lt;li&gt;Remote Monitoring &amp; Control&lt;/li&gt;&lt;li&gt;Research&lt;/li&gt;&lt;li&gt;Security &amp; Video Surveillance&lt;/li&gt;&lt;li&gt;Semiconductor&lt;/li&gt;&lt;li&gt;Telecommunications&lt;/li&gt;&lt;li&gt;Test/Measurement/Instrumentation&lt;/li&gt;&lt;li&gt;Transportation&lt;/li&gt;&lt;li&gt;Utilities&lt;/li&gt;&lt;li&gt;Water/Emission/Air Quality Monitoring&lt;/li&gt;&lt;li&gt;Water/Wastewater&lt;/li&gt;&lt;/ul&gt;&lt;b&gt;RBU&lt;/b&gt;&lt;ul&gt;&lt;li&gt;AUS&lt;/li&gt;&lt;li&gt;ACL&lt;/li&gt;&lt;li&gt;ATW&lt;/li&gt;&lt;li&gt;AEU&lt;/li&gt;&lt;li&gt;AAU&lt;/li&gt;&lt;li&gt;ACN&lt;/li&gt;&lt;li&gt;AJP&lt;/li&gt;&lt;li&gt;AKR&lt;/li&gt;&lt;li&gt;SAP&lt;/li&gt;&lt;/ul&gt;&lt;b&gt;CMS Type&lt;/b&gt;&lt;ul&gt;&lt;li&gt;Case EVENT&lt;/li&gt;&lt;li&gt;NEWS&lt;/li&gt;&lt;li&gt;VIDEO&lt;/li&gt;&lt;li&gt;CASE STUDY&lt;/li&gt;&lt;li&gt;WHITE PAPER&lt;/li&gt;&lt;li&gt;PODCAST&lt;/li&gt;&lt;li&gt;WEBCAST&lt;/li&gt;&lt;li&gt;TRAINING&lt;/li&gt;&lt;/ul&gt;</wsdl:documentation>
+      <wsdl:input message="tns:getCMSByBAASoapIn" />
+      <wsdl:output message="tns:getCMSByBAASoapOut" />
+    </wsdl:operation>
+    <wsdl:operation name="getCMSBy">
+      <wsdl:documentation xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/">Get the CMS by&lt;br/&gt;&lt;br/&gt;&lt;b&gt;strCMSType:&lt;/b&gt;getCMS_CategoryName_ListBy("News Type")&lt;br/&gt;&lt;br/&gt;&lt;b&gt;strRBU:&lt;/b&gt;getCMS_CategoryName_ListBy("Target Area")&lt;br/&gt;&lt;br/&gt;&lt;b&gt;list_CL:&lt;/b&gt;getCMS_CategoryName_ListBy("Corporate Level")&lt;br/&gt;&lt;br/&gt;&lt;b&gt;list_BU:&lt;/b&gt;getCMS_CategoryName_ListBy("BU/Sector")&lt;br/&gt;&lt;br/&gt;&lt;b&gt;list_PD:&lt;/b&gt;getCMS_CategoryName_ListBy("PD")&lt;br/&gt;&lt;br/&gt;&lt;b&gt;list_BAA:&lt;/b&gt;getCMS_CategoryName_ListBy("Business Application Areas")&lt;br/&gt;&lt;br/&gt;&lt;b&gt;list_eJF:&lt;/b&gt;getCMS_CategoryName_ListBy("eLearning(Job Function)")&lt;br/&gt;&lt;br/&gt;&lt;b&gt;list_eL:&lt;/b&gt;getCMS_CategoryName_ListBy("eLearning(Level)")&lt;br/&gt;&lt;br/&gt;&lt;b&gt;list_Activity:&lt;/b&gt;getCMS_CategoryName_ListBy("Activity")&lt;br/&gt;&lt;br/&gt;&lt;b&gt;strContactLocation:&lt;/b&gt;getCMS_CategoryName_ListBy("Content Location")&lt;br/&gt;&lt;br/&gt;&lt;b&gt;intReturnRow:Return Record (Default : 300)&lt;/b&gt;</wsdl:documentation>
+      <wsdl:input message="tns:getCMSBySoapIn" />
+      <wsdl:output message="tns:getCMSBySoapOut" />
+    </wsdl:operation>
+    <wsdl:operation name="getCMSByVer2">
+      <wsdl:documentation xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/">Get the CMS by&lt;br/&gt;&lt;br/&gt;&lt;b&gt;strCMSType:&lt;/b&gt;getCMS_CategoryName_ListBy("News Type")&lt;br/&gt;&lt;br/&gt;&lt;b&gt;strRBU:&lt;/b&gt;getCMS_CategoryName_ListBy("Target Area")&lt;br/&gt;&lt;br/&gt;&lt;b&gt;list_CL:&lt;/b&gt;getCMS_CategoryName_ListBy("Corporate Level")&lt;br/&gt;&lt;br/&gt;&lt;b&gt;list_BU:&lt;/b&gt;getCMS_CategoryName_ListBy("BU/Sector")&lt;br/&gt;&lt;br/&gt;&lt;b&gt;list_PD:&lt;/b&gt;getCMS_CategoryName_ListBy("PD")&lt;br/&gt;&lt;br/&gt;&lt;b&gt;list_BAA:&lt;/b&gt;getCMS_CategoryName_ListBy("Business Application Areas")&lt;br/&gt;&lt;br/&gt;&lt;b&gt;list_eJF:&lt;/b&gt;getCMS_CategoryName_ListBy("eLearning(Job Function)")&lt;br/&gt;&lt;br/&gt;&lt;b&gt;list_eL:&lt;/b&gt;getCMS_CategoryName_ListBy("eLearning(Level)")&lt;br/&gt;&lt;br/&gt;&lt;b&gt;list_Activity:&lt;/b&gt;getCMS_CategoryName_ListBy("Activity")&lt;br/&gt;&lt;br/&gt;&lt;b&gt;strContactLocation:&lt;/b&gt;getCMS_CategoryName_ListBy("Content Location")&lt;br/&gt;&lt;br/&gt;&lt;b&gt;intReturnRow:Return Record (Default : 300)&lt;/b&gt;</wsdl:documentation>
+      <wsdl:input message="tns:getCMSByVer2SoapIn" />
+      <wsdl:output message="tns:getCMSByVer2SoapOut" />
+    </wsdl:operation>
+    <wsdl:operation name="getCMSTagList">
+      <wsdl:documentation xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/">Get CMS Tag List By&lt;br/&gt;&lt;br/&gt;&lt;b&gt;cmsID:&lt;/b&gt;Record ID</wsdl:documentation>
+      <wsdl:input message="tns:getCMSTagListSoapIn" />
+      <wsdl:output message="tns:getCMSTagListSoapOut" />
+    </wsdl:operation>
+    <wsdl:operation name="getCMSByPartNumber">
+      <wsdl:documentation xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/">Get the CMS by Part Number</wsdl:documentation>
+      <wsdl:input message="tns:getCMSByPartNumberSoapIn" />
+      <wsdl:output message="tns:getCMSByPartNumberSoapOut" />
+    </wsdl:operation>
+    <wsdl:operation name="getCMSMaster">
+      <wsdl:documentation xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/">Get the Master content of the CMS record by CMS ID(record ID).</wsdl:documentation>
+      <wsdl:input message="tns:getCMSMasterSoapIn" />
+      <wsdl:output message="tns:getCMSMasterSoapOut" />
+    </wsdl:operation>
+    <wsdl:operation name="getCMSDetailContent">
+      <wsdl:documentation xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/">Get the detail content of the CMS record by CMS ID(record ID).</wsdl:documentation>
+      <wsdl:input message="tns:getCMSDetailContentSoapIn" />
+      <wsdl:output message="tns:getCMSDetailContentSoapOut" />
+    </wsdl:operation>
+    <wsdl:operation name="getCMS_ProductCategoryList">
+      <wsdl:documentation xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/">Get Product Category List by CMS ID(record ID).</wsdl:documentation>
+      <wsdl:input message="tns:getCMS_ProductCategoryListSoapIn" />
+      <wsdl:output message="tns:getCMS_ProductCategoryListSoapOut" />
+    </wsdl:operation>
+    <wsdl:operation name="GetLogFromOn24">
+      <wsdl:documentation xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/">Get User Log from On24&lt;br /&gt;&lt;b&gt;strEvent:&lt;/b&gt;&lt;ul&gt;&lt;li&gt;ADF&lt;/li&gt;&lt;li&gt;ASF&lt;/li&gt;&lt;li&gt;ISF&lt;/li&gt;&lt;/ul&gt;&lt;b&gt;strType:&lt;/b&gt;&lt;ul&gt;&lt;li&gt;Location Access&lt;/li&gt;&lt;li&gt;Content Access&lt;/li&gt;&lt;li&gt;Chat Usage&lt;/li&gt;&lt;li&gt;Survey Responses&lt;/li&gt;&lt;/ul&gt;</wsdl:documentation>
+      <wsdl:input message="tns:GetLogFromOn24SoapIn" />
+      <wsdl:output message="tns:GetLogFromOn24SoapOut" />
+    </wsdl:operation>
+    <wsdl:operation name="GetRating">
+      <wsdl:input message="tns:GetRatingSoapIn" />
+      <wsdl:output message="tns:GetRatingSoapOut" />
+    </wsdl:operation>
+    <wsdl:operation name="getModelInfo">
+      <wsdl:input message="tns:getModelInfoSoapIn" />
+      <wsdl:output message="tns:getModelInfoSoapOut" />
+    </wsdl:operation>
+    <wsdl:operation name="getProductInfoByPartNumber">
+      <wsdl:input message="tns:getProductInfoByPartNumberSoapIn" />
+      <wsdl:output message="tns:getProductInfoByPartNumberSoapOut" />
+    </wsdl:operation>
+    <wsdl:operation name="Add">
+      <wsdl:input message="tns:AddSoapIn" />
+      <wsdl:output message="tns:AddSoapOut" />
+    </wsdl:operation>
+    <wsdl:operation name="getModelList">
+      <wsdl:input message="tns:getModelListSoapIn" />
+      <wsdl:output message="tns:getModelListSoapOut" />
+    </wsdl:operation>
+    <wsdl:operation name="GetModelCategoryIDList">
+      <wsdl:input message="tns:GetModelCategoryIDListSoapIn" />
+      <wsdl:output message="tns:GetModelCategoryIDListSoapOut" />
+    </wsdl:operation>
+    <wsdl:operation name="GetModelDetailInfo">
+      <wsdl:input message="tns:GetModelDetailInfoSoapIn" />
+      <wsdl:output message="tns:GetModelDetailInfoSoapOut" />
+    </wsdl:operation>
+    <wsdl:operation name="AddBannerLog">
+      <wsdl:documentation xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/">Add Banner Log</wsdl:documentation>
+      <wsdl:input message="tns:AddBannerLogSoapIn" />
+      <wsdl:output message="tns:AddBannerLogSoapOut" />
+    </wsdl:operation>
+    <wsdl:operation name="AddProductLog">
+      <wsdl:documentation xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/">Add Product Log with Type</wsdl:documentation>
+      <wsdl:input message="tns:AddProductLogSoapIn" />
+      <wsdl:output message="tns:AddProductLogSoapOut" />
+    </wsdl:operation>
+    <wsdl:operation name="CheckeStoreProduct">
+      <wsdl:documentation xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/">Check if PN is CTOS products</wsdl:documentation>
+      <wsdl:input message="tns:CheckeStoreProductSoapIn" />
+      <wsdl:output message="tns:CheckeStoreProductSoapOut" />
+    </wsdl:operation>
+    <wsdl:operation name="CheckBuyProduct">
+      <wsdl:documentation xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/">Check if PN is CTOS products</wsdl:documentation>
+      <wsdl:input message="tns:CheckBuyProductSoapIn" />
+      <wsdl:output message="tns:CheckBuyProductSoapOut" />
+    </wsdl:operation>
+    <wsdl:operation name="getOnlineUser">
+      <wsdl:documentation xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/">Get Total of Online User</wsdl:documentation>
+      <wsdl:input message="tns:getOnlineUserSoapIn" />
+      <wsdl:output message="tns:getOnlineUserSoapOut" />
+    </wsdl:operation>
+    <wsdl:operation name="getSEOAdminLink">
+      <wsdl:documentation xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/">Get Total of Online User</wsdl:documentation>
+      <wsdl:input message="tns:getSEOAdminLinkSoapIn" />
+      <wsdl:output message="tns:getSEOAdminLinkSoapOut" />
+    </wsdl:operation>
+    <wsdl:operation name="getModelImage">
+      <wsdl:documentation xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/">Get Total of Online User</wsdl:documentation>
+      <wsdl:input message="tns:getModelImageSoapIn" />
+      <wsdl:output message="tns:getModelImageSoapOut" />
+    </wsdl:operation>
+    <wsdl:operation name="checkProductDownloadFile">
+      <wsdl:documentation xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/">Check if there is any download file for the model. If yes, return the objectID of HTML. It's for AJAX function.</wsdl:documentation>
+      <wsdl:input message="tns:checkProductDownloadFileSoapIn" />
+      <wsdl:output message="tns:checkProductDownloadFileSoapOut" />
+    </wsdl:operation>
+    <wsdl:operation name="getModelDownloadInString">
+      <wsdl:documentation xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/">Get download info in string</wsdl:documentation>
+      <wsdl:input message="tns:getModelDownloadInStringSoapIn" />
+      <wsdl:output message="tns:getModelDownloadInStringSoapOut" />
+    </wsdl:operation>
+    <wsdl:operation name="getRBUInfoByStoreID">
+      <wsdl:documentation xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/">Get RBU info by eStore ID.</wsdl:documentation>
+      <wsdl:input message="tns:getRBUInfoByStoreIDSoapIn" />
+      <wsdl:output message="tns:getRBUInfoByStoreIDSoapOut" />
+    </wsdl:operation>
+    <wsdl:operation name="CheckURLRedirection">
+      <wsdl:documentation xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/">Redirect by user's country</wsdl:documentation>
+      <wsdl:input message="tns:CheckURLRedirectionSoapIn" />
+      <wsdl:output message="tns:CheckURLRedirectionSoapOut" />
+    </wsdl:operation>
+    <wsdl:operation name="CheckSpecDataExist">
+      <wsdl:documentation xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/">Check If Spec Data Exist in DB Under This Product Category Id</wsdl:documentation>
+      <wsdl:input message="tns:CheckSpecDataExistSoapIn" />
+      <wsdl:output message="tns:CheckSpecDataExistSoapOut" />
+    </wsdl:operation>
+    <wsdl:operation name="GetCompletionList">
+      <wsdl:input message="tns:GetCompletionListSoapIn" />
+      <wsdl:output message="tns:GetCompletionListSoapOut" />
+    </wsdl:operation>
+  </wsdl:portType>
+  <wsdl:portType name="AdvantechWebServiceLocalHttpGet">
+    <wsdl:operation name="AddRating">
+      <wsdl:input message="tns:AddRatingHttpGetIn" />
+      <wsdl:output message="tns:AddRatingHttpGetOut" />
+    </wsdl:operation>
+    <wsdl:operation name="getPressroomNews">
+      <wsdl:input message="tns:getPressroomNewsHttpGetIn" />
+      <wsdl:output message="tns:getPressroomNewsHttpGetOut" />
+    </wsdl:operation>
+    <wsdl:operation name="getCorpEvents">
+      <wsdl:documentation xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/">Get the corp. events</wsdl:documentation>
+      <wsdl:input message="tns:getCorpEventsHttpGetIn" />
+      <wsdl:output message="tns:getCorpEventsHttpGetOut" />
+    </wsdl:operation>
+    <wsdl:operation name="getCorpEventsByRBU">
+      <wsdl:documentation xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/">Get the corp. events by RBU.</wsdl:documentation>
+      <wsdl:input message="tns:getCorpEventsByRBUHttpGetIn" />
+      <wsdl:output message="tns:getCorpEventsByRBUHttpGetOut" />
+    </wsdl:operation>
+    <wsdl:operation name="getCMS_CategoryName_ListBy">
+      <wsdl:documentation xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/">Get Category Name List By Catalog Name</wsdl:documentation>
+      <wsdl:input message="tns:getCMS_CategoryName_ListByHttpGetIn" />
+      <wsdl:output message="tns:getCMS_CategoryName_ListByHttpGetOut" />
+    </wsdl:operation>
+    <wsdl:operation name="getCMS_Category_ListBy">
+      <wsdl:documentation xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/">Get Category List By Catalog Name</wsdl:documentation>
+      <wsdl:input message="tns:getCMS_Category_ListByHttpGetIn" />
+      <wsdl:output message="tns:getCMS_Category_ListByHttpGetOut" />
+    </wsdl:operation>
+    <wsdl:operation name="getCMS">
+      <wsdl:documentation xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/">Get the CMS by RBU, BU/PD and Type. LOV:&lt;br /&gt;&lt;b&gt;BU&lt;/b&gt;(String, Multi value, seperated by comma.)&lt;ul&gt;&lt;li&gt;AC&lt;/li&gt;&lt;li&gt;BUILDING_AUTOMATION_SYSTEM&lt;/li&gt;&lt;li&gt;CHASSIS&lt;/li&gt;&lt;li&gt;CONTROLLERS_SOFTWARE&lt;/li&gt;&lt;li&gt;CORP&lt;/li&gt;&lt;li&gt;CPCI&lt;/li&gt;&lt;li&gt;DATA-ACQUSITION-CONTROL&lt;/li&gt;&lt;li&gt;DIGITAL_SIGNAGE&lt;/li&gt;&lt;li&gt;DIGITAL_SURVEILLANCE&lt;/li&gt;&lt;li&gt;DIGITAL_VIDEO&lt;/li&gt;&lt;li&gt;DISPLAY-SOLUTION&lt;/li&gt;&lt;li&gt;DISTRIBUTED_IO&lt;/li&gt;&lt;li&gt;DS&lt;/li&gt;&lt;li&gt;EAUTOMATION&lt;/li&gt;&lt;li&gt;EBC&lt;/li&gt;&lt;li&gt;EMBEDDED_AUTOMATION_COMPUTERS&lt;/li&gt;&lt;li&gt;EPLATFORM&lt;/li&gt;&lt;li&gt;EVIDEO&lt;/li&gt;&lt;li&gt;HMI&lt;/li&gt;&lt;li&gt;HOME-AUTOMATION&lt;/li&gt;&lt;li&gt;INDUSTRIAL_COMMUNICATION&lt;/li&gt;&lt;li&gt;INDUSTRIAL_IO&lt;/li&gt;&lt;li&gt;INDUSTRIAL-MOBILE-COMPUTERS&lt;/li&gt;&lt;li&gt;MEDICAL&lt;/li&gt;&lt;li&gt;MOBILE_COMPUTING&lt;/li&gt;&lt;li&gt;MOTHERBOARDS&lt;/li&gt;&lt;li&gt;NA&lt;/li&gt;&lt;li&gt;NCG&lt;/li&gt;&lt;li&gt;NETWORK&lt;/li&gt;&lt;li&gt;PANEL-PC&lt;/li&gt;&lt;li&gt;PICMG_SBC&lt;/li&gt;&lt;li&gt;PUBLIC_SERVICE&lt;/li&gt;&lt;li&gt;RISC&lt;/li&gt;&lt;li&gt;SBC&lt;/li&gt;&lt;li&gt;SELFSERVICE&lt;/li&gt;&lt;li&gt;SELF-SERVICE-SOLUTIONS&lt;/li&gt;&lt;li&gt;SOM&lt;/li&gt;&lt;li&gt;STACKABLESBC&lt;/li&gt;&lt;li&gt;UBIQ&lt;/li&gt;&lt;li&gt;VIDEO-SURVEILLANCE-SOLUTION&lt;/li&gt;&lt;/ul&gt;&lt;b&gt;Sector(Vertical Market)&lt;/b&gt;&lt;ul&gt;&lt;li&gt;(Sector)BuildingAutomation&lt;/li&gt;&lt;li&gt;(Sector)CommunicationsandNetworking&lt;/li&gt;&lt;li&gt;(Sector)EnvironmentalFacilityManagement&lt;/li&gt;&lt;li&gt;(Sector)Gaming&lt;/li&gt;&lt;li&gt;(Sector)GreenEnergy&lt;/li&gt;&lt;li&gt;(Sector)MachineAutomation&lt;/li&gt;&lt;li&gt;(Sector)Medical&lt;/li&gt;&lt;li&gt;(Sector)PowerEnergy&lt;/li&gt;&lt;li&gt;(Sector)PowerGenerationDistribution&lt;/li&gt;&lt;li&gt;(Sector)RealEstateIntelligence&lt;/li&gt;&lt;li&gt;(Sector)SelfService&lt;/li&gt;&lt;li&gt;(Sector)Transportation&lt;/li&gt;&lt;li&gt;(Sector)VehicleComputing&lt;/li&gt;&lt;/ul&gt;&lt;b&gt;RBU&lt;/b&gt;&lt;ul&gt;&lt;li&gt;AUS&lt;/li&gt;&lt;li&gt;ACL&lt;/li&gt;&lt;li&gt;ATW&lt;/li&gt;&lt;li&gt;AEU&lt;/li&gt;&lt;li&gt;AAU&lt;/li&gt;&lt;li&gt;ACN&lt;/li&gt;&lt;li&gt;AJP&lt;/li&gt;&lt;li&gt;AKR&lt;/li&gt;&lt;li&gt;SAP&lt;/li&gt;&lt;/ul&gt;&lt;b&gt;CMS Type&lt;/b&gt;&lt;ul&gt;&lt;li&gt;Case EVENT&lt;/li&gt;&lt;li&gt;NEWS&lt;/li&gt;&lt;li&gt;VIDEO&lt;/li&gt;&lt;li&gt;CASE STUDY&lt;/li&gt;&lt;li&gt;WHITE PAPER&lt;/li&gt;&lt;li&gt;PODCAST&lt;/li&gt;&lt;li&gt;WEBCAST&lt;/li&gt;&lt;li&gt;TRAINING&lt;/li&gt;&lt;/ul&gt;</wsdl:documentation>
+      <wsdl:input message="tns:getCMSHttpGetIn" />
+      <wsdl:output message="tns:getCMSHttpGetOut" />
+    </wsdl:operation>
+    <wsdl:operation name="getCMSByBAA">
+      <wsdl:documentation xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/">Get the CMS by RBU, BAA and Type. LOV:&lt;br /&gt;&lt;b&gt;BAA&lt;/b&gt;(String, Multi value, seperated by comma.)&lt;ul&gt;&lt;li&gt;Aircraft/aerospace&lt;/li&gt;&lt;li&gt;Automated Optical Inspection(AOI)&lt;/li&gt;&lt;li&gt;Automotive&lt;/li&gt;&lt;li&gt;Building Automation&lt;/li&gt;&lt;li&gt;Chemical&lt;/li&gt;&lt;li&gt;Consulting/Engineering/System Integrator&lt;/li&gt;&lt;li&gt;Data Processing/Ent eBusiness/ERP Integration&lt;/li&gt;&lt;li&gt;Digi Signage/Info Display/Narrow Casting/Streaming&lt;/li&gt;&lt;li&gt;Education/eLearning&lt;/li&gt;&lt;li&gt;Entertainment/Gaming&lt;/li&gt;&lt;li&gt;Factory Automation&lt;/li&gt;&lt;li&gt;Food/Beverage&lt;/li&gt;&lt;li&gt;Government/Military&lt;/li&gt;&lt;li&gt;Home Automation&lt;/li&gt;&lt;li&gt;Industrial Equipment Manufacturing&lt;/li&gt;&lt;li&gt;Internet Security&lt;/li&gt;&lt;li&gt;Internet Service Provider&lt;/li&gt;&lt;li&gt;In-vehicle Computing&lt;/li&gt;&lt;li&gt;KIOSK/Point of Sale Terminals&lt;/li&gt;&lt;li&gt;Logistics/Warehouse Management&lt;/li&gt;&lt;li&gt;M2M&lt;/li&gt;&lt;li&gt;Machine Automation&lt;/li&gt;&lt;li&gt;Marine&lt;/li&gt;&lt;li&gt;Metals/Mining&lt;/li&gt;&lt;li&gt;Others&lt;/li&gt;&lt;li&gt;Packaging&lt;/li&gt;&lt;li&gt;Petroleum&lt;/li&gt;&lt;li&gt;Pharmaceutical/Medical/Healthcare&lt;/li&gt;&lt;li&gt;Plastics/Textiles/Fibers&lt;/li&gt;&lt;li&gt;Power &amp; Energy&lt;/li&gt;&lt;li&gt;Pharmaceutical/Medical/Healthcare&lt;/li&gt;&lt;li&gt;Pulp/Paper&lt;/li&gt;&lt;li&gt;Remote Monitoring &amp; Control&lt;/li&gt;&lt;li&gt;Research&lt;/li&gt;&lt;li&gt;Security &amp; Video Surveillance&lt;/li&gt;&lt;li&gt;Semiconductor&lt;/li&gt;&lt;li&gt;Telecommunications&lt;/li&gt;&lt;li&gt;Test/Measurement/Instrumentation&lt;/li&gt;&lt;li&gt;Transportation&lt;/li&gt;&lt;li&gt;Utilities&lt;/li&gt;&lt;li&gt;Water/Emission/Air Quality Monitoring&lt;/li&gt;&lt;li&gt;Water/Wastewater&lt;/li&gt;&lt;/ul&gt;&lt;b&gt;RBU&lt;/b&gt;&lt;ul&gt;&lt;li&gt;AUS&lt;/li&gt;&lt;li&gt;ACL&lt;/li&gt;&lt;li&gt;ATW&lt;/li&gt;&lt;li&gt;AEU&lt;/li&gt;&lt;li&gt;AAU&lt;/li&gt;&lt;li&gt;ACN&lt;/li&gt;&lt;li&gt;AJP&lt;/li&gt;&lt;li&gt;AKR&lt;/li&gt;&lt;li&gt;SAP&lt;/li&gt;&lt;/ul&gt;&lt;b&gt;CMS Type&lt;/b&gt;&lt;ul&gt;&lt;li&gt;Case EVENT&lt;/li&gt;&lt;li&gt;NEWS&lt;/li&gt;&lt;li&gt;VIDEO&lt;/li&gt;&lt;li&gt;CASE STUDY&lt;/li&gt;&lt;li&gt;WHITE PAPER&lt;/li&gt;&lt;li&gt;PODCAST&lt;/li&gt;&lt;li&gt;WEBCAST&lt;/li&gt;&lt;li&gt;TRAINING&lt;/li&gt;&lt;/ul&gt;</wsdl:documentation>
+      <wsdl:input message="tns:getCMSByBAAHttpGetIn" />
+      <wsdl:output message="tns:getCMSByBAAHttpGetOut" />
+    </wsdl:operation>
+    <wsdl:operation name="getCMSTagList">
+      <wsdl:documentation xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/">Get CMS Tag List By&lt;br/&gt;&lt;br/&gt;&lt;b&gt;cmsID:&lt;/b&gt;Record ID</wsdl:documentation>
+      <wsdl:input message="tns:getCMSTagListHttpGetIn" />
+      <wsdl:output message="tns:getCMSTagListHttpGetOut" />
+    </wsdl:operation>
+    <wsdl:operation name="getCMSMaster">
+      <wsdl:documentation xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/">Get the Master content of the CMS record by CMS ID(record ID).</wsdl:documentation>
+      <wsdl:input message="tns:getCMSMasterHttpGetIn" />
+      <wsdl:output message="tns:getCMSMasterHttpGetOut" />
+    </wsdl:operation>
+    <wsdl:operation name="getCMSDetailContent">
+      <wsdl:documentation xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/">Get the detail content of the CMS record by CMS ID(record ID).</wsdl:documentation>
+      <wsdl:input message="tns:getCMSDetailContentHttpGetIn" />
+      <wsdl:output message="tns:getCMSDetailContentHttpGetOut" />
+    </wsdl:operation>
+    <wsdl:operation name="getCMS_ProductCategoryList">
+      <wsdl:documentation xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/">Get Product Category List by CMS ID(record ID).</wsdl:documentation>
+      <wsdl:input message="tns:getCMS_ProductCategoryListHttpGetIn" />
+      <wsdl:output message="tns:getCMS_ProductCategoryListHttpGetOut" />
+    </wsdl:operation>
+    <wsdl:operation name="GetLogFromOn24">
+      <wsdl:documentation xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/">Get User Log from On24&lt;br /&gt;&lt;b&gt;strEvent:&lt;/b&gt;&lt;ul&gt;&lt;li&gt;ADF&lt;/li&gt;&lt;li&gt;ASF&lt;/li&gt;&lt;li&gt;ISF&lt;/li&gt;&lt;/ul&gt;&lt;b&gt;strType:&lt;/b&gt;&lt;ul&gt;&lt;li&gt;Location Access&lt;/li&gt;&lt;li&gt;Content Access&lt;/li&gt;&lt;li&gt;Chat Usage&lt;/li&gt;&lt;li&gt;Survey Responses&lt;/li&gt;&lt;/ul&gt;</wsdl:documentation>
+      <wsdl:input message="tns:GetLogFromOn24HttpGetIn" />
+      <wsdl:output message="tns:GetLogFromOn24HttpGetOut" />
+    </wsdl:operation>
+    <wsdl:operation name="GetRating">
+      <wsdl:input message="tns:GetRatingHttpGetIn" />
+      <wsdl:output message="tns:GetRatingHttpGetOut" />
+    </wsdl:operation>
+    <wsdl:operation name="getModelInfo">
+      <wsdl:input message="tns:getModelInfoHttpGetIn" />
+      <wsdl:output message="tns:getModelInfoHttpGetOut" />
+    </wsdl:operation>
+    <wsdl:operation name="getProductInfoByPartNumber">
+      <wsdl:input message="tns:getProductInfoByPartNumberHttpGetIn" />
+      <wsdl:output message="tns:getProductInfoByPartNumberHttpGetOut" />
+    </wsdl:operation>
+    <wsdl:operation name="Add">
+      <wsdl:input message="tns:AddHttpGetIn" />
+      <wsdl:output message="tns:AddHttpGetOut" />
+    </wsdl:operation>
+    <wsdl:operation name="getModelList">
+      <wsdl:input message="tns:getModelListHttpGetIn" />
+      <wsdl:output message="tns:getModelListHttpGetOut" />
+    </wsdl:operation>
+    <wsdl:operation name="GetModelCategoryIDList">
+      <wsdl:input message="tns:GetModelCategoryIDListHttpGetIn" />
+      <wsdl:output message="tns:GetModelCategoryIDListHttpGetOut" />
+    </wsdl:operation>
+    <wsdl:operation name="GetModelDetailInfo">
+      <wsdl:input message="tns:GetModelDetailInfoHttpGetIn" />
+      <wsdl:output message="tns:GetModelDetailInfoHttpGetOut" />
+    </wsdl:operation>
+    <wsdl:operation name="AddBannerLog">
+      <wsdl:documentation xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/">Add Banner Log</wsdl:documentation>
+      <wsdl:input message="tns:AddBannerLogHttpGetIn" />
+      <wsdl:output message="tns:AddBannerLogHttpGetOut" />
+    </wsdl:operation>
+    <wsdl:operation name="AddProductLog">
+      <wsdl:documentation xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/">Add Product Log with Type</wsdl:documentation>
+      <wsdl:input message="tns:AddProductLogHttpGetIn" />
+      <wsdl:output message="tns:AddProductLogHttpGetOut" />
+    </wsdl:operation>
+    <wsdl:operation name="CheckeStoreProduct">
+      <wsdl:documentation xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/">Check if PN is CTOS products</wsdl:documentation>
+      <wsdl:input message="tns:CheckeStoreProductHttpGetIn" />
+      <wsdl:output message="tns:CheckeStoreProductHttpGetOut" />
+    </wsdl:operation>
+    <wsdl:operation name="CheckBuyProduct">
+      <wsdl:documentation xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/">Check if PN is CTOS products</wsdl:documentation>
+      <wsdl:input message="tns:CheckBuyProductHttpGetIn" />
+      <wsdl:output message="tns:CheckBuyProductHttpGetOut" />
+    </wsdl:operation>
+    <wsdl:operation name="getOnlineUser">
+      <wsdl:documentation xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/">Get Total of Online User</wsdl:documentation>
+      <wsdl:input message="tns:getOnlineUserHttpGetIn" />
+      <wsdl:output message="tns:getOnlineUserHttpGetOut" />
+    </wsdl:operation>
+    <wsdl:operation name="getSEOAdminLink">
+      <wsdl:documentation xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/">Get Total of Online User</wsdl:documentation>
+      <wsdl:input message="tns:getSEOAdminLinkHttpGetIn" />
+      <wsdl:output message="tns:getSEOAdminLinkHttpGetOut" />
+    </wsdl:operation>
+    <wsdl:operation name="getModelImage">
+      <wsdl:documentation xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/">Get Total of Online User</wsdl:documentation>
+      <wsdl:input message="tns:getModelImageHttpGetIn" />
+      <wsdl:output message="tns:getModelImageHttpGetOut" />
+    </wsdl:operation>
+    <wsdl:operation name="checkProductDownloadFile">
+      <wsdl:documentation xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/">Check if there is any download file for the model. If yes, return the objectID of HTML. It's for AJAX function.</wsdl:documentation>
+      <wsdl:input message="tns:checkProductDownloadFileHttpGetIn" />
+      <wsdl:output message="tns:checkProductDownloadFileHttpGetOut" />
+    </wsdl:operation>
+    <wsdl:operation name="getModelDownloadInString">
+      <wsdl:documentation xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/">Get download info in string</wsdl:documentation>
+      <wsdl:input message="tns:getModelDownloadInStringHttpGetIn" />
+      <wsdl:output message="tns:getModelDownloadInStringHttpGetOut" />
+    </wsdl:operation>
+    <wsdl:operation name="getRBUInfoByStoreID">
+      <wsdl:documentation xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/">Get RBU info by eStore ID.</wsdl:documentation>
+      <wsdl:input message="tns:getRBUInfoByStoreIDHttpGetIn" />
+      <wsdl:output message="tns:getRBUInfoByStoreIDHttpGetOut" />
+    </wsdl:operation>
+    <wsdl:operation name="CheckURLRedirection">
+      <wsdl:documentation xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/">Redirect by user's country</wsdl:documentation>
+      <wsdl:input message="tns:CheckURLRedirectionHttpGetIn" />
+      <wsdl:output message="tns:CheckURLRedirectionHttpGetOut" />
+    </wsdl:operation>
+    <wsdl:operation name="CheckSpecDataExist">
+      <wsdl:documentation xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/">Check If Spec Data Exist in DB Under This Product Category Id</wsdl:documentation>
+      <wsdl:input message="tns:CheckSpecDataExistHttpGetIn" />
+      <wsdl:output message="tns:CheckSpecDataExistHttpGetOut" />
+    </wsdl:operation>
+    <wsdl:operation name="GetCompletionList">
+      <wsdl:input message="tns:GetCompletionListHttpGetIn" />
+      <wsdl:output message="tns:GetCompletionListHttpGetOut" />
+    </wsdl:operation>
+  </wsdl:portType>
+  <wsdl:portType name="AdvantechWebServiceLocalHttpPost">
+    <wsdl:operation name="AddRating">
+      <wsdl:input message="tns:AddRatingHttpPostIn" />
+      <wsdl:output message="tns:AddRatingHttpPostOut" />
+    </wsdl:operation>
+    <wsdl:operation name="getPressroomNews">
+      <wsdl:input message="tns:getPressroomNewsHttpPostIn" />
+      <wsdl:output message="tns:getPressroomNewsHttpPostOut" />
+    </wsdl:operation>
+    <wsdl:operation name="getCorpEvents">
+      <wsdl:documentation xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/">Get the corp. events</wsdl:documentation>
+      <wsdl:input message="tns:getCorpEventsHttpPostIn" />
+      <wsdl:output message="tns:getCorpEventsHttpPostOut" />
+    </wsdl:operation>
+    <wsdl:operation name="getCorpEventsByRBU">
+      <wsdl:documentation xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/">Get the corp. events by RBU.</wsdl:documentation>
+      <wsdl:input message="tns:getCorpEventsByRBUHttpPostIn" />
+      <wsdl:output message="tns:getCorpEventsByRBUHttpPostOut" />
+    </wsdl:operation>
+    <wsdl:operation name="getCMS_CategoryName_ListBy">
+      <wsdl:documentation xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/">Get Category Name List By Catalog Name</wsdl:documentation>
+      <wsdl:input message="tns:getCMS_CategoryName_ListByHttpPostIn" />
+      <wsdl:output message="tns:getCMS_CategoryName_ListByHttpPostOut" />
+    </wsdl:operation>
+    <wsdl:operation name="getCMS_Category_ListBy">
+      <wsdl:documentation xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/">Get Category List By Catalog Name</wsdl:documentation>
+      <wsdl:input message="tns:getCMS_Category_ListByHttpPostIn" />
+      <wsdl:output message="tns:getCMS_Category_ListByHttpPostOut" />
+    </wsdl:operation>
+    <wsdl:operation name="getCMS">
+      <wsdl:documentation xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/">Get the CMS by RBU, BU/PD and Type. LOV:&lt;br /&gt;&lt;b&gt;BU&lt;/b&gt;(String, Multi value, seperated by comma.)&lt;ul&gt;&lt;li&gt;AC&lt;/li&gt;&lt;li&gt;BUILDING_AUTOMATION_SYSTEM&lt;/li&gt;&lt;li&gt;CHASSIS&lt;/li&gt;&lt;li&gt;CONTROLLERS_SOFTWARE&lt;/li&gt;&lt;li&gt;CORP&lt;/li&gt;&lt;li&gt;CPCI&lt;/li&gt;&lt;li&gt;DATA-ACQUSITION-CONTROL&lt;/li&gt;&lt;li&gt;DIGITAL_SIGNAGE&lt;/li&gt;&lt;li&gt;DIGITAL_SURVEILLANCE&lt;/li&gt;&lt;li&gt;DIGITAL_VIDEO&lt;/li&gt;&lt;li&gt;DISPLAY-SOLUTION&lt;/li&gt;&lt;li&gt;DISTRIBUTED_IO&lt;/li&gt;&lt;li&gt;DS&lt;/li&gt;&lt;li&gt;EAUTOMATION&lt;/li&gt;&lt;li&gt;EBC&lt;/li&gt;&lt;li&gt;EMBEDDED_AUTOMATION_COMPUTERS&lt;/li&gt;&lt;li&gt;EPLATFORM&lt;/li&gt;&lt;li&gt;EVIDEO&lt;/li&gt;&lt;li&gt;HMI&lt;/li&gt;&lt;li&gt;HOME-AUTOMATION&lt;/li&gt;&lt;li&gt;INDUSTRIAL_COMMUNICATION&lt;/li&gt;&lt;li&gt;INDUSTRIAL_IO&lt;/li&gt;&lt;li&gt;INDUSTRIAL-MOBILE-COMPUTERS&lt;/li&gt;&lt;li&gt;MEDICAL&lt;/li&gt;&lt;li&gt;MOBILE_COMPUTING&lt;/li&gt;&lt;li&gt;MOTHERBOARDS&lt;/li&gt;&lt;li&gt;NA&lt;/li&gt;&lt;li&gt;NCG&lt;/li&gt;&lt;li&gt;NETWORK&lt;/li&gt;&lt;li&gt;PANEL-PC&lt;/li&gt;&lt;li&gt;PICMG_SBC&lt;/li&gt;&lt;li&gt;PUBLIC_SERVICE&lt;/li&gt;&lt;li&gt;RISC&lt;/li&gt;&lt;li&gt;SBC&lt;/li&gt;&lt;li&gt;SELFSERVICE&lt;/li&gt;&lt;li&gt;SELF-SERVICE-SOLUTIONS&lt;/li&gt;&lt;li&gt;SOM&lt;/li&gt;&lt;li&gt;STACKABLESBC&lt;/li&gt;&lt;li&gt;UBIQ&lt;/li&gt;&lt;li&gt;VIDEO-SURVEILLANCE-SOLUTION&lt;/li&gt;&lt;/ul&gt;&lt;b&gt;Sector(Vertical Market)&lt;/b&gt;&lt;ul&gt;&lt;li&gt;(Sector)BuildingAutomation&lt;/li&gt;&lt;li&gt;(Sector)CommunicationsandNetworking&lt;/li&gt;&lt;li&gt;(Sector)EnvironmentalFacilityManagement&lt;/li&gt;&lt;li&gt;(Sector)Gaming&lt;/li&gt;&lt;li&gt;(Sector)GreenEnergy&lt;/li&gt;&lt;li&gt;(Sector)MachineAutomation&lt;/li&gt;&lt;li&gt;(Sector)Medical&lt;/li&gt;&lt;li&gt;(Sector)PowerEnergy&lt;/li&gt;&lt;li&gt;(Sector)PowerGenerationDistribution&lt;/li&gt;&lt;li&gt;(Sector)RealEstateIntelligence&lt;/li&gt;&lt;li&gt;(Sector)SelfService&lt;/li&gt;&lt;li&gt;(Sector)Transportation&lt;/li&gt;&lt;li&gt;(Sector)VehicleComputing&lt;/li&gt;&lt;/ul&gt;&lt;b&gt;RBU&lt;/b&gt;&lt;ul&gt;&lt;li&gt;AUS&lt;/li&gt;&lt;li&gt;ACL&lt;/li&gt;&lt;li&gt;ATW&lt;/li&gt;&lt;li&gt;AEU&lt;/li&gt;&lt;li&gt;AAU&lt;/li&gt;&lt;li&gt;ACN&lt;/li&gt;&lt;li&gt;AJP&lt;/li&gt;&lt;li&gt;AKR&lt;/li&gt;&lt;li&gt;SAP&lt;/li&gt;&lt;/ul&gt;&lt;b&gt;CMS Type&lt;/b&gt;&lt;ul&gt;&lt;li&gt;Case EVENT&lt;/li&gt;&lt;li&gt;NEWS&lt;/li&gt;&lt;li&gt;VIDEO&lt;/li&gt;&lt;li&gt;CASE STUDY&lt;/li&gt;&lt;li&gt;WHITE PAPER&lt;/li&gt;&lt;li&gt;PODCAST&lt;/li&gt;&lt;li&gt;WEBCAST&lt;/li&gt;&lt;li&gt;TRAINING&lt;/li&gt;&lt;/ul&gt;</wsdl:documentation>
+      <wsdl:input message="tns:getCMSHttpPostIn" />
+      <wsdl:output message="tns:getCMSHttpPostOut" />
+    </wsdl:operation>
+    <wsdl:operation name="getCMSByBAA">
+      <wsdl:documentation xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/">Get the CMS by RBU, BAA and Type. LOV:&lt;br /&gt;&lt;b&gt;BAA&lt;/b&gt;(String, Multi value, seperated by comma.)&lt;ul&gt;&lt;li&gt;Aircraft/aerospace&lt;/li&gt;&lt;li&gt;Automated Optical Inspection(AOI)&lt;/li&gt;&lt;li&gt;Automotive&lt;/li&gt;&lt;li&gt;Building Automation&lt;/li&gt;&lt;li&gt;Chemical&lt;/li&gt;&lt;li&gt;Consulting/Engineering/System Integrator&lt;/li&gt;&lt;li&gt;Data Processing/Ent eBusiness/ERP Integration&lt;/li&gt;&lt;li&gt;Digi Signage/Info Display/Narrow Casting/Streaming&lt;/li&gt;&lt;li&gt;Education/eLearning&lt;/li&gt;&lt;li&gt;Entertainment/Gaming&lt;/li&gt;&lt;li&gt;Factory Automation&lt;/li&gt;&lt;li&gt;Food/Beverage&lt;/li&gt;&lt;li&gt;Government/Military&lt;/li&gt;&lt;li&gt;Home Automation&lt;/li&gt;&lt;li&gt;Industrial Equipment Manufacturing&lt;/li&gt;&lt;li&gt;Internet Security&lt;/li&gt;&lt;li&gt;Internet Service Provider&lt;/li&gt;&lt;li&gt;In-vehicle Computing&lt;/li&gt;&lt;li&gt;KIOSK/Point of Sale Terminals&lt;/li&gt;&lt;li&gt;Logistics/Warehouse Management&lt;/li&gt;&lt;li&gt;M2M&lt;/li&gt;&lt;li&gt;Machine Automation&lt;/li&gt;&lt;li&gt;Marine&lt;/li&gt;&lt;li&gt;Metals/Mining&lt;/li&gt;&lt;li&gt;Others&lt;/li&gt;&lt;li&gt;Packaging&lt;/li&gt;&lt;li&gt;Petroleum&lt;/li&gt;&lt;li&gt;Pharmaceutical/Medical/Healthcare&lt;/li&gt;&lt;li&gt;Plastics/Textiles/Fibers&lt;/li&gt;&lt;li&gt;Power &amp; Energy&lt;/li&gt;&lt;li&gt;Pharmaceutical/Medical/Healthcare&lt;/li&gt;&lt;li&gt;Pulp/Paper&lt;/li&gt;&lt;li&gt;Remote Monitoring &amp; Control&lt;/li&gt;&lt;li&gt;Research&lt;/li&gt;&lt;li&gt;Security &amp; Video Surveillance&lt;/li&gt;&lt;li&gt;Semiconductor&lt;/li&gt;&lt;li&gt;Telecommunications&lt;/li&gt;&lt;li&gt;Test/Measurement/Instrumentation&lt;/li&gt;&lt;li&gt;Transportation&lt;/li&gt;&lt;li&gt;Utilities&lt;/li&gt;&lt;li&gt;Water/Emission/Air Quality Monitoring&lt;/li&gt;&lt;li&gt;Water/Wastewater&lt;/li&gt;&lt;/ul&gt;&lt;b&gt;RBU&lt;/b&gt;&lt;ul&gt;&lt;li&gt;AUS&lt;/li&gt;&lt;li&gt;ACL&lt;/li&gt;&lt;li&gt;ATW&lt;/li&gt;&lt;li&gt;AEU&lt;/li&gt;&lt;li&gt;AAU&lt;/li&gt;&lt;li&gt;ACN&lt;/li&gt;&lt;li&gt;AJP&lt;/li&gt;&lt;li&gt;AKR&lt;/li&gt;&lt;li&gt;SAP&lt;/li&gt;&lt;/ul&gt;&lt;b&gt;CMS Type&lt;/b&gt;&lt;ul&gt;&lt;li&gt;Case EVENT&lt;/li&gt;&lt;li&gt;NEWS&lt;/li&gt;&lt;li&gt;VIDEO&lt;/li&gt;&lt;li&gt;CASE STUDY&lt;/li&gt;&lt;li&gt;WHITE PAPER&lt;/li&gt;&lt;li&gt;PODCAST&lt;/li&gt;&lt;li&gt;WEBCAST&lt;/li&gt;&lt;li&gt;TRAINING&lt;/li&gt;&lt;/ul&gt;</wsdl:documentation>
+      <wsdl:input message="tns:getCMSByBAAHttpPostIn" />
+      <wsdl:output message="tns:getCMSByBAAHttpPostOut" />
+    </wsdl:operation>
+    <wsdl:operation name="getCMSTagList">
+      <wsdl:documentation xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/">Get CMS Tag List By&lt;br/&gt;&lt;br/&gt;&lt;b&gt;cmsID:&lt;/b&gt;Record ID</wsdl:documentation>
+      <wsdl:input message="tns:getCMSTagListHttpPostIn" />
+      <wsdl:output message="tns:getCMSTagListHttpPostOut" />
+    </wsdl:operation>
+    <wsdl:operation name="getCMSMaster">
+      <wsdl:documentation xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/">Get the Master content of the CMS record by CMS ID(record ID).</wsdl:documentation>
+      <wsdl:input message="tns:getCMSMasterHttpPostIn" />
+      <wsdl:output message="tns:getCMSMasterHttpPostOut" />
+    </wsdl:operation>
+    <wsdl:operation name="getCMSDetailContent">
+      <wsdl:documentation xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/">Get the detail content of the CMS record by CMS ID(record ID).</wsdl:documentation>
+      <wsdl:input message="tns:getCMSDetailContentHttpPostIn" />
+      <wsdl:output message="tns:getCMSDetailContentHttpPostOut" />
+    </wsdl:operation>
+    <wsdl:operation name="getCMS_ProductCategoryList">
+      <wsdl:documentation xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/">Get Product Category List by CMS ID(record ID).</wsdl:documentation>
+      <wsdl:input message="tns:getCMS_ProductCategoryListHttpPostIn" />
+      <wsdl:output message="tns:getCMS_ProductCategoryListHttpPostOut" />
+    </wsdl:operation>
+    <wsdl:operation name="GetLogFromOn24">
+      <wsdl:documentation xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/">Get User Log from On24&lt;br /&gt;&lt;b&gt;strEvent:&lt;/b&gt;&lt;ul&gt;&lt;li&gt;ADF&lt;/li&gt;&lt;li&gt;ASF&lt;/li&gt;&lt;li&gt;ISF&lt;/li&gt;&lt;/ul&gt;&lt;b&gt;strType:&lt;/b&gt;&lt;ul&gt;&lt;li&gt;Location Access&lt;/li&gt;&lt;li&gt;Content Access&lt;/li&gt;&lt;li&gt;Chat Usage&lt;/li&gt;&lt;li&gt;Survey Responses&lt;/li&gt;&lt;/ul&gt;</wsdl:documentation>
+      <wsdl:input message="tns:GetLogFromOn24HttpPostIn" />
+      <wsdl:output message="tns:GetLogFromOn24HttpPostOut" />
+    </wsdl:operation>
+    <wsdl:operation name="GetRating">
+      <wsdl:input message="tns:GetRatingHttpPostIn" />
+      <wsdl:output message="tns:GetRatingHttpPostOut" />
+    </wsdl:operation>
+    <wsdl:operation name="getModelInfo">
+      <wsdl:input message="tns:getModelInfoHttpPostIn" />
+      <wsdl:output message="tns:getModelInfoHttpPostOut" />
+    </wsdl:operation>
+    <wsdl:operation name="getProductInfoByPartNumber">
+      <wsdl:input message="tns:getProductInfoByPartNumberHttpPostIn" />
+      <wsdl:output message="tns:getProductInfoByPartNumberHttpPostOut" />
+    </wsdl:operation>
+    <wsdl:operation name="Add">
+      <wsdl:input message="tns:AddHttpPostIn" />
+      <wsdl:output message="tns:AddHttpPostOut" />
+    </wsdl:operation>
+    <wsdl:operation name="getModelList">
+      <wsdl:input message="tns:getModelListHttpPostIn" />
+      <wsdl:output message="tns:getModelListHttpPostOut" />
+    </wsdl:operation>
+    <wsdl:operation name="GetModelCategoryIDList">
+      <wsdl:input message="tns:GetModelCategoryIDListHttpPostIn" />
+      <wsdl:output message="tns:GetModelCategoryIDListHttpPostOut" />
+    </wsdl:operation>
+    <wsdl:operation name="GetModelDetailInfo">
+      <wsdl:input message="tns:GetModelDetailInfoHttpPostIn" />
+      <wsdl:output message="tns:GetModelDetailInfoHttpPostOut" />
+    </wsdl:operation>
+    <wsdl:operation name="AddBannerLog">
+      <wsdl:documentation xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/">Add Banner Log</wsdl:documentation>
+      <wsdl:input message="tns:AddBannerLogHttpPostIn" />
+      <wsdl:output message="tns:AddBannerLogHttpPostOut" />
+    </wsdl:operation>
+    <wsdl:operation name="AddProductLog">
+      <wsdl:documentation xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/">Add Product Log with Type</wsdl:documentation>
+      <wsdl:input message="tns:AddProductLogHttpPostIn" />
+      <wsdl:output message="tns:AddProductLogHttpPostOut" />
+    </wsdl:operation>
+    <wsdl:operation name="CheckeStoreProduct">
+      <wsdl:documentation xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/">Check if PN is CTOS products</wsdl:documentation>
+      <wsdl:input message="tns:CheckeStoreProductHttpPostIn" />
+      <wsdl:output message="tns:CheckeStoreProductHttpPostOut" />
+    </wsdl:operation>
+    <wsdl:operation name="CheckBuyProduct">
+      <wsdl:documentation xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/">Check if PN is CTOS products</wsdl:documentation>
+      <wsdl:input message="tns:CheckBuyProductHttpPostIn" />
+      <wsdl:output message="tns:CheckBuyProductHttpPostOut" />
+    </wsdl:operation>
+    <wsdl:operation name="getOnlineUser">
+      <wsdl:documentation xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/">Get Total of Online User</wsdl:documentation>
+      <wsdl:input message="tns:getOnlineUserHttpPostIn" />
+      <wsdl:output message="tns:getOnlineUserHttpPostOut" />
+    </wsdl:operation>
+    <wsdl:operation name="getSEOAdminLink">
+      <wsdl:documentation xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/">Get Total of Online User</wsdl:documentation>
+      <wsdl:input message="tns:getSEOAdminLinkHttpPostIn" />
+      <wsdl:output message="tns:getSEOAdminLinkHttpPostOut" />
+    </wsdl:operation>
+    <wsdl:operation name="getModelImage">
+      <wsdl:documentation xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/">Get Total of Online User</wsdl:documentation>
+      <wsdl:input message="tns:getModelImageHttpPostIn" />
+      <wsdl:output message="tns:getModelImageHttpPostOut" />
+    </wsdl:operation>
+    <wsdl:operation name="checkProductDownloadFile">
+      <wsdl:documentation xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/">Check if there is any download file for the model. If yes, return the objectID of HTML. It's for AJAX function.</wsdl:documentation>
+      <wsdl:input message="tns:checkProductDownloadFileHttpPostIn" />
+      <wsdl:output message="tns:checkProductDownloadFileHttpPostOut" />
+    </wsdl:operation>
+    <wsdl:operation name="getModelDownloadInString">
+      <wsdl:documentation xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/">Get download info in string</wsdl:documentation>
+      <wsdl:input message="tns:getModelDownloadInStringHttpPostIn" />
+      <wsdl:output message="tns:getModelDownloadInStringHttpPostOut" />
+    </wsdl:operation>
+    <wsdl:operation name="getRBUInfoByStoreID">
+      <wsdl:documentation xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/">Get RBU info by eStore ID.</wsdl:documentation>
+      <wsdl:input message="tns:getRBUInfoByStoreIDHttpPostIn" />
+      <wsdl:output message="tns:getRBUInfoByStoreIDHttpPostOut" />
+    </wsdl:operation>
+    <wsdl:operation name="CheckURLRedirection">
+      <wsdl:documentation xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/">Redirect by user's country</wsdl:documentation>
+      <wsdl:input message="tns:CheckURLRedirectionHttpPostIn" />
+      <wsdl:output message="tns:CheckURLRedirectionHttpPostOut" />
+    </wsdl:operation>
+    <wsdl:operation name="CheckSpecDataExist">
+      <wsdl:documentation xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/">Check If Spec Data Exist in DB Under This Product Category Id</wsdl:documentation>
+      <wsdl:input message="tns:CheckSpecDataExistHttpPostIn" />
+      <wsdl:output message="tns:CheckSpecDataExistHttpPostOut" />
+    </wsdl:operation>
+    <wsdl:operation name="GetCompletionList">
+      <wsdl:input message="tns:GetCompletionListHttpPostIn" />
+      <wsdl:output message="tns:GetCompletionListHttpPostOut" />
+    </wsdl:operation>
+  </wsdl:portType>
+  <wsdl:binding name="AdvantechWebServiceLocalSoap" type="tns:AdvantechWebServiceLocalSoap">
+    <soap:binding transport="http://schemas.xmlsoap.org/soap/http" />
+    <wsdl:operation name="AddRating">
+      <soap:operation soapAction="http://tempuri.org/AddRating" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="getPressroomNews">
+      <soap:operation soapAction="http://tempuri.org/getPressroomNews" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="getCorpEvents">
+      <soap:operation soapAction="http://tempuri.org/getCorpEvents" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="getCorpEventsByRBU">
+      <soap:operation soapAction="http://tempuri.org/getCorpEventsByRBU" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="getCMS_CategoryName_ListBy">
+      <soap:operation soapAction="http://tempuri.org/getCMS_CategoryName_ListBy" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="getCMS_Category_ListBy">
+      <soap:operation soapAction="http://tempuri.org/getCMS_Category_ListBy" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="getCMS">
+      <soap:operation soapAction="http://tempuri.org/getCMS" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="getCMSByBAA">
+      <soap:operation soapAction="http://tempuri.org/getCMSByBAA" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="getCMSBy">
+      <soap:operation soapAction="http://tempuri.org/getCMSBy" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="getCMSByVer2">
+      <soap:operation soapAction="http://tempuri.org/getCMSByVer2" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="getCMSTagList">
+      <soap:operation soapAction="http://tempuri.org/getCMSTagList" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="getCMSByPartNumber">
+      <soap:operation soapAction="http://tempuri.org/getCMSByPartNumber" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="getCMSMaster">
+      <soap:operation soapAction="http://tempuri.org/getCMSMaster" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="getCMSDetailContent">
+      <soap:operation soapAction="http://tempuri.org/getCMSDetailContent" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="getCMS_ProductCategoryList">
+      <soap:operation soapAction="http://tempuri.org/getCMS_ProductCategoryList" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="GetLogFromOn24">
+      <soap:operation soapAction="http://tempuri.org/GetLogFromOn24" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="GetRating">
+      <soap:operation soapAction="http://tempuri.org/GetRating" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="getModelInfo">
+      <soap:operation soapAction="http://tempuri.org/getModelInfo" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="getProductInfoByPartNumber">
+      <soap:operation soapAction="http://tempuri.org/getProductInfoByPartNumber" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="Add">
+      <soap:operation soapAction="http://tempuri.org/Add" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="getModelList">
+      <soap:operation soapAction="http://tempuri.org/getModelList" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="GetModelCategoryIDList">
+      <soap:operation soapAction="http://tempuri.org/GetModelCategoryIDList" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="GetModelDetailInfo">
+      <soap:operation soapAction="http://tempuri.org/GetModelDetailInfo" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="AddBannerLog">
+      <soap:operation soapAction="http://tempuri.org/AddBannerLog" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="AddProductLog">
+      <soap:operation soapAction="http://tempuri.org/AddProductLog" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="CheckeStoreProduct">
+      <soap:operation soapAction="http://tempuri.org/CheckeStoreProduct" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="CheckBuyProduct">
+      <soap:operation soapAction="http://tempuri.org/CheckBuyProduct" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="getOnlineUser">
+      <soap:operation soapAction="http://tempuri.org/getOnlineUser" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="getSEOAdminLink">
+      <soap:operation soapAction="http://tempuri.org/getSEOAdminLink" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="getModelImage">
+      <soap:operation soapAction="http://tempuri.org/getModelImage" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="checkProductDownloadFile">
+      <soap:operation soapAction="http://tempuri.org/checkProductDownloadFile" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="getModelDownloadInString">
+      <soap:operation soapAction="http://tempuri.org/getModelDownloadInString" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="getRBUInfoByStoreID">
+      <soap:operation soapAction="http://tempuri.org/getRBUInfoByStoreID" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="CheckURLRedirection">
+      <soap:operation soapAction="http://tempuri.org/CheckURLRedirection" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="CheckSpecDataExist">
+      <soap:operation soapAction="http://tempuri.org/CheckSpecDataExist" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="GetCompletionList">
+      <soap:operation soapAction="http://tempuri.org/GetCompletionList" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+  </wsdl:binding>
+  <wsdl:binding name="AdvantechWebServiceLocalSoap12" type="tns:AdvantechWebServiceLocalSoap">
+    <soap12:binding transport="http://schemas.xmlsoap.org/soap/http" />
+    <wsdl:operation name="AddRating">
+      <soap12:operation soapAction="http://tempuri.org/AddRating" style="document" />
+      <wsdl:input>
+        <soap12:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap12:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="getPressroomNews">
+      <soap12:operation soapAction="http://tempuri.org/getPressroomNews" style="document" />
+      <wsdl:input>
+        <soap12:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap12:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="getCorpEvents">
+      <soap12:operation soapAction="http://tempuri.org/getCorpEvents" style="document" />
+      <wsdl:input>
+        <soap12:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap12:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="getCorpEventsByRBU">
+      <soap12:operation soapAction="http://tempuri.org/getCorpEventsByRBU" style="document" />
+      <wsdl:input>
+        <soap12:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap12:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="getCMS_CategoryName_ListBy">
+      <soap12:operation soapAction="http://tempuri.org/getCMS_CategoryName_ListBy" style="document" />
+      <wsdl:input>
+        <soap12:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap12:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="getCMS_Category_ListBy">
+      <soap12:operation soapAction="http://tempuri.org/getCMS_Category_ListBy" style="document" />
+      <wsdl:input>
+        <soap12:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap12:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="getCMS">
+      <soap12:operation soapAction="http://tempuri.org/getCMS" style="document" />
+      <wsdl:input>
+        <soap12:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap12:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="getCMSByBAA">
+      <soap12:operation soapAction="http://tempuri.org/getCMSByBAA" style="document" />
+      <wsdl:input>
+        <soap12:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap12:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="getCMSBy">
+      <soap12:operation soapAction="http://tempuri.org/getCMSBy" style="document" />
+      <wsdl:input>
+        <soap12:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap12:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="getCMSByVer2">
+      <soap12:operation soapAction="http://tempuri.org/getCMSByVer2" style="document" />
+      <wsdl:input>
+        <soap12:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap12:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="getCMSTagList">
+      <soap12:operation soapAction="http://tempuri.org/getCMSTagList" style="document" />
+      <wsdl:input>
+        <soap12:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap12:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="getCMSByPartNumber">
+      <soap12:operation soapAction="http://tempuri.org/getCMSByPartNumber" style="document" />
+      <wsdl:input>
+        <soap12:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap12:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="getCMSMaster">
+      <soap12:operation soapAction="http://tempuri.org/getCMSMaster" style="document" />
+      <wsdl:input>
+        <soap12:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap12:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="getCMSDetailContent">
+      <soap12:operation soapAction="http://tempuri.org/getCMSDetailContent" style="document" />
+      <wsdl:input>
+        <soap12:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap12:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="getCMS_ProductCategoryList">
+      <soap12:operation soapAction="http://tempuri.org/getCMS_ProductCategoryList" style="document" />
+      <wsdl:input>
+        <soap12:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap12:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="GetLogFromOn24">
+      <soap12:operation soapAction="http://tempuri.org/GetLogFromOn24" style="document" />
+      <wsdl:input>
+        <soap12:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap12:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="GetRating">
+      <soap12:operation soapAction="http://tempuri.org/GetRating" style="document" />
+      <wsdl:input>
+        <soap12:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap12:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="getModelInfo">
+      <soap12:operation soapAction="http://tempuri.org/getModelInfo" style="document" />
+      <wsdl:input>
+        <soap12:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap12:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="getProductInfoByPartNumber">
+      <soap12:operation soapAction="http://tempuri.org/getProductInfoByPartNumber" style="document" />
+      <wsdl:input>
+        <soap12:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap12:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="Add">
+      <soap12:operation soapAction="http://tempuri.org/Add" style="document" />
+      <wsdl:input>
+        <soap12:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap12:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="getModelList">
+      <soap12:operation soapAction="http://tempuri.org/getModelList" style="document" />
+      <wsdl:input>
+        <soap12:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap12:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="GetModelCategoryIDList">
+      <soap12:operation soapAction="http://tempuri.org/GetModelCategoryIDList" style="document" />
+      <wsdl:input>
+        <soap12:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap12:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="GetModelDetailInfo">
+      <soap12:operation soapAction="http://tempuri.org/GetModelDetailInfo" style="document" />
+      <wsdl:input>
+        <soap12:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap12:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="AddBannerLog">
+      <soap12:operation soapAction="http://tempuri.org/AddBannerLog" style="document" />
+      <wsdl:input>
+        <soap12:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap12:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="AddProductLog">
+      <soap12:operation soapAction="http://tempuri.org/AddProductLog" style="document" />
+      <wsdl:input>
+        <soap12:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap12:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="CheckeStoreProduct">
+      <soap12:operation soapAction="http://tempuri.org/CheckeStoreProduct" style="document" />
+      <wsdl:input>
+        <soap12:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap12:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="CheckBuyProduct">
+      <soap12:operation soapAction="http://tempuri.org/CheckBuyProduct" style="document" />
+      <wsdl:input>
+        <soap12:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap12:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="getOnlineUser">
+      <soap12:operation soapAction="http://tempuri.org/getOnlineUser" style="document" />
+      <wsdl:input>
+        <soap12:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap12:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="getSEOAdminLink">
+      <soap12:operation soapAction="http://tempuri.org/getSEOAdminLink" style="document" />
+      <wsdl:input>
+        <soap12:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap12:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="getModelImage">
+      <soap12:operation soapAction="http://tempuri.org/getModelImage" style="document" />
+      <wsdl:input>
+        <soap12:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap12:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="checkProductDownloadFile">
+      <soap12:operation soapAction="http://tempuri.org/checkProductDownloadFile" style="document" />
+      <wsdl:input>
+        <soap12:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap12:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="getModelDownloadInString">
+      <soap12:operation soapAction="http://tempuri.org/getModelDownloadInString" style="document" />
+      <wsdl:input>
+        <soap12:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap12:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="getRBUInfoByStoreID">
+      <soap12:operation soapAction="http://tempuri.org/getRBUInfoByStoreID" style="document" />
+      <wsdl:input>
+        <soap12:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap12:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="CheckURLRedirection">
+      <soap12:operation soapAction="http://tempuri.org/CheckURLRedirection" style="document" />
+      <wsdl:input>
+        <soap12:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap12:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="CheckSpecDataExist">
+      <soap12:operation soapAction="http://tempuri.org/CheckSpecDataExist" style="document" />
+      <wsdl:input>
+        <soap12:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap12:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="GetCompletionList">
+      <soap12:operation soapAction="http://tempuri.org/GetCompletionList" style="document" />
+      <wsdl:input>
+        <soap12:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap12:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+  </wsdl:binding>
+  <wsdl:binding name="AdvantechWebServiceLocalHttpGet" type="tns:AdvantechWebServiceLocalHttpGet">
+    <http:binding verb="GET" />
+    <wsdl:operation name="AddRating">
+      <http:operation location="/AddRating" />
+      <wsdl:input>
+        <http:urlEncoded />
+      </wsdl:input>
+      <wsdl:output>
+        <mime:mimeXml part="Body" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="getPressroomNews">
+      <http:operation location="/getPressroomNews" />
+      <wsdl:input>
+        <http:urlEncoded />
+      </wsdl:input>
+      <wsdl:output>
+        <mime:mimeXml part="Body" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="getCorpEvents">
+      <http:operation location="/getCorpEvents" />
+      <wsdl:input>
+        <http:urlEncoded />
+      </wsdl:input>
+      <wsdl:output>
+        <mime:mimeXml part="Body" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="getCorpEventsByRBU">
+      <http:operation location="/getCorpEventsByRBU" />
+      <wsdl:input>
+        <http:urlEncoded />
+      </wsdl:input>
+      <wsdl:output>
+        <mime:mimeXml part="Body" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="getCMS_CategoryName_ListBy">
+      <http:operation location="/getCMS_CategoryName_ListBy" />
+      <wsdl:input>
+        <http:urlEncoded />
+      </wsdl:input>
+      <wsdl:output>
+        <mime:mimeXml part="Body" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="getCMS_Category_ListBy">
+      <http:operation location="/getCMS_Category_ListBy" />
+      <wsdl:input>
+        <http:urlEncoded />
+      </wsdl:input>
+      <wsdl:output>
+        <mime:mimeXml part="Body" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="getCMS">
+      <http:operation location="/getCMS" />
+      <wsdl:input>
+        <http:urlEncoded />
+      </wsdl:input>
+      <wsdl:output>
+        <mime:mimeXml part="Body" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="getCMSByBAA">
+      <http:operation location="/getCMSByBAA" />
+      <wsdl:input>
+        <http:urlEncoded />
+      </wsdl:input>
+      <wsdl:output>
+        <mime:mimeXml part="Body" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="getCMSTagList">
+      <http:operation location="/getCMSTagList" />
+      <wsdl:input>
+        <http:urlEncoded />
+      </wsdl:input>
+      <wsdl:output>
+        <mime:mimeXml part="Body" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="getCMSMaster">
+      <http:operation location="/getCMSMaster" />
+      <wsdl:input>
+        <http:urlEncoded />
+      </wsdl:input>
+      <wsdl:output>
+        <mime:mimeXml part="Body" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="getCMSDetailContent">
+      <http:operation location="/getCMSDetailContent" />
+      <wsdl:input>
+        <http:urlEncoded />
+      </wsdl:input>
+      <wsdl:output>
+        <mime:mimeXml part="Body" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="getCMS_ProductCategoryList">
+      <http:operation location="/getCMS_ProductCategoryList" />
+      <wsdl:input>
+        <http:urlEncoded />
+      </wsdl:input>
+      <wsdl:output>
+        <mime:mimeXml part="Body" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="GetLogFromOn24">
+      <http:operation location="/GetLogFromOn24" />
+      <wsdl:input>
+        <http:urlEncoded />
+      </wsdl:input>
+      <wsdl:output>
+        <mime:mimeXml part="Body" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="GetRating">
+      <http:operation location="/GetRating" />
+      <wsdl:input>
+        <http:urlEncoded />
+      </wsdl:input>
+      <wsdl:output>
+        <mime:mimeXml part="Body" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="getModelInfo">
+      <http:operation location="/getModelInfo" />
+      <wsdl:input>
+        <http:urlEncoded />
+      </wsdl:input>
+      <wsdl:output>
+        <mime:mimeXml part="Body" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="getProductInfoByPartNumber">
+      <http:operation location="/getProductInfoByPartNumber" />
+      <wsdl:input>
+        <http:urlEncoded />
+      </wsdl:input>
+      <wsdl:output>
+        <mime:mimeXml part="Body" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="Add">
+      <http:operation location="/Add" />
+      <wsdl:input>
+        <http:urlEncoded />
+      </wsdl:input>
+      <wsdl:output>
+        <mime:mimeXml part="Body" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="getModelList">
+      <http:operation location="/getModelList" />
+      <wsdl:input>
+        <http:urlEncoded />
+      </wsdl:input>
+      <wsdl:output>
+        <mime:mimeXml part="Body" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="GetModelCategoryIDList">
+      <http:operation location="/GetModelCategoryIDList" />
+      <wsdl:input>
+        <http:urlEncoded />
+      </wsdl:input>
+      <wsdl:output>
+        <mime:mimeXml part="Body" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="GetModelDetailInfo">
+      <http:operation location="/GetModelDetailInfo" />
+      <wsdl:input>
+        <http:urlEncoded />
+      </wsdl:input>
+      <wsdl:output>
+        <mime:mimeXml part="Body" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="AddBannerLog">
+      <http:operation location="/AddBannerLog" />
+      <wsdl:input>
+        <http:urlEncoded />
+      </wsdl:input>
+      <wsdl:output />
+    </wsdl:operation>
+    <wsdl:operation name="AddProductLog">
+      <http:operation location="/AddProductLog" />
+      <wsdl:input>
+        <http:urlEncoded />
+      </wsdl:input>
+      <wsdl:output />
+    </wsdl:operation>
+    <wsdl:operation name="CheckeStoreProduct">
+      <http:operation location="/CheckeStoreProduct" />
+      <wsdl:input>
+        <http:urlEncoded />
+      </wsdl:input>
+      <wsdl:output>
+        <mime:mimeXml part="Body" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="CheckBuyProduct">
+      <http:operation location="/CheckBuyProduct" />
+      <wsdl:input>
+        <http:urlEncoded />
+      </wsdl:input>
+      <wsdl:output>
+        <mime:mimeXml part="Body" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="getOnlineUser">
+      <http:operation location="/getOnlineUser" />
+      <wsdl:input>
+        <http:urlEncoded />
+      </wsdl:input>
+      <wsdl:output>
+        <mime:mimeXml part="Body" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="getSEOAdminLink">
+      <http:operation location="/getSEOAdminLink" />
+      <wsdl:input>
+        <http:urlEncoded />
+      </wsdl:input>
+      <wsdl:output>
+        <mime:mimeXml part="Body" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="getModelImage">
+      <http:operation location="/getModelImage" />
+      <wsdl:input>
+        <http:urlEncoded />
+      </wsdl:input>
+      <wsdl:output>
+        <mime:mimeXml part="Body" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="checkProductDownloadFile">
+      <http:operation location="/checkProductDownloadFile" />
+      <wsdl:input>
+        <http:urlEncoded />
+      </wsdl:input>
+      <wsdl:output>
+        <mime:mimeXml part="Body" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="getModelDownloadInString">
+      <http:operation location="/getModelDownloadInString" />
+      <wsdl:input>
+        <http:urlEncoded />
+      </wsdl:input>
+      <wsdl:output>
+        <mime:mimeXml part="Body" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="getRBUInfoByStoreID">
+      <http:operation location="/getRBUInfoByStoreID" />
+      <wsdl:input>
+        <http:urlEncoded />
+      </wsdl:input>
+      <wsdl:output>
+        <mime:mimeXml part="Body" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="CheckURLRedirection">
+      <http:operation location="/CheckURLRedirection" />
+      <wsdl:input>
+        <http:urlEncoded />
+      </wsdl:input>
+      <wsdl:output>
+        <mime:mimeXml part="Body" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="CheckSpecDataExist">
+      <http:operation location="/CheckSpecDataExist" />
+      <wsdl:input>
+        <http:urlEncoded />
+      </wsdl:input>
+      <wsdl:output>
+        <mime:mimeXml part="Body" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="GetCompletionList">
+      <http:operation location="/GetCompletionList" />
+      <wsdl:input>
+        <http:urlEncoded />
+      </wsdl:input>
+      <wsdl:output>
+        <mime:mimeXml part="Body" />
+      </wsdl:output>
+    </wsdl:operation>
+  </wsdl:binding>
+  <wsdl:binding name="AdvantechWebServiceLocalHttpPost" type="tns:AdvantechWebServiceLocalHttpPost">
+    <http:binding verb="POST" />
+    <wsdl:operation name="AddRating">
+      <http:operation location="/AddRating" />
+      <wsdl:input>
+        <mime:content type="application/x-www-form-urlencoded" />
+      </wsdl:input>
+      <wsdl:output>
+        <mime:mimeXml part="Body" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="getPressroomNews">
+      <http:operation location="/getPressroomNews" />
+      <wsdl:input>
+        <mime:content type="application/x-www-form-urlencoded" />
+      </wsdl:input>
+      <wsdl:output>
+        <mime:mimeXml part="Body" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="getCorpEvents">
+      <http:operation location="/getCorpEvents" />
+      <wsdl:input>
+        <mime:content type="application/x-www-form-urlencoded" />
+      </wsdl:input>
+      <wsdl:output>
+        <mime:mimeXml part="Body" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="getCorpEventsByRBU">
+      <http:operation location="/getCorpEventsByRBU" />
+      <wsdl:input>
+        <mime:content type="application/x-www-form-urlencoded" />
+      </wsdl:input>
+      <wsdl:output>
+        <mime:mimeXml part="Body" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="getCMS_CategoryName_ListBy">
+      <http:operation location="/getCMS_CategoryName_ListBy" />
+      <wsdl:input>
+        <mime:content type="application/x-www-form-urlencoded" />
+      </wsdl:input>
+      <wsdl:output>
+        <mime:mimeXml part="Body" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="getCMS_Category_ListBy">
+      <http:operation location="/getCMS_Category_ListBy" />
+      <wsdl:input>
+        <mime:content type="application/x-www-form-urlencoded" />
+      </wsdl:input>
+      <wsdl:output>
+        <mime:mimeXml part="Body" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="getCMS">
+      <http:operation location="/getCMS" />
+      <wsdl:input>
+        <mime:content type="application/x-www-form-urlencoded" />
+      </wsdl:input>
+      <wsdl:output>
+        <mime:mimeXml part="Body" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="getCMSByBAA">
+      <http:operation location="/getCMSByBAA" />
+      <wsdl:input>
+        <mime:content type="application/x-www-form-urlencoded" />
+      </wsdl:input>
+      <wsdl:output>
+        <mime:mimeXml part="Body" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="getCMSTagList">
+      <http:operation location="/getCMSTagList" />
+      <wsdl:input>
+        <mime:content type="application/x-www-form-urlencoded" />
+      </wsdl:input>
+      <wsdl:output>
+        <mime:mimeXml part="Body" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="getCMSMaster">
+      <http:operation location="/getCMSMaster" />
+      <wsdl:input>
+        <mime:content type="application/x-www-form-urlencoded" />
+      </wsdl:input>
+      <wsdl:output>
+        <mime:mimeXml part="Body" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="getCMSDetailContent">
+      <http:operation location="/getCMSDetailContent" />
+      <wsdl:input>
+        <mime:content type="application/x-www-form-urlencoded" />
+      </wsdl:input>
+      <wsdl:output>
+        <mime:mimeXml part="Body" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="getCMS_ProductCategoryList">
+      <http:operation location="/getCMS_ProductCategoryList" />
+      <wsdl:input>
+        <mime:content type="application/x-www-form-urlencoded" />
+      </wsdl:input>
+      <wsdl:output>
+        <mime:mimeXml part="Body" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="GetLogFromOn24">
+      <http:operation location="/GetLogFromOn24" />
+      <wsdl:input>
+        <mime:content type="application/x-www-form-urlencoded" />
+      </wsdl:input>
+      <wsdl:output>
+        <mime:mimeXml part="Body" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="GetRating">
+      <http:operation location="/GetRating" />
+      <wsdl:input>
+        <mime:content type="application/x-www-form-urlencoded" />
+      </wsdl:input>
+      <wsdl:output>
+        <mime:mimeXml part="Body" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="getModelInfo">
+      <http:operation location="/getModelInfo" />
+      <wsdl:input>
+        <mime:content type="application/x-www-form-urlencoded" />
+      </wsdl:input>
+      <wsdl:output>
+        <mime:mimeXml part="Body" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="getProductInfoByPartNumber">
+      <http:operation location="/getProductInfoByPartNumber" />
+      <wsdl:input>
+        <mime:content type="application/x-www-form-urlencoded" />
+      </wsdl:input>
+      <wsdl:output>
+        <mime:mimeXml part="Body" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="Add">
+      <http:operation location="/Add" />
+      <wsdl:input>
+        <mime:content type="application/x-www-form-urlencoded" />
+      </wsdl:input>
+      <wsdl:output>
+        <mime:mimeXml part="Body" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="getModelList">
+      <http:operation location="/getModelList" />
+      <wsdl:input>
+        <mime:content type="application/x-www-form-urlencoded" />
+      </wsdl:input>
+      <wsdl:output>
+        <mime:mimeXml part="Body" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="GetModelCategoryIDList">
+      <http:operation location="/GetModelCategoryIDList" />
+      <wsdl:input>
+        <mime:content type="application/x-www-form-urlencoded" />
+      </wsdl:input>
+      <wsdl:output>
+        <mime:mimeXml part="Body" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="GetModelDetailInfo">
+      <http:operation location="/GetModelDetailInfo" />
+      <wsdl:input>
+        <mime:content type="application/x-www-form-urlencoded" />
+      </wsdl:input>
+      <wsdl:output>
+        <mime:mimeXml part="Body" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="AddBannerLog">
+      <http:operation location="/AddBannerLog" />
+      <wsdl:input>
+        <mime:content type="application/x-www-form-urlencoded" />
+      </wsdl:input>
+      <wsdl:output />
+    </wsdl:operation>
+    <wsdl:operation name="AddProductLog">
+      <http:operation location="/AddProductLog" />
+      <wsdl:input>
+        <mime:content type="application/x-www-form-urlencoded" />
+      </wsdl:input>
+      <wsdl:output />
+    </wsdl:operation>
+    <wsdl:operation name="CheckeStoreProduct">
+      <http:operation location="/CheckeStoreProduct" />
+      <wsdl:input>
+        <mime:content type="application/x-www-form-urlencoded" />
+      </wsdl:input>
+      <wsdl:output>
+        <mime:mimeXml part="Body" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="CheckBuyProduct">
+      <http:operation location="/CheckBuyProduct" />
+      <wsdl:input>
+        <mime:content type="application/x-www-form-urlencoded" />
+      </wsdl:input>
+      <wsdl:output>
+        <mime:mimeXml part="Body" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="getOnlineUser">
+      <http:operation location="/getOnlineUser" />
+      <wsdl:input>
+        <mime:content type="application/x-www-form-urlencoded" />
+      </wsdl:input>
+      <wsdl:output>
+        <mime:mimeXml part="Body" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="getSEOAdminLink">
+      <http:operation location="/getSEOAdminLink" />
+      <wsdl:input>
+        <mime:content type="application/x-www-form-urlencoded" />
+      </wsdl:input>
+      <wsdl:output>
+        <mime:mimeXml part="Body" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="getModelImage">
+      <http:operation location="/getModelImage" />
+      <wsdl:input>
+        <mime:content type="application/x-www-form-urlencoded" />
+      </wsdl:input>
+      <wsdl:output>
+        <mime:mimeXml part="Body" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="checkProductDownloadFile">
+      <http:operation location="/checkProductDownloadFile" />
+      <wsdl:input>
+        <mime:content type="application/x-www-form-urlencoded" />
+      </wsdl:input>
+      <wsdl:output>
+        <mime:mimeXml part="Body" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="getModelDownloadInString">
+      <http:operation location="/getModelDownloadInString" />
+      <wsdl:input>
+        <mime:content type="application/x-www-form-urlencoded" />
+      </wsdl:input>
+      <wsdl:output>
+        <mime:mimeXml part="Body" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="getRBUInfoByStoreID">
+      <http:operation location="/getRBUInfoByStoreID" />
+      <wsdl:input>
+        <mime:content type="application/x-www-form-urlencoded" />
+      </wsdl:input>
+      <wsdl:output>
+        <mime:mimeXml part="Body" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="CheckURLRedirection">
+      <http:operation location="/CheckURLRedirection" />
+      <wsdl:input>
+        <mime:content type="application/x-www-form-urlencoded" />
+      </wsdl:input>
+      <wsdl:output>
+        <mime:mimeXml part="Body" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="CheckSpecDataExist">
+      <http:operation location="/CheckSpecDataExist" />
+      <wsdl:input>
+        <mime:content type="application/x-www-form-urlencoded" />
+      </wsdl:input>
+      <wsdl:output>
+        <mime:mimeXml part="Body" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="GetCompletionList">
+      <http:operation location="/GetCompletionList" />
+      <wsdl:input>
+        <mime:content type="application/x-www-form-urlencoded" />
+      </wsdl:input>
+      <wsdl:output>
+        <mime:mimeXml part="Body" />
+      </wsdl:output>
+    </wsdl:operation>
+  </wsdl:binding>
+  <wsdl:service name="AdvantechWebServiceLocal">
+    <wsdl:port name="AdvantechWebServiceLocalSoap" binding="tns:AdvantechWebServiceLocalSoap">
+      <soap:address location="http://www2.advantech.com.tw/webservice/advantechwebservicelocal.asmx" />
+    </wsdl:port>
+    <wsdl:port name="AdvantechWebServiceLocalSoap12" binding="tns:AdvantechWebServiceLocalSoap12">
+      <soap12:address location="http://www2.advantech.com.tw/webservice/advantechwebservicelocal.asmx" />
+    </wsdl:port>
+    <wsdl:port name="AdvantechWebServiceLocalHttpGet" binding="tns:AdvantechWebServiceLocalHttpGet">
+      <http:address location="http://www2.advantech.com.tw/webservice/advantechwebservicelocal.asmx" />
+    </wsdl:port>
+    <wsdl:port name="AdvantechWebServiceLocalHttpPost" binding="tns:AdvantechWebServiceLocalHttpPost">
+      <http:address location="http://www2.advantech.com.tw/webservice/advantechwebservicelocal.asmx" />
+    </wsdl:port>
+  </wsdl:service>
+</wsdl:definitions>

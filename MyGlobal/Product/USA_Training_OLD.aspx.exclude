@@ -1,0 +1,130 @@
+﻿<%@ Page Title="MyAdvantech - Monthly Channel Partner Training" Language="VB" MasterPageFile="~/Includes/MyMaster.master" %>
+
+<script runat="server">
+
+    Protected Sub Page_Load(ByVal sender As Object, ByVal e As System.EventArgs)
+        If Not IsPostBack Then
+            btnToXls.Visible = False
+            If User.Identity.IsAuthenticated AndAlso (Util.IsAEUIT() OrElse User.Identity.Name.ToLower() = "Adam.Sturm@advantech.com".ToLower()) Then
+                btnToXls.Visible = True
+            End If
+            Try
+                Dim First_Name As String = "", Last_Name As String = ""
+                GetNameVonEmail(Session("user_id").ToString, First_Name, Last_Name)
+                Dim REFERRER As String = ""
+                If Request.UrlReferrer IsNot Nothing Then REFERRER = Request.UrlReferrer.ToString
+                Dim sQuery As String = ""
+                If Request.QueryString.HasKeys Then
+                    For i As Integer = 0 To Request.QueryString.Count - 1
+                        sQuery &= Request.QueryString.Keys(i) & "=" & _
+                                  Request.QueryString.Item(i) & "&"
+                    Next
+                    sQuery.Replace("'", "&aps")
+                End If
+                Dim sSQL As String = String.Format("INSERT INTO USA_Training_Log" & _
+                                                   " ([row_id],[User_Id],[First_Name] ,[Last_Name] " & _
+                                                   " ,[Company_Id],[Org_Id] ,[Company_Name] " & _
+                                                   " ,[Page_Id] ,[Query_String] ,[Log_Time]) " & _
+                                                   " VALUES('{8}','{0}','{1}','{2}','{3}','{4}','{5}','{6}','{7}',GetDate())", Session("user_id"), First_Name, Last_Name, Session("company_id"), Session("org_id"), "", Replace(REFERRER, "'", "''"), Replace(sQuery, "'", "''"), Util.NewRowId("USA_Training_Log", "MYLOCAL"))
+                dbUtil.dbExecuteNoQuery("MYLOCAL", sSQL)
+                'Response.Write(sSQL)                    
+            Catch ex As Exception
+
+            End Try
+        End If
+    End Sub
+    Public Function GetNameVonEmail(ByVal email As String, ByRef First_Name As String, ByRef Last_Name As String) As Integer
+        If email.Contains("@") Then
+            Dim name As String = Split(email, "@")(0)
+            If name.Contains(".") Then
+                First_Name = Split(name, ".")(0)
+                Last_Name = Split(name, ".")(1)
+            End If
+        Else
+            First_Name = ""
+            Last_Name = email
+        End If
+        Return 1
+    End Function
+    Protected Sub gv1_RowDataBound(ByVal sender As Object, ByVal e As System.Web.UI.WebControls.GridViewRowEventArgs)
+        Dim oType As ListItemType = e.Row.RowType
+        If e.Row.RowType = DataControlRowType.DataRow Then
+            e.Row.Cells(4).Text = CType(e.Row.Cells(4).Text, Date).ToShortDateString()
+            Dim litId As String = CType(e.Row.FindControl("hd_LitId"), HiddenField).Value
+            Dim ftp As String = CType(e.Row.FindControl("hd_FTP"), HiddenField).Value
+            Dim hy As HyperLink = e.Row.FindControl("hyLink")
+            If Trim(ftp) = String.Empty Then
+                hy.NavigateUrl = "http://downloadt.advantech.com/download/downloadlit.aspx?LIT_ID=" + HttpUtility.UrlEncode(litId)
+            Else
+                hy.NavigateUrl = ftp
+            End If
+            'If Not e.Row.Cells(6).Text.StartsWith("<a") Then
+            '    e.Row.Cells(6).Text = "<a href='http://downloadt.advantech.com/download/downloadlit.aspx?LIT_ID=" & HttpUtility.UrlEncode(e.Row.Cells(6).Text) & "' target='_blank'>Link</a>"
+            'End If
+
+        End If
+    End Sub
+    Protected Sub btnToXls_Click(sender As Object, e As System.Web.UI.ImageClickEventArgs)
+        Dim dt As DataTable = dbUtil.dbGetDataTable("MyLocal", "select * from  USA_Training_Log  order by  Log_Time desc")
+        dt.Columns.Remove("ROW_ID")
+        dt.AcceptChanges()
+        Util.DataTable2ExcelDownload(dt, "Training_Download_Log.xls")
+    End Sub
+</script>
+<asp:Content ID="Content1" ContentPlaceHolderID="_main" runat="Server">
+    <table align="center" width="100%" border="0" cellspacing="0" cellpadding="0">
+        <tr>
+            <td colspan="3" style="height: 15px">
+            </td>
+        </tr>
+        <tr>
+            <td style="width: 10px">
+            </td>
+            <td>
+                <!--Page Title-->
+                <div class="euPageTitle">
+                    USA eA Training Download</div>
+            </td>
+            <td >    <div style="float: right;">
+        <asp:ImageButton ID="btnToXls" runat="server" ImageUrl="~/Images/excel.gif" OnClick="btnToXls_Click" /></div>
+            </td>
+        </tr>
+        <tr>
+            <td colspan="3" style="height: 15px">
+            </td>
+        </tr>
+        <tr>
+            <td colspan="3" width="100%">
+                <asp:GridView runat="server" ID="gv1" ShowWhenEmpty="true" AutoGenerateColumns="false"
+                    AllowPaging="true" PageSize="50" AllowSorting="true" DataSourceID="sql1" Width="100%"
+                    OnRowDataBound="gv1_RowDataBound">
+                    <Columns>
+                        <asp:TemplateField ItemStyle-Width="50px" ItemStyle-HorizontalAlign="Center" Visible="false">
+                            <HeaderTemplate>
+                                No.
+                            </HeaderTemplate>
+                            <ItemTemplate>
+                                <%#Container.DataItemIndex + 1%>
+                            </ItemTemplate>
+                        </asp:TemplateField>
+                        <asp:BoundField HeaderText="TYPE" DataField="LIT_TYPE" ReadOnly="true" Visible="false" ItemStyle-Width="10%" />
+                        <asp:BoundField HeaderText="File Name" DataField="FILE_NAME" ReadOnly="true" Visible="false" SortExpression="FILE_NAME" />
+                        <asp:BoundField HeaderText="Description" DataField="LIT_DESC" ReadOnly="true" SortExpression="LIT_DESC" />
+                        <asp:BoundField HeaderText="Last Updated" DataField="LAST_UPDATED" ReadOnly="true" />
+                        <asp:BoundField HeaderText="File Type" DataField="FILE_EXT" ReadOnly="true" ItemStyle-Width="10%" />                        
+                        <asp:TemplateField HeaderText="Link">
+                            <ItemTemplate>
+                                <asp:HiddenField runat="server" ID="hd_LitId" Value='<%#Eval("LITERATURE_ID") %>' />
+                                <asp:HiddenField runat="server" ID="hd_FTP" Value='<%#Eval("FTP_URL") %>' />
+                                <asp:HyperLink runat="server" ID="hyLink" Text="Link" />
+                            </ItemTemplate>
+                        </asp:TemplateField>
+                    </Columns>
+                </asp:GridView>
+                <asp:SqlDataSource runat="server" ID="sql1" ConnectionString="<%$connectionStrings:MY %>"
+                    SelectCommand="select LIT_TYPE,FILE_NAME, LIT_DESC, LAST_UPDATED,FILE_EXT, LITERATURE_ID, IsNull(FTP_URL,'') as FTP_URL from [PIS].dbo.v_LITERATURE WHERE LIT_TYPE = 'Event Presentation'  and (PRIMARY_BU = 'IAG' or PRIMARY_ORG_ID='AAC') UNION select LIT_TYPE,FILE_NAME, LIT_DESC, LAST_UPDATED,FILE_EXT, LITERATURE_ID, '' as FTP_URL  from  LITERATURE  WHERE LIT_TYPE = 'Event Presentation' and (PRIMARY_BU = 'IAG' or PRIMARY_ORG_ID='AAC') and year(LAST_UPDATED)>=2011  ORDER BY LAST_UPDATED DESC">
+                </asp:SqlDataSource>
+            </td>
+        </tr>
+    </table>
+</asp:Content>

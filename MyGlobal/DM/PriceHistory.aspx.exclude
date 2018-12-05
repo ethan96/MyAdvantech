@@ -1,0 +1,46 @@
+﻿<%@ Page Title="ITP fob AESC History" Language="VB" MasterPageFile="~/Includes/MyMaster.master" %>
+
+<script runat="server">
+
+    Protected Sub Page_Load(ByVal sender As Object, ByVal e As System.EventArgs)
+
+    End Sub
+
+    Protected Sub btnQuery_Click(ByVal sender As Object, ByVal e As System.EventArgs)
+        Dim fd As Date = CDate(txtFromDate.Text), dt As New DataTable
+        For i As Integer = 0 To 30
+            Dim tdt As DataTable = Util.GetEUPrice(txtERPID.Text, txtOrg.Text, txtPN.Text, DateAdd(DateInterval.Day, i, fd), 1)
+            tdt.Columns.Add("pdate")
+            If tdt.Rows.Count = 1 Then tdt.Rows(0).Item("pdate") = DateAdd(DateInterval.Day, i, fd)
+            dt.Merge(tdt)
+        Next
+        gv1.DataSource = dt : gv1.DataBind()
+    End Sub
+</script>
+
+<asp:Content ID="Content1" ContentPlaceHolderID="_main" Runat="Server">
+    <table width="100%">
+        <tr>
+            <th align="left">Part Number:</th>
+            <td><asp:TextBox runat="server" ID="txtPN" Width="150px" /></td>
+            <th align="left">Company Id:</th>
+            <td><asp:TextBox runat="server" ID="txtERPID" Width="150px" /></td>
+            <th align="left">Org:</th>
+            <td><asp:TextBox runat="server" ID="txtOrg" Width="150px" /></td>
+        </tr>
+        <tr>
+            <th align="left">From Date:</th>
+            <td>                
+                <asp:TextBox runat="server" ID="txtFromDate" />
+            </td>
+        </tr>
+        <tr>
+            <td colspan="2"><asp:Button runat="server" ID="btnQuery" Text="Check" OnClick="btnQuery_Click" /></td>
+        </tr>
+        <tr>
+            <td colspan="2">
+                <asp:GridView runat="server" ID="gv1" />
+            </td>
+        </tr>
+    </table>
+</asp:Content>

@@ -1,0 +1,112 @@
+﻿  <div class="main-intro">
+
+                            <div class="intro-heading"> 活动介绍</div>
+                            <p>
+                                <strong>研华冠军俱乐部</strong>为研华的白金专营商伙伴（PCP）设计了专门的活动。欢迎PCP业务成为俱乐部成员。注册成为成员后，可以通过完成活动所要求的业绩以获得相应积分，并根据规则获得奖励。</p>
+                            <!-- end .main-intro -->
+                        </div>
+                        <div class="main-content">
+                            <div class="content-heading">
+                                活动简介</div>
+                            <p>
+                               目前，我们的活动主要包括如下。未来可能会有扩展。<br />
+                            </p>
+                            <ul>
+                                <li>	业务销售目标达成：业绩达成率</li>
+                                <li>	特殊产品：特殊产品的业绩达成</li>
+								<li>	大案达成：从竞争对手争取来的今年新的大案</li>
+                            </ul>
+                        </div>
+                        <div class="main-content2">
+                            <div class="content-heading">
+                                激励</div>
+                            <ul>
+                                <li>年度：<br />
+                                    选出每家PCP（业务个人）完成每季业绩并完成年度业绩，且积分最高的前两名颁发大奖；其余完成业绩积分的业务可获得业绩达成奖品.</li>
+                                <li style="display: none;">年度：<br />
+                                    积分第一名获得者+若干位幸运候选人（达到一定积分者），可以赢得团体旅游大奖.</li>
+                            </ul>
+                        </div>
+                        <div class="main-content">
+                            <div class="content-heading">
+                                进程</div>
+                            <p></p>
+                            <div id="Opp_table">
+                                <table width="100%" cellpadding="0" cellspacing="0">
+                                    <thead>
+                                        <tr>
+                                            <th width="20%" scope="col">
+                                                里程碑
+                                            </th>
+                                            <th width="32%" scope="col">
+                                                时间轴
+                                            </th>
+                                            <th scope="col">
+                                                期限
+                                            </th>
+                                            <th scope="col">
+                                                备注
+                                            </th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr class="odd1">
+                                            <td>
+                                                活动公布 &amp; 注册
+                                            </td>
+                                            <td>
+                                                12月, 3月, 6月, 9月
+                                            </td>
+                                            <td>
+                                                月末
+                                            </td>
+                                            <td>
+                                                公布活动 & 候选经销商注册
+                                            </td>
+                                        </tr>
+                                        <tr class="odd2">
+                                            <td>
+                                                提交积分资料
+                                            </td>
+                                            <td>
+                                               4/1, 7/1, 10/1, 1/2
+                                            </td>
+                                            <td>
+                                                2周
+                                            </td>
+                                            <td>
+                                                提交、上传积分申请
+                                            </td>
+                                        </tr>
+                                        <tr class="odd1">
+                                            <td>
+                                                审核积分
+                                            </td>
+                                            <td>
+                                                4/10, 7/10, 10/10, 1/10
+                                            </td>
+                                            <td>
+                                                2周
+                                            </td>
+                                            <td>
+                                                审核通过后积分生效
+                                            </td>
+                                        </tr>
+                                        <tr class="odd2">
+                                            <td>
+                                                年度颁奖
+                                            </td>
+                                            <td>
+                                                1/20
+                                            </td>
+                                            <td>
+                                                1周
+                                            </td>
+                                            <td>
+                                               奖励兑现
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>

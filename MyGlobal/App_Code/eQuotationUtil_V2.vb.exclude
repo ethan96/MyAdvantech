@@ -1,0 +1,116 @@
+﻿Imports Microsoft.VisualBasic
+
+Public Class eQuotationUtil
+    Public Shared Function GetQuoteMasterByQuoteid(ByVal Quoteid As String) As QuotationMaster
+        If Not String.IsNullOrEmpty(Quoteid) Then
+            Dim MyDC As New eQuotationDBDataContext
+            Dim QuoteMaster As QuotationMaster = MyDC.QuotationMasters.SingleOrDefault(Function(p) p.quoteId = Quoteid)
+            If QuoteMaster IsNot Nothing Then Return QuoteMaster
+        End If
+        Return Nothing
+    End Function
+    Public Shared Function GetQuoteDetailByQuoteid(ByVal Quoteid As String) As ListX(Of QuotationDetail)
+        If Not String.IsNullOrEmpty(Quoteid) Then
+            Dim MyDC As New eQuotationDBDataContext
+            Dim QuotationDetails As List(Of QuotationDetail) = (MyDC.QuotationDetails.Where(Function(p) p.quoteId = Quoteid)).ToList()
+            'QuotationDetails.X_GetAmount()
+            Dim LISTXX As New ListX(Of QuotationDetail)
+            For Each i In QuotationDetails
+                LISTXX.Add(i)
+                If i.oTypeX = QuotationDetailItemType.BtosRoot Then
+                    i.X_GetAmount(i.line_No)
+                End If
+            Next
+            LISTXX.X_GetAmount()
+            If QuotationDetails IsNot Nothing Then Return LISTXX
+        End If
+        Return Nothing
+    End Function
+    Public Shared Function GetEQPartnerByQuoteid(ByVal Quoteid As String) As List(Of EQPARTNER)
+        If Not String.IsNullOrEmpty(Quoteid) Then
+            Dim MyDC As New eQuotationDBDataContext
+            Dim EQPARTNERs As List(Of EQPARTNER) = (MyDC.EQPARTNERs.Where(Function(p) p.QUOTEID = Quoteid)).ToList()
+            If EQPARTNERs IsNot Nothing Then Return EQPARTNERs
+        End If
+        Return Nothing
+    End Function
+    Public Shared Function GetQuotationNoteByQuoteid(ByVal Quoteid As String) As List(Of QuotationNote)
+        If Not String.IsNullOrEmpty(Quoteid) Then
+            Dim MyDC As New eQuotationDBDataContext
+            Dim QuotationNotes As List(Of QuotationNote) = (MyDC.QuotationNotes.Where(Function(p) p.quoteid = Quoteid)).ToList()
+            If QuotationNotes IsNot Nothing Then Return QuotationNotes
+        End If
+        Return Nothing
+    End Function
+    Public Shared Function GetoptyQuoteByQuoteid(ByVal Quoteid As String) As optyQuote
+        If Not String.IsNullOrEmpty(Quoteid) Then
+            Dim MyDC As New eQuotationDBDataContext
+            Dim optyQuote As optyQuote = MyDC.optyQuotes.Where(Function(p) p.quoteId = Quoteid).FirstOrDefault()
+            If optyQuote IsNot Nothing Then Return optyQuote
+        End If
+        Return Nothing
+    End Function
+End Class
+Partial Public Class QuotationMaster
+    Public Function X_isExpired() As Boolean
+        Return False
+        Dim WS As New quote.quoteExit : WS.Timeout = -1
+        Return WS.isQuoteExpired(Me.quoteNo)
+    End Function
+End Class
+Public Enum QuotationDetailItemType
+    单品 = 0
+    BtosRoot = 1
+    BtosItem = -1
+    Other = 2
+End Enum
+Partial Public Class QuotationDetail
+    Private _X As String
+    Public Property X As String
+        Get
+            Return _X
+        End Get
+        Set(ByVal value As String)
+            _X = value
+        End Set
+    End Property
+    Public ReadOnly Property oTypeX As QuotationDetailItemType
+        Get
+            If IsNumeric(Me.oType) Then
+                If [Enum].IsDefined(GetType(QuotationDetailItemType), Me.oType) Then
+                    Return CType([Enum].ToObject(GetType(QuotationDetailItemType), Me.oType), QuotationDetailItemType)
+                End If
+            End If
+            Return QuotationDetailItemType.Other
+        End Get
+    End Property
+    Public Function X_GetAmount(ByVal parentid As String) As Decimal
+        Return 0
+    End Function
+End Class
+Public Class ListX(Of T)
+    Inherits List(Of T)
+    Public Sub New()
+        Me.Message = "test by IT"
+    End Sub
+    Public Function X_GetAmount() As Decimal
+        Dim Amount As Decimal = 0
+
+        ' For Each i In Me
+
+        'Dim I2 As QuotationDetail = CType(i, QuotationDetail)
+        'Amount = Amount + I2.newUnitPrice
+        ' Next
+        Return Amount
+    End Function
+    Private _Message As String
+    Public Property Message() As String
+        Get
+            Return _Message
+        End Get
+        Set(ByVal value As String)
+            _Message = value
+        End Set
+    End Property
+End Class
+

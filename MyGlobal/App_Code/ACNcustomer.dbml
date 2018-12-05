@@ -1,0 +1,61 @@
+﻿<?xml version="1.0" encoding="utf-8"?><Database Name="MyAdvantechGlobal" Class="ACNcustomerDataContext" xmlns="http://schemas.microsoft.com/linqtosql/dbml/2007">
+  <Connection Mode="WebSettings" ConnectionString="Data Source=ACLSTNR12;Initial Catalog=MyAdvantechGlobal;Persist Security Info=True;User ID=b2bsa" SettingsObjectName="System.Configuration.ConfigurationManager.ConnectionStrings" SettingsPropertyName="MyAdvantechGlobalConnectionString2" Provider="System.Data.SqlClient" />
+  <Table Name="dbo.ACN_Customer_Files" Member="ACNCustomerFiles">
+    <Type Name="ACNCustomerFile">
+      <Column Name="ID" Type="System.Int32" DbType="Int NOT NULL IDENTITY" IsPrimaryKey="true" IsDbGenerated="true" CanBeNull="false" />
+      <Column Name="CustomerRowid" Type="System.String" DbType="VarChar(30)" CanBeNull="true" />
+      <Column Name="Files" Type="System.Data.Linq.Binary" DbType="VarBinary(MAX)" CanBeNull="true" UpdateCheck="Never" />
+      <Column Name="File_Name" Type="System.String" DbType="NVarChar(200)" CanBeNull="true" />
+      <Column Name="File_Ext" Type="System.String" DbType="NVarChar(10)" CanBeNull="true" />
+      <Column Name="File_CreateBy" Type="System.String" DbType="NVarChar(80)" CanBeNull="true" />
+      <Column Name="File_CreateTime" Type="System.DateTime" DbType="DateTime" CanBeNull="true" />
+    </Type>
+  </Table>
+  <Table Name="dbo.ACN_Customer" Member="ACNitems">
+    <Type Name="ACNitem">
+      <Column Name="RowID" Type="System.String" DbType="VarChar(30) NOT NULL" IsPrimaryKey="true" CanBeNull="false" />
+      <Column Name="sdt_Name" Type="System.String" DbType="NVarChar(150)" CanBeNull="true" />
+      <Column Name="sdt_Sort1" Type="System.String" DbType="NVarChar(50)" CanBeNull="true" />
+      <Column Name="sdt_Sort2" Type="System.String" DbType="NVarChar(50)" CanBeNull="true" />
+      <Column Name="sdt_EripID" Type="System.String" DbType="NVarChar(15)" CanBeNull="true" />
+      <Column Name="sdt_Title" Type="System.String" DbType="NVarChar(50)" CanBeNull="true" />
+      <Column Name="sdt_Telephone" Type="System.String" DbType="NVarChar(50)" CanBeNull="true" />
+      <Column Name="sdt_Street" Type="System.String" DbType="NVarChar(300)" CanBeNull="true" />
+      <Column Name="sdt_Housenumber" Type="System.String" DbType="NVarChar(150)" CanBeNull="true" />
+      <Column Name="sdt_Name_co" Type="System.String" DbType="NVarChar(50)" CanBeNull="true" />
+      <Column Name="sdt_Tax1" Type="System.String" DbType="NVarChar(50) NOT NULL" CanBeNull="false" />
+      <Column Name="sdt_bankkey" Type="System.String" DbType="NVarChar(50)" CanBeNull="true" />
+      <Column Name="sdt_bankNo" Type="System.String" DbType="NVarChar(50)" CanBeNull="true" />
+      <Column Name="sdt_Post" Type="System.String" DbType="NVarChar(50)" CanBeNull="true" />
+      <Column Name="sdt_City" Type="System.String" DbType="NVarChar(50)" CanBeNull="true" />
+      <Column Name="sdt_Country" Type="System.String" DbType="NVarChar(50)" CanBeNull="true" />
+      <Column Name="sdt_Region" Type="System.String" DbType="NVarChar(50)" CanBeNull="true" />
+      <Column Name="IsHaveShipto" Type="System.Int32" DbType="Int" CanBeNull="true" />
+      <Column Name="spt_Name" Type="System.String" DbType="NVarChar(150)" CanBeNull="true" />
+      <Column Name="spt_Sort1" Type="System.String" DbType="NVarChar(50)" CanBeNull="true" />
+      <Column Name="spt_Sort2" Type="System.String" DbType="NVarChar(50)" CanBeNull="true" />
+      <Column Name="spt_EripID" Type="System.String" DbType="NVarChar(15)" CanBeNull="true" />
+      <Column Name="spt_Title" Type="System.String" DbType="NVarChar(50)" CanBeNull="true" />
+      <Column Name="spt_Post" Type="System.String" DbType="NVarChar(50)" CanBeNull="true" />
+      <Column Name="spt_City" Type="System.String" DbType="NVarChar(50)" CanBeNull="true" />
+      <Column Name="spt_Country" Type="System.String" DbType="NVarChar(50)" CanBeNull="true" />
+      <Column Name="spt_Region" Type="System.String" DbType="NVarChar(50)" CanBeNull="true" />
+      <Column Name="spt_Fax" Type="System.String" DbType="NVarChar(50)" CanBeNull="true" />
+      <Column Name="spt_Name_co" Type="System.String" DbType="NVarChar(100)" CanBeNull="true" />
+      <Column Name="spt_Telephone" Type="System.String" DbType="NVarChar(50)" CanBeNull="true" />
+      <Column Name="spt_MobilePhone" Type="System.String" DbType="NVarChar(50)" CanBeNull="true" />
+      <Column Name="spt_Street" Type="System.String" DbType="NVarChar(150) NOT NULL" CanBeNull="false" />
+      <Column Name="spt_Housenumber" Type="System.String" DbType="NVarChar(150)" CanBeNull="true" />
+      <Column Name="ResquestBy" Type="System.String" DbType="NVarChar(100)" CanBeNull="true" />
+      <Column Name="RequestDate" Type="System.DateTime" DbType="DateTime" CanBeNull="true" />
+      <Column Name="Status" Type="System.Int32" DbType="Int" CanBeNull="true" />
+      <Column Name="OPerator" Type="System.String" DbType="NVarChar(80)" CanBeNull="true" />
+      <Column Name="OPerateDate" Type="System.DateTime" DbType="DateTime" CanBeNull="true" />
+      <Column Name="Comment" Type="System.String" DbType="NVarChar(300)" CanBeNull="true" />
+      <Column Name="FileDate" Type="System.Data.Linq.Binary" DbType="Image" CanBeNull="true" UpdateCheck="Never" />
+      <Column Name="FileExt" Type="System.String" DbType="Char(10)" CanBeNull="true" />
+      <Column Name="LAST_UPD_BY" Type="System.String" DbType="NVarChar(50)" CanBeNull="true" />
+      <Column Name="LAST_UPD_DATE" Type="System.DateTime" DbType="DateTime" CanBeNull="true" />
+    </Type>
+  </Table>
+</Database>

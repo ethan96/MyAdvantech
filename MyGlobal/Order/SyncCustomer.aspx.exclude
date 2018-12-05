@@ -1,0 +1,330 @@
+﻿<%@ Page Language="VB" MasterPageFile="~/Includes/MyMaster.master" Title="MyAdvantech Sync Customer" %>
+
+<script runat="server">
+    Dim cust_id As String = "", company_type As String = "", strMessage As String = ""
+    
+    Protected Sub btnSync_ServerClick(ByVal sender As Object, ByVal e As System.EventArgs)
+        'Me.GlobalInc.ValidationStateCheck()
+        
+        Dim iRtn As Integer = 0
+        cust_id = Trim(UCase(Me.txtCustomer.value.trim()))
+        iRtn = Get_SAP_Customer(cust_id, company_type)
+
+        If iRtn = 1 Then
+            strMessage = strMessage & " Synchronize <a target='_blank' href='http://aeu-ebus-dev:7000/Admin/AccountProfile.aspx?ERPID="+cust_id+"'>" & cust_id & "</a>'s company type is " & company_type & "."
+        ElseIf iRtn = 0 Then
+            strMessage = strMessage & " This company id is not in SAP or in Sales org = 'EU10'."     '"No company info for this company_id in sap or not in EU10. "
+        Else           
+            strMessage = strMessage & " NetWork err, please contact eBusiness@advantech.com . "
+        End If
+
+    End Sub
+    
+    
+    Function Get_SAP_Customer(ByVal customer_ID As String, ByRef company_type As String) As Integer
+        Dim ws As New aeu_ebus_dev9000.B2B_AEU_WS
+        
+        Try
+            ws.Url = dbUtil.dbExecuteScalar("b2b", "select para_value from site_definition where site_parameter='AeuEbizB2bWs'").ToString
+        Catch ex As Exception
+            Response.Write("<Br/>" & ex.Message)
+        End Try
+        Dim MaxTry = 3, trials = 1
+        Dim iRtn As Integer = 0
+        Dim sales_org = "EU10", Cus_Add As String = "", Cus_Gen As String = "", cur As String = "", credit_term As String = "", ship_via As String = ""
+        Dim company_price_type As String = "", ship_condition As String = "", parent_company_id As String = "", add2 As String = "", attention As String = "", fax_no As String = ""
+        Dim address As String = "", country As String = "", zip_code As String = "", city As String = "", com_name2 As String = "", company_name As String = "", tel_no As String = ""
+	
+        Do While trials <= MaxTry
+        
+            'On Error Resume Next
+            'iRtn = ws.Get_Customer_AEU(customer_ID, sales_org, Cus_Add, Cus_Gen, cur, credit_term, ship_via, company_price_type, ship_condition, parent_company_id, add2, attention, fax_no)
+            
+            If Err.Number = 0 Then
+                Exit Do
+            Else
+                trials = trials + 1
+            End If
+  	
+            'On Error GoTo 0
+	
+        Loop
+       
+        If CInt(iRtn) = 1 Then
+            'XML_add.LoadXML(Cus_Add)
+        
+           
+            Dim sr As New System.IO.StringReader(Cus_Add)
+            'Dim sr As System.IO.StringReader = New System.IO.StringReader(xml)
+            Dim Cust_add_rs As DataSet = New DataSet()
+            If Session("user_id") = "nada.liu@advantech.com.cn" And Session("user_id") = "jan.huang@advantech.com.cn" Then
+                Response.Write("<br>XML:" & Cus_Add & "<br>")
+            End If
+            'response.end
+            'Cust_add_rs.Open(XML_add)
+            Cust_add_rs.ReadXml(sr)
+            Cust_add_rs = aLoadtabel(Cust_add_rs, 0)
+           
+            If Session("user_id") = "nada.liu@advantech.com.cn" Then
+                'OrderUtilities.showDT(Cust_add_rs.Tables(Cust_add_rs.Tables.Count - 1)) : Response.End()
+            End If
+            If Cust_add_rs.Tables(Cust_add_rs.Tables.Count - 1).Rows.Count > 0 Then
+                If Cust_add_rs.Tables(Cust_add_rs.Tables.Count - 1).Columns.Contains("STREET") Then
+                    address = Cust_add_rs.Tables(Cust_add_rs.Tables.Count - 1).Rows(0).Item("STREET") & add2
+                Else
+                    address = ""
+                End If
+           
+            
+                'Response.write "add2:"& street
+                'Response.end
+                If Cust_add_rs.Tables(Cust_add_rs.Tables.Count - 1).Columns.Contains("COUNTRY") Then
+                    country = Cust_add_rs.Tables(Cust_add_rs.Tables.Count - 1).Rows(0).Item("COUNTRY")
+                Else
+                    country = ""
+                End If
+                
+                If Cust_add_rs.Tables(Cust_add_rs.Tables.Count - 1).Columns.Contains("POSTL_CODE") Then
+                    zip_code = Cust_add_rs.Tables(Cust_add_rs.Tables.Count - 1).Rows(0).Item("POSTL_CODE")
+              
+                Else
+                    zip_code = ""
+                End If
+                
+                If Cust_add_rs.Tables(Cust_add_rs.Tables.Count - 1).Columns.Contains("CITY") Then
+                    city = IIf(IsDBNull(Cust_add_rs.Tables(Cust_add_rs.Tables.Count - 1).Rows(0).Item("CITY")), "", Cust_add_rs.Tables(Cust_add_rs.Tables.Count - 1).Rows(0).Item("CITY"))
+                Else
+                    city = ""
+                End If
+                If Cust_add_rs.Tables(Cust_add_rs.Tables.Count - 1).Columns.Contains("Name_2") Then
+                    com_name2 = CStr(Cust_add_rs.Tables(Cust_add_rs.Tables.Count - 1).Rows(0).Item("Name_2"))
+                Else
+                    com_name2 = ""
+                End If
+                
+                If Cust_add_rs.Tables(Cust_add_rs.Tables.Count - 1).Columns.Contains("Name") Then
+                    company_name = CStr(Cust_add_rs.Tables(Cust_add_rs.Tables.Count - 1).Rows(0).Item("Name")) & com_name2
+                Else
+                    company_name = ""
+                End If
+                If Cust_add_rs.Tables(Cust_add_rs.Tables.Count - 1).Columns.Contains("TELEPHONE") Then
+                    tel_no = Cust_add_rs.Tables(Cust_add_rs.Tables.Count - 1).Rows(0).Item("TELEPHONE")
+                Else
+                    tel_no = ""
+                End If
+          
+             
+            End If
+            'XML_gen.LoadXML(Cus_Gen)
+            Dim sr2 As New System.IO.StringReader(Cus_Gen)
+            'Cust_gen_rs.Open(XML_gen)
+            Dim Cust_gen_rs As New DataSet
+            Cust_gen_rs.BeginInit()
+            Dim company_id As String = "", grp2 As String = "", grp3 As String = "", grp4 As String = "", price_class As String = "", url As String = ""
+            Dim create_date As String = "", create_by As String = ""
+            company_id = cust_id
+            'company_name= Cust_gen_rs("CUSTOMER")
+            'fax_no= Cust_gen_rs("CUSTOMER")
+            Cust_gen_rs.ReadXml(sr2)
+            Cust_gen_rs = aLoadtabel(Cust_gen_rs, 1)
+            company_type = Cust_gen_rs.Tables(Cust_gen_rs.Tables.Count - 1).Rows(0).Item("BUS_TYPE")
+            'grp1 = cstr(Cust_gen_rs("CUST_COND_GRP1"))
+            grp2 = Cust_gen_rs.Tables(Cust_gen_rs.Tables.Count - 1).Rows(0).Item("CUST_COND_GRP2")
+            grp3 = Cust_gen_rs.Tables(Cust_gen_rs.Tables.Count - 1).Rows(0).Item("CUST_COND_GRP3")
+            grp4 = Cust_gen_rs.Tables(Cust_gen_rs.Tables.Count - 1).Rows(0).Item("CUST_COND_GRP4")
+          
+            price_class = Cust_gen_rs.Tables(Cust_gen_rs.Tables.Count - 1).Rows(0).Item("CUST_COND_GRP1") & grp2 & grp3 & grp4
+            url = Cust_gen_rs.Tables(Cust_gen_rs.Tables.Count - 1).Rows(0).Item("URL")
+            create_date = Cust_gen_rs.Tables(Cust_gen_rs.Tables.Count - 1).Rows(0).Item("CREAT_DATE")
+            create_by = Cust_gen_rs.Tables(Cust_gen_rs.Tables.Count - 1).Rows(0).Item("Entered_By")
+           
+            Dim org_id = "EU10"
+            convertStr(company_id) : convertStr(org_id) : convertStr(parent_company_id)
+            convertStr(company_name) : convertStr(address) : convertStr(fax_no)
+            convertStr(tel_no) : convertStr(company_type) : convertStr(cur)
+            convertStr(country) : convertStr(zip_code) : convertStr(city)
+            convertStr(attention) : convertStr(credit_term) : convertStr(ship_via)
+            convertStr(create_date) : convertStr(create_by) : convertStr(company_price_type)
+            convertStr(ship_condition) : convertStr(cust_id)
+            Dim Sql As String = ""
+            'Response.Write(company_name)
+            Dim objShipCondition As Object = OraDbUtil.dbExecuteScalar("SAP_PRD", _
+            String.Format("select b.vsbed from saprdp.knvv b where b.mandt='168' and rownum=1 and b.kunnr='{0}' and b.vkorg='EU10'", company_id))
+            If objShipCondition IsNot Nothing Then
+                ship_condition = objShipCondition.ToString()
+            End If
+            
+            If Not dbUtil.dbGetDataTable("b2b", "select company_id from company where company_id='" & cust_id & "'").Rows.Count > 0 Then
+				
+                Sql = "insert into company " & _
+                    "(company_id,org_id,parent_company_id,company_name,address,fax_no,tel_no,company_type,price_class,currency,country,zip_code,city,attention,credit_term,ship_via,url,created_date,created_by,company_price_type,ship_condition) values(" & _
+                     " '" & company_id & "', " & _
+                     " '" & org_id & "', " & _
+                     " '" & parent_company_id & "', " & _
+                     " '" & company_name & "', " & _
+                     " '" & address & "', " & _
+                     " '" & fax_no & "', " & _
+                     " '" & tel_no & "', " & _
+                     " '" & company_type & "', " & _
+                     " '" & price_class & "', " & _
+                     " '" & cur & "', " & _
+                     " '" & country & "', " & _
+                     " '" & zip_code & "', " & _
+                     " '" & city & "', " & _
+                     " '" & attention & "', " & _
+                     " '" & credit_term & "', " & _
+                     " '" & ship_via & "', " & _
+                     " '" & url & "', " & _
+                     " '" & create_date & "', " & _
+                     " '" & create_by & "', " & _
+                     " '" & company_price_type & "', " & _
+                     " '" & ship_condition & "') "
+					    	
+					    	
+					
+            Else
+                Sql = " update company set " & _
+                   " company_id='" & company_id & "', " & _
+                     " org_id='" & org_id & "', " & _
+                     " parent_company_id='" & parent_company_id & "', " & _
+                     " company_name='" & company_name & "', " & _
+                     " address='" & address & "', " & _
+                     " fax_no='" & fax_no & "', " & _
+                     " tel_no='" & tel_no & "', " & _
+                     " company_type='" & company_type & "', " & _
+                     " price_class='" & price_class & "', " & _
+                     " currency='" & cur & "', " & _
+                     " country='" & country & "', " & _
+                     " zip_code='" & zip_code & "', " & _
+                     " city='" & city & "', " & _
+                     " attention='" & attention & "', " & _
+                     " credit_term='" & credit_term & "', " & _
+                     " ship_via='" & ship_via & "', " & _
+                     " url='" & url & "', " & _
+                     " created_date='" & create_date & "', " & _
+                     " created_by='" & create_by & "', " & _
+                     " company_price_type='" & company_price_type & "', " & _
+                     " ship_condition='" & ship_condition & "' where company_id = '" & cust_id & "'"
+					
+            End If
+            
+            dbUtil.dbExecuteNoQuery("b2b", Sql)
+	
+            'Response.end
+            Get_SAP_Customer = 1
+					
+        ElseIf CInt(iRtn) = 0 Then
+            'response.write "SAP has no this customer"
+            'strMessage = strMessage & "No company info for this company_id. "
+            Get_SAP_Customer = 0
+        Else
+            ' Response.Write("err")
+            'strMessage = strMessage & "NetWork err, please contact eBusiness@advantech.com . "
+            Get_SAP_Customer = -1
+        End If
+	 						
+					
+    End Function
+
+    Function aLoadtabel(ByRef Cust_add As DataSet, ByRef tpye As Integer) As DataSet
+        Dim arrHeaders As Array
+        Dim index As Integer
+        Dim arr1 As String = "STREET,STREET,COUNTRY,POSTL_CODE,CITY,Name_2,Name,TELEPHONE"
+        Dim arr2 As String = "BUS_TYPE,CUST_COND_GRP2,CUST_COND_GRP3,CUST_COND_GRP4,CUST_COND_GRP1,URL,CREAT_DATE,Entered_By"
+        Dim arr3 As String = ""
+        If tpye = 0 Then
+            arrHeaders = Split(arr1, ",")
+        Else
+            arrHeaders = Split(arr2, ",")
+        End If
+       
+        For index = 0 To UBound(arrHeaders)
+            If Not Cust_add.Tables(Cust_add.Tables.Count - 1).Columns.Contains(arrHeaders(index)) Then
+                Dim dc As DataColumn
+                dc = New DataColumn(arrHeaders(index))
+                dc.DataType = System.Type.GetType("System.String")
+                Cust_add.Tables(Cust_add.Tables.Count - 1).Columns.Add(dc)
+            End If
+        Next
+        
+        Return Cust_add
+    End Function
+
+    Function convertStr(ByRef obj As String) As Integer
+        If InStr(obj, "'") > 0 Then
+            obj = Replace(obj, "'", "''")
+        End If
+        Return 1
+    End Function
+</script>
+
+<asp:Content ID="Content1" ContentPlaceHolderID="_main" Runat="Server">
+    <table width="100%" border="0" cellspacing="0" cellpadding="0">
+			<tr valign="top">
+				<td>
+                    
+					<!--include virtual="/includes/header_inc.asp" -->
+				</td>
+			</tr>
+			<tr valign="top">
+				<td>
+					<table width="100%">
+						<tr valign="top">
+							<td height="2">&nbsp;
+							</td>
+						</tr>
+						<tr valign="top">
+							<td class="pagetitle">
+								<table width="100%" ID="Table1">
+									<tr>
+										<td>
+											&nbsp;&nbsp;<img src="../images/title-dot.gif" width="25" height="17">
+											<font size=5 color="#000080"><b>Synchronize Customer and Ship-to</b></font>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+											<font face="Arial" size="2" color="Crimson"><b>::: <%=strMessage%></b></font>
+										</td>
+										<td align="right" valign="bottom"><font face="Arial" color="RoyalBlue">
+											
+										</td>
+									</tr>
+								</table>	
+							</td>
+						</tr>
+						<tr valign="top">
+							<td height="2">&nbsp;
+							</td>
+						</tr>
+						<tr valign="top">
+							<!--form method="post" name="UpdateForm"-->
+							<td>
+								<table width="400">
+									<tr>
+										<td align="right" width="200">&nbsp;&nbsp;&nbsp;<font size="2"><b>Customer ID:</b></font>&nbsp;
+										</td>
+										<td width="30">
+											<input type="text" Name="cust_id" style="font-family: Arial; color: #990000;font-weight: bold; font-size: 9pt; height: 20; margin-top: 0; margin-bottom: 0" id="txtCustomer" runat="server">
+										</td>
+										<td>
+											<input type="submit" value="Synchronize" name="One" style="font-family: Arial; color: #990000;font-weight: bold; font-size: 9pt; height: 22; margin-top: 0; margin-bottom: 0" ID="btnSync" onserverclick="btnSync_ServerClick" runat="server">
+										</td>
+										<td>
+									</tr>
+								</table>			
+                                &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<asp:RequiredFieldValidator ID="RequiredFieldValidator1" runat="server" ErrorMessage="* Please input the Customer Id" ControlToValidate="txtCustomer"></asp:RequiredFieldValidator></td>	
+							<!--/form-->
+						</tr>	
+					</table>
+				</td>
+			</tr>
+    
+			<tr valign="top">
+				<td height="350">&nbsp;
+				</td>
+			</tr>
+			<tr valign="top">
+				<td>
+                    
+				</td>
+			</tr>
+		</table>
+</asp:Content>
+

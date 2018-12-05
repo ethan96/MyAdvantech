@@ -1,0 +1,513 @@
+﻿<%@ Page Language="VB" ValidateRequest="false" %>
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<script runat="server">
+
+    
+    Sub ResetAll()
+        
+        txtName.Text = "" : txtEmail.Text = "" : txtCompany.Text = "" : txtPhone.Text = ""
+    End Sub
+
+    
+    Protected Sub ImageButton2_Click(sender As Object, e As System.Web.UI.ImageClickEventArgs)
+        ResetAll()
+
+    End Sub
+
+    Protected Sub ImageButton1_Click(sender As Object, e As System.Web.UI.ImageClickEventArgs)
+        If Validation() Then
+            Dim name As String = Replace(txtName.Text.Trim(), "'", "''")
+            Dim company As String = Replace(txtCompany.Text.Trim(), "'", "''")
+            Dim phone As String = Replace(txtPhone.Text.Trim(), "'", "''")
+            Dim sendto_email As String = Replace(txtEmail.Text.Trim(), "'", "''")
+            'Dim address As String = Replace(txtAddress.Text.Trim, "'", "''")
+            'Dim arrGroup As New ArrayList
+            'For i As Integer = 1 To 8
+            '    Dim cb As CheckBox = CType(Me.up1.FindControl("cb" + i.ToString), CheckBox)
+            '    If cb.Checked Then arrGroup.Add(cb.Text)
+            'Next
+            'If txtComment1.Text.Trim.Replace("'", "") <> "" Then arrGroup.Add("其他:" + txtComment1.Text.Trim.Replace("'", "''"))
+            Dim arrProduct As New ArrayList
+            'For Each item As ListItem In rbl1.Items
+            '    If item.Selected = True Then arrProduct.Add(item.Value)
+            'Next
+            'If txtComment2.Text.Trim.Replace("'", "") <> "" Then arrProduct.Add("將用於:" + txtComment2.Text.Trim.Replace("'", "''"))
+            Dim sb As New System.Text.StringBuilder
+            With sb
+                .AppendLine(String.Format(" INSERT INTO CAMPAIGN_SURVEYS "))
+                .AppendLine(String.Format(" (CAMP_ID, CONTACT_NAME, CONTACT_COMPANY, CONTACT_TEL, CONTACT_EMAIL,  "))
+                .AppendLine(String.Format(" INTERESTED_COURSES, REQ_BROCHURE, SUBMIT_TIME, CLIENT_ADDR, CONTACT_ADDRESS, PRODUCT) "))
+                .AppendLine(String.Format(" VALUES ('FPM-2150 Campaign', N'" + name + "', N'" + company + "', N'" + phone + "', " + _
+                                          " N'" + sendto_email + "', N'企業小資方案，精省雙招,預購FPM-2150', '0', GETDATE(), '" + Util.GetClientIP() + "', N'', N'FPM-2150') "))
+
+            End With
+            If dbUtil.dbExecuteNoQuery("MYLOCAL", sb.ToString()) = 1 Then
+                lbMsg.Text = "謝謝您，我們已收到您的資料"
+                Dim body As String = "<html><table>" + _
+                    "<tr><td>親愛的客戶，您好</td></tr>" + _
+                    "<tr><td height='5'></td></tr>" + _
+                    "<tr><td>感謝您參加研華「企業小資方案，精省雙招」活動，我們已經收到您的預購申請單，以下是您所填寫的資訊<br>" + _
+                    "近期內將會有專人和您做進一步的連絡，如有任何問題，歡迎您撥0800-777-111，謝謝</td></tr>" + _
+                    "<tr><td height='5'></td></tr>" + _
+                    "</table>" + _
+                    "<table>" + _
+                    "<tr><th align='right'>姓名: </td><td>" + name + "</td></tr>" + _
+                    "<tr><th align='right'>公司: </td><td>" + company + "</td></tr>" + _
+                    "<tr><th align='right'>電話: </td><td>" + phone + "</td></tr>" + _
+                    "<tr><th align='right'>Email: </td><td>" + sendto_email + "</td></tr>" + _
+                    "<tr><th align='right'>預購: </td><td><font color='red'>FPM-2150</font></td></tr>" + _
+                    "</table>" + _
+                    "<table>" + _
+                    "<tr><td height='5'></td></tr>" + _
+                    "<tr><td>研華(股)公司 工業自動化事業群<br>台灣區行銷部<br>敬上</td></tr>" + _
+                    "</table></html>"
+                Dim _errmsg As String = String.Empty
+                Dim _from As String = "myadvanteh@advantech.com"
+                Dim htmlMessage As Net.Mail.MailMessage
+                htmlMessage = New Net.Mail.MailMessage(_from, sendto_email, "感謝您參加研華「企業小資方案，精省雙招」活動", body)
+                htmlMessage.IsBodyHtml = True
+                'Send email to customer who interested with this event
+                MailUtil.SendFromAmazon(htmlMessage, "myadvanteh@advantech.com", sendto_email, Nothing, _errmsg)
+
+                'Send email to event owner
+                Util.SendEmail("Barbara.Sun@advantech.com.tw", "ebiz.aeu@advantech.eu", sendto_email & "登記了企業小資方案，精省雙招活動", body, True, "", "")
+                'Util.SendEmail("frank.chung@advantech.com.tw", "ebiz.aeu@advantech.eu", sendto_email & "登記了企業小資方案，精省雙招活動", body, True, "", "")
+                
+                ResetAll()
+            End If
+        End If
+    End Sub
+    
+    
+    Function Validation() As Boolean
+        lbMsg.Text = ""
+        If txtName.Text.Trim() = "" Then
+            lbMsg.Text = "請輸入姓名" : Return False
+        End If
+        If txtCompany.Text.Trim() = "" Then
+            lbMsg.Text = "請輸入公司" : Return False
+        End If
+        If txtPhone.Text.Trim() = "" Then
+            lbMsg.Text = "請輸入電話" : Return False
+        End If
+        If txtEmail.Text.Trim() = "" Then
+            lbMsg.Text = "請輸入Email" : Return False
+        End If
+        'If txtAddress.Text.Trim = "" Then
+        '    lbMsg.Text = "請輸入地址" : Return False
+        'End If
+        If Util.IsValidEmailFormat(txtEmail.Text.Trim()) = False Then
+            lbMsg.Text = "請輸入正確Email格式" : Return False
+        End If
+        'Dim TickAny As Boolean = False
+        'For Each item As ListItem In rbl1.Items
+        '    If item.Selected = True Then TickAny = True
+        'Next
+        'If Not TickAny Then
+        '    lbMsg.Text = "請選擇至少一項產品" : Return False
+        'End If
+        Return True
+    End Function
+
+    
+</script>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <meta content="text/html; charset=utf-8" http-equiv="Content-Type">
+    <title>企業小資方案 精省3招</title>
+    <style type="text/css">
+<!--
+.content {font-family: Arial, Helvetica, sans-serif;font-size: 13px;line-height: 21px;color: #666666;}
+.vol {font-family: "Times New Roman", Times, serif;font-size: 18px;line-height: 18px;color: #666;}
+.tiltle {font-family: Arial, Helvetica, sans-serif;font-size: 18px;color: #072e67;}
+.titlesub {font-family: Arial, Helvetica, sans-serif;font-size: 15px;line-height: 18px;color: #74b75b;}
+.other {font-family: Arial, Helvetica, sans-serif;font-size: 13px;line-height: 14px;color: #6497c3;}
+.other:link {text-decoration: none;}
+.top {font-family: Arial, Helvetica, sans-serif;font-size: 12px;line-height: 18px;color: #0082d1;}
+.topmsg {font-family: Arial, Helvetica, sans-serif;font-size: 11px;color: #fff;}
+.plnk {font-family: Arial, Helvetica, sans-serif;font-size: 11px;line-height: 14px;color: #0082d1;text-decoration: none;}
+.plnk:hover {font-family: Arial, Helvetica, sans-serif;font-size: 11px;line-height: 14px;color: #0082d1;text-decoration: underline;}
+.footer {font-family: Arial, Helvetica, sans-serif;font-size: 11px;line-height: 18px;color: #FFFFFF;text-decoration: none;}
+.footer:hover {font-family: Arial, Helvetica, sans-serif;font-size: 11px;line-height: 18px;color: #FFFFFF;text-decoration: underline;}
+.footertit {font-family: Arial, Helvetica, sans-serif;font-size: 12px;line-height: 18px;color: #0082d1;font-weight: bold;}
+.ptit {font-family: Arial, Helvetica, sans-serif;font-size: 12px;line-height: 18px;font-weight: bold;color: #FFFFFF;}
+.pcont {font-family: Arial, Helvetica, sans-serif;font-size: 12px;line-height: 14px;color: #333;}
+.picn {font-family: Arial, Helvetica, sans-serif;font-size: 11px;line-height: 14px;color: #0082d1;}
+.tabletxt {	font-family: Arial, Helvetica, sans-serif;font-size: 11px;line-height: 14px;color: #636363;text-decoration: none;}
+.ending {font-family: Arial, Helvetica, sans-serif;font-size: 11px;line-height: 14px;color: #0082d1;text-decoration: none;}
+.style10 {font-size: 12px;font-family: "細明體";line-height: 16px;color: #666666}
+.broderform {border-left-width:1px;border-left-style:solid;border-left-color:#a6a6a6;background-color:#F6F6F6;border-right-width: 1px;border-right-style: solid;border-right-color: #a6a6a6;}
+.content1 {font-family: Arial, Helvetica, sans-serif;font-size: 12px;line-height: 18px;color: #666666;}
+.contentform {	font-family: Arial, Helvetica, sans-serif;font-size: 12px;line-height: 12px;color: #666666;border: 1px solid #cccccc;}
+.tiltle1 {	font-family: Arial, Helvetica, sans-serif;font-size: 15px;color: #333;font-weight: bold;}
+-->
+</style>
+    <meta name="GENERATOR" content="MSHTML 9.00.8112.16443">
+</head>
+<body leftmargin="0" topmargin="0" bgcolor="#b9903e" marginheight="0" marginwidth="0">
+<form id="form1" runat="server">
+<asp:ScriptManager runat="server" ID="sm1" />
+    <table border="0" cellspacing="0" cellpadding="0" width="800" align="center">
+        <tbody>
+            <tr>
+                <td class="topmsg" height="35" align="center">
+                    無法瀏覽完整頁面時，<a class="topmsg" href="http://www.advantech.com.tw/ia/newsletter/tw/sales/20120503/index.html"
+                        target="_blank">請按此瀏覽</a>
+                </td>
+            </tr>
+            <tr>
+                <td valign="middle" width="100%" align="center">
+                    <table cellspacing="0" cellpadding="0" width="750" bgcolor="#ffffff">
+                        <tbody>
+                            <tr>
+                                <td height="60" width="289" align="center">
+                                    <a href="http://buy.advantech.com.tw/" target="_blank">
+                                        <img border="0" src="FPM-2150.files/logo.gif" width="272" height="40"></a>
+                                </td>
+                                <td width="459" align="right">
+                                    <table class="top" border="0" cellspacing="0" cellpadding="5" width="211">
+                                        <tbody>
+                                            <tr>
+                                                <td>
+                                                    <img src="FPM-2150.files/icn_hotline.gif" width="34" height="31">
+                                                </td>
+                                                <td valign="bottom" align="left">
+                                                    <strong>研華在線：</strong>0800-777-111<a class="top" href="http://www.advantech.com/contact/"
+                                                        target="_blank"></a>
+                                                </td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    <table border="0" cellspacing="0" cellpadding="0" width="100%">
+                        <tbody>
+                            <tr>
+                                <td><img src="FPM-2150.files/main01.jpg" width="374" height="349"></td>
+                                <td><img src="FPM-2150.files/main02-2.jpg" width="426" height="349"></td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <a href="http://www.advantech.com.tw/ia/newsletter/tw/sales/20120503/index_form.html#"
+                                        target="_blank">
+                                        <img border="0" src="FPM-2150.files/main03.jpg" width="374" height="88"></a></td>
+                                <td><a href="http://buy.advantech.com.tw/FPM+2150G+RCE/FPM+2150G+RCE/model-FPM-2150G-RCE.htm"target="_blank">
+                                        <img border="0" src="FPM-2150.files/main04.jpg" width="426" height="88"></a></td>
+                            </tr>
+                            <tr>
+                                <td><img src="FPM-2150.files/main05.jpg" width="374" height="78"></td>
+                                <td><img src="FPM-2150.files/main06.jpg" width="426" height="78"></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </td>
+            </tr>
+            <tr>
+                <td align="center">
+                    <table border="0" cellspacing="0" cellpadding="0" width="750">
+                        <tbody>
+                            <tr>
+                                <td bgcolor="#ffffff" valign="top" width="349">
+                                    <img src="FPM-2150.files/main07.jpg" width="349" height="171">
+                                </td>
+                                <td bgcolor="#ffffff" valign="top" width="401" align="left">
+                                    <table border="0" cellspacing="0" cellpadding="3" width="100%">
+                                        <tbody>
+                                            <tr>
+                                                <td height="5" valign="top" align="right">
+                                                </td>
+                                                <td valign="top" align="left">
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td valign="top" align="right">
+                                                    <img hspace="0" alt="dot" vspace="5" src="FPM-2150.files/dot_gray.gif" width="4"
+                                                        height="4">
+                                                </td>
+                                                <td valign="top" align="left">
+                                                    <span class="pcont">15”XGA TFT LCD，解析度高達1024 x 768</span>
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td valign="top" align="right">
+                                                    <img hspace="0" alt="dot" vspace="5" src="FPM-2150.files/dot_gray.gif" width="4"
+                                                        height="4">
+                                                </td>
+                                                <td valign="top" align="left">
+                                                    <span class="pcont">前面板鋁製強固型設計，符合NEMA4/IP65認證</span>
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td valign="top" align="right">
+                                                    <img hspace="0" alt="dot" vspace="5" src="FPM-2150.files/dot_gray.gif" width="4"
+                                                        height="4">
+                                                </td>
+                                                <td valign="top" align="left">
+                                                    <span class="pcont">抗反射光強化玻璃螢幕</span>
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td valign="top" align="right">
+                                                    <img hspace="0" alt="dot" vspace="5" src="FPM-2150.files/dot_gray.gif" width="4"
+                                                        height="4">
+                                                </td>
+                                                <td valign="top" align="left">
+                                                    <span class="pcont">可依照客戶需求客製化不鏽鋼前面板</span>
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td valign="top" align="right">
+                                                    <img hspace="0" alt="dot" vspace="5" src="FPM-2150.files/dot_gray.gif" width="4"
+                                                        height="4">
+                                                </td>
+                                                <td valign="top" align="left">
+                                                    <span class="pcont">前面板OSD控制屏幕</span>
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td valign="top" width="4%" align="right">
+                                                    <img hspace="0" alt="dot" vspace="5" src="FPM-2150.files/dot_gray.gif" width="4"
+                                                        height="4">
+                                                </td>
+                                                <td valign="top" width="96%" align="left">
+                                                    <span class="pcont">多種安裝方式: Panel, Wall, Desktop, Rack, VESA</span><br>
+                                                </td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </td>
+            </tr>
+            <tr>
+                <td align="center">
+                    <table border="0" cellspacing="0" cellpadding="0" width="750">
+                        <tbody>
+                            <tr>
+                                <td bgcolor="#ffffff" height="90" align="center">
+                                    <asp:UpdatePanel runat="server" ID="up1" UpdateMode="Conditional">
+                                    <ContentTemplate>
+
+                                        <table border="0" cellspacing="0" cellpadding="0" width="725">
+                                            <tbody>
+                                                <tr>
+                                                    <td class="tiltle1" bgcolor="#f6f6f6" width="15" align="center">
+                                                        &nbsp;
+                                                    </td>
+                                                    <td class="tiltle1" bgcolor="#f6f6f6" height="30" valign="bottom" align="left">
+                                                        我要預購
+                                                    </td>
+                                                </tr>
+                                                <tr>
+                                                    <td class="tiltle1" bgcolor="#f6f6f6" align="center">
+                                                        &nbsp;
+                                                    </td>
+                                                    <td class="pcont" bgcolor="#f6f6f6" height="30" align="left">
+                                                        活動期間 : 即日起至2012年8月31日
+                                                    </td>
+                                                </tr>
+                                                <tr>
+                                                    <td bgcolor="#f6f6f6" align="center">
+                                                        &nbsp;
+                                                    </td>
+                                                    <td bgcolor="#f6f6f6" align="left">
+                                                            <table border="0" cellspacing="0" cellpadding="0">
+                                                                <tbody>
+                                                                    <tr>
+                                                                        <td><img src="FPM-2150.files/broder_up.gif" width="700" height="11"></td>
+                                                                    </tr>
+                                                                    <tr>
+                                                                        <td class="broderform" align="center">
+                                                                            <table border="0" cellspacing="0" cellpadding="5">
+                                                                                <tbody>
+                                                                                    <tr>
+                                                                                        <td class="content1" valign="middle" align="right">
+                                                                                            公司 :
+                                                                                        </td>
+                                                                                        <td valign="middle">
+                                                                                            <asp:TextBox ID="txtCompany" runat="server" class="contentform"  size="35" type="text"></asp:TextBox>
+                                                                                        </td>
+                                                                                        <td valign="middle" width="45">
+                                                                                        </td>
+                                                                                        <td valign="middle" align="right">
+                                                                                            <span class="content1">電話 :</span>
+                                                                                        </td>
+                                                                                        <td valign="middle">
+                                                                                            <asp:TextBox ID="txtPhone" runat="server" class="contentform"  size="35" type="text"></asp:TextBox>
+                                                                                        </td>
+                                                                                    </tr>
+                                                                                    <tr>
+                                                                                        <td valign="middle" align="right">
+                                                                                            <span class="content1">姓名 :</span>
+                                                                                        </td>
+                                                                                        <td valign="middle">
+                                                                                            <asp:TextBox ID="txtName" runat="server" class="contentform"  size="35" type="text"></asp:TextBox>
+                                                                                        </td>
+                                                                                        <td valign="middle">
+                                                                                        </td>
+                                                                                        <td valign="middle" align="right">
+                                                                                            <span class="content1">Email :</span>
+                                                                                        </td>
+                                                                                        <td valign="middle">
+                                                                                            <asp:TextBox ID="txtEmail" runat="server" class="contentform"  size="35" type="text"></asp:TextBox>
+                                                                                        </td>
+                                                                                    </tr>
+                                                                                </tbody>
+                                                                            </table>
+                                                                        </td>
+                                                                    </tr>
+                                                                    <tr>
+                                                                        <td><img src="FPM-2150.files/broder_down.gif" width="700" height="11"></td>
+                                                                    </tr>
+                                                                </tbody>
+                                                            </table>
+                                                    </td>
+                                                </tr>
+                                                <tr>
+                                                    <td bgcolor="#f6f6f6" valign="middle" align="center">
+                                                        &nbsp;
+                                                    </td>
+                                                    <td bgcolor="#f6f6f6" height="50" valign="middle" align="center">
+                                                        <table border="0" cellspacing="0" cellpadding="10">
+                                                            <tbody>
+                                                                <tr>
+                                                                    <td>
+                                                                        <asp:ImageButton ID="ImageButton1" ImageUrl="FPM-2150.files/btn1.gif" 
+                                                                            runat="server" onclick="ImageButton1_Click" />
+                                                                    </td>
+                                                                    <td>
+                                                                        <asp:ImageButton ID="ImageButton2" ImageUrl="FPM-2150.files/btn2.gif" 
+                                                                            runat="server" onclick="ImageButton2_Click" />
+                                                                    </td>
+                                                                </tr>
+                                                            </tbody>
+                                                        </table>
+                                                    </td>
+                                                </tr>
+                                                <tr style="height:15px">
+                                                    <td align="center" colspan="2">
+                                                        <asp:Label runat="server" ID="lbMsg" Font-Bold="true" ForeColor="Tomato" />
+                                                    </td>
+                                                </tr>
+
+                                            </tbody>
+                                        </table>
+                                    </ContentTemplate>
+                                    </asp:UpdatePanel>
+
+                                </td>
+                            </tr>
+                            <tr>
+                                <td bgcolor="#ffffff" height="90" align="center">
+                                    <table border="0" cellspacing="0" cellpadding="0" width="700">
+                                        <tbody>
+                                            <tr>
+                                                <td class="pcont" align="left">
+                                                    相關說明:
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td>
+                                                    <table border="0" cellspacing="0" cellpadding="2" width="100%">
+                                                        <tbody>
+                                                            <tr>
+                                                                <td valign="top" width="2%">
+                                                                    <img hspace="5" alt="dot" vspace="5" src="FPM-2150.files/dot_gray.gif" width="4"
+                                                                        height="4">
+                                                                </td>
+                                                                <td valign="top" width="98%" align="left">
+                                                                    <span class="tabletxt">於eStore購買單台FPM-2150G-RCE可獲得7-11禮券300元，買2台送600(以此類推)，禮券將於每月第一週週五前寄出</span><br>
+                                                                </td>
+                                                            </tr>
+                                                            <tr>
+                                                                <td valign="top">
+                                                                    <img hspace="5" alt="dot" vspace="5" src="FPM-2150.files/dot_gray.gif" width="4"
+                                                                        height="4">
+                                                                </td>
+                                                                <td class="tabletxt" valign="top" align="left">
+                                                                    研華保留變更或終止本活動之權利，且有權對本活動的一切事宜，以及對本活動辦法及活動注意事項之詮釋，作出最後裁決
+                                                                </td>
+                                                            </tr>
+                                                        </tbody>
+                                                    </table>
+                                                </td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td bgcolor="#f5ebca" height="65" align="center">
+                                    <table border="0" cellspacing="0" cellpadding="0" width="700">
+                                        <tbody>
+                                            <tr>
+                                                <td class="pcont" height="25" valign="bottom" align="left">
+                                                    <img src="FPM-2150.files/services.gif" width="109" height="17">
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td align="left">
+                                                    <table border="0" cellspacing="0" cellpadding="0">
+                                                        <tbody>
+                                                            <tr>
+                                                                <td class="pcont" height="35">
+                                                                    台北 02-22184567
+                                                                </td>
+                                                                <td>
+                                                                    <img hspace="8" alt="line" src="FPM-2150.files/line.gif" width="5" height="26">
+                                                                </td>
+                                                                <td class="pcont">
+                                                                    台中 04-23786250
+                                                                </td>
+                                                                <td>
+                                                                    <img hspace="8" alt="line" src="FPM-2150.files/line.gif" width="5" height="26">
+                                                                </td>
+                                                                <td class="pcont">
+                                                                    高雄 07-2293600
+                                                                </td>
+                                                                <td>
+                                                                    <img hspace="8" alt="line" src="FPM-2150.files/line.gif" width="5" height="26">
+                                                                </td>
+                                                                <td class="pcont">
+                                                                    研華在線 0800-777-111
+                                                                </td>
+                                                                <td>
+                                                                    <img hspace="8" alt="line" src="FPM-2150.files/line.gif" width="5" height="26">
+                                                                </td>
+                                                                <td class="pcont">
+                                                                    Email: <a class="pcont" href="mailto:buy@advantech.tw" target="_blank">buy@advantech.tw</a>
+                                                                </td>
+                                                            </tr>
+                                                        </tbody>
+                                                    </table>
+                                                </td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </td>
+            </tr>
+            <tr>
+                <td align="center">
+                    <img src="FPM-2150.files/botton.jpg" width="750" height="35">
+                </td>
+            </tr>
+        </tbody>
+    </table>
+    <p>
+        &nbsp;</p>
+</form>
+</body>
+</html>

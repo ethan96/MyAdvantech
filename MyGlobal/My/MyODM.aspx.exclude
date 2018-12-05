@@ -1,0 +1,80 @@
+﻿<%@ Page Title="My ODM/OEM Products" Language="VB" MasterPageFile="~/Includes/MyMaster.master" %>
+
+<script runat="server">
+
+    Protected Sub Page_Load(ByVal sender As Object, ByVal e As System.EventArgs)
+        If Not Page.IsPostBack Then
+            Dim kaid As String = HttpContext.Current.Session("company_id")
+            kaid = "EURP001"
+            Dim rootNode As TreeNode = tv.Nodes(0)
+            rootNode.ImageUrl = "/Images/klein_cart.jpg"
+            'tv.ID = "KATree"
+            rootNode.Text = "My Products" : rootNode.NavigateUrl = "javascript:void(0);"
+            'tv.Nodes.Add(rootNode)
+            Dim sb As New System.Text.StringBuilder
+            With sb
+                .AppendLine(String.Format(" select a.item_no, a.qty, a.product_desc, a.create_date, a.status, a.model_no "))
+                .AppendLine(String.Format(" from eai_ka_product a "))
+                .AppendLine(String.Format(" where a.customer_id='{0}' ", kaid))
+                .AppendLine(String.Format(" order by a.create_date desc "))
+            End With
+            Dim prodDt As DataTable = dbUtil.dbGetDataTable("MY", sb.ToString())
+            If prodDt.Rows.Count = 0 Then Exit Sub
+            For i As Integer = 0 To prodDt.Rows.Count - 1
+                Dim r As DataRow = prodDt.Rows(i)
+                Dim pnode As New TreeNode(r.Item("item_no"), r.Item("item_no"))
+                pnode.ImageUrl = "/Images/server.jpg"
+                pnode.NavigateUrl = String.Format("/Product/model_detail.aspx?model_no={0}", r.Item("model_no"))
+                rootNode.ChildNodes.Add(pnode)
+                Dim rmaDt As DataTable = MyCalData.GetRMA(kaid, "", DateAdd(DateInterval.Year, -2, Now), Now, r.Item("item_no"), "", 100)
+                If rmaDt.Rows.Count > 0 Then
+                    Dim rmanode As New TreeNode("RMA", "RMA")
+                    rmanode.ImageUrl = "/Images/repair.jpg" : rmanode.NavigateUrl = "javascript:void(0);"
+                    pnode.ChildNodes.Add(rmanode)
+                    For Each rr As DataRow In rmaDt.Rows
+                        Dim rmaitemnode As New TreeNode(rr.Item("rma_no") + " (" + rr.Item("RMA_TYPE") + ")")
+                        rmaitemnode.ToolTip = "Status:" + rr.Item("RMA_TYPE")
+                        rmaitemnode.NavigateUrl = String.Format("javascript:ShowRMAFlyout('{0}');", rr.Item("rma_no"))
+                        rmanode.ChildNodes.Add(rmaitemnode)
+                    Next
+                End If
+                'Dim srDt As DataTable = GetItemSR(r.Item("item_no"), r.Item("model_no"))
+                Dim srDt As DataTable = MyCalData.GetSR(HttpContext.Current.Session("company_id"), "", DateAdd(DateInterval.Year, -2, Now), Now, r.Item("item_no"), HttpContext.Current.Session("user_id"), 30)
+                If srDt.Rows.Count > 0 Then
+                    Dim srnode As New TreeNode("Service Request", "Service Request")
+                    srnode.ImageUrl = "/Images/SR.jpg" : srnode.NavigateUrl = "javascript:void(0);"
+                    pnode.ChildNodes.Add(srnode)
+                    For Each rr As DataRow In srDt.Rows
+                        Dim sritemnode As New TreeNode(rr.Item("SR_TITLE"))
+                        sritemnode.NavigateUrl = String.Format("javascript:ShowSRFlyout('{0}');", rr.Item("sr_num"))
+                        srnode.ChildNodes.Add(sritemnode)
+                    Next
+                End If
+                Dim mktDt As DataTable = MyCalData.GetMKTMaterial(DateAdd(DateInterval.Year, -2, Now), Now, r.Item("model_no"), HttpContext.Current.Session("user_id"), 30)
+                If mktDt.Rows.Count > 0 Then
+                    Dim mktnode As New TreeNode("Literature", "Literature")
+                    mktnode.ImageUrl = "/Images/MKT.jpg" : mktnode.NavigateUrl = "javascript:void(0);"
+                    pnode.ChildNodes.Add(mktnode)
+                    For Each rr As DataRow In mktDt.Rows
+                        Dim mktitemnode As New TreeNode(rr.Item("DESC_TEXT"))
+                        mktitemnode.ToolTip = rr.Item("FILE_NAME") + "." + rr.Item("FILE_EXT") + " (" + FormatNumber(CDbl(rr.Item("FILE_SIZE")) / 1024, 0, , , -2) + "k)"
+                        mktitemnode.NavigateUrl = String.Format("/Product/Unzip_File.aspx?Literature_ID={0}", rr.Item("LIT_ID"))
+                        mktitemnode.Target = "_blank"
+                        mktnode.ChildNodes.Add(mktitemnode)
+                    Next
+                End If
+            Next
+            'Return Util.WebControl2String(tv)
+            tv.ExpandDepth = 1
+        End If
+    End Sub
+</script>
+
+<asp:Content ID="Content1" ContentPlaceHolderID="_main" Runat="Server">
+    <h3 style="color:Navy">My ODM/OEM Products</h3>
+    <asp:TreeView runat="server" ID="tv">
+        <Nodes>
+            <asp:TreeNode Text="My Products" />
+        </Nodes>
+    </asp:TreeView>
+</asp:Content>

@@ -1,0 +1,445 @@
+﻿<%@ Page Title="MyAdvantech - Mind Catch eDM Survey" Language="VB" MasterPageFile="~/Includes/MyMaster.master" ValidateRequest="false" %>
+
+<script runat="server">
+
+    Protected Sub Page_Load(ByVal sender As Object, ByVal e As System.EventArgs)
+        If Session("user_id") IsNot Nothing Then txtName.Text = Session("user_id")
+    End Sub
+
+    Public Function GetDt(ByVal file_name As String) As DataTable
+        Return dbUtil.dbGetDataTable("MyLocal", String.Format("select file_name, file_bytes from temp_file where usage_type='MindCatchEDMSurvey' and file_name='{0}'", file_name))
+    End Function
+    
+    Protected Sub btnIoT_Click(ByVal sender As Object, ByVal e As System.EventArgs)
+        Dim dt As DataTable = GetDt("IoT")
+        ExportPowerPoint(dt.Rows(0).Item("file_name").ToString, dt.Rows(0).Item("file_bytes"))
+    End Sub
+    
+    Public Sub ExportPowerPoint(ByVal file_name As String, ByVal file_bytes As Object)
+        With HttpContext.Current.Response
+            .Clear()
+            .ContentType = "application/vnd.ms-powerpoint [official]"
+            .AddHeader("Content-Disposition", String.Format("attachment; filename={0};", file_name))
+            .BinaryWrite(file_bytes)
+        End With
+    End Sub
+
+    Protected Sub btnEnvironment_Click(ByVal sender As Object, ByVal e As System.EventArgs)
+        Dim dt As DataTable = GetDt("Environmental Monitoring")
+        ExportPowerPoint(dt.Rows(0).Item("file_name").ToString, dt.Rows(0).Item("file_bytes"))
+    End Sub
+
+    Protected Sub btnVideo_Click(ByVal sender As Object, ByVal e As System.EventArgs)
+        Dim dt As DataTable = GetDt("Intelligent Video")
+        ExportPowerPoint(dt.Rows(0).Item("file_name").ToString, dt.Rows(0).Item("file_bytes"))
+    End Sub
+
+    Protected Sub btnSlim_Click(ByVal sender As Object, ByVal e As System.EventArgs)
+        Dim dt As DataTable = GetDt("Slim Box")
+        ExportPowerPoint(dt.Rows(0).Item("file_name").ToString, dt.Rows(0).Item("file_bytes"))
+    End Sub
+
+    Protected Sub btnIPC_Click(ByVal sender As Object, ByVal e As System.EventArgs)
+        Dim dt As DataTable = GetDt("Quiet IPC")
+        ExportPowerPoint(dt.Rows(0).Item("file_name").ToString, dt.Rows(0).Item("file_bytes"))
+    End Sub
+
+    Protected Sub btnLowPower_Click(ByVal sender As Object, ByVal e As System.EventArgs)
+        Dim dt As DataTable = GetDt("Low Power Embedded Board")
+        ExportPowerPoint(dt.Rows(0).Item("file_name").ToString, dt.Rows(0).Item("file_bytes"))
+    End Sub
+
+    Protected Sub btnHighBright_Click(ByVal sender As Object, ByVal e As System.EventArgs)
+        Dim dt As DataTable = GetDt("High Bright Industrial Display")
+        ExportPowerPoint(dt.Rows(0).Item("file_name").ToString, dt.Rows(0).Item("file_bytes"))
+    End Sub
+
+    Protected Sub btnNursing_Click(ByVal sender As Object, ByVal e As System.EventArgs)
+        Dim dt As DataTable = GetDt("Nursing Cart")
+        ExportPowerPoint(dt.Rows(0).Item("file_name").ToString, dt.Rows(0).Item("file_bytes"))
+    End Sub
+
+    Protected Sub btnVehicle_Click(ByVal sender As Object, ByVal e As System.EventArgs)
+        Dim dt As DataTable = GetDt("In-vehicle")
+        ExportPowerPoint(dt.Rows(0).Item("file_name").ToString, dt.Rows(0).Item("file_bytes"))
+    End Sub
+
+    Protected Sub btnUTC_Click(ByVal sender As Object, ByVal e As System.EventArgs)
+        Dim dt As DataTable = GetDt("Intelligent Service_1129")
+        ExportPowerPoint(dt.Rows(0).Item("file_name").ToString, dt.Rows(0).Item("file_bytes"))
+    End Sub
+
+    Protected Sub btnSubmit_Click(ByVal sender As Object, ByVal e As System.EventArgs)
+        Try
+            lblMsg.Text = ""
+            Dim hasError As Boolean = False
+            Dim eDM As String() = {"IoT", "Environmental Monitoring", "Intelligent Video", "Slim Box", "Quiet IPC", "Low Power Embedded Board", "Ultra-bright Industrial Display", "Nursing Cart", "In-vehicle", "UTC"}
+            If txtName.Text.Trim.Replace("'", "") = "" Then lblMsg.Text += "Please input your name.<br/>" : hasError = True
+            For i As Integer = 1 To 10
+                Dim rb As RadioButtonList = CType(tb.FindControl("RadioButtonList" + i.ToString), RadioButtonList)
+                If rb.SelectedItem Is Nothing Then lblMsg.Text += eDM(i - 1) + " ranking is needed.<br/>" : hasError = True
+            Next
+            If hasError = True Then Exit Sub
+            Dim row_id As String = NewId()
+            Dim _date As Date = Now
+            Dim sql As New ArrayList
+            For i As Integer = 1 To 10
+                Dim rb As RadioButtonList = CType(tb.FindControl("RadioButtonList" + i.ToString), RadioButtonList)
+                Dim com As TextBox = CType(tb.FindControl("txtComment" + i.ToString), TextBox)
+                sql.Add(String.Format("insert into MindCatchEDMSurvey (row_id,name,edm,rank,comment,timestamp,ip) values ('{0}',N'{1}','{2}','{3}',N'{4}','{5}','{6}')", row_id, txtName.Text.Trim.Replace("'", "''"), eDM(i - 1), rb.SelectedValue, com.Text.Replace(ControlChars.Lf, "<br/>").Replace("'", "''").Trim, _date, Util.GetClientIP()))
+            Next
+            dbUtil.dbExecuteNoQuery("MYLOCAL", String.Join(";", sql.ToArray()))
+            lblMsg.Text = "Thank you for your feedback."
+        Catch ex As Exception
+            lblMsg.Text = ex.ToString
+        End Try
+    End Sub
+    
+    Private Function NewId() As String
+        Dim tmpRowId As String = ""
+        Do While True
+            tmpRowId = System.Guid.NewGuid.ToString().Replace("-", "").Substring(0, 10)
+            If CInt( _
+              dbUtil.dbExecuteScalar("MYLOCAL", "select count(ROW_ID) as counts from MindCatchEDMSurvey where ROW_ID='" + tmpRowId + "'") _
+               ) = 0 Then
+                Exit Do
+            End If
+        Loop
+        Return tmpRowId
+    End Function
+</script>
+
+<asp:Content ID="Content1" ContentPlaceHolderID="_main" Runat="Server">
+    <table width="100%" runat="server" id="tb">
+        <tr><td align="center">You may click the image to browse the eDM clearly and please give <b><u>every eDM your ranking and comments</u></b> to improve with higher quality in the future. Thanks!</td></tr>
+        <tr><td><hr /></td></tr>
+        <tr><td><font color="red">* </font>Advise by : <asp:TextBox runat="server" ID="txtName" Width="200px" /></td></tr>
+        <tr>
+            <td>
+                <table width="100%" cellpadding="0" cellspacing="0" style="border-width:1px; border-style:solid">
+                    <tr><th align="left" style="border-right-width:1px; border-right-style:solid">&nbsp;eDM</th><th align="left">&nbsp;eDM</th></tr>
+                    <tr valign="top">
+                        <td style="width:50%">
+                            <table width="100%" style="border-bottom-width:1px; border-bottom-style:solid;border-top-width:1px; border-top-style:solid;border-right-width:1px; border-right-style:solid">
+                                <tr>
+                                    <th align="left" colspan="2">IoT</th>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <table cellpadding="0" cellspacing="0" border="0">
+                                            <tr><td colspan="2"><asp:ImageButton runat="server" ID="btnImgIot" Height="364" Width="220" ImageUrl="Images/IoT.jpg" OnClick="btnIoT_Click" /></td></tr>
+                                            <tr><td><img src="http://my.advantech.com/Images/square_blue.gif" /></td><td><asp:LinkButton runat="server" ID="btnIoT" Text="Theme & Scenario" OnClick="btnIoT_Click" /></td></tr>
+                                        </table>
+                                    </td>
+                                    <td>
+                                        <table>
+                                            <tr>
+                                                <td>
+                                                    <asp:RadioButtonList runat="server" ID="RadioButtonList1">
+                                                        <asp:ListItem Text="Excellent" Value="3" />
+                                                        <asp:ListItem Text="Acceptable" Value="1" />
+                                                        <asp:ListItem Text="Modification Needed" Value="0" />
+                                                    </asp:RadioButtonList>
+                                                </td>
+                                            </tr>
+                                            <tr><td valign="top"><b>Comment:</b></td></tr>
+                                            <tr><td><asp:TextBox runat="server" ID="txtComment1" TextMode="MultiLine" Width="200px" Height="80px" /></td></tr>
+                                        </table>
+                                    </td>
+                                </tr>
+                            </table>
+                        </td>
+                        <td style="width:50%">
+                            <table width="100%" style="border-bottom-width:1px; border-bottom-style:solid;border-top-width:1px; border-top-style:solid">
+                                <tr>
+                                    <th align="left" colspan="2">Environmental Monitoring</th>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <table cellpadding="0" cellspacing="0" border="0">
+                                            <tr><td colspan="2"><asp:ImageButton runat="server" ID="btnImgEnvironment" Height="364" Width="220" ImageUrl="Images/Environmental-Monitoring.jpg" OnClick="btnEnvironment_Click" /></td></tr>
+                                            <tr><td><img src="http://my.advantech.com/Images/square_blue.gif" /></td><td><asp:LinkButton runat="server" ID="btnEnvironment" Text="Theme & Scenario" OnClick="btnEnvironment_Click" /></td></tr>
+                                        </table>
+                                    </td>
+                                    <td>
+                                        <table>
+                                            <tr>
+                                                <td>
+                                                    <asp:RadioButtonList runat="server" ID="RadioButtonList2">
+                                                        <asp:ListItem Text="Excellent" Value="3" />
+                                                        <asp:ListItem Text="Acceptable" Value="1" />
+                                                        <asp:ListItem Text="Modification Needed" Value="0" />
+                                                    </asp:RadioButtonList>
+                                                </td>
+                                            </tr>
+                                            <tr><td valign="top"><b>Comment:</b></td></tr>
+                                            <tr><td><asp:TextBox runat="server" ID="txtComment2" TextMode="MultiLine" Width="200px" Height="80px" /></td></tr>
+                                        </table>
+                                    </td>
+                                </tr>
+                            </table>
+                        </td>
+                    </tr>
+                    <tr valign="top">
+                        <td style="width:50%">
+                            <table width="100%" style="border-bottom-width:1px; border-bottom-style:solid;border-right-width:1px; border-right-style:solid">
+                                <tr>
+                                    <th align="left" colspan="2">Intelligent Video</th>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <table cellpadding="0" cellspacing="0" border="0">
+                                            <tr><td colspan="2"><asp:ImageButton runat="server" ID="ImageButton1" Height="364" Width="220" ImageUrl="Images/Intelligent-Video.jpg" OnClick="btnVideo_Click" /></td></tr>
+                                            <tr><td><img src="http://my.advantech.com/Images/square_blue.gif" /></td><td><asp:LinkButton runat="server" ID="btnVideo" Text="Theme & Scenario" OnClick="btnVideo_Click" /></td></tr>
+                                        </table>
+                                    </td>
+                                    <td>
+                                        <table>
+                                            <tr>
+                                                <td>
+                                                    <asp:RadioButtonList runat="server" ID="RadioButtonList3">
+                                                        <asp:ListItem Text="Excellent" Value="3" />
+                                                        <asp:ListItem Text="Acceptable" Value="1" />
+                                                        <asp:ListItem Text="Modification Needed" Value="0" />
+                                                    </asp:RadioButtonList>
+                                                </td>
+                                            </tr>
+                                            <tr><td valign="top"><b>Comment:</b></td></tr>
+                                            <tr><td><asp:TextBox runat="server" ID="txtComment3" TextMode="MultiLine" Width="200px" Height="80px" /></td></tr>
+                                        </table>
+                                    </td>
+                                </tr>
+                            </table>
+                        </td>
+                        <td style="width:50%">
+                            <table width="100%" style="border-bottom-width:1px; border-bottom-style:solid;">
+                                <tr>
+                                    <th align="left" colspan="2">Slim Box</th>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <table cellpadding="0" cellspacing="0" border="0">
+                                            <tr><td colspan="2"><asp:ImageButton runat="server" ID="ImageButton2" Height="364" Width="220" ImageUrl="Images/Slim-Box.jpg" OnClick="btnSlim_Click" /></td></tr>
+                                            <tr><td><img src="http://my.advantech.com/Images/square_blue.gif" /></td><td><asp:LinkButton runat="server" ID="btnSlim" Text="Theme & Scenario" OnClick="btnSlim_Click" /></td></tr>
+                                        </table>
+                                    </td>
+                                    <td>
+                                        <table>
+                                            <tr>
+                                                <td>
+                                                    <asp:RadioButtonList runat="server" ID="RadioButtonList4">
+                                                        <asp:ListItem Text="Excellent" Value="3" />
+                                                        <asp:ListItem Text="Acceptable" Value="1" />
+                                                        <asp:ListItem Text="Modification Needed" Value="0" />
+                                                    </asp:RadioButtonList>
+                                                </td>
+                                            </tr>
+                                            <tr><td valign="top"><b>Comment:</b></td></tr>
+                                            <tr><td><asp:TextBox runat="server" ID="txtComment4" TextMode="MultiLine" Width="200px" Height="80px" /></td></tr>
+                                        </table>
+                                    </td>
+                                </tr>
+                            </table>
+                        </td>
+                    </tr>
+                    <tr valign="top">
+                        <td style="width:50%">
+                            <table width="100%" style="border-bottom-width:1px; border-bottom-style:solid;border-right-width:1px; border-right-style:solid">
+                                <tr>
+                                    <th align="left" colspan="2">Quiet IPC</th>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <table cellpadding="0" cellspacing="0" border="0">
+                                            <tr><td colspan="2"><asp:ImageButton runat="server" ID="ImageButton3" Height="364" Width="220" ImageUrl="Images/Quiet-IPC.jpg" OnClick="btnIPC_Click" /></td></tr>
+                                            <tr><td><img src="http://my.advantech.com/Images/square_blue.gif" /></td><td><asp:LinkButton runat="server" ID="btnIPC" Text="Theme & Scenario" OnClick="btnIPC_Click" /></td></tr>
+                                        </table>
+                                    </td>
+                                    <td>
+                                        <table>
+                                            <tr>
+                                                <td>
+                                                    <asp:RadioButtonList runat="server" ID="RadioButtonList5">
+                                                        <asp:ListItem Text="Excellent" Value="3" />
+                                                        <asp:ListItem Text="Acceptable" Value="1" />
+                                                        <asp:ListItem Text="Modification Needed" Value="0" />
+                                                    </asp:RadioButtonList>
+                                                </td>
+                                            </tr>
+                                            <tr><td valign="top"><b>Comment:</b></td></tr>
+                                            <tr><td><asp:TextBox runat="server" ID="txtComment5" TextMode="MultiLine" Width="200px" Height="80px" /></td></tr>
+                                        </table>
+                                    </td>
+                                </tr>
+                            </table>
+                        </td>
+                        <td style="width:50%">
+                            <table width="100%" style="border-bottom-width:1px; border-bottom-style:solid;">
+                                <tr>
+                                    <th align="left" colspan="2">Low Power Embedded Board</th>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <table cellpadding="0" cellspacing="0" border="0">
+                                            <tr><td colspan="2"><asp:ImageButton runat="server" ID="ImageButton4" Height="364" Width="220" ImageUrl="Images/Low-Power-Embedded-Board.jpg" OnClick="btnLowPower_Click" /></td></tr>
+                                            <tr><td><img src="http://my.advantech.com/Images/square_blue.gif" /></td><td><asp:LinkButton runat="server" ID="btnLowPower" Text="Theme & Scenario" OnClick="btnLowPower_Click" /></td></tr>
+                                        </table>
+                                    </td>
+                                    <td>
+                                        <table>
+                                            <tr>
+                                                <td>
+                                                    <asp:RadioButtonList runat="server" ID="RadioButtonList6">
+                                                        <asp:ListItem Text="Excellent" Value="3" />
+                                                        <asp:ListItem Text="Acceptable" Value="1" />
+                                                        <asp:ListItem Text="Modification Needed" Value="0" />
+                                                    </asp:RadioButtonList>
+                                                </td>
+                                            </tr>
+                                            <tr><td valign="top"><b>Comment:</b></td></tr>
+                                            <tr><td><asp:TextBox runat="server" ID="txtComment6" TextMode="MultiLine" Width="200px" Height="80px" /></td></tr>
+                                        </table>
+                                    </td>
+                                </tr>
+                            </table>
+                        </td>
+                    </tr>
+                    <tr valign="top">
+                        <td style="width:50%">
+                            <table width="100%" style="border-bottom-width:1px; border-bottom-style:solid;border-right-width:1px; border-right-style:solid">
+                                <tr>
+                                    <th align="left" colspan="2">Ultra-bright Industrial Display</th>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <table cellpadding="0" cellspacing="0" border="0">
+                                            <tr><td colspan="2"><asp:ImageButton runat="server" ID="ImageButton5" Height="364" Width="220" ImageUrl="Images/High-bright-Industrial-Disp.jpg" OnClick="btnHighBright_Click" /></td></tr>
+                                            <tr><td><img src="http://my.advantech.com/Images/square_blue.gif" /></td><td><asp:LinkButton runat="server" ID="btnHighBright" Text="Theme & Scenario" OnClick="btnHighBright_Click" /></td></tr>
+                                        </table>
+                                    </td>
+                                    <td>
+                                        <table>
+                                            <tr>
+                                                <td>
+                                                    <asp:RadioButtonList runat="server" ID="RadioButtonList7">
+                                                        <asp:ListItem Text="Excellent" Value="3" />
+                                                        <asp:ListItem Text="Acceptable" Value="1" />
+                                                        <asp:ListItem Text="Modification Needed" Value="0" />
+                                                    </asp:RadioButtonList>
+                                                </td>
+                                            </tr>
+                                            <tr><td valign="top"><b>Comment:</b></td></tr>
+                                            <tr><td><asp:TextBox runat="server" ID="txtComment7" TextMode="MultiLine" Width="200px" Height="80px" /></td></tr>
+                                        </table>
+                                    </td>
+                                </tr>
+                            </table>
+                        </td>
+                        <td style="width:50%">
+                            <table width="100%" style="border-bottom-width:1px; border-bottom-style:solid;">
+                                <tr>
+                                    <th align="left" colspan="2">Nursing Cart</th>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <table cellpadding="0" cellspacing="0" border="0">
+                                            <tr><td colspan="2"><asp:ImageButton runat="server" ID="ImageButton6" Height="364" Width="220" ImageUrl="Images/Nursing-Cart.jpg" OnClick="btnNursing_Click" /></td></tr>
+                                            <tr><td><img src="http://my.advantech.com/Images/square_blue.gif" /></td><td><asp:LinkButton runat="server" ID="btnNursing" Text="Theme & Scenario" OnClick="btnNursing_Click" /></td></tr>
+                                        </table>
+                                    </td>
+                                    <td>
+                                        <table>
+                                            <tr>
+                                                <td>
+                                                    <asp:RadioButtonList runat="server" ID="RadioButtonList8">
+                                                        <asp:ListItem Text="Excellent" Value="3" />
+                                                        <asp:ListItem Text="Acceptable" Value="1" />
+                                                        <asp:ListItem Text="Modification Needed" Value="0" />
+                                                    </asp:RadioButtonList>
+                                                </td>
+                                            </tr>
+                                            <tr><td valign="top"><b>Comment:</b></td></tr>
+                                            <tr><td><asp:TextBox runat="server" ID="txtComment8" TextMode="MultiLine" Width="200px" Height="80px" /></td></tr>
+                                        </table>
+                                    </td>
+                                </tr>
+                            </table>
+                        </td>
+                    </tr>
+                    <tr valign="top">
+                        <td style="width:50%">
+                            <table width="100%" style="border-right-width:1px; border-right-style:solid">
+                                <tr>
+                                    <th align="left" colspan="2">In-vehicle</th>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <table cellpadding="0" cellspacing="0" border="0">
+                                            <tr><td colspan="2"><asp:ImageButton runat="server" ID="ImageButton7" Height="364" Width="220" ImageUrl="Images/In-vehicle.jpg" OnClick="btnVehicle_Click" /></td></tr>
+                                            <tr><td><img src="http://my.advantech.com/Images/square_blue.gif" /></td><td><asp:LinkButton runat="server" ID="btnVehicle" Text="Theme & Scenario" OnClick="btnVehicle_Click" /></td></tr>
+                                        </table>
+                                    </td>
+                                    <td>
+                                        <table>
+                                            <tr>
+                                                <td>
+                                                    <asp:RadioButtonList runat="server" ID="RadioButtonList9">
+                                                        <asp:ListItem Text="Excellent" Value="3" />
+                                                        <asp:ListItem Text="Acceptable" Value="1" />
+                                                        <asp:ListItem Text="Modification Needed" Value="0" />
+                                                    </asp:RadioButtonList>
+                                                </td>
+                                            </tr>
+                                            <tr><td valign="top"><b>Comment:</b></td></tr>
+                                            <tr><td><asp:TextBox runat="server" ID="txtComment9" TextMode="MultiLine" Width="200px" Height="80px" /></td></tr>
+                                        </table>
+                                    </td>
+                                </tr>
+                            </table>
+                        </td>
+                        <td style="width:50%">
+                            <table width="100%" style="">
+                                <tr>
+                                    <th align="left" colspan="2">UTC</th>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <table cellpadding="0" cellspacing="0" border="0">
+                                            <tr><td colspan="2"><asp:ImageButton runat="server" ID="ImageButton8" Height="364" Width="220" ImageUrl="Images/Intelligent-Service.jpg" OnClick="btnUTC_Click" /></td></tr>
+                                            <tr><td><img src="http://my.advantech.com/Images/square_blue.gif" /></td><td><asp:LinkButton runat="server" ID="btnUTC" Text="Theme & Scenario" OnClick="btnUTC_Click" /></td></tr>
+                                        </table>
+                                    </td>
+                                    <td>
+                                        <table>
+                                            <tr>
+                                                <td>
+                                                    <asp:RadioButtonList runat="server" ID="RadioButtonList10">
+                                                        <asp:ListItem Text="Excellent" Value="3" />
+                                                        <asp:ListItem Text="Acceptable" Value="1" />
+                                                        <asp:ListItem Text="Modification Needed" Value="0" />
+                                                    </asp:RadioButtonList>
+                                                </td>
+                                            </tr>
+                                            <tr><td valign="top"><b>Comment:</b></td></tr>
+                                            <tr><td><asp:TextBox runat="server" ID="txtComment10" TextMode="MultiLine" Width="200px" Height="80px" /></td></tr>
+                                        </table>
+                                    </td>
+                                </tr>
+                            </table>
+                        </td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+        <tr>
+            <td align="center">
+                <asp:UpdatePanel runat="server" ID="up1" UpdateMode="Conditional">
+                    <ContentTemplate>
+                        <asp:Button runat="server" ID="btnSubmit" Text="Submit" Width="80" Height="30" OnClick="btnSubmit_Click" /><br />
+                        <asp:Label runat="server" ID="lblMsg" ForeColor="Red" />
+                    </ContentTemplate>
+                </asp:UpdatePanel>
+            </td>
+        </tr>
+    </table>
+</asp:Content>

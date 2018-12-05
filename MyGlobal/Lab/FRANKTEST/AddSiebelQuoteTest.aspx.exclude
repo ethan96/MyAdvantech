@@ -1,0 +1,76 @@
+﻿<%@ Page Language="VB" %>
+<%@ Import Namespace="Advantech.Myadvantech.Business" %>
+<!DOCTYPE html>
+
+<script runat="server">
+
+    Protected Sub Page_Load(sender As Object, e As EventArgs)
+        'Dim _err As String = String.Empty
+        'Dim _paras As String = String.Empty
+        
+        'SiebelBusinessLogic.CreateSiebelQuoteWithOpty("a95125f42992470", "", _paras, _err)
+        
+        Dim _str As New StringBuilder ' = "select createdBy From QuotationMaster"
+        _str.AppendLine(" select a.createdBy,b.ROW_ID From QuotationMaster a left join MyAdvantechGlobal.dbo.SIEBEL_CONTACT b  ")
+        _str.AppendLine(" on a.createdBy=b.EMAIL_ADDRESS ")
+        _str.AppendLine(" where a.quoteNo like 'TWQ%' ")
+        _str.AppendLine(" and a.createdDate>='2015-04-01' ")
+        _str.AppendLine(" and a.createdBy<>'Frank.Chung@advantech.com.tw' ")
+        _str.AppendLine(" group by a.createdBy,b.ROW_ID ")
+        _str.AppendLine(" order by a.createdBy ")
+        
+        Dim _dt As DataTable = Nothing, _dt2 As DataTable = Nothing, _dt3 As DataTable = Nothing
+        
+        Dim _NotInQuote As String = String.Empty
+        'Frank 跑正式報表前記得將eQ切到正式資料庫
+        _dt = dbUtil.dbGetDataTable("EQ", _str.ToString)
+        
+        For Each _row As DataRow In _dt.Rows
+            _str.Clear()
+            _str.AppendLine(" select b.siebelQuoteId from QuotationMaster a left join quoteSiebelQuote b  ")
+            _str.AppendLine(" on a.quoteId=b.quoteId ")
+            _str.AppendLine(" where a.createdBy='" & _row.Item("createdBy") & "' ")
+            _str.AppendLine(" and b.siebelQuoteId<>'' and b.siebelQuoteId<>'new id' ")
+            _dt2 = dbUtil.dbGetDataTable("EQ", _str.ToString)
+            
+            If _dt2 IsNot Nothing AndAlso _dt2.Rows.Count > 0 Then
+                _str.Clear()
+                _NotInQuote = String.Empty
+                For Each _rowsiebelquote As DataRow In _dt.Rows
+                    _NotInQuote &= "'" & _rowsiebelquote.Item("siebelQuoteId") & "',"
+                Next
+                
+                _str.AppendLine(" select  count(*) as SiebelQuoteCount From S_DOC_QUOTE ")
+                _str.AppendLine(" where CREATED>='2015-04-01' ")
+                _str.AppendLine(" and CREATED_BY='1-JM8RK' ")
+                _str.AppendLine(" and ROW_ID not in ( ")
+                _str.AppendLine(_NotInQuote.TrimEnd(","))
+                _str.AppendLine(" ) ")
+                
+                _dt3 = dbUtil.dbExecuteScalar("CRM", _str.ToString)
+                
+            End If
+            
+        Next
+        
+        
+        
+        Me.gv1.DataSource = _dt
+        Me.gv1.DataBind()
+        
+        
+    End Sub
+</script>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head runat="server">
+    <title></title>
+</head>
+<body>
+    <form id="form1" runat="server">
+    <div>
+        <asp:GridView ID="gv1" runat="server"></asp:GridView>
+    </div>
+    </form>
+</body>
+</html>

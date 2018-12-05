@@ -1,0 +1,39 @@
+﻿<%@ Page Title="MyAdvantech - Account Contact Admin" Language="VB" MasterPageFile="~/Includes/MyMaster.master" %>
+<%@ Register src="~/Includes/ChangeCompany.ascx" tagname="ChangeCompany" tagprefix="uc1" %>
+
+<script runat="server">
+
+    Protected Sub Page_Load(sender As Object, e As System.EventArgs)
+        If Not Page.IsPostBack Then
+            FillCompanyContact()
+        End If
+    End Sub
+
+    Protected Sub btnAddContact_Click(sender As Object, e As System.EventArgs)
+        Dim ws As New eBizAEU_WS.eBizAEU_WS, ErrMsg As String = ""
+        ws.AddSAPCustomerContact(Session("company_id"), txtNewEmail.Text.Trim(), ErrMsg)
+        If ErrMsg <> "" Then Response.Write("Err:" + ErrMsg)
+        FillCompanyContact()
+    End Sub
+    
+    Sub FillCompanyContact()
+        Dim sb As New System.Text.StringBuilder
+        With sb
+            .AppendLine(String.Format(" SELECT A.KUNNR AS COMPANY_ID, B.SMTP_ADDR AS CONTACT_EMAIL, B.FLGDEFAULT, B.CONSNUMBER,  "))
+            .AppendLine(String.Format(" B.HOME_FLAG, B.SMTP_SRCH, B.PERSNUMBER, C.TEL_NUMBER, C.TELNR_LONG, C.TELNR_CALL "))
+            .AppendLine(String.Format(" FROM SAPRDP.KNA1 A INNER JOIN SAPRDP.ADR6 B ON A.ADRNR=B.ADDRNUMBER  "))
+            .AppendLine(String.Format(" LEFT JOIN SAPRDP.ADR2 C ON B.ADDRNUMBER=C.ADDRNUMBER AND B.PERSNUMBER=C.PERSNUMBER "))
+            .AppendLine(String.Format(" where A.KUNNR='" + Session("company_id").ToString().ToUpper() + "' "))
+        End With
+        Dim dt As DataTable = OraDbUtil.dbGetDataTable("SAP_PRD", sb.ToString())
+        gv1.DataSource = dt : gv1.DataBind()
+    End Sub
+</script>
+
+<asp:Content ID="Content1" ContentPlaceHolderID="_main" Runat="Server">
+    <uc1:ChangeCompany runat="server" ID="ChangeCompany1" />
+    <asp:TextBox runat="server" ID="txtNewEmail" Width="250px" />&nbsp;<asp:Button runat="server" ID="btnAddContact" Text="Add" OnClick="btnAddContact_Click" />
+    <asp:GridView runat="server" ID="gv1" Width="100%">
+        
+    </asp:GridView>
+</asp:Content>

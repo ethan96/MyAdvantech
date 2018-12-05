@@ -1,0 +1,657 @@
+﻿<%@ Control Language="VB" ClassName="PtnrLocator" %>
+
+<script runat="server">
+    Dim ExcludeBAAs As String = "('Entertainment','*FA/MA','System On Module / DTOS','Parallel Computing','Public Services: ATM/POI/KIOSK/Vending Machine','Content Delivery Network','Banking','ASP/ISP','Embedded Software','Converged Communication','ePlatforms','Transporation','Enterprise Networking','eMedical / Healthcare','Building / Facility Automation','Computer Telephony','Networked Storage','Network Appliances','ePublic Service','Environment&Facility Monitoring','Factory/ Machine Automation','Embedded Computing.')"
+    
+    Private Function InitGTable() As DataTable
+        Dim dt As New DataTable("MapTable")
+        dt.Columns.Add("ROW_ID") : dt.Columns.Add("IDX", GetType(Integer))
+        Return dt
+    End Function
+    
+    Private Function GetCP(ByVal CPName As String, ByVal CPAddress As String, ByVal CPPhone As String, ByVal Url As String, _
+                           ByVal RowId As String, ByVal ErpId As String, ByVal LogoW As Integer, _
+                           ByVal LogoH As Integer, ByVal LogoCounts As Integer) As String
+        If LogoW > 330 Then LogoW = 330
+        If LogoH > 120 Then LogoH = 120
+        'If Url.Trim = "" Then Url = "http://www.advantech.eu"
+        'If Url.StartsWith("http") = False Then Url = "http://" + Url
+        'Url = "http://my.advantech.eu/Gmap/PartnerLocator.aspx?CPID=" + RowId
+        Url = "/Order/CPInfo.aspx?ERPID=" + ErpId
+        Dim sb As New System.Text.StringBuilder
+        With sb
+            .AppendLine(String.Format("<table width='350px' height='200px'>"))
+            .AppendLine(String.Format("<tr><td style='color:Navy'><h4><a href='{0}' target='_blank'>{1}</a></h4></td></tr>", Url, CPName))
+            .AppendLine(String.Format("<tr><td>Phone: {0}</td></tr>", CPPhone))
+            .AppendLine(String.Format("<tr><td>{0}</td></tr>", CPAddress))
+            If LogoCounts > 0 Then .AppendLine(String.Format("<tr><td><img width='{0}px' height='{1}px' src='/Includes/CPLogo.ashx?ERPID={2}' alt='{3}'/></td></tr>", LogoW.ToString(), LogoH.ToString(), ErpId, CPName))
+            .AppendLine(String.Format("</table>"))
+        End With
+        Return sb.ToString()
+    End Function
+    
+    Function GetRemoteImgWidthHeight(ByVal imgurl As String, ByRef w As Integer, ByRef h As Integer) As Boolean
+        Dim fname As String = imgurl
+        If fname.Contains("/") Then fname = Split(fname, "/")(Split(fname, "/").Length - 1)
+        fname = "C:\MyAdvantech\Files\TempFiles\" + fname
+        If IO.File.Exists(fname) = False Then
+            Try
+                Dim wc As New System.Net.WebClient
+                wc.DownloadFile(imgurl, fname)
+            Catch ex As Exception
+                Util.SendEmail("tc.chen@advantech.eu", "ebiz.aeu@advantech.eu", "Error downloading partner logo", imgurl + "<br/>" + ex.ToString(), True, "", "")
+                Return False
+            End Try
+        End If
+        If IO.File.Exists(fname) Then
+            Dim objImage As System.Drawing.Image = System.Drawing.Image.FromFile(fname)
+            w = objImage.Width : h = objImage.Height
+            Return True
+        End If
+        Return False
+    End Function
+    
+    Private Sub ReDrawMap()
+        ViewState("GT") = InitGTable()
+        PartnerMap.Markers.Clear()
+        Dim dt As DataTable = dbUtil.dbGetDataTable("RFM", GetSql())
+        If dt.Rows.Count > 0 Then
+            Dim i As Integer = 0
+            Dim rnd As New Random
+            Dim idxShow As Integer = rnd.Next(0, dt.Rows.Count - 1)
+            For Each r As DataRow In dt.Rows
+                If CDbl(r.Item("Latitude")) <> 0.0 And CDbl(r.Item("Longitude")) <> 0.0 And i <= 50 Then
+                    Dim nr As DataRow = CType(ViewState("GT"), DataTable).NewRow
+                    nr.Item("ROW_ID") = r.Item("row_id") : nr.Item("IDX") = i
+                    CType(ViewState("GT"), DataTable).Rows.Add(nr)
+                    Dim gp As New GoogleMarker
+                    gp.Latitude = r.Item("Latitude") : gp.Longitude = r.Item("Longitude")
+                    Dim ic As New Artem.Web.UI.Controls.GoogleMarker.InfoWindowContent()
+                    gp.Text = GetCP(r.Item("account_name"), _
+                              String.Format("{0}, {1} {2}, {3}", r.Item("address"), r.Item("zipcode"), r.Item("city"), r.Item("account_name")), _
+                              r.Item("phone_num"), r.Item("url"), r.Item("row_id"), _
+                              r.Item("erp_id"), r.Item("logo_width"), r.Item("logo_height"), r.Item("HasLogo"))
+                    'gp.InfoContent = GetCP(r.Item("account_name"), _
+                    '                          String.Format("{0}, {1}, {2}", r.Item("address"), r.Item("city"), _
+                    '                                       r.Item("account_name")), r.Item("url"), r.Item("row_id"))
+                    PartnerMap.Markers.Add(gp)
+                    If i = idxShow Then
+                        PartnerMap.Latitude = gp.Latitude : PartnerMap.Longitude = gp.Longitude
+                        Me.Page.ClientScript.RegisterClientScriptBlock(GetType(Page), "DefaultMarker", "<script type='text/javascript'>setTimeout('showInfoWindow(" + i.ToString() + ");',2500);<" + "/script>")
+                    End If
+                    i += 1
+                End If
+            Next
+        Else
+            Dim sb As New System.Text.StringBuilder
+            With sb
+                .AppendFormat(" <table width='350px' style='display:block;'> ")
+                .AppendFormat("     <tr valign='top'> ")
+                .AppendFormat("         <td> ")
+                .AppendFormat("             <a href='http://www.advantech.eu/contact/' target='_blank' style='border:0px'><img src='http://my.advantech.eu/images/image.gif' alt='Advantech Customer Care Center' /></a> ")
+                .AppendFormat("         </td> ")
+                .AppendFormat("         <td> ")
+                .AppendFormat("             <table> ")
+                .AppendFormat("                 <tr> ")
+                .AppendFormat("                     <th align='left'>ePlatform</th> ")
+                .AppendFormat("                 </tr> ")
+                .AppendFormat("                 <tr> ")
+                .AppendFormat("                     <td>0800 24 26 80 80</td> ")
+                .AppendFormat("                 </tr> ")
+                .AppendFormat("                 <tr> ")
+                .AppendFormat("                     <th align='left'>eAutomation</th> ")
+                .AppendFormat("                 </tr> ")
+                .AppendFormat("                 <tr> ")
+                .AppendFormat("                     <td>00800 24 26 80 81</td> ")
+                .AppendFormat("                 </tr> ")
+                .AppendFormat("             </table> ")
+                .AppendFormat("         </td> ")
+                .AppendFormat("     </tr> ")
+                .AppendFormat(" </table> ")
+            End With
+            Dim gp As New Artem.Web.UI.Controls.GoogleMarker
+            gp.Latitude = 48.1475022 : gp.Longitude = 11.7425911
+            PartnerMap.Latitude = gp.Latitude : PartnerMap.Longitude = gp.Longitude
+            gp.Show()
+            gp.Text = sb.ToString()
+            'PartnerMap.Markers..CenterPoint = gp : PartnerMap.GoogleMapObject.RecenterMap = True : gp.PointStatus = "M"
+            PartnerMap.Markers.Add(gp)
+            
+        End If
+    End Sub
+    
+    Protected Sub gv1_PageIndexChanging(ByVal sender As Object, ByVal e As System.Web.UI.WebControls.GridViewPageEventArgs)
+        src1.SelectCommand = GetSql() : ReDrawMap()
+    End Sub
+
+    Protected Sub gv1_Sorting(ByVal sender As Object, ByVal e As System.Web.UI.WebControls.GridViewSortEventArgs)
+        src1.SelectCommand = GetSql() : ReDrawMap()
+    End Sub
+
+    Protected Sub gv1_RowDataBound(ByVal sender As Object, ByVal e As System.Web.UI.WebControls.GridViewRowEventArgs)
+        If e.Row.RowType = DataControlRowType.DataRow Then
+            Try
+                Dim Gdt As DataTable = ViewState("GT"), lnkPos As HyperLink = e.Row.FindControl("RowLnkPosition")
+                Dim ARowID As String = DataBinder.Eval(e.Row.DataItem, "ROW_ID")
+                e.Row.Cells(1).Text = String.Format("<a target='_blank' href='http://my.advantech.eu/Gmap/PartnerLocator.aspx?CPID={0}'>{1}</a>", _
+                                                    ARowID, e.Row.Cells(1).Text)
+                Dim BAADt As DataTable = dbUtil.dbGetDataTable("RFM", String.Format("select BAA, primary_flag from siebel_account_baa where account_row_id='{0}' and BAA not in {1}", ARowID, ExcludeBAAs))
+                If BAADt.Rows.Count > 0 Then
+                    Dim arrBaa As New ArrayList
+                    For Each r As DataRow In BAADt.Rows
+                        If CInt(r.Item("primary_flag")) = 1 Then
+                            arrBaa.Add("<li/><b>" + r.Item("BAA") + "</b>")
+                        Else
+                            arrBaa.Add("<li/>" + r.Item("BAA"))
+                        End If
+                    Next
+                    e.Row.Cells(6).Text = String.Join(vbCrLf, arrBaa.ToArray(GetType(String)))
+                Else
+                    e.Row.Cells(6).Text = "<li/>" + e.Row.Cells(6).Text
+                End If
+                
+                If lnkPos IsNot Nothing Then lnkPos.Visible = False
+                If Gdt IsNot Nothing AndAlso Gdt.Rows.Count > 0 AndAlso lnkPos IsNot Nothing Then
+                    Dim rs() As DataRow = Gdt.Select("ROW_ID='" + ARowID + "'")
+                    If rs.Length > 0 Then
+                        'lnkPos.Attributes("onclick") = _
+                        'String.Format("document.getElementById('mtgt_unnamed_{0}').click();window.scrollBy(0,-1000);return false;", rs(0).Item("IDX").ToString())
+                        lnkPos.Attributes("onclick") = String.Format("showInfoWindow({0});", rs(0).Item("IDX").ToString())
+                        lnkPos.Visible = True
+                    End If
+                End If
+                
+                Dim pp() As String = Split(e.Row.Cells(7).Text.Trim(), vbLf)
+                e.Row.Cells(7).Text = pp(0)
+            Catch ex As Exception
+
+            End Try
+        End If
+    End Sub
+    
+    Private Function FromCountryToAlternativeCountry(ByVal selCountry As String) As String
+        Dim cCountry As String = selCountry.ToUpper()
+        Select Case cCountry
+            Case "UNITED KINGDOM", "UK"
+                Return "N'UK','UNITED KINGDOM'"
+            Case "ITALY", "FRANCE", "NETHERLANDS", "BELGIUM", "GERMANY", "NORWAY", "SWEDEN"
+                Return "N'" + cCountry + "'"
+            Case "LUXEMBOURG"
+                Return "N'LUXEMBOURG',N'BELGIUM'"
+            Case "IRELAND"
+                Return "N'IRELAND',N'UK',N'UNITED KINGDOM'"
+            Case "ICELAND"
+                Return "N'ICELAND',N'NORWAY'"
+            Case "MALTA"
+                Return "N'MALTA',N'ITALY'"
+            Case Else
+                Return "N'" + cCountry + "'"
+        End Select
+        
+    End Function
+    Private Function GetSql() As String
+        Dim sb As New System.Text.StringBuilder
+        With sb
+            .AppendFormat(" select distinct a.row_id, a.erp_id, a.account_name, a.account_status, ")
+            .AppendFormat(" IsNull((select top 1 z.TEL_NO from sap_dimcompany z where z.company_id=a.erp_id),'') as phone_num, a.url, a.rbu, ")
+            .AppendFormat(" IsNull((select top 1 logo_width from sap_company_logo z where z.company_id=a.erp_id),330) as logo_width, ")
+            .AppendFormat(" IsNull((select top 1 logo_height from sap_company_logo z where z.company_id=a.erp_id),120) as logo_height, ")
+            .AppendFormat(" IsNull((select count(z.company_id) from sap_company_logo z where z.company_id=a.erp_id),0) as HasLogo,   ")
+            .AppendFormat(" a.country, a.city, a.address, a.zipcode, a.baa as baa, IsNull(b.longitude,0.0) as longitude, IsNull(b.latitude,0.0) as latitude, a.primary_sales_email ")
+            .AppendFormat(" FROM SIEBEL_ACCOUNT AS a left JOIN SIEBEL_CP_COORDINATES AS b ON a.ROW_ID = b.ROW_ID ")
+            .AppendFormat(" WHERE 1=1 ")
+            .AppendFormat(" and (a.ACCOUNT_STATUS IN ('01-Platinum Channel Partner','02-Gold Channel Partner','03-Certified Channel Partner')) ")
+            .AppendFormat(" and a.PRIMARY_SALES_EMAIL<>'' and a.primary_sales_email<>'sieowner@advantech.com.tw' ")
+            .AppendFormat(" and a.RBU in ('ADL','AFR','AIT','AEE','AUK','ABN') ")
+            .AppendFormat(" and a.COUNTRY in ({0}) ", FromCountryToAlternativeCountry(dlCountry.SelectedItem.Text))
+            If dlBAA.SelectedIndex > 0 Then
+                '.AppendFormat(" and a.BAA = N'{0}' ", dlBAA.SelectedItem.Text.Replace("'", "''"))
+                .AppendFormat(" and (a.BAA = N'{0}' or a.ROW_ID in (select z.account_row_id from siebel_account_baa z where z.baa=N'{0}') ) ", _
+                              dlBAA.SelectedItem.Text.Replace("'", "''"))
+            End If
+            .AppendFormat(" order by a.country, a.city ")
+        End With
+        'Response.Write(sb.ToString())
+        Return sb.ToString()
+    End Function
+
+    Protected Sub Page_Init(ByVal sender As Object, ByVal e As System.EventArgs)
+        If Not Page.IsPostBack Then
+            Dim BaaDt As DataTable = dbUtil.dbGetDataTable("RFM", _
+            " select distinct b.BAA from siebel_account a inner join siebel_account_baa b on a.row_id=b.account_row_id " + _
+            " where a.account_status in ('01-Platinum Channel Partner','02-Gold Channel Partner','03-Certified Channel Partner') " + _
+            String.Format(" and b.BAA is not null and b.BAA not in {0} and a.RBU in ('ADL','AFR','AIT','AEE','AUK','ABN') order by b.BAA", ExcludeBAAs))
+            dlBAA.Items.Add(New ListItem("Select...", ""))
+            For Each b As DataRow In BaaDt.Rows
+                dlBAA.Items.Add(New ListItem(b.Item("BAA"), b.Item("BAA")))
+            Next
+            Dim custCountry As String = "", custCity As String = ""
+            IP2CountryCity(Request.ServerVariables("REMOTE_ADDR"), custCountry, custCity)
+            For Each li As ListItem In dlCountry.Items
+                If li.Text.ToLower = custCountry.ToLower() Then
+                    li.Selected = True
+                    Exit For
+                End If
+            Next
+        End If
+    End Sub
+    
+    Public Shared Function IP2CountryCity(ByVal IP As String, ByRef Country As String, ByRef City As String) As Boolean
+        If IP Like "172.*" Or IP Like "127.*" Then
+            Country = "GERMANY" : City = "MUNICH" : Return True
+        End If
+        Dim dt As DataTable = dbUtil.dbGetDataTable("RFM", _
+        String.Format("select top 1 country_name, city from ip2city where {0} between ipfrom and ipto", Dot2LongIP(IP)))
+        If dt.Rows.Count > 0 Then
+            Country = dt.Rows(0).Item("country_name") : City = dt.Rows(0).Item("city") : Return True
+        End If
+        Country = "GERMANY" : City = "MUNICH" : Return False
+    End Function
+
+    Public Shared Function Dot2LongIP(ByVal DottedIP As String) As Double
+        Dim arrDec() As String
+        Dim i As Integer
+        Dim intResult As Long
+        If DottedIP = "" Then
+            Dot2LongIP = 0
+        Else
+            arrDec = DottedIP.Split(".")
+            For i = arrDec.Length - 1 To 0 Step -1
+                intResult = intResult + ((Int(arrDec(i)) Mod 256) * Math.Pow(256, 3 - i))
+            Next
+            Dot2LongIP = intResult
+        End If
+    End Function
+
+    Protected Sub btnQuery_Click(ByVal sender As Object, ByVal e As System.Web.UI.ImageClickEventArgs)
+        If dlCountry.SelectedIndex = 0 Then Exit Sub
+        src1.SelectCommand = GetSql() : ReDrawMap()
+    End Sub
+
+    Protected Sub Page_Load(ByVal sender As Object, ByVal e As System.EventArgs)
+        If Request("CPID") IsNot Nothing AndAlso Request("CPID") <> "" Then
+            Try
+                'Dim sServerName As String = Request.ServerVariables("SERVER_NAME")
+                Dim sClientName As String = Request.ServerVariables("REMOTE_ADDR")
+                'Dim sServerPort As String = Request.ServerVariables("SERVER_PORT")
+                'Dim sUrl As String = Request.ServerVariables("SCRIPT_NAME")
+                'Dim sMethod As String = Request.ServerVariables("REQUEST_METHOD")
+                Dim sUserId As String = HttpContext.Current.User.Identity.Name
+                If Session("user_id") IsNot Nothing AndAlso Session("user_id") Like "*@*.*" Then sUserId = Session("user_id")
+                Dim sSessionID As String = HttpContext.Current.Session.SessionID
+                Dim strRefer As String = ""
+                If Request.ServerVariables("HTTP_REFERER") IsNot Nothing Then strRefer = Request.ServerVariables("HTTP_REFERER")
+                dbUtil.dbExecuteNoQuery("MY", String.Format( _
+                " INSERT INTO CP_LOCATOR_LOG (SESSIONID, COUNTRY, CITY, BAA, CHANNEL_ROW_ID, USERID, IP_ADDRESS, REFERER) " + _
+                " VALUES ('{0}', N'{1}', N'{2}', N'{3}', N'{4}', N'{5}', '{6}', N'{7}')", _
+                sSessionID, dlCountry.SelectedItem.Text, "", dlBAA.SelectedItem.Text, Trim(Request("CPID")).Replace("'", "''"), sUserId, sClientName, strRefer))
+            Catch ex As Exception
+            End Try
+            
+            Dim oUrl As Object = dbUtil.dbExecuteScalar("RFM", String.Format( _
+            " select top 1 a.url from siebel_account a where a.row_id='{0}' and a.url <>''", Trim(Request("CPID")).Replace("'", "''")))
+            If oUrl IsNot Nothing Then
+                Dim strUrl As String = oUrl.ToString()
+                If strUrl.StartsWith("http") Then
+                    Response.Redirect(strUrl, False)
+                Else
+                    Response.Redirect("http://" + strUrl, False)
+                End If
+            Else
+                Response.Redirect("http://my.advantech.de", False)
+            End If
+        End If
+       
+        If Not Page.IsPostBack AndAlso dlCountry.SelectedIndex > 0 Then
+            src1.SelectCommand = GetSql()
+            ReDrawMap()
+        End If
+    End Sub
+    
+</script>
+<table width="100%">
+    <tr><td><hr /></td></tr>
+    <tr>
+        <td align='left' height='20'>
+            <font color='#543434' size='4'>Locate an Advantech Partner Near You</font>
+        </td>
+    </tr>
+    <tr valign="top" align="left" runat="server" id="tr_qform" visible="false">
+        <td style="width:100%" runat="server" id="td_qform">
+            <table width="60%">                
+                <tr style="height:10px"><td>&nbsp;</td></tr>
+                <tr>
+                    <th align="left" style="color:Gray;">Tell us where you are: </th>
+                </tr>  
+                <tr>
+                    <td>
+                        <table style="width:95%">
+                            <tr>
+                                <th align="left">Country:</th>
+                                <td>
+                                    <asp:DropDownList runat="server" ID="dlCountry" Width="250px">
+                                        <asp:ListItem Text="Select..." />
+                                        <asp:ListItem Text="AFGHANISTAN" />
+                                        <asp:ListItem Text="ALAND ISLANDS" />
+                                        <asp:ListItem Text="ALBANIA" />
+                                        <asp:ListItem Text="ALGERIA" />
+                                        <asp:ListItem Text="AMERICAN SAMOA" />
+                                        <asp:ListItem Text="ANDORRA" />
+                                        <asp:ListItem Text="ANGOLA" />
+                                        <asp:ListItem Text="ANGUILLA" />
+                                        <asp:ListItem Text="ANTARCTICA" />
+                                        <asp:ListItem Text="ANTIGUA AND BARBUDA" />
+                                        <asp:ListItem Text="ARGENTINA" />
+                                        <asp:ListItem Text="ARMENIA" />
+                                        <asp:ListItem Text="ARUBA" />
+                                        <asp:ListItem Text="AUSTRALIA" />
+                                        <asp:ListItem Text="AUSTRIA" />
+                                        <asp:ListItem Text="AZERBAIJAN" />
+                                        <asp:ListItem Text="BAHAMAS" />
+                                        <asp:ListItem Text="BAHRAIN" />
+                                        <asp:ListItem Text="BANGLADESH" />
+                                        <asp:ListItem Text="BARBADOS" />
+                                        <asp:ListItem Text="BELARUS" />
+                                        <asp:ListItem Text="BELGIUM" />
+                                        <asp:ListItem Text="BELIZE" />
+                                        <asp:ListItem Text="BENIN" />
+                                        <asp:ListItem Text="BERMUDA" />
+                                        <asp:ListItem Text="BHUTAN" />
+                                        <asp:ListItem Text="BOLIVIA" />
+                                        <asp:ListItem Text="BOSNIA AND HERZEGOVINA" />
+                                        <asp:ListItem Text="BOTSWANA" />
+                                        <asp:ListItem Text="BOUVET ISLAND" />
+                                        <asp:ListItem Text="BRAZIL" />
+                                        <asp:ListItem Text="BRITISH INDIAN OCEAN TERRITORY" />
+                                        <asp:ListItem Text="BRUNEI DARUSSALAM" />
+                                        <asp:ListItem Text="BULGARIA" />
+                                        <asp:ListItem Text="BURKINA FASO" />
+                                        <asp:ListItem Text="BURUNDI" />
+                                        <asp:ListItem Text="CAMBODIA" />
+                                        <asp:ListItem Text="CAMEROON" />
+                                        <asp:ListItem Text="CANADA" />
+                                        <asp:ListItem Text="CAPE VERDE" />
+                                        <asp:ListItem Text="CAYMAN ISLANDS" />
+                                        <asp:ListItem Text="CENTRAL AFRICAN REPUBLIC" />
+                                        <asp:ListItem Text="CHAD" />
+                                        <asp:ListItem Text="CHILE" />
+                                        <asp:ListItem Text="CHINA" />
+                                        <asp:ListItem Text="COLOMBIA" />
+                                        <asp:ListItem Text="COMOROS" />
+                                        <asp:ListItem Text="CONGO" />
+                                        <asp:ListItem Text="COOK ISLANDS" />
+                                        <asp:ListItem Text="COSTA RICA" />
+                                        <asp:ListItem Text="COTE D'IVOIRE" />
+                                        <asp:ListItem Text="CROATIA" />
+                                        <asp:ListItem Text="CUBA" />
+                                        <asp:ListItem Text="CYPRUS" />
+                                        <asp:ListItem Text="CZECH REPUBLIC" />
+                                        <asp:ListItem Text="DENMARK" />
+                                        <asp:ListItem Text="DJIBOUTI" />
+                                        <asp:ListItem Text="DOMINICA" />
+                                        <asp:ListItem Text="DOMINICAN REPUBLIC" />
+                                        <asp:ListItem Text="ECUADOR" />
+                                        <asp:ListItem Text="EGYPT" />
+                                        <asp:ListItem Text="EL SALVADOR" />
+                                        <asp:ListItem Text="EQUATORIAL GUINEA" />
+                                        <asp:ListItem Text="ERITREA" />
+                                        <asp:ListItem Text="ESTONIA" />
+                                        <asp:ListItem Text="ETHIOPIA" />
+                                        <asp:ListItem Text="FALKLAND ISLANDS (MALVINAS)" />
+                                        <asp:ListItem Text="FAROE ISLANDS" />
+                                        <asp:ListItem Text="FIJI" />
+                                        <asp:ListItem Text="FINLAND" />
+                                        <asp:ListItem Text="FRANCE" />
+                                        <asp:ListItem Text="FRENCH GUIANA" />
+                                        <asp:ListItem Text="FRENCH POLYNESIA" />
+                                        <asp:ListItem Text="FRENCH SOUTHERN TERRITORIES" />
+                                        <asp:ListItem Text="GABON" />
+                                        <asp:ListItem Text="GAMBIA" />
+                                        <asp:ListItem Text="GEORGIA" />
+                                        <asp:ListItem Text="GERMANY" />
+                                        <asp:ListItem Text="GHANA" />
+                                        <asp:ListItem Text="GIBRALTAR" />
+                                        <asp:ListItem Text="GREECE" />
+                                        <asp:ListItem Text="GREENLAND" />
+                                        <asp:ListItem Text="GRENADA" />
+                                        <asp:ListItem Text="GUADELOUPE" />
+                                        <asp:ListItem Text="GUAM" />
+                                        <asp:ListItem Text="GUATEMALA" />
+                                        <%--<asp:ListItem Text="GUERNSEY" />--%>
+                                        <asp:ListItem Text="GUINEA" />
+                                        <asp:ListItem Text="GUINEA-BISSAU" />
+                                        <asp:ListItem Text="GUYANA" />
+                                        <asp:ListItem Text="HAITI" />
+                                        <asp:ListItem Text="HEARD ISLAND AND MCDONALD ISLANDS" />
+                                        <asp:ListItem Text="HOLY SEE (VATICAN CITY STATE)" />
+                                        <asp:ListItem Text="HONDURAS" />
+                                        <asp:ListItem Text="HONG KONG" />
+                                        <asp:ListItem Text="HUNGARY" />
+                                        <asp:ListItem Text="ICELAND" />
+                                        <asp:ListItem Text="INDIA" />
+                                        <asp:ListItem Text="INDONESIA" />
+                                        <asp:ListItem Text="IRAN" />
+                                        <asp:ListItem Text="IRAQ" />
+                                        <asp:ListItem Text="IRELAND" />
+                                        <%--<asp:ListItem Text="ISLE OF MAN" />--%>
+                                        <asp:ListItem Text="ISRAEL" />
+                                        <asp:ListItem Text="ITALY" />
+                                        <asp:ListItem Text="JAMAICA" />
+                                        <asp:ListItem Text="JAPAN" />
+                                        <%--<asp:ListItem Text="JERSEY" />--%>
+                                        <asp:ListItem Text="JORDAN" />
+                                        <asp:ListItem Text="KAZAKHSTAN" />
+                                        <asp:ListItem Text="KENYA" />
+                                        <asp:ListItem Text="KIRIBATI" />
+                                        <asp:ListItem Text="KOREA" />
+                                        <asp:ListItem Text="KUWAIT" />
+                                        <asp:ListItem Text="KYRGYZSTAN" />
+                                        <asp:ListItem Text="LAO PEOPLE'S DEMOCRATIC REPUBLIC" />
+                                        <asp:ListItem Text="LATVIA" />
+                                        <asp:ListItem Text="LEBANON" />
+                                        <asp:ListItem Text="LESOTHO" />
+                                        <asp:ListItem Text="LIBERIA" />
+                                        <asp:ListItem Text="LIBYAN ARAB JAMAHIRIYA" />
+                                        <asp:ListItem Text="LIECHTENSTEIN" />
+                                        <asp:ListItem Text="LITHUANIA" />
+                                        <asp:ListItem Text="LUXEMBOURG" />
+                                        <asp:ListItem Text="MACAO" />
+                                        <asp:ListItem Text="MACEDONIA" />
+                                        <asp:ListItem Text="MADAGASCAR" />
+                                        <asp:ListItem Text="MALAWI" />
+                                        <asp:ListItem Text="MALAYSIA" />
+                                        <asp:ListItem Text="MALDIVES" />
+                                        <asp:ListItem Text="MALI" />
+                                        <asp:ListItem Text="MALTA" />
+                                        <asp:ListItem Text="MARSHALL ISLANDS" />
+                                        <asp:ListItem Text="MARTINIQUE" />
+                                        <asp:ListItem Text="MAURITANIA" />
+                                        <asp:ListItem Text="MAURITIUS" />
+                                        <asp:ListItem Text="MAYOTTE" />
+                                        <asp:ListItem Text="MEXICO" />
+                                        <asp:ListItem Text="MICRONESIA" />
+                                        <asp:ListItem Text="MOLDOVA" />
+                                        <asp:ListItem Text="MONACO" />
+                                        <asp:ListItem Text="MONGOLIA" />
+                                        <asp:ListItem Text="MONTENEGRO" />
+                                        <asp:ListItem Text="MONTSERRAT" />
+                                        <asp:ListItem Text="MOROCCO" />
+                                        <asp:ListItem Text="MOZAMBIQUE" />
+                                        <asp:ListItem Text="MYANMAR" />
+                                        <asp:ListItem Text="NAMIBIA" />
+                                        <asp:ListItem Text="NAURU" />
+                                        <asp:ListItem Text="NEPAL" />
+                                        <asp:ListItem Text="NETHERLANDS" />
+                                        <asp:ListItem Text="NETHERLANDS ANTILLES" />
+                                        <asp:ListItem Text="NEW CALEDONIA" />
+                                        <asp:ListItem Text="NEW ZEALAND" />
+                                        <asp:ListItem Text="NICARAGUA" />
+                                        <asp:ListItem Text="NIGER" />
+                                        <asp:ListItem Text="NIGERIA" />
+                                        <asp:ListItem Text="NIUE" />
+                                        <asp:ListItem Text="NORFOLK ISLAND" />
+                                        <asp:ListItem Text="NORTHERN MARIANA ISLANDS" />
+                                        <asp:ListItem Text="NORWAY" />
+                                        <asp:ListItem Text="OMAN" />
+                                        <asp:ListItem Text="PAKISTAN" />
+                                        <asp:ListItem Text="PALAU" />
+                                        <asp:ListItem Text="PANAMA" />
+                                        <asp:ListItem Text="PAPUA NEW GUINEA" />
+                                        <asp:ListItem Text="PARAGUAY" />
+                                        <asp:ListItem Text="PERU" />
+                                        <asp:ListItem Text="PHILIPPINES" />
+                                        <asp:ListItem Text="PITCAIRN" />
+                                        <asp:ListItem Text="POLAND" />
+                                        <asp:ListItem Text="PORTUGAL" />
+                                        <asp:ListItem Text="PUERTO RICO" />
+                                        <asp:ListItem Text="QATAR" />
+                                        <asp:ListItem Text="REUNION" />
+                                        <asp:ListItem Text="ROMANIA" />
+                                        <asp:ListItem Text="RUSSIAN FEDERATION" />
+                                        <asp:ListItem Text="RWANDA" />
+                                        <asp:ListItem Text="SAINT KITTS AND NEVIS" />
+                                        <asp:ListItem Text="SAINT LUCIA" />
+                                        <asp:ListItem Text="SAINT PIERRE AND MIQUELON" />
+                                        <asp:ListItem Text="SAINT VINCENT AND THE GRENADINES" />
+                                        <asp:ListItem Text="SAMOA" />
+                                        <asp:ListItem Text="SAN MARINO" />
+                                        <asp:ListItem Text="SAO TOME AND PRINCIPE" />
+                                        <asp:ListItem Text="SAUDI ARABIA" />
+                                        <asp:ListItem Text="SENEGAL" />
+                                        <asp:ListItem Text="SERBIA" />
+                                        <asp:ListItem Text="SERBIA AND MONTENEGRO" />
+                                        <asp:ListItem Text="SEYCHELLES" />
+                                        <asp:ListItem Text="SIERRA LEONE" />
+                                        <asp:ListItem Text="SINGAPORE" />
+                                        <asp:ListItem Text="SLOVAKIA" />
+                                        <asp:ListItem Text="SLOVENIA" />
+                                        <asp:ListItem Text="SOLOMON ISLANDS" />
+                                        <asp:ListItem Text="SOMALIA" />
+                                        <asp:ListItem Text="SOUTH AFRICA" />
+                                        <asp:ListItem Text="SOUTH GEORGIA AND THE SOUTH SANDWICH ISLANDS" />
+                                        <asp:ListItem Text="SPAIN" />
+                                        <asp:ListItem Text="SRI LANKA" />
+                                        <asp:ListItem Text="SUDAN" />
+                                        <asp:ListItem Text="SURINAME" />
+                                        <asp:ListItem Text="SWAZILAND" />
+                                        <asp:ListItem Text="SWEDEN" />
+                                        <asp:ListItem Text="SWITZERLAND" />
+                                        <asp:ListItem Text="SYRIAN ARAB REPUBLIC" />
+                                        <asp:ListItem Text="TAIWAN" />
+                                        <asp:ListItem Text="TAJIKISTAN" />
+                                        <asp:ListItem Text="TANZANIA" />
+                                        <asp:ListItem Text="THAILAND" />
+                                        <asp:ListItem Text="TIMOR-LESTE" />
+                                        <asp:ListItem Text="TOGO" />
+                                        <asp:ListItem Text="TOKELAU" />
+                                        <asp:ListItem Text="TONGA" />
+                                        <asp:ListItem Text="TRINIDAD AND TOBAGO" />
+                                        <asp:ListItem Text="TUNISIA" />
+                                        <asp:ListItem Text="TURKEY" />
+                                        <asp:ListItem Text="TURKMENISTAN" />
+                                        <asp:ListItem Text="TURKS AND CAICOS ISLANDS" />
+                                        <asp:ListItem Text="TUVALU" />
+                                        <asp:ListItem Text="UGANDA" />
+                                        <asp:ListItem Text="UKRAINE" />
+                                        <asp:ListItem Text="UNITED ARAB EMIRATES" />
+                                        <asp:ListItem Text="UNITED KINGDOM" />
+                                        <asp:ListItem Text="UNITED STATES" />
+                                        <asp:ListItem Text="UNITED STATES MINOR OUTLYING ISLANDS" />
+                                        <asp:ListItem Text="URUGUAY" />
+                                        <asp:ListItem Text="UZBEKISTAN" />
+                                        <asp:ListItem Text="VANUATU" />
+                                        <asp:ListItem Text="VENEZUELA" />
+                                        <asp:ListItem Text="VIET NAM" />
+                                        <asp:ListItem Text="VIRGIN ISLANDS" />
+                                        <asp:ListItem Text="WALLIS AND FUTUNA" />
+                                        <asp:ListItem Text="YEMEN" />
+                                        <asp:ListItem Text="ZAMBIA" />
+                                        <asp:ListItem Text="ZIMBABWE" />
+                                    </asp:DropDownList>&nbsp;<font color="red">*</font>                                                    
+                                </td>
+                                <td>
+                                    <asp:ImageButton runat="server" ID="btnQuery2" ImageUrl="~/Images/btn7.jpg" AlternateText="Search" OnClick="btnQuery_Click" />
+                                </td>
+                            </tr>
+                        </table>
+                    </td>                            
+                </tr>
+                <tr>
+                    <th align="left" style="color:Gray;">Tell us what you are looking for</th>                        
+                </tr>
+                <tr>
+                    <td>
+                        <table style="width:95%">
+                            <tr>
+                                <th align="left">&nbsp;</th>
+                                <td>
+                                    <asp:DropDownList runat="server" ID="dlBAA" Width="300px" />
+                                </td>
+                                <td>
+                                    <asp:ImageButton runat="server" ID="btnQuery" ImageUrl="~/Images/btn7.jpg" AlternateText="Search" OnClick="btnQuery_Click" />
+                                </td>
+                            </tr>
+                        </table>
+                    </td>
+                </tr>
+            </table>
+        </td>        
+    </tr>
+    <tr>
+        <td style="width:100%" runat="server" align="center">
+            <asp:UpdatePanel runat="server" ID="upGMap" UpdateMode="Conditional">
+                <ContentTemplate>                                                      
+                    <table width="100%" runat="server">
+                        <tr valign="top">
+                            <td valign="top" style="width:20%" align="left">
+                                <asp:Panel runat="server" ID="panel1" ScrollBars="Vertical" Width="100%" Height="430px">
+                                    <asp:GridView runat="server" Visible="true" ID="gv1" Width="98%" AutoGenerateColumns="false" DataSourceID="src1" 
+                                        AllowSorting="true" AllowPaging="false" PageSize="10" 
+                                        PagerSettings-Position="TopAndBottom" OnPageIndexChanging="gv1_PageIndexChanging" 
+                                        OnSorting="gv1_Sorting" HeaderStyle-BackColor="#EBEADB" PagerStyle-BackColor="#C3DAF9" 
+                                        RowStyle-BackColor="#FFFFFF" AlternatingRowStyle-BackColor="#FFFFFF" 
+                                        PagerStyle-ForeColor="#3A4A8D" HeaderStyle-ForeColor="#333399"
+                                        HeaderStyle-HorizontalAlign="Center" OnRowDataBound="gv1_RowDataBound">
+                                        <Columns>
+                                            <asp:TemplateField HeaderText="Map" ItemStyle-HorizontalAlign="Center">
+                                                <ItemTemplate> 
+                                                    <asp:HyperLink runat="server" ID="RowLnkPosition" Text="Position" NavigateUrl="javascript:void(0);" Target="_self" /> 
+                                                </ItemTemplate>
+                                            </asp:TemplateField>
+                                            <asp:BoundField HeaderStyle-Width="130px" HeaderText="Name" DataField="account_name" SortExpression="account_name" ItemStyle-HorizontalAlign="left" />
+                                            <asp:BoundField Visible="false" HeaderStyle-Width="300px" HeaderText="Address" DataField="Address" SortExpression="Address" />
+                                            <asp:BoundField Visible="false" HeaderStyle-Width="80px" ItemStyle-HorizontalAlign="Left" HeaderText="City" DataField="city" SortExpression="city" />
+                                            <asp:BoundField Visible="false" HeaderStyle-Width="120px" ItemStyle-HorizontalAlign="Center" HeaderText="Country" DataField="COUNTRY" SortExpression="COUNTRY" />
+                                            <asp:BoundField Visible="false" HeaderStyle-Width="150px" ItemStyle-HorizontalAlign="Left" HeaderText="Type" DataField="ACCOUNT_STATUS" SortExpression="ACCOUNT_STATUS" />
+                                            <asp:BoundField Visible="false" HeaderStyle-Width="300px" HeaderStyle-HorizontalAlign="Center" HeaderText="Business Application" DataField="baa" SortExpression="baa" />
+                                            <asp:BoundField Visible="false" HeaderStyle-Width="120px" HeaderText="Tel." DataField="PHONE_NUM" SortExpression="PHONE_NUM" />
+                                        </Columns>
+                                    </asp:GridView>
+                                    <asp:SqlDataSource runat="server" ID="src1" ConnectionString="<%$ ConnectionStrings:RFM %>" />
+                                </asp:Panel>                                
+                            </td>
+                            <td valign="top" style="width:80%">
+                                <artem:GoogleMap ID="PartnerMap" runat="server" Width="100%" Height="430px" 
+                                    InsideUpdatePanel="true" EnableScrollWheelZoom="true"
+                                    Key="ABQIAAAAAdfarN5qMcZFUCMW5ctIMxTKVEQJV7nzy_2QLCYF2oKiXog2VBQNoLxhaOg74_siFYqGzSVqRUz38w" Zoom="6">
+                                </artem:GoogleMap>
+                            </td>
+                        </tr>
+                    </table>                    
+                </ContentTemplate>
+                <Triggers>
+                    <asp:PostBackTrigger ControlID="btnQuery" />
+                    <asp:PostBackTrigger ControlID="btnQuery2" />
+                </Triggers>
+            </asp:UpdatePanel>                    
+        </td>
+    </tr>
+</table>
+<script type="text/javascript">
+    function showInfoWindow(index) {        
+        var marker = PartnerMap.Markers[index];
+        marker.openInfoWindowHtml(marker.Text);
+        //window.scrollBy(0,800);
+        //alert(marker);
+    }         
+</script>

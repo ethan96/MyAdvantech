@@ -1,0 +1,56 @@
+﻿<%@ Page Title="" Language="VB" MasterPageFile="~/Includes/MyMaster.master" %>
+
+<script runat="server">
+
+    Protected Sub Page_Init(ByVal sender As Object, ByVal e As System.EventArgs)
+        If Not Util.GetClientIP().StartsWith("172.") And Not Util.GetClientIP().StartsWith("127.") Then Response.Redirect("../index.aspx")
+    End Sub
+
+    Protected Sub imgXls_Click(ByVal sender As Object, ByVal e As System.Web.UI.ImageClickEventArgs)
+        Util.DataTable2ExcelDownload(dbUtil.dbGetDataTable("MYLOCAL", src1.SelectCommand), "MADAM_Reasons.xls")
+    End Sub
+</script>
+
+<asp:Content ID="Content2" ContentPlaceHolderID="_main" Runat="Server">
+    <asp:UpdatePanel runat="server" ID="up1" UpdateMode="Conditional">
+        <ContentTemplate>
+            <asp:ImageButton runat="server" ID="imgXls" ImageUrl="~/Images/excel.gif" AlternateText="Download" OnClick="imgXls_Click" ImageAlign="Left" /><br />
+            <asp:GridView runat="server" ID="gv1" Width="900px" AutoGenerateColumns="false" DataSourceID="src1" 
+                AllowPaging="true" AllowSorting="true" PageSize="100" DataKeyNames="ROW_ID">
+                <Columns>
+                    <asp:CommandField ShowDeleteButton="true" />
+                    <asp:BoundField HeaderText="Name" DataField="NAME" SortExpression="NAME" />
+                    <asp:BoundField HeaderText="Email" DataField="EMAIL" SortExpression="EMAIL" />
+                    <asp:BoundField HeaderText="Nick Name" DataField="NICK_NAME" SortExpression="NICK_NAME" />
+                    <asp:BoundField HeaderText="Mailing Address" DataField="MAIL_ADDR" SortExpression="MAIL_ADDR" />
+                    <asp:BoundField HeaderText="Contact Number" DataField="TEL" SortExpression="TEL" />
+                    <asp:TemplateField HeaderText="Reasons" SortExpression="REASON1" ItemStyle-Width="300px">
+                        <ItemTemplate>
+                            <table width="100%">
+                                <tr align="left"><th align="left">Reason 1</th></tr>
+                                <tr><td><%# Eval("REASON1")%></td></tr>
+                                <tr align="left"><th align="left">Reason 2</th></tr>
+                                <tr><td><%# Eval("REASON2")%></td></tr>
+                                <tr align="left"><th align="left">Reason 3</th></tr>
+                                <tr><td><%# Eval("REASON3")%></td></tr>
+                            </table>
+                        </ItemTemplate>
+                    </asp:TemplateField> 
+                    <asp:BoundField HeaderText="Receive News?" DataField="IS_RECEIVER" SortExpression="IS_RECEIVER" />                   
+                    <asp:BoundField HeaderText="Submit Time" DataField="SUBMIT_TIME" SortExpression="SUBMIT_TIME" />
+                </Columns>
+            </asp:GridView>
+            <asp:SqlDataSource runat="server" ID="src1" ConnectionString="<%$ConnectionStrings:MYLOCAL %>" 
+                SelectCommand="SELECT TOP 10000 ROW_ID, NAME, EMAIL, NICK_NAME, MAIL_ADDR, TEL,REASON1, 
+                            REASON2, REASON3, IS_RECEIVER, SUBMIT_TIME, CLIENT_IP
+                            FROM MADAM_USER_REASON where is_visible=1
+                            ORDER BY SUBMIT_TIME DESC" 
+                DeleteCommand="update MADAM_USER_REASON set IS_VISIBLE=0 where ROW_ID=@ROW_ID">                
+            </asp:SqlDataSource> 
+        </ContentTemplate>
+        <Triggers>
+            <asp:PostBackTrigger ControlID="imgXls" />
+        </Triggers>
+    </asp:UpdatePanel>
+</asp:Content>
+

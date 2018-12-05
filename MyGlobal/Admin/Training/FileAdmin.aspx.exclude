@@ -1,0 +1,182 @@
+﻿<%@ Page Title="MyAdvantech - Training File Admin" Language="VB" MasterPageFile="~/Includes/MyMaster.master" %>
+
+<script runat="server">
+
+    Sub InitTxtBody()
+        txtBody.Content = "Dear customer,<br/><br/><div ID='div_FileBlock'>File Block, do not delete, will be relaced to file download links before sending to contacts</div><br/><br/>Thank you.<br/>"
+    End Sub
+    Protected Sub Page_Load(sender As Object, e As System.EventArgs)
+        If Not Page.IsPostBack Then
+            If Request("upid") IsNot Nothing Then
+                hd_UploadId.Value = Request("upid")
+            End If
+            InitTxtBody()
+        End If
+    End Sub
+    
+    <Services.WebMethod()> _
+    <Web.Script.Services.ScriptMethod()> _
+    Public Shared Function GetContact(ByVal prefixText As String, ByVal count As Integer) As String()
+        prefixText = Replace(Trim(prefixText), "'", "''")
+        Dim topCount As Integer = 20
+        Dim dt As DataTable = dbUtil.dbGetDataTable("MY", String.Format("select top 20 EMAIL_ADDRESS from SIEBEL_CONTACT where EMAIL_ADDRESS like '%@%.%' and EMAIL_ADDRESS like N'{0}%'  order by EMAIL_ADDRESS", prefixText.ToUpper()))
+        If dt.Rows.Count > 0 Then
+            Dim str(dt.Rows.Count - 1) As String, alist As New ArrayList
+            For Each r As DataRow In dt.Rows
+                If Not alist.Contains(r.Item(0)) Then
+                    str(alist.Count) = r.Item(0)
+                    alist.Add(r.Item(0))
+                End If
+            Next
+            ReDim Preserve str(alist.Count - 1)
+            Return str
+        End If
+        Return Nothing
+    End Function
+
+    Protected Sub btnAdd_Click(sender As Object, e As System.EventArgs)
+        lbMsg.Text = ""
+        Dim insEmail As String = Trim(txtContactEmail.Text)
+        If insEmail.Trim() = "" Then
+            lbMsg.Text = "Contact email cannot be empty" : Exit Sub
+        End If
+        If Util.IsValidEmailFormat(insEmail) = False Then
+            lbMsg.Text = "Contact email is not in correct email format" : Exit Sub
+        End If
+        If CInt(dbUtil.dbExecuteScalar("MY", "select count(ROW_ID) from siebel_contact where email_address='" + insEmail + "'")) = 0 _
+            AndAlso CInt(dbUtil.dbExecuteScalar("MY", "select COUNT(*) from ADVANTECH_ADDRESSBOOK a left join ADVANTECH_ADDRESSBOOK_ALIAS b on a.ID=b.ID where a.PrimarySmtpAddress='" + insEmail + "' or b.Email='" + insEmail + "'")) = 0 Then
+            lbMsg.Text = "Contact email is not yet maintained in Siebel, and not an employee email, either" : Exit Sub
+        End If
+        Dim insSql As String = _
+            " delete from TRAINING_FILE_PERMISSION where UPLOAD_ID=N'" + hd_UploadId.Value + "' and email=N'" + insEmail + "'; " + _
+            " INSERT INTO TRAINING_FILE_PERMISSION " + _
+            "                       (UPLOAD_ID, EMAIL, GRANT_BY, GRANT_DATE, HAS_DOWNLOADED) " + _
+            " VALUES     (N'" + hd_UploadId.Value + "', N'" + insEmail + "', N'" + Session("user_id") + "', GETDATE(), 0) "
+        dbUtil.dbExecuteNoQuery("BigFiles", insSql)
+        gvContact.DataBind()
+        txtContactEmail.Text = "" : txtContactEmail.Focus()
+    End Sub
+
+    Protected Sub btnSendEmail_Click(sender As Object, e As System.EventArgs)
+        lbMsg.Text = ""
+        If txtSubject.Text = String.Empty Then
+            lbMsg.Text = "Subject cannot be empty" : Exit Sub
+        End If
+        Dim bd As String = txtBody.Content
+        Dim hdoc As New HtmlAgilityPack.HtmlDocument()
+        hdoc.LoadHtml(bd)
+        Dim hnode As HtmlAgilityPack.HtmlNode = hdoc.GetElementbyId("div_FileBlock")
+        If hnode Is Nothing Then
+            lbMsg.Text = "File Block not found" : InitTxtBody() : Exit Sub
+        End If
+        hnode.InnerHtml = GetFileBlockHtml()
+        Dim btn As Button = sender
+        If btn.ID = "btnSendTest" Then
+            Util.SendEmail(Session("user_id"), Session("user_id"), txtSubject.Text, hdoc.DocumentNode.InnerHtml, True, "", "ebusiness.aeu@advantech.eu")
+        Else
+            Dim cdt As DataTable = dbUtil.dbGetDataTable("BigFiles", "select distinct email from TRAINING_FILE_PERMISSION where UPLOAD_ID='" + hd_UploadId.Value + "' order by email")
+            For Each r As DataRow In cdt.Rows
+                Util.SendEmail(r.Item("email"), Session("user_id"), txtSubject.Text, hdoc.DocumentNode.InnerHtml, True, "", "ebusiness.aeu@advantech.eu")
+            Next
+        End If
+       
+        lbMsg.Text = "Mail sent"
+    End Sub
+    
+    Function GetFileBlockHtml() As String
+        Dim dt As DataTable = dbUtil.dbGetDataTable("BigFiles", _
+                                                "select FILE_ID, FILE_NAME, FILE_DESC " + _
+                                                " from TRAINING_FILES where UPLOAD_ID='" + hd_UploadId.Value + "' order by FILE_NAME ")
+        If dt.Rows.Count > 0 Then
+            Dim sb As New System.Text.StringBuilder
+            With sb
+                .AppendLine(String.Format("<table style='border-style:groove'>"))
+                .AppendLine(String.Format(" <tr><th align='left'>File Name</th><th align='left'>Description</th></tr>"))
+                For Each r As DataRow In dt.Rows
+                    .AppendLine(String.Format("<tr><td><a href='http://{0}/Includes/TrainingFiles/DlTrainingFile.ashx?upid={1}&fid={2}'>{3}</a></td><td>{4}</td></tr>", _
+                                             Request.ServerVariables("SERVER_NAME") + IIf(Request.ServerVariables("SERVER_PORT") = "80", "", ":" + Request.ServerVariables("SERVER_PORT")), _
+                                             hd_UploadId.Value, r.Item("FILE_ID"), r.Item("FILE_NAME"), r.Item("FILE_DESC")))
+                Next
+                .AppendLine(String.Format("</table>"))
+            End With
+            Return sb.ToString()
+        End If
+        Return ""
+    End Function
+    
+</script>
+
+<asp:Content ID="Content1" ContentPlaceHolderID="_main" Runat="Server">
+    <table style="border-style:groove"></table>
+    <a href="MyUpload.aspx">Go back to My Uploaded Files</a>&nbsp;<br />
+    <h2>Uploaded File Permission Admin</h2><br />
+    <asp:UpdatePanel runat="server" ID="up1" UpdateMode="Conditional">
+        <ContentTemplate>
+            <asp:HiddenField runat="server" ID="hd_UploadId" />   
+            <ajaxToolkit:TabContainer runat="server" ID="tc1">
+                <ajaxToolkit:TabPanel runat="server" ID="t1" HeaderText="Add Contacts">
+                    <ContentTemplate>
+                        <ajaxToolkit:AutoCompleteExtender runat="server" ID="ac1" TargetControlID="txtContactEmail"
+                            BehaviorID="AutoCompleteBehavior" ServiceMethod="GetContact" CompletionInterval="10"
+                            MinimumPrefixLength="1" />
+                        <asp:Panel runat="server" ID="panel1" DefaultButton="btnAdd">
+                            Contact Email:<asp:TextBox runat="server" ID="txtContactEmail" Width="250px" />&nbsp;<asp:Button runat="server"
+                            ID="btnAdd" Text="Add" OnClick="btnAdd_Click" /><br />
+                        </asp:Panel>    
+                    </ContentTemplate>
+                </ajaxToolkit:TabPanel>
+                <ajaxToolkit:TabPanel runat="server" ID="t2" HeaderText="Send Download Links to Contacts">
+                    <ContentTemplate>
+                        <table width="100%">
+                            <tr>
+                                <th align="left">Subject:</th>                                
+                            </tr>
+                            <tr>
+                                <td><asp:TextBox runat="server" ID="txtSubject" Width="300px" /></td>
+                            </tr>
+                            <tr>
+                                <th align="left">Email Body:</th>                                
+                            </tr>
+                            <tr>
+                                <td>
+                                    <ajaxToolkit:Editor runat="server" ID="txtBody" Width="600px" Height="250px" />
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <asp:Button runat="server" ID="btnSend2Cust" Text="Send to Contacts" OnClick="btnSendEmail_Click" />&nbsp;
+                                    <asp:Button runat="server" ID="btnSendTest" Text="Send to Myself" OnClick="btnSendEmail_Click" />
+                                </td>
+                            </tr>
+                        </table>
+                    </ContentTemplate>
+                </ajaxToolkit:TabPanel>
+            </ajaxToolkit:TabContainer>                    
+            <asp:Label runat="server" ID="lbMsg" Font-Bold="true" ForeColor="Tomato" />
+            <asp:GridView runat="server" ID="gvContact" Width="100%" AllowPaging="true" AllowSorting="true" AutoGenerateColumns="false"
+                PageSize="100" PagerSettings-Position="TopAndBottom" DataSourceID="src1" DataKeyNames="EMAIL">
+                <Columns>
+                    <asp:CommandField ShowDeleteButton="true" />
+                    <asp:BoundField HeaderText="Email" DataField="EMAIL" SortExpression="EMAIL" />
+                </Columns>
+            </asp:GridView>
+            <asp:SqlDataSource runat="server" ID="src1" ConnectionString="<%$ConnectionStrings:BigFiles %>"
+                SelectCommand="
+                SELECT     UPLOAD_ID, EMAIL, GRANT_BY, GRANT_DATE, HAS_DOWNLOADED
+                FROM         TRAINING_FILE_PERMISSION
+                where UPLOAD_ID=@UPID
+                order by GRANT_DATE desc"
+                DeleteCommand="delete from TRAINING_FILE_PERMISSION where EMAIL=@EMAIL and UPLOAD_ID=@UPID">
+                <SelectParameters>
+                    <asp:ControlParameter ControlID="hd_UploadId" ConvertEmptyStringToNull="false" Name="UPID"
+                        PropertyName="Value" />
+                </SelectParameters>
+                <DeleteParameters>
+                    <asp:ControlParameter ControlID="hd_UploadId" ConvertEmptyStringToNull="false" Name="UPID"
+                        PropertyName="Value" />
+                </DeleteParameters>
+            </asp:SqlDataSource>
+        </ContentTemplate>
+    </asp:UpdatePanel>    
+</asp:Content>
+

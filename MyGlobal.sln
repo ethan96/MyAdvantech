@@ -1,0 +1,109 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 2013
+VisualStudioVersion = 12.0.21005.1
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{F184B08F-C81C-45F6-A57F-5ABD9991F28F}") = "SAPDAL", "SAPDAL\SAPDAL.vbproj", "{465CEF83-F14D-4783-8917-1A9B5ED8EDD5}"
+EndProject
+Project("{E24C65DC-7377-472B-9ABA-BC803B73C61A}") = "MyGlobal", "MyGlobal", "{3CCF4DA9-6C49-45DD-A434-3B92F66EE43C}"
+	ProjectSection(WebsiteProperties) = preProject
+		SccProjectName = "SAK"
+		SccAuxPath = "SAK"
+		SccLocalPath = "SAK"
+		SccProvider = "SAK"
+		TargetFrameworkMoniker = ".NETFramework,Version%3Dv4.0"
+		ProjectReferences = "{465CEF83-F14D-4783-8917-1A9B5ED8EDD5}|SAPDAL.dll;{9A4B99C9-AF06-4BA4-B3D4-0958E5E717F3}|Advantech.Myadvantech.Business.dll;{9FDD308C-F13D-4B90-B505-666846184259}|Advantech.Myadvantech.DataAccess.dll;{086d2edd-8717-48c0-bb27-baf170bd9a06}|NewSAPCustomerFlow.dll;"
+		Debug.AspNetCompiler.VirtualPath = "/MyGlobal"
+		Debug.AspNetCompiler.PhysicalPath = "MyGlobal\"
+		Debug.AspNetCompiler.TargetPath = "PrecompiledWeb\MyGlobal\"
+		Debug.AspNetCompiler.Updateable = "true"
+		Debug.AspNetCompiler.ForceOverwrite = "true"
+		Debug.AspNetCompiler.FixedNames = "false"
+		Debug.AspNetCompiler.Debug = "True"
+		Release.AspNetCompiler.VirtualPath = "/MyGlobal"
+		Release.AspNetCompiler.PhysicalPath = "MyGlobal\"
+		Release.AspNetCompiler.TargetPath = "PrecompiledWeb\MyGlobal\"
+		Release.AspNetCompiler.Updateable = "true"
+		Release.AspNetCompiler.ForceOverwrite = "true"
+		Release.AspNetCompiler.FixedNames = "false"
+		Release.AspNetCompiler.Debug = "False"
+		VWDPort = "4002"
+		VWDDynamicPort = "false"
+		VWDVirtualPath = "/"
+		SlnRelativePath = "MyGlobal\"
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{01B750CA-004D-4C0D-A5E3-AFC6F7F1FA71}"
+	ProjectSection(SolutionItems) = preProject
+		Performance1.psess = Performance1.psess
+	EndProjectSection
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Advantech.Myadvantech.Business", "MyAdvantechAPI\Advantech.Myadvantech.Business\Advantech.Myadvantech.Business.csproj", "{9A4B99C9-AF06-4BA4-B3D4-0958E5E717F3}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Advantech.Myadvantech.DataAccess", "MyAdvantechAPI\Advantech.Myadvantech.DataAccess\Advantech.Myadvantech.DataAccess.csproj", "{9FDD308C-F13D-4B90-B505-666846184259}"
+EndProject
+Project("{F184B08F-C81C-45F6-A57F-5ABD9991F28F}") = "NewSAPCustomerFlow", "MyAdvantechAPI\NewSAPCustomerFlow\NewSAPCustomerFlow.vbproj", "{086D2EDD-8717-48C0-BB27-BAF170BD9A06}"
+EndProject
+Global
+	GlobalSection(TeamFoundationVersionControl) = preSolution
+		SccNumberOfProjects = 5
+		SccEnterpriseProvider = {4CA58AB2-18FA-4F8D-95D4-32DDF27D184C}
+		SccTeamFoundationServer = http://wspdtfs:8080/tfs/myadvantechcollection
+		SccProjectUniqueName0 = SAPDAL\\SAPDAL.vbproj
+		SccProjectName0 = SAPDAL
+		SccAuxPath0 = http://wspdtfs:8080/tfs/myadvantechcollection
+		SccLocalPath0 = SAPDAL
+		SccProvider0 = {4CA58AB2-18FA-4F8D-95D4-32DDF27D184C}
+		SccWebProject1 = true
+		SccProjectUniqueName1 = MyGlobal
+		SccProjectName1 = MyGlobal
+		SccAuxPath1 = http://wspdtfs:8080/tfs/myadvantechcollection
+		SccLocalPath1 = MyGlobal
+		SccProvider1 = {4CA58AB2-18FA-4F8D-95D4-32DDF27D184C}
+		SccProjectEnlistmentChoice1 = 2
+		SccProjectUniqueName2 = MyAdvantechAPI\\Advantech.Myadvantech.Business\\Advantech.Myadvantech.Business.csproj
+		SccProjectName2 = MyAdvantechAPI/Advantech.Myadvantech.Business
+		SccAuxPath2 = http://wspdtfs:8080/tfs/myadvantechcollection
+		SccLocalPath2 = MyAdvantechAPI\\Advantech.Myadvantech.Business
+		SccProvider2 = {4CA58AB2-18FA-4F8D-95D4-32DDF27D184C}
+		SccProjectUniqueName3 = MyAdvantechAPI\\Advantech.Myadvantech.DataAccess\\Advantech.Myadvantech.DataAccess.csproj
+		SccProjectName3 = MyAdvantechAPI/Advantech.Myadvantech.DataAccess
+		SccAuxPath3 = http://wspdtfs:8080/tfs/myadvantechcollection
+		SccLocalPath3 = MyAdvantechAPI\\Advantech.Myadvantech.DataAccess
+		SccProvider3 = {4CA58AB2-18FA-4F8D-95D4-32DDF27D184C}
+		SccProjectUniqueName4 = MyAdvantechAPI\\NewSAPCustomerFlow\\NewSAPCustomerFlow.vbproj
+		SccProjectName4 = MyAdvantechAPI/NewSAPCustomerFlow
+		SccAuxPath4 = http://wspdtfs:8080/tfs/myadvantechcollection
+		SccLocalPath4 = MyAdvantechAPI\\NewSAPCustomerFlow
+		SccProvider4 = {4CA58AB2-18FA-4F8D-95D4-32DDF27D184C}
+	EndGlobalSection
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{465CEF83-F14D-4783-8917-1A9B5ED8EDD5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{465CEF83-F14D-4783-8917-1A9B5ED8EDD5}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{465CEF83-F14D-4783-8917-1A9B5ED8EDD5}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{465CEF83-F14D-4783-8917-1A9B5ED8EDD5}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3CCF4DA9-6C49-45DD-A434-3B92F66EE43C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3CCF4DA9-6C49-45DD-A434-3B92F66EE43C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3CCF4DA9-6C49-45DD-A434-3B92F66EE43C}.Release|Any CPU.ActiveCfg = Debug|Any CPU
+		{3CCF4DA9-6C49-45DD-A434-3B92F66EE43C}.Release|Any CPU.Build.0 = Debug|Any CPU
+		{9A4B99C9-AF06-4BA4-B3D4-0958E5E717F3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9A4B99C9-AF06-4BA4-B3D4-0958E5E717F3}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9A4B99C9-AF06-4BA4-B3D4-0958E5E717F3}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9A4B99C9-AF06-4BA4-B3D4-0958E5E717F3}.Release|Any CPU.Build.0 = Release|Any CPU
+		{9FDD308C-F13D-4B90-B505-666846184259}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9FDD308C-F13D-4B90-B505-666846184259}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9FDD308C-F13D-4B90-B505-666846184259}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9FDD308C-F13D-4B90-B505-666846184259}.Release|Any CPU.Build.0 = Release|Any CPU
+		{086D2EDD-8717-48C0-BB27-BAF170BD9A06}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{086D2EDD-8717-48C0-BB27-BAF170BD9A06}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{086D2EDD-8717-48C0-BB27-BAF170BD9A06}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{086D2EDD-8717-48C0-BB27-BAF170BD9A06}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal

@@ -1,0 +1,117 @@
+﻿<%@ Page Title="MyAdvantech - Submit My Case Studies" Language="VB" MasterPageFile="~/Includes/MyMaster.master" %>
+<%@ Register Src="~/Includes/Channel/CSPreview.ascx" TagPrefix="uc1" TagName="CSPreview" %>
+
+<script runat="server">
+    Function GetSql() As String
+        Dim sb As New System.Text.StringBuilder
+        With sb
+            .AppendLine(String.Format(" SELECT top 1000 ROW_ID, COMPANY_ID, SUBMIT_BY, SUBMIT_DATE, APP_STATUS, APPROVE_BY, APPROVE_DATE, "))
+            .AppendLine(String.Format(" CMS_ID, TOPIC, IsNull(PROJECT_DATE,GetDate()) as PROJECT_DATE, BAA, COUNTRY, CITY, COMPANY_NAME, "))
+            .AppendLine(String.Format(" COMPANY_URL, PROJECT_INTRO, PRODUCT_PHOTO, SYSTEM_REQ, PROJECT_IMP, SYS_DIAGRAM, SYS_DESC, CONCLUSION ,IsNull(CONTACT_NAME,'') as contactname,IsNull(CONTACT_EMAIL,'') as contactemail"))
+            .AppendLine(String.Format(" FROM MYADVANTECH_CP_CASESTUDY where 1=1  and IsEnabled = 1"))
+            If Request("CSID") IsNot Nothing Then
+                .AppendLine(String.Format(" and ROW_ID=N'{0}' ", Request("CSID").Trim().Replace("'", "''")))
+            End If
+            If Util.IsInternalUser(Session("user_id")) = False Then              
+                .AppendLine(String.Format(" and company_id='{0}' ", Session("company_id")))                     
+            End If
+            .AppendLine(String.Format(" order by SUBMIT_DATE desc "))
+        End With
+        'Util.SendEmail("tc.chen@advantech.com.tw", "ebusiness.aeu@advantech.eu","", sb.ToString(), True, "", "")
+        'If Session("user_id") = "ming.zhao@advantech.com.cn" Then
+        '    Return "select * from MYADVANTECH_CP_CASESTUDY"
+        'End If
+        Return sb.ToString()
+    End Function
+
+    Protected Sub Page_Load(ByVal sender As Object, ByVal e As System.EventArgs)
+        'If Request.ServerVariables("REMOTE_ADDR").StartsWith("127.") Then
+        '    Session("company_id") = "EDDEVI07" : Session("org_id") = "EU10" : Session("user_id") = "tc.chen@advantech.com.tw"
+        'End If
+        If Not Page.IsPostBack AndAlso Request.IsAuthenticated Then
+            src1.SelectCommand = GetSql()
+        End If
+        'src1.SelectCommand = GetSql()
+    End Sub
+
+    Protected Sub gv1_PageIndexChanging(ByVal sender As Object, ByVal e As System.Web.UI.WebControls.GridViewPageEventArgs)
+        src1.SelectCommand = GetSql()
+    End Sub
+
+    Protected Sub gv1_SelectedIndexChanging(ByVal sender As Object, ByVal e As System.Web.UI.WebControls.GridViewSelectEventArgs)
+        src1.SelectCommand = GetSql()
+    End Sub
+
+    Protected Sub gv1_RowDataBound(ByVal sender As Object, ByVal e As System.Web.UI.WebControls.GridViewRowEventArgs)
+        If Request("CSID") IsNot Nothing AndAlso gv1.Rows.Count > 0 Then
+            Dim c As CSPreview = gv1.Rows(0).FindControl("RowCsPreview1")
+            If c IsNot Nothing Then c.ShowHide = 1
+        End If
+    End Sub
+    Public Sub Updategv1(ByVal str As String)   	
+        src1.SelectCommand = GetSql()
+    End Sub
+</script>
+
+<asp:Content ID="Content1" ContentPlaceHolderID="_main" Runat="Server">
+    <table width="100%">
+        <tr>
+            <td>
+                <asp:UpdatePanel runat="server" ID="up1" UpdateMode="Conditional">
+                    <ContentTemplate>
+                        <asp:GridView runat="server" ID="gv1" Width="98%" AutoGenerateColumns="false" AllowPaging="true" ShowHeader="false" 
+                            AllowSorting="true" DataKeyNames="ROW_ID" PageSize="25" PagerSettings-Position="TopAndBottom" DataSourceID="src1" OnPageIndexChanging="gv1_PageIndexChanging" OnSelectedIndexChanging="gv1_SelectedIndexChanging" OnRowDataBound="gv1_RowDataBound">
+                            <Columns>
+                                <asp:TemplateField HeaderText="">
+                                    <ItemTemplate>
+                                        <table width="99%" style="border-style:groove">
+                                            <tr>
+                                                <th align="left" style="width:150px">Company Name</th>
+                                                <td>
+                                                    <a href='../DM/CustomerDashboard.aspx?ERPID=<%#Eval("COMPANY_ID") %>' target="_blank">
+                                                        <%# Eval("COMPANY_NAME")%>
+                                                   </a>                                                  
+                                                </td>                                                                                            
+                                            </tr>
+                                            <tr>
+                                                <th align="left">Contact Name</th>
+                                                <td><%# Eval("contactname")%></td>    
+                                            </tr> 
+                                             <tr>
+                                                <th align="left">Contact Email</th>
+                                                <td><%# Eval("contactemail")%></td>    
+                                            </tr>   
+                                             <tr>
+                                                <th align="left">Submit By</th>
+                                                <td><%# Eval("submit_by")%></td>    
+                                            </tr>                                              
+                                            <tr>
+                                                <th align="left">Submit Date </th>
+                                                <td><%# Eval("submit_date")%></td>      
+                                            </tr>
+                                            <tr>
+                                                <th align="left">Approval Status</th>
+                                                <td><%# Eval("APP_STATUS")%></td>
+                                            </tr>
+                                            <tr>
+                                                <th align="left">Industries</th>
+                                                <td colspan="1"><%# Replace(Eval("BAA"), "|", ", ")%></td>
+                                            </tr>
+                                            <tr valign="top" align="left">
+                                                <td colspan="6">
+                                                    <b>Preview:</b><br />
+                                                    <uc1:CSPreview runat="server" ID="RowCsPreview1" CSID='<%# Eval("ROW_ID") %>' />
+                                                </td>
+                                            </tr>
+                                        </table>
+                                    </ItemTemplate>
+                                </asp:TemplateField>
+                            </Columns>
+                        </asp:GridView>
+                        <asp:SqlDataSource runat="server" ID="src1" ConnectionString="<%$ConnectionStrings:MY %>" />
+                    </ContentTemplate>
+                </asp:UpdatePanel>
+            </td>
+        </tr>
+    </table>
+</asp:Content>

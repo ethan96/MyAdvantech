@@ -1,0 +1,174 @@
+﻿<%@ Page Title="Promotion Product" Language="VB" MasterPageFile="~/Includes/MyMaster.master" %>
+
+<script runat="server">
+    Public Function GetThumbnailImg(ByVal TID As String, ByVal modelno As String) As String
+        If TID.Trim() = "" Then Return ""
+        Return String.Format("<img src='http://downloadt.advantech.com/download/downloadlit.aspx?lit_id={0}' alt='{1}' style='height:220px;width:220px;border-width:0px;' />", TID, modelno)
+    End Function
+
+    Protected Sub btnAdd_Click(sender As Object, e As System.EventArgs)
+        lblMsg.Text = ""
+        If txtPartNo.Text.Trim = "" Then lblMsg.Text = "Part No is needed" : Exit Sub
+        If txtDateFrom.Text.Trim = "" Then lblMsg.Text = "Promotion Date From is needed" : Exit Sub
+        If txtDateTo.Text.Trim = "" Then lblMsg.Text = "Promotion Date To is needed" : Exit Sub
+        If txtSeqNo.Text.Trim = "" Then lblMsg.Text = "Sequence No is needed" : Exit Sub
+        If Util.IsValidDateFormat(txtDateFrom.Text) = False Then lblMsg.Text = "Promotion Date From is invalid date format" : Exit Sub
+        If Util.IsValidDateFormat(txtDateTo.Text) = False Then lblMsg.Text = "Promotion Date To is invalid date format" : Exit Sub
+        If dbUtil.dbGetDataTable("MY", String.Format("select * from hqdc_promotion_product where part_no='{0}'", txtPartNo.Text.Trim.Replace("'", ""))).Rows.Count >= 1 Then lblMsg.Text = "This Part No already exists in the promotion product list." : Exit Sub
+        Dim sb As New StringBuilder
+        With sb
+            .AppendFormat(" SELECT distinct top 1 a.PART_NO, a.MODEL_NO, (select top 1 isnull(b.TUMBNAIL_IMAGE_ID,'') from PRODUCT_FULLTEXT_NEW b where b.part_no=a.part_no) as TUMBNAIL_IMAGE_ID, a.PRODUCT_DESC, ")
+            .AppendFormat(" '{0}' as CREATED_BY, '{1}' as CREATED_DATE, '{2}' as START_DATE, '{3}' as END_DATE, '{4}' as SEQ_NO ", Session("user_id"), Now.ToString("yyyy/MM/dd"), txtDateFrom.Text, txtDateTo.Text, CInt(txtSeqNo.Text).ToString)
+            .AppendFormat(" FROM SAP_PRODUCT a ")
+            .AppendFormat(" where a.Part_NO='{0}' ", txtPartNo.Text.Trim.Replace("'", "''"))
+        End With
+        Dim dt As DataTable = dbUtil.dbGetDataTable("MY", sb.ToString)
+        If dt.Rows.Count = 0 Then
+            lblMsg.Text = "Part No does not exist." : Exit Sub
+        Else
+            Dim BCopy As New SqlClient.SqlBulkCopy(ConfigurationManager.ConnectionStrings("MY").ConnectionString)
+            BCopy.DestinationTableName = "HQDC_PROMOTION_PRODUCT"
+            BCopy.WriteToServer(dt)
+            gv1.DataBind()
+        End If
+    End Sub
+    
+    Protected Sub src1_Selecting(ByVal sender As Object, ByVal e As System.Web.UI.WebControls.SqlDataSourceSelectingEventArgs)
+        e.Command.CommandTimeout = 999999
+    End Sub
+
+    Protected Sub gv1_RowDataBound(sender As Object, e As System.Web.UI.WebControls.GridViewRowEventArgs)
+        If e.Row.RowType = DataControlRowType.DataRow Then
+            CType(e.Row.Cells(6).FindControl("lblCreatedDate"), Label).Text = CDate(CType(e.Row.Cells(6).FindControl("lblCreatedDate"), Label).Text).ToString("yyyy/MM/dd")
+            CType(e.Row.Cells(7).FindControl("txtProDateFrom"), TextBox).Text = CDate(CType(e.Row.Cells(7).FindControl("txtProDateFrom"), TextBox).Text).ToString("yyyy/MM/dd")
+            CType(e.Row.Cells(7).FindControl("txtProDateTo"), TextBox).Text = CDate(CType(e.Row.Cells(7).FindControl("txtProDateTo"), TextBox).Text).ToString("yyyy/MM/dd")
+        End If
+    End Sub
+
+    Protected Sub btnUpdateSeq_Click(sender As Object, e As System.EventArgs)
+        For Each r As GridViewRow In gv1.Rows
+            Dim part_no As String = r.Cells(3).Text
+            Dim seq_no As String = CType(r.Cells(8).FindControl("txtRowSeqNo"), TextBox).Text
+            If dbUtil.dbExecuteNoQuery("MY", String.Format("update HQDC_PROMOTION_PRODUCT set seq_no='{0}' where part_no='{1}'", seq_no, part_no)) > 0 Then lblUpdMsg.Text = "Sequence No is Updated" Else lblUpdMsg.Text = "Updated Failed"
+        Next
+    End Sub
+
+    Protected Sub btnUpdateProdate_Click(sender As Object, e As System.EventArgs)
+        For Each r As GridViewRow In gv1.Rows
+            Dim part_no As String = r.Cells(3).Text
+            Dim datefrom As String = CType(r.Cells(7).FindControl("txtProDateFrom"), TextBox).Text
+            Dim dateto As String = CType(r.Cells(7).FindControl("txtProDateTo"), TextBox).Text
+            If dbUtil.dbExecuteNoQuery("MY", String.Format("update HQDC_PROMOTION_PRODUCT set start_date='{0}', end_date='{1}' where part_no='{2}'", datefrom, dateto, part_no)) > 0 Then lblUpdMsg.Text = "Promotion Date is Updated" Else lblUpdMsg.Text = "Updated Failed"
+        Next
+    End Sub
+</script>
+
+<asp:Content ID="Content1" ContentPlaceHolderID="_main" Runat="Server">
+    <asp:UpdatePanel runat="server" ID="up1">
+        <ContentTemplate>
+            <table width="100%">
+                <tr>
+                    <td>
+                        <asp:Panel runat="server" ID="Panel1" DefaultButton="btnAdd">
+                            <table>
+                                <tr>
+                                    <th>Part No: </th>
+                                    <td><asp:TextBox runat="server" ID="txtPartNo" /><ajaxToolkit:AutoCompleteExtender runat="server" ID="ace1" TargetControlID="txtPartNo" ServicePath="~/Services/AutoComplete.asmx" ServiceMethod="GetPartNo" MinimumPrefixLength="1" CompletionInterval="200" /></td>
+                                </tr>
+                                <tr>
+                                    <th>Promotion Date: </th>
+                                    <td>From&nbsp;<asp:TextBox runat="server" ID="txtDateFrom" /><ajaxToolkit:CalendarExtender runat="server" ID="ce1" TargetControlID="txtDateFrom" Format="yyyy/MM/dd" /></td>
+                                </tr>
+                                <tr>
+                                    <td></td>
+                                    <td>To&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<asp:TextBox runat="server" id="txtDateTo" /><ajaxToolkit:CalendarExtender runat="server" ID="ce2" TargetControlID="txtDateTo" Format="yyyy/MM/dd" /></td>
+                                </tr>
+                                <tr>
+                                    <th>Sequence No: </th>
+                                    <td><asp:TextBox runat="server" ID="txtSeqNo" Text="0" Width="30" />&nbsp;&nbsp;<asp:Button runat="server" ID="btnAdd" Text="Add New Promotion" OnClick="btnAdd_Click" /><asp:Label runat="server" ID="lblMsg" ForeColor="Red" /><ajaxToolkit:FilteredTextBoxExtender runat="server" ID="ftbe1" FilterMode="ValidChars" FilterType="Numbers" TargetControlID="txtSeqNo" /></td>
+                                </tr>
+                                <tr>
+                                    <td colspan="2" style="color:Gray">(Sort in an ascending order)</td>
+                                </tr>
+                            </table>
+                        </asp:Panel>
+                    </td>
+                </tr>
+                <tr><td height="10" /></tr>
+                <tr>
+                    <td>
+                        <table width="100%">
+                            <tr>
+                                <th align="left" style="font-size:medium">Promotion Product</th><td align="right"><asp:Label runat="server" ID="lblUpdMsg" ForeColor="Red" /></td>
+                            </tr>
+                            <tr>
+                                <td colspan="2">
+                                    <asp:GridView runat="server" ID="gv1" Width="100%" AutoGenerateColumns="false" PageSize="10" AllowPaging="true" AllowSorting="true" DataSourceID="src1" DataKeyNames="part_no" OnRowDataBound="gv1_RowDataBound">
+                                        <Columns>
+                                            <asp:CommandField ShowDeleteButton="true" />
+                                            <asp:TemplateField ItemStyle-Width="50px" ItemStyle-ForeColor="#636563" ItemStyle-HorizontalAlign="Center" ItemStyle-VerticalAlign="Middle">
+                                                <headertemplate>
+                                                    No.
+                                                </headertemplate>
+                                                <itemtemplate>
+                                                    <%# Container.DataItemIndex + 1 %>.
+                                                </itemtemplate>
+                                            </asp:TemplateField>
+                                            <asp:TemplateField>
+                                                <ItemTemplate>
+                                                    <%#GetThumbnailImg(Eval("TUMBNAIL_IMAGE_ID"), Eval("MODEL_NO"))%>
+                                                </ItemTemplate>
+                                            </asp:TemplateField>
+                                            <asp:BoundField DataField="part_no" HeaderText="Part No" SortExpression="part_no" />
+                                            <asp:BoundField DataField="model_no" HeaderText="Model No" SortExpression="model_no" />
+                                            <asp:BoundField DataField="product_desc" HeaderText="Description" SortExpression="product_desc" />
+                                            <asp:TemplateField HeaderText="Maintained By">
+                                                <ItemTemplate>
+                                                    <table>
+                                                        <tr><td><asp:Label runat="server" ID="lblCreatedBy" Text='<%#Eval("created_by") %>' /></td></tr>
+                                                        <tr><td><asp:Label runat="server" ID="lblCreatedDate" Text='<%#Eval("created_date") %>' /></td></tr>
+                                                    </table>
+                                                </ItemTemplate>
+                                            </asp:TemplateField>
+                                            <asp:TemplateField>
+                                                <HeaderTemplate>
+                                                    Promotion Date
+                                                    <asp:Button runat="server" ID="btnUpdateProdate" Text="Update" OnClick="btnUpdateProdate_Click" />
+                                                </HeaderTemplate>
+                                                <ItemTemplate>
+                                                    <table>
+                                                        <tr>
+                                                            <td><asp:TextBox runat="server" ID="txtProDateFrom" Text='<%#Eval("start_date") %>' Width="80" />
+                                                             ~ <asp:TextBox runat="server" ID="txtProDateTo" Text='<%#Eval("end_date") %>' Width="80" />
+                                                             <ajaxToolkit:CalendarExtender runat="server" ID="ce3" TargetControlID="txtProDateFrom" Format="yyyy/MM/dd" />
+                                                             <ajaxToolkit:CalendarExtender runat="server" ID="ce4" TargetControlID="txtProDateTo" Format="yyyy/MM/dd" />
+                                                            </td>
+                                                        </tr>
+                                                    </table>
+                                                </ItemTemplate>
+                                            </asp:TemplateField>
+                                            <asp:TemplateField SortExpression="seq_no">
+                                                <HeaderTemplate>
+                                                    Sequence No
+                                                    <asp:Button runat="server" ID="btnUpdateSeq" Text="Update" OnClick="btnUpdateSeq_Click" />
+                                                </HeaderTemplate>
+                                                <ItemTemplate>
+                                                    <asp:TextBox runat="server" ID="txtRowSeqNo" Text='<%#Eval("SEQ_NO") %>' Width="30" /><ajaxToolkit:FilteredTextBoxExtender runat="server" ID="ftbe2" FilterMode="ValidChars" FilterType="Numbers" TargetControlID="txtRowSeqNo" />
+                                                </ItemTemplate>
+                                            </asp:TemplateField>
+                                        </Columns>
+                                    </asp:GridView>
+                                </td>
+                            </tr>
+                        </table>
+                    </td>
+                </tr>
+            </table>
+        </ContentTemplate>
+    </asp:UpdatePanel>
+    <asp:SqlDataSource runat="server" ID="src1" ConnectionString="<%$ConnectionStrings:MY %>"
+         SelectCommand="select * from HQDC_PROMOTION_PRODUCT"
+         DeleteCommand="delete from HQDC_PROMOTION_PRODUCT where part_no=@part_no"
+         OnSelecting="src1_Selecting" />
+</asp:Content>
+

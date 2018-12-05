@@ -1,0 +1,1392 @@
+<html xmlns:v="urn:schemas-microsoft-com:vml"
+xmlns:o="urn:schemas-microsoft-com:office:office"
+xmlns:w="urn:schemas-microsoft-com:office:word"
+xmlns="http://www.w3.org/TR/REC-html40">
+
+<head>
+<meta http-equiv=Content-Type content="text/html; charset=windows-1252">
+<meta name=ProgId content=Word.Document>
+<meta name=Generator content="Microsoft Word 11">
+<meta name=Originator content="Microsoft Word 11">
+<link rel=File-List href="rma_english_files/filelist.xml">
+<link rel=Edit-Time-Data href="rma_english_files/editdata.mso">
+<!--[if !mso]>
+<style>
+v\:* {behavior:url(#default#VML);}
+o\:* {behavior:url(#default#VML);}
+w\:* {behavior:url(#default#VML);}
+.shape {behavior:url(#default#VML);}
+</style>
+<![endif]-->
+<title>Policy No</title>
+<!--[if gte mso 9]><xml>
+ <w:WordDocument>
+  <w:ValidateAgainstSchemas/>
+  <w:SaveIfXMLInvalid>false</w:SaveIfXMLInvalid>
+  <w:IgnoreMixedContent>false</w:IgnoreMixedContent>
+  <w:AlwaysShowPlaceholderText>false</w:AlwaysShowPlaceholderText>
+  <w:BrowserLevel>MicrosoftInternetExplorer4</w:BrowserLevel>
+ </w:WordDocument>
+</xml><![endif]--><!--[if gte mso 9]><xml>
+ <w:LatentStyles DefLockedState="false" LatentStyleCount="156">
+ </w:LatentStyles>
+</xml><![endif]-->
+<style>
+<!--
+ /* Font Definitions */
+ @font-face
+	{font-family:Wingdings;
+	panose-1:5 0 0 0 0 0 0 0 0 0;
+	mso-font-charset:2;
+	mso-generic-font-family:auto;
+	mso-font-pitch:variable;
+	mso-font-signature:0 268435456 0 0 -2147483648 0;}
+@font-face
+	{font-family:PMingLiU;
+	panose-1:2 2 3 0 0 0 0 0 0 0;
+	mso-font-alt:\65B0\7D30\660E\9AD4;
+	mso-font-charset:136;
+	mso-generic-font-family:roman;
+	mso-font-pitch:variable;
+	mso-font-signature:3 137232384 22 0 1048577 0;}
+@font-face
+	{font-family:"Univers Condensed";
+	mso-font-charset:0;
+	mso-generic-font-family:auto;
+	mso-font-pitch:auto;
+	mso-font-signature:0 0 0 0 0 0;}
+@font-face
+	{font-family:Univers;
+	mso-font-charset:0;
+	mso-generic-font-family:auto;
+	mso-font-pitch:auto;
+	mso-font-signature:0 0 0 0 0 0;}
+@font-face
+	{font-family:"\@PMingLiU";
+	panose-1:2 2 3 0 0 0 0 0 0 0;
+	mso-font-charset:136;
+	mso-generic-font-family:roman;
+	mso-font-pitch:variable;
+	mso-font-signature:3 137232384 22 0 1048577 0;}
+ /* Style Definitions */
+ p.MsoNormal, li.MsoNormal, div.MsoNormal
+	{mso-style-parent:"";
+	margin:0in;
+	margin-bottom:.0001pt;
+	mso-pagination:widow-orphan;
+	font-size:12.0pt;
+	font-family:"Times New Roman";
+	mso-fareast-font-family:"Times New Roman";}
+h1
+	{margin-top:0in;
+	margin-right:0in;
+	margin-bottom:0in;
+	margin-left:24.0pt;
+	margin-bottom:.0001pt;
+	text-indent:-24.0pt;
+	mso-pagination:widow-orphan;
+	page-break-after:avoid;
+	mso-outline-level:1;
+	font-size:12.0pt;
+	font-family:"Times New Roman";
+	mso-fareast-font-family:"Times New Roman";
+	font-weight:bold;}
+h2
+	{margin:0in;
+	margin-bottom:.0001pt;
+	mso-pagination:widow-orphan;
+	page-break-after:avoid;
+	mso-outline-level:2;
+	font-size:12.0pt;
+	font-family:"Times New Roman";
+	mso-fareast-font-family:"Times New Roman";
+	font-weight:bold;}
+h3
+	{margin:0in;
+	margin-bottom:.0001pt;
+	mso-pagination:widow-orphan;
+	page-break-after:avoid;
+	mso-outline-level:3;
+	font-size:10.0pt;
+	font-family:"Courier New";
+	mso-fareast-font-family:"Times New Roman";
+	font-weight:bold;}
+h4
+	{margin:0in;
+	margin-bottom:.0001pt;
+	text-align:center;
+	mso-pagination:widow-orphan;
+	page-break-after:avoid;
+	mso-outline-level:4;
+	font-size:16.0pt;
+	font-family:"Courier New";
+	mso-fareast-font-family:"Times New Roman";
+	font-weight:bold;}
+h5
+	{margin:0in;
+	margin-bottom:.0001pt;
+	text-align:center;
+	line-height:150%;
+	mso-pagination:widow-orphan;
+	page-break-after:avoid;
+	mso-outline-level:5;
+	font-size:10.0pt;
+	font-family:"Courier New";
+	mso-fareast-font-family:"Times New Roman";
+	font-weight:bold;
+	font-style:italic;}
+h6
+	{margin:0in;
+	margin-bottom:.0001pt;
+	text-align:center;
+	line-height:12.0pt;
+	mso-pagination:widow-orphan;
+	page-break-after:avoid;
+	mso-outline-level:6;
+	layout-grid-mode:char;
+	font-size:10.0pt;
+	font-family:Arial;
+	mso-fareast-font-family:"Times New Roman";
+	font-weight:bold;}
+p.MsoNormalIndent, li.MsoNormalIndent, div.MsoNormalIndent
+	{margin-top:0in;
+	margin-right:0in;
+	margin-bottom:0in;
+	margin-left:24.0pt;
+	margin-bottom:.0001pt;
+	mso-pagination:widow-orphan;
+	font-size:12.0pt;
+	font-family:"Times New Roman";
+	mso-fareast-font-family:PMingLiU;}
+p.MsoHeader, li.MsoHeader, div.MsoHeader
+	{margin:0in;
+	margin-bottom:.0001pt;
+	mso-pagination:widow-orphan;
+	layout-grid-mode:char;
+	font-size:10.0pt;
+	font-family:"Times New Roman";
+	mso-fareast-font-family:PMingLiU;}
+p.MsoFooter, li.MsoFooter, div.MsoFooter
+	{margin:0in;
+	margin-bottom:.0001pt;
+	mso-pagination:widow-orphan;
+	layout-grid-mode:char;
+	font-size:10.0pt;
+	font-family:"Times New Roman";
+	mso-fareast-font-family:PMingLiU;}
+p.MsoTitle, li.MsoTitle, div.MsoTitle
+	{margin:0in;
+	margin-bottom:.0001pt;
+	text-align:center;
+	mso-pagination:widow-orphan;
+	font-size:12.0pt;
+	font-family:"Times New Roman";
+	mso-fareast-font-family:PMingLiU;}
+p.MsoBodyText, li.MsoBodyText, div.MsoBodyText
+	{margin:0in;
+	margin-bottom:.0001pt;
+	mso-pagination:widow-orphan;
+	font-size:8.0pt;
+	font-family:"Univers Condensed";
+	mso-fareast-font-family:PMingLiU;
+	mso-bidi-font-family:"Times New Roman";}
+p.MsoBodyTextIndent, li.MsoBodyTextIndent, div.MsoBodyTextIndent
+	{margin-top:0in;
+	margin-right:0in;
+	margin-bottom:12.0pt;
+	margin-left:30.25pt;
+	mso-pagination:widow-orphan;
+	font-size:12.0pt;
+	font-family:"Times New Roman";
+	mso-fareast-font-family:PMingLiU;}
+p.MsoDate, li.MsoDate, div.MsoDate
+	{margin:0in;
+	margin-bottom:.0001pt;
+	text-align:right;
+	line-height:18.0pt;
+	mso-pagination:widow-orphan;
+	font-size:12.0pt;
+	font-family:"Times New Roman";
+	mso-fareast-font-family:PMingLiU;}
+p.MsoBodyText2, li.MsoBodyText2, div.MsoBodyText2
+	{margin:0in;
+	margin-bottom:.0001pt;
+	mso-pagination:widow-orphan;
+	font-size:6.0pt;
+	font-family:Univers;
+	mso-fareast-font-family:PMingLiU;
+	mso-bidi-font-family:"Times New Roman";}
+p.MsoBodyText3, li.MsoBodyText3, div.MsoBodyText3
+	{margin:0in;
+	margin-bottom:.0001pt;
+	mso-pagination:widow-orphan;
+	font-size:9.0pt;
+	font-family:Arial;
+	mso-fareast-font-family:PMingLiU;}
+p.MsoBlockText, li.MsoBlockText, div.MsoBlockText
+	{margin-top:0in;
+	margin-right:-50.25pt;
+	margin-bottom:0in;
+	margin-left:12.0pt;
+	margin-bottom:.0001pt;
+	mso-pagination:widow-orphan;
+	text-autospace:none;
+	font-size:12.0pt;
+	font-family:"Times New Roman";
+	mso-fareast-font-family:PMingLiU;}
+a:link, span.MsoHyperlink
+	{color:blue;
+	text-decoration:underline;
+	text-underline:single;}
+a:visited, span.MsoHyperlinkFollowed
+	{color:purple;
+	text-decoration:underline;
+	text-underline:single;}
+p
+	{mso-margin-top-alt:auto;
+	margin-right:0in;
+	mso-margin-bottom-alt:auto;
+	margin-left:0in;
+	mso-pagination:widow-orphan;
+	font-size:12.0pt;
+	font-family:PMingLiU;
+	mso-bidi-font-family:"Times New Roman";}
+@page Section1
+	{size:595.3pt 841.9pt;
+	margin:107.85pt 73.3pt 1.0in 1.0in;
+	mso-header-margin:.5in;
+	mso-footer-margin:.5in;
+	mso-paper-source:0;}
+div.Section1
+	{page:Section1;}
+-->
+</style>
+<!--[if gte mso 10]>
+<style>
+ /* Style Definitions */
+ table.MsoNormalTable
+	{mso-style-name:"Table Normal";
+	mso-tstyle-rowband-size:0;
+	mso-tstyle-colband-size:0;
+	mso-style-noshow:yes;
+	mso-style-parent:"";
+	mso-padding-alt:0in 5.4pt 0in 5.4pt;
+	mso-para-margin:0in;
+	mso-para-margin-bottom:.0001pt;
+	mso-pagination:widow-orphan;
+	font-size:10.0pt;
+	font-family:"Times New Roman";
+	mso-ansi-language:#0400;
+	mso-fareast-language:#0400;
+	mso-bidi-language:#0400;}
+</style>
+<![endif]-->
+</head>
+
+<body lang=EN-US link=blue vlink=purple style='tab-interval:.5in'>
+
+<div class=Section1>
+
+<p class=MsoNormal style='text-align:justify;line-height:200%'><span
+style='font-size:10.0pt;line-height:200%;font-family:"Courier New"'>Policy No.:
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <b>AEUOTP-002</b></span></p>
+
+<p class=MsoNormal style='text-align:justify;line-height:200%'><span
+style='font-size:10.0pt;line-height:200%;font-family:"Courier New"'>Subject:&nbsp;&nbsp;&nbsp;
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <b><span
+style='color:red'>RMA AND WARRANTY POLICY</span></b></span></p>
+
+<p class=MsoNormal style='text-align:justify;line-height:200%'><span
+style='font-size:10.0pt;line-height:200%;font-family:"Courier New"'>Version:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+V6</span></p>
+
+<p class=MsoNormal style='text-align:justify;line-height:200%'><span
+style='font-size:10.0pt;line-height:200%;font-family:"Courier New"'>Effective
+Date:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; February 11, 2005</span></p>
+
+<p class=MsoNormal style='text-align:justify;line-height:200%'><span
+style='font-size:10.0pt;line-height:200%;font-family:"Courier New"'>Prepared
+By:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <b>Advantech
+Europe Holding</b></span></p>
+
+<p class=MsoNormal style='text-align:justify;line-height:200%'><span
+style='font-size:10.0pt;line-height:200%;font-family:"Courier New"'>Approved
+By:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <b>Managing
+Director / Financial Controller</b></span></p>
+
+<div style='border:none;border-bottom:solid windowtext 1.5pt;padding:0in 0in 1.0pt 0in'>
+
+<p class=MsoNormal style='text-align:justify;line-height:200%'><span
+style='font-size:10.0pt;line-height:200%;font-family:"Courier New"'>&nbsp;</span></p>
+
+</div>
+
+<p class=MsoTitle style='text-align:justify;line-height:200%'><b><span
+style='font-size:10.0pt;line-height:200%;font-family:"Courier New"'>&nbsp;</span></b></p>
+
+<h2 style='text-align:justify;line-height:200%'><span style='font-size:10.0pt;
+line-height:200%;font-family:"Courier New"'>EXECUTIVE SUMMARIES</span></h2>
+
+<h1 style='margin-left:0in;text-align:justify;text-indent:0in;line-height:200%'><span
+style='font-size:10.0pt;line-height:200%;font-family:"Courier New"'>&nbsp;</span></h1>
+
+<p class=MsoNormal style='margin-left:49.6pt;text-align:justify;text-indent:
+-28.35pt;line-height:200%'><b><span style='font-size:10.0pt;line-height:200%;
+font-family:"Courier New"'>1.1</span></b><b><span style='font-size:7.0pt;
+line-height:200%'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; </span></b><b><span
+style='font-size:10.0pt;line-height:200%;font-family:"Courier New"'>Objective</span></b></p>
+
+<p class=MsoNormal style='margin-left:.75in;text-align:justify;line-height:
+200%'><span style='font-size:10.0pt;line-height:200%;font-family:"Courier New"'>This
+document outlines the steps and standard operational procedure for RMA and
+Warranty and DOA (Defects on Arrival). In order to provide adequate control of
+RMA and Warranty, all lending and returning processes must comply with the
+following procedure.</span></p>
+
+<p class=MsoNormal style='margin-left:.75in;text-align:justify;line-height:
+200%'><span style='font-size:10.0pt;line-height:200%;font-family:"Courier New"'>&nbsp;</span></p>
+
+<p class=MsoNormal style='margin-left:.75in;text-align:justify;line-height:
+200%'><span style='font-size:10.0pt;line-height:200%;font-family:"Courier New"'>&nbsp;</span></p>
+
+<p class=MsoNormal style='margin-left:49.6pt;text-align:justify;text-indent:
+-28.35pt;line-height:200%'><b><span style='font-size:10.0pt;line-height:200%;
+font-family:"Courier New"'>1.2</span></b><b><span style='font-size:7.0pt;
+line-height:200%'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; </span></b><b><span
+style='font-size:10.0pt;line-height:200%;font-family:"Courier New"'>Scope</span></b></p>
+
+<p class=MsoNormal style='margin-left:.75in;text-align:justify;line-height:
+200%'><span style='font-size:10.0pt;line-height:200%;font-family:"Courier New"'>The
+RMA and Warranty include the all inventories owned by customers require a
+further return material authorisation process within or not within warranty
+period. </span></p>
+
+<p class=MsoNormal style='margin-left:27.0pt;text-align:justify;line-height:
+200%'><span style='font-size:10.0pt;line-height:200%;font-family:"Courier New"'>&nbsp;</span></p>
+
+<p class=MsoNormal style='margin-left:49.6pt;text-align:justify;text-indent:
+-28.35pt;line-height:200%'><a name="OLE_LINK1"><b><span style='font-size:10.0pt;
+line-height:200%;font-family:"Courier New"'>1.3</span></b></a><span
+style='mso-bookmark:OLE_LINK1'><b><span style='font-size:7.0pt;line-height:
+200%'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; </span></b></span><span
+style='mso-bookmark:OLE_LINK1'><b><span style='font-size:10.0pt;line-height:
+200%;font-family:"Courier New"'>WARRANTY</span></b></span></p>
+
+<p class=MsoNormal style='margin-top:0in;margin-right:5.0pt;margin-bottom:0in;
+margin-left:12.0pt;margin-bottom:.0001pt;line-height:200%;layout-grid-mode:
+char;text-autospace:none'><b><span style='font-size:10.0pt;line-height:200%;
+font-family:"Courier New"'>&nbsp;</span></b></p>
+
+<p class=MsoNormal style='margin-top:0in;margin-right:5.0pt;margin-bottom:0in;
+margin-left:48.0pt;margin-bottom:.0001pt;text-indent:-24.0pt;line-height:200%;
+layout-grid-mode:char;text-autospace:none'><span style='font-size:8.0pt;
+line-height:200%;font-family:Wingdings'>n</span><span style='font-size:7.0pt;
+line-height:200%'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span><b><span style='font-size:10.0pt;line-height:200%;font-family:"Courier New"'>Warranty
+period</span></b></p>
+
+<p class=MsoNormal style='margin-top:0in;margin-right:5.0pt;margin-bottom:0in;
+margin-left:66.0pt;margin-bottom:.0001pt;text-align:justify;text-indent:-.25in;
+line-height:200%;layout-grid-mode:char;text-autospace:none'><span
+style='font-family:Symbol'>·</span><span style='font-size:7.0pt;line-height:
+200%'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; </span><span style='font-size:
+10.0pt;line-height:200%;font-family:"Courier New"'>Advantech intends to fulfill
+customer’s demand in post-sales service; therefore, in addition to offer 1 year
+for LCD series &amp; peripherals parts, and 2 years for other products of
+warranty for standard items, extended warranty and global repair services are
+also provided to customers upon request. Under the circumstance, customers of
+Advantech are entitled to complete global and prompt repair service beyond the
+standard 1~2 years of warranty. Advantech has the extended warranty and global
+repair service designed with flexibility for you to save time and upgrade
+service value in a long run.</span></p>
+
+<p class=MsoNormal style='margin-top:0in;margin-right:5.0pt;margin-bottom:0in;
+margin-left:66.0pt;margin-bottom:.0001pt;text-align:justify;text-indent:-.25in;
+line-height:200%;layout-grid-mode:char;text-autospace:none'><span
+style='font-family:Symbol'>·</span><span style='font-size:7.0pt;line-height:
+200%'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; </span><span style='font-size:
+10.0pt;line-height:200%;font-family:"Courier New"'>Products manufactured by
+ADVANTECH are covered from the date of shipment by a 1~2 of warranty for
+standard items, extended warranty and global repair services against defects in
+design, materials, workmanship, and published specifications applicable as at
+the date of shipment. </span></p>
+
+<p class=MsoNormal style='margin-top:0in;margin-right:5.0pt;margin-bottom:0in;
+margin-left:.5in;margin-bottom:.0001pt;text-align:justify;line-height:200%;
+layout-grid-mode:char;text-autospace:none'><b><span style='font-size:10.0pt;
+line-height:200%;font-family:"Courier New"'>&nbsp;</span></b></p>
+
+<p class=MsoNormal style='margin-top:0in;margin-right:5.0pt;margin-bottom:0in;
+margin-left:48.0pt;margin-bottom:.0001pt;text-indent:-24.0pt;line-height:200%;
+layout-grid-mode:char;text-autospace:none'><span style='font-size:8.0pt;
+line-height:200%;font-family:Wingdings'>n</span><span style='font-size:7.0pt;
+line-height:200%'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span><b><span style='font-size:10.0pt;line-height:200%;font-family:"Courier New"'>Repairs
+under warranty</span></b></p>
+
+<p class=MsoNormal style='margin-top:0in;margin-right:5.0pt;margin-bottom:0in;
+margin-left:66.0pt;margin-bottom:.0001pt;text-align:justify;text-indent:-.25in;
+line-height:200%;layout-grid-mode:char;text-autospace:none'><span
+style='font-family:Symbol'>·</span><span style='font-size:7.0pt;line-height:
+200%'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; </span><span style='font-size:
+10.0pt;line-height:200%;font-family:"Courier New"'>During the warranty period,
+ADVANTECH will repair or replace all defective products, provided that they are
+returned at the customer’s expense to an authorized Advantech repair facility.
+Advantech has sole unfettered discretion to determine whether a particular
+product will be either repaired or replaced.</span></p>
+
+<p class=MsoNormal style='margin-right:5.1pt;line-height:200%;layout-grid-mode:
+char;text-autospace:none'><span style='font-size:10.0pt;line-height:200%;
+font-family:"Courier New"'>&nbsp; </span></p>
+
+<p class=MsoNormal style='margin-top:0in;margin-right:5.0pt;margin-bottom:0in;
+margin-left:48.0pt;margin-bottom:.0001pt;text-indent:-24.0pt;line-height:200%;
+layout-grid-mode:char;text-autospace:none'><span style='font-size:8.0pt;
+line-height:200%;font-family:Wingdings'>n</span><span style='font-size:7.0pt;
+line-height:200%'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span><b><span style='font-size:10.0pt;line-height:200%;font-family:"Courier New"'>Exclusions
+from warranty</span></b></p>
+
+<p class=MsoNormal style='margin-top:0in;margin-right:5.0pt;margin-bottom:0in;
+margin-left:60.0pt;margin-bottom:.0001pt;text-indent:6.0pt;line-height:200%;
+layout-grid-mode:char;text-autospace:none'><span style='font-size:10.0pt;
+line-height:200%;font-family:"Courier New"'>The product is treated as exclusion
+from warranty if:</span></p>
+
+<p class=MsoNormal style='margin-top:0in;margin-right:5.0pt;margin-bottom:0in;
+margin-left:66.0pt;margin-bottom:.0001pt;text-align:justify;text-indent:-.25in;
+line-height:200%;layout-grid-mode:char;text-autospace:none'><span
+style='font-family:Symbol'>·</span><span style='font-size:7.0pt;line-height:
+200%'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; </span><span style='font-size:
+10.0pt;line-height:200%;font-family:"Courier New"'>The product has been found
+to be defective after expiry of the warranty period.</span></p>
+
+<p class=MsoNormal style='margin-top:0in;margin-right:5.0pt;margin-bottom:0in;
+margin-left:66.0pt;margin-bottom:.0001pt;text-align:justify;text-indent:-.25in;
+line-height:200%;layout-grid-mode:char;text-autospace:none'><span
+style='font-family:Symbol'>·</span><span style='font-size:7.0pt;line-height:
+200%'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; </span><span style='font-size:
+10.0pt;line-height:200%;font-family:"Courier New"'>The product has been
+subjected to misuse, abuse, or unauthorized repair, whether by accident or
+other cause. Such conditions will be determined by ADVANTECH in its sole
+unfettered discretion.</span></p>
+
+<p class=MsoNormal style='margin-top:0in;margin-right:5.0pt;margin-bottom:0in;
+margin-left:66.0pt;margin-bottom:.0001pt;text-align:justify;text-indent:-.25in;
+line-height:200%;layout-grid-mode:char;text-autospace:none'><span
+style='font-family:Symbol'>·</span><span style='font-size:7.0pt;line-height:
+200%'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; </span><span style='font-size:
+10.0pt;line-height:200%;font-family:"Courier New"'>Other products and
+accessories not manufactured by Advantech are limited to the warranty provided
+by the original manufacturer. Examples of such products and accessories include
+RAMs, HDDs, FDDs, CPUs, fans, and so on.</span></p>
+
+<p class=MsoNormal style='margin-top:0in;margin-right:5.0pt;margin-bottom:0in;
+margin-left:66.0pt;margin-bottom:.0001pt;text-align:justify;text-indent:-.25in;
+line-height:200%;layout-grid-mode:char;text-autospace:none'><span
+style='font-family:Symbol'>·</span><span style='font-size:7.0pt;line-height:
+200%'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; </span><span style='font-size:
+10.0pt;line-height:200%;font-family:"Courier New"'>Product updates, reworks,
+and tests upon the request of customers who are without warranty.</span></p>
+
+<p class=MsoNormal style='margin-top:0in;margin-right:5.0pt;margin-bottom:0in;
+margin-left:66.0pt;margin-bottom:.0001pt;text-align:justify;text-indent:-.25in;
+line-height:200%;layout-grid-mode:char;text-autospace:none'><span
+style='font-family:Symbol'>·</span><span style='font-size:7.0pt;line-height:
+200%'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; </span><span style='font-size:
+10.0pt;line-height:200%;font-family:"Courier New"'>Product is damaged beyond
+repair due to nature disasters, for example, lighting strike, flood,
+earthquake, etc.</span></p>
+
+<p class=MsoNormal style='margin-top:0in;margin-right:5.0pt;margin-bottom:0in;
+margin-left:66.0pt;margin-bottom:.0001pt;text-align:justify;text-indent:-.25in;
+line-height:200%;layout-grid-mode:char;text-autospace:none'><span
+style='font-family:Symbol'>·</span><span style='font-size:7.0pt;line-height:
+200%'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; </span><span style='font-size:
+10.0pt;line-height:200%;font-family:"Courier New"'>Consumable items (fuses,
+batteries, LCDs, backlights, etc.) and software. Please access our RMA web
+site: <a href="http://erma.advantech.com.tw/erma">http://erma.advantech.com.tw/erma</a>
+for detail list.</span></p>
+
+<p class=MsoNormal style='text-align:justify;line-height:200%;layout-grid-mode:
+char'><span style='font-size:10.0pt;line-height:200%;font-family:"Courier New"'>&nbsp;&nbsp;&nbsp;&nbsp;
+</span></p>
+
+<p class=MsoNormal style='text-align:justify;line-height:200%;layout-grid-mode:
+char'><span style='font-size:10.0pt;line-height:200%;font-family:"Courier New"'>&nbsp;</span></p>
+
+<p class=MsoNormal style='margin-left:49.6pt;text-align:justify;text-indent:
+-28.35pt;line-height:200%'><b><span style='font-size:10.0pt;line-height:200%;
+font-family:"Courier New"'>1.4</span></b><b><span style='font-size:7.0pt;
+line-height:200%'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; </span></b><b><span
+style='font-size:10.0pt;line-height:200%;font-family:"Courier New"'>RETURN
+MATERIAL AUTHORIZATION (RMA)</span></b></p>
+
+<p class=MsoNormal style='margin-top:0in;margin-right:5.0pt;margin-bottom:0in;
+margin-left:1.0in;margin-bottom:.0001pt;text-align:justify;text-indent:-24.0pt;
+line-height:200%;layout-grid-mode:char;text-autospace:none'><span
+style='font-size:8.0pt;line-height:200%;font-family:Wingdings'>n</span><span
+style='font-size:7.0pt;line-height:200%'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span><b><span style='font-size:10.0pt;line-height:200%;font-family:"Courier New"'>Obtaining
+an RMA number</span></b></p>
+
+<p class=MsoBlockText style='margin-top:0in;margin-right:5.0pt;margin-bottom:
+0in;margin-left:84.0pt;margin-bottom:.0001pt;text-align:justify;text-indent:
+-.25in;line-height:200%;layout-grid-mode:char'><span style='font-family:Symbol'>·</span><span
+style='font-size:7.0pt;line-height:200%'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span><b><span style='font-size:10.0pt;line-height:200%;font-family:"Courier New"'>Registered&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span></b></p>
+
+<p class=MsoNormal style='margin-top:0in;margin-right:5.0pt;margin-bottom:0in;
+margin-left:1.5in;margin-bottom:.0001pt;text-align:justify;text-indent:-.25in;
+line-height:200%;layout-grid-mode:char;text-autospace:none'><span
+style='font-size:10.0pt;line-height:200%'>-</span><span style='font-size:7.0pt;
+line-height:200%'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; </span><span
+style='font-size:10.0pt;line-height:200%;font-family:"Courier New"'>When requesting
+an RMA (Return Merchandise Authorization) number, please access Advantech RMA
+service website and describe the problems encountered in detail on the “Repair
+Information Form” error descriptions such as “does not work” and “failure” can
+cause some delays in the repair. Please describe in detail the application
+environment, configuration and problems encountered. </span></p>
+
+<p class=MsoNormal style='margin-top:0in;margin-right:5.0pt;margin-bottom:0in;
+margin-left:1.5in;margin-bottom:.0001pt;text-align:justify;text-indent:-.25in;
+line-height:200%;layout-grid-mode:char;text-autospace:none'><span
+style='font-size:10.0pt;line-height:200%'>-</span><span style='font-size:7.0pt;
+line-height:200%'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; </span><span
+style='font-size:10.0pt;line-height:200%;font-family:"Courier New"'>Lack of
+error description may cause an NPF&nbsp; (NO PROBLEM FOUND) situation. NPF
+repairs will cause a minimum repair charge see below (Charge for service cost
+of NPF&nbsp; (No Problem Found) Repair). </span></p>
+
+<p class=MsoNormal style='margin-top:0in;margin-right:5.0pt;margin-bottom:0in;
+margin-left:1.5in;margin-bottom:.0001pt;text-align:justify;text-indent:-.25in;
+line-height:200%;layout-grid-mode:char;text-autospace:none'><span
+style='font-size:10.0pt;line-height:200%'>-</span><span style='font-size:7.0pt;
+line-height:200%'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; </span><span
+style='font-size:10.0pt;line-height:200%;font-family:"Courier New"'>If you are
+uncertain about the cause of the problem, please contact Advantech customer
+service center. They may be able to find a solution that does not require
+sending the product for repair.</span></p>
+
+<p class=MsoBlockText style='margin-top:0in;margin-right:5.0pt;margin-bottom:
+0in;margin-left:30.0pt;margin-bottom:.0001pt;text-align:justify;line-height:
+12.0pt;layout-grid-mode:char'>&nbsp;</p>
+
+<p class=MsoBlockText style='margin-top:0in;margin-right:5.0pt;margin-bottom:
+0in;margin-left:84.0pt;margin-bottom:.0001pt;text-align:justify;text-indent:
+-.25in;line-height:200%;layout-grid-mode:char'><span style='font-family:Symbol'>·</span><span
+style='font-size:7.0pt;line-height:200%'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span><b><span style='font-size:10.0pt;line-height:200%;font-family:"Courier New"'>Non-Registered
+partners or end users </span></b></p>
+
+<p class=MsoNormal style='margin-top:0in;margin-right:5.0pt;margin-bottom:0in;
+margin-left:1.5in;margin-bottom:.0001pt;text-align:justify;text-indent:-.25in;
+line-height:200%;layout-grid-mode:char;text-autospace:none'><span
+style='font-size:10.0pt;line-height:200%'>-</span><span style='font-size:7.0pt;
+line-height:200%'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; </span><span
+style='font-size:10.0pt;line-height:200%;font-family:"Courier New"'>Contact
+Customer services center your local Advantech Channel partner or your local
+Advantech office in your country.</span></p>
+
+<p class=MsoNormal style='margin-top:0in;margin-right:5.0pt;margin-bottom:0in;
+margin-left:1.5in;margin-bottom:.0001pt;text-align:justify;text-indent:-.25in;
+line-height:200%;layout-grid-mode:char;text-autospace:none'><span
+style='font-size:10.0pt;line-height:200%'>-</span><span style='font-size:7.0pt;
+line-height:200%'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; </span><span
+style='font-size:10.0pt;line-height:200%;font-family:"Courier New"'>Send the
+goods direct to the Advantech Europe Service Centre in Eindhoven, according the
+description below Returning the product for repair, with a detailed error
+report, copy of invoice in case of warranty, complete address, PO-Number,
+contact person, telephone and fax number. You will receive our RMA order
+Receipt with our RMA number. Use this RMA number for any communication.</span></p>
+
+<p class=MsoNormal style='margin-top:0in;margin-right:5.0pt;margin-bottom:0in;
+margin-left:12.0pt;margin-bottom:.0001pt;line-height:12.0pt;layout-grid-mode:
+char;text-autospace:none'><b>&nbsp;</b></p>
+
+<p class=MsoNormal style='margin-top:0in;margin-right:5.0pt;margin-bottom:0in;
+margin-left:1.0in;margin-bottom:.0001pt;text-align:justify;text-indent:-24.0pt;
+line-height:200%;layout-grid-mode:char;text-autospace:none'><span
+style='font-size:8.0pt;line-height:200%;font-family:Wingdings'>n</span><span
+style='font-size:7.0pt;line-height:200%'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span><b><span style='font-size:10.0pt;line-height:200%;font-family:"Courier New"'>Returning
+the product for repair</span></b></p>
+
+<p class=MsoBlockText style='margin-top:0in;margin-right:5.0pt;margin-bottom:
+0in;margin-left:84.0pt;margin-bottom:.0001pt;text-align:justify;text-indent:
+-.25in;line-height:200%;layout-grid-mode:char'><span style='font-family:Symbol'>·</span><span
+style='font-size:7.0pt;line-height:200%'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span><span style='font-size:10.0pt;line-height:200%;font-family:"Courier New"'>After
+you have completed and returned the “ Repair Information Form” send us your
+Advantech product only, without accessories (manuals, cables etc).&nbsp; Remove
+any unnecessary components from the card, such as CPUs, ROM or DRAM. If you
+include these parts (because you believe they may be part of the problem), note
+clearly that they are included. Otherwise, we cannot be responsible for their
+return. Make sure the &quot;Repair Information Form&quot; is enclosed.</span></p>
+
+<p class=MsoBlockText style='margin-top:0in;margin-right:5.0pt;margin-bottom:
+0in;margin-left:84.0pt;margin-bottom:.0001pt;text-align:justify;text-indent:
+-.25in;line-height:200%;layout-grid-mode:char'><span style='font-family:Symbol'>·</span><span
+style='font-size:7.0pt;line-height:200%'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span><span style='font-size:10.0pt;line-height:200%;font-family:"Courier New"'>Ship
+the parts by your forwarder or parcel Post. The customer will bear the shipping
+charges, and Advantech will bear the return charges. Attach an invoice to the
+carton. To save handling time, customer shall address the parts directly to the
+RMA Department and mark &quot;Attn. RMA Department&quot; on the package. Please
+use original or correct packaging.</span></p>
+
+<p class=MsoBlockText style='margin-top:0in;margin-right:5.0pt;margin-bottom:
+0in;margin-left:84.0pt;margin-bottom:.0001pt;text-align:justify;text-indent:
+-.25in;line-height:200%;layout-grid-mode:char'><span style='font-family:Symbol'>·</span><span
+style='font-size:7.0pt;line-height:200%'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span><span style='font-size:10.0pt;line-height:200%;font-family:"Courier New"'>List
+the value of the product on the invoice as zero (or a very low value).
+Otherwise, additional charges will be levied by customs (which will be borne by
+the sender). We suggest that you write, “Goods with no commercial value are
+returned for repair” on the shipment invoice.</span></p>
+
+<span style='font-size:12.0pt;line-height:200%;font-family:"Times New Roman";
+mso-fareast-font-family:"Times New Roman";mso-ansi-language:EN-US;mso-fareast-language:
+EN-US;mso-bidi-language:AR-SA'><br clear=all style='page-break-before:always'>
+</span>
+
+<p class=MsoNormal style='margin-left:60.0pt;text-align:justify;text-indent:
+-24.0pt;line-height:200%'><span style='font-size:8.0pt;line-height:200%;
+font-family:Wingdings'>n</span><span style='font-size:7.0pt;line-height:200%'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span><img border=0 width=634 height=691 id="_x0000_i1025"
+src="rma_english_files/image001.gif"><br clear=all>
+<b><span style='font-size:10.0pt;line-height:200%;font-family:"Courier New"'>Return
+Material Authorization (RMA) - Detail Operation on Repair Process</span></b></p>
+
+<p class=MsoNormal style='margin-left:21.25pt;text-align:justify;line-height:
+200%'><b><span style='font-size:10.0pt;line-height:200%;font-family:"Courier New"'>&nbsp;</span></b></p>
+
+<p class=MsoNormal style='margin-left:21.25pt;text-align:justify;line-height:
+200%'><b><span style='font-size:10.0pt;line-height:200%;font-family:"Courier New"'>&nbsp;</span></b></p>
+
+<p class=MsoNormal style='margin-left:21.25pt;text-align:justify;line-height:
+200%'><b><span style='font-size:10.0pt;line-height:200%;font-family:"Courier New"'>&nbsp;</span></b></p>
+
+<p class=MsoNormal style='margin-left:21.25pt;text-align:justify;line-height:
+200%'><b><span style='font-size:10.0pt;line-height:200%;font-family:"Courier New"'>&nbsp;</span></b></p>
+
+<p class=MsoNormal style='margin-left:78.0pt;text-align:justify;text-indent:
+-24.0pt;line-height:200%'><span style='font-size:8.0pt;line-height:200%;
+font-family:Wingdings'>n</span><span style='font-size:7.0pt;line-height:200%'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span><b><span style='font-size:10.0pt;line-height:200%;font-family:"Courier New"'>Service
+Charge</span></b></p>
+
+<p class=MsoBlockText style='margin-top:0in;margin-right:5.0pt;margin-bottom:
+0in;margin-left:84.0pt;margin-bottom:.0001pt;text-align:justify;text-indent:
+-.25in;line-height:200%;layout-grid-mode:char'><span style='font-family:Symbol'>·</span><span
+style='font-size:7.0pt;line-height:200%'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span><span style='font-size:10.0pt;line-height:200%;font-family:"Courier New"'>Advantech
+will charge for repairing products if:</span></p>
+
+<p class=MsoBlockText style='margin-top:0in;margin-right:5.0pt;margin-bottom:
+0in;margin-left:1.5in;margin-bottom:.0001pt;text-align:justify;text-indent:
+-.25in;line-height:200%;layout-grid-mode:char'><span style='font-size:10.0pt;
+line-height:200%'>-</span><span style='font-size:7.0pt;line-height:200%'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span><span style='font-size:10.0pt;line-height:200%;font-family:"Courier New"'>The
+product is repaired after expiry of the warranty period. </span></p>
+
+<p class=MsoBlockText style='margin-top:0in;margin-right:5.0pt;margin-bottom:
+0in;margin-left:1.5in;margin-bottom:.0001pt;text-align:justify;text-indent:
+-.25in;line-height:200%;layout-grid-mode:char'><span style='font-size:10.0pt;
+line-height:200%'>-</span><span style='font-size:7.0pt;line-height:200%'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span><span style='font-size:10.0pt;line-height:200%;font-family:"Courier New"'>The
+product is tested or calibrated after expiry of the warranty period, and a No
+Problem Found (NPF) result is obtained.</span></p>
+
+<p class=MsoBlockText style='margin-top:0in;margin-right:5.0pt;margin-bottom:
+0in;margin-left:1.5in;margin-bottom:.0001pt;text-align:justify;text-indent:
+-.25in;line-height:200%;layout-grid-mode:char'><span style='font-size:10.0pt;
+line-height:200%'>-</span><span style='font-size:7.0pt;line-height:200%'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span><span style='font-size:10.0pt;line-height:200%;font-family:"Courier New"'>The
+product, though repaired within the warranty period, has been subjected to
+misuse, abuse, or unauthorized repair.&nbsp; </span></p>
+
+<p class=MsoBlockText style='margin-top:0in;margin-right:5.0pt;margin-bottom:
+0in;margin-left:1.5in;margin-bottom:.0001pt;text-align:justify;text-indent:
+-.25in;line-height:200%;layout-grid-mode:char'><span style='font-size:10.0pt;
+line-height:200%'>-</span><span style='font-size:7.0pt;line-height:200%'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span><span style='font-size:10.0pt;line-height:200%;font-family:"Courier New"'>Product
+updates, reworks, and tests upon the request of customers who are without
+warranty.</span></p>
+
+<p class=MsoBlockText style='margin-top:0in;margin-right:5.0pt;margin-bottom:
+0in;margin-left:1.5in;margin-bottom:.0001pt;text-align:justify;text-indent:
+-.25in;line-height:200%;layout-grid-mode:char'><span style='font-size:10.0pt;
+line-height:200%'>-</span><span style='font-size:7.0pt;line-height:200%'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span><span style='font-size:10.0pt;line-height:200%;font-family:"Courier New"'>Product
+is damaged beyond repair due to nature disasters, for example, lighting strike,
+flood, earthquake, etc.</span></p>
+
+<p class=MsoBlockText style='margin-top:0in;margin-right:5.0pt;margin-bottom:
+0in;margin-left:84.0pt;margin-bottom:.0001pt;text-align:justify;text-indent:
+-.25in;line-height:200%;layout-grid-mode:char'><span style='font-family:Symbol'>·</span><span
+style='font-size:7.0pt;line-height:200%'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span><span style='font-size:10.0pt;line-height:200%;font-family:"Courier New"'>If
+a product has been repaired by Advantech, and within three months after such
+repair the product requires further repair for the same problem, Advantech will
+affect such further repair free of charge. However, such free repair does not
+apply to a product which has been subjected to misuse, abuse, or unauthorized
+repair.</span></p>
+
+<p class=MsoBlockText style='margin-top:0in;margin-right:5.0pt;margin-bottom:
+0in;margin-left:60.0pt;margin-bottom:.0001pt;text-align:justify;text-indent:
+-48.0pt;line-height:12.0pt;layout-grid-mode:char'>&nbsp;&nbsp; </p>
+
+<p class=MsoBlockText style='margin-top:0in;margin-right:5.0pt;margin-bottom:
+0in;margin-left:84.0pt;margin-bottom:.0001pt;text-align:justify;text-indent:
+-.25in;line-height:200%;layout-grid-mode:char'><span style='font-family:Symbol'>·</span><span
+style='font-size:7.0pt;line-height:200%'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span><span style='font-size:10.0pt;line-height:200%;font-family:"Courier New"'>Charge
+for in Warranty Repair:</span></p>
+
+<p class=MsoBlockText style='margin-top:0in;margin-right:5.0pt;margin-bottom:
+0in;margin-left:1.25in;margin-bottom:.0001pt;text-align:justify;line-height:
+200%;layout-grid-mode:char'><span style='font-size:10.0pt;line-height:200%;
+font-family:"Courier New"'>Sender will bear the transportation and insurance
+costs for the transport of the product to the Service center. For the rest of
+the services, there will be no charge.</span></p>
+
+<p class=MsoBlockText style='margin-top:0in;margin-right:5.0pt;margin-bottom:
+0in;margin-left:30.0pt;margin-bottom:.0001pt;text-align:justify;line-height:
+12.0pt;layout-grid-mode:char'>&nbsp;</p>
+
+<p class=MsoBlockText style='margin-top:0in;margin-right:5.0pt;margin-bottom:
+0in;margin-left:84.0pt;margin-bottom:.0001pt;text-align:justify;text-indent:
+-.25in;line-height:200%;layout-grid-mode:char'><span style='font-family:Symbol'>·</span><span
+style='font-size:7.0pt;line-height:200%'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span><span style='font-size:10.0pt;line-height:200%;font-family:"Courier New"'>Charge
+for service cost of NPF&nbsp; (No Problem Found) Repair -EUR 35,00 per handled
+case.</span></p>
+
+<p class=MsoBlockText style='margin-top:0in;margin-right:5.0pt;margin-bottom:
+0in;margin-left:30.0pt;margin-bottom:.0001pt;text-align:justify;line-height:
+12.0pt;layout-grid-mode:char'><b>&nbsp;</b></p>
+
+<p class=MsoBlockText style='margin-top:0in;margin-right:5.0pt;margin-bottom:
+0in;margin-left:84.0pt;margin-bottom:.0001pt;text-align:justify;text-indent:
+-.25in;line-height:200%;layout-grid-mode:char'><span style='font-family:Symbol'>·</span><span
+style='font-size:7.0pt;line-height:200%'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span><span style='font-size:10.0pt;line-height:200%;font-family:"Courier New"'>Charge
+for out of warranty repair</span></p>
+
+<p class=MsoBlockText style='margin-top:0in;margin-right:5.0pt;margin-bottom:
+0in;margin-left:1.25in;margin-bottom:.0001pt;text-align:justify;line-height:
+200%;layout-grid-mode:char'><span style='font-size:10.0pt;line-height:200%;
+font-family:"Courier New"'>Product updates, reworks, and tests /modification
+upon the request of customers:</span></p>
+
+<p class=MsoBlockText style='margin-top:0in;margin-right:5.0pt;margin-bottom:
+0in;margin-left:1.25in;margin-bottom:.0001pt;text-align:justify;line-height:
+200%;layout-grid-mode:char'><span style='font-size:10.0pt;line-height:200%;
+font-family:"Courier New"'>For the out of warrant repair, we calculate per
+item. We send you a “Proforma Invoice” with the repair charges. When you remit
+the funds, please reference the PI number listed under &quot;Our Ref.&quot; </span></p>
+
+<p class=MsoNormal style='margin-top:0in;margin-right:5.0pt;margin-bottom:0in;
+margin-left:12.0pt;margin-bottom:.0001pt;line-height:12.0pt;layout-grid-mode:
+char;text-autospace:none'><b>&nbsp;</b></p>
+
+<p class=MsoNormal style='margin-top:0in;margin-right:5.0pt;margin-bottom:0in;
+margin-left:1.0in;margin-bottom:.0001pt;text-align:justify;text-indent:-24.0pt;
+line-height:200%;layout-grid-mode:char;text-autospace:none'><span
+style='font-size:8.0pt;line-height:200%;font-family:Wingdings'>n</span><span
+style='font-size:7.0pt;line-height:200%'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span><b><span style='font-size:10.0pt;line-height:200%;font-family:"Courier New"'>Repair
+Turn-around Time (TAT)&nbsp; </span></b></p>
+
+<p class=MsoBlockText style='margin-top:0in;margin-right:5.0pt;margin-bottom:
+0in;margin-left:84.0pt;margin-bottom:.0001pt;text-align:justify;text-indent:
+-.25in;line-height:200%;layout-grid-mode:char'><span style='font-family:Symbol'>·</span><span
+style='font-size:7.0pt;line-height:200%'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span><span style='font-size:10.0pt;line-height:200%;font-family:"Courier New"'>For
+products not manufactured by Advantech, it will send them to the original
+manufacturer for repair. This usually takes 15 working days.</span></p>
+
+<p class=MsoBlockText style='margin-top:0in;margin-right:5.0pt;margin-bottom:
+0in;margin-left:84.0pt;margin-bottom:.0001pt;text-align:justify;text-indent:
+-.25in;line-height:200%;layout-grid-mode:char'><span style='font-family:Symbol'>·</span><span
+style='font-size:7.0pt;line-height:200%'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span><span style='font-size:10.0pt;line-height:200%;font-family:"Courier New"'>The
+TAT may be delayed if the customer:</span></p>
+
+<p class=MsoBlockText style='margin-top:0in;margin-right:5.0pt;margin-bottom:
+0in;margin-left:1.5in;margin-bottom:.0001pt;text-align:justify;text-indent:
+-.25in;line-height:200%;layout-grid-mode:char'><span style='font-size:10.0pt;
+line-height:200%'>-</span><span style='font-size:7.0pt;line-height:200%'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span><span style='font-size:10.0pt;line-height:200%;font-family:"Courier New"'>Does
+not sign and return the P/I within 48 hours.</span></p>
+
+<p class=MsoBlockText style='margin-top:0in;margin-right:5.0pt;margin-bottom:
+0in;margin-left:1.5in;margin-bottom:.0001pt;text-align:justify;text-indent:
+-.25in;line-height:200%;layout-grid-mode:char'><span style='font-size:10.0pt;
+line-height:200%'>-</span><span style='font-size:7.0pt;line-height:200%'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span><span style='font-size:10.0pt;line-height:200%;font-family:"Courier New"'>Fails
+to pay the invoice within the due date.</span></p>
+
+<p class=MsoBlockText style='margin-top:0in;margin-right:5.0pt;margin-bottom:
+0in;margin-left:1.5in;margin-bottom:.0001pt;text-align:justify;text-indent:
+-.25in;line-height:200%;layout-grid-mode:char'><span style='font-size:10.0pt;
+line-height:200%'>-</span><span style='font-size:7.0pt;line-height:200%'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span><span style='font-size:10.0pt;line-height:200%;font-family:"Courier New"'>Gives
+an insufficient error description, such as &quot;does not work&quot;, &quot;failure&quot;.</span></p>
+
+<p class=MsoBlockText style='margin-top:0in;margin-right:5.0pt;margin-bottom:
+0in;margin-left:1.5in;margin-bottom:.0001pt;text-align:justify;text-indent:
+-.25in;line-height:200%;layout-grid-mode:char'><span style='font-size:10.0pt;
+line-height:200%'>-</span><span style='font-size:7.0pt;line-height:200%'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span><span style='font-size:10.0pt;line-height:200%;font-family:"Courier New"'>Has
+modified the original design of the ADVANTECH product.</span></p>
+
+<p class=MsoBlockText style='margin-top:0in;margin-right:5.0pt;margin-bottom:
+0in;margin-left:1.5in;margin-bottom:.0001pt;text-align:justify;text-indent:
+-.25in;line-height:200%;layout-grid-mode:char'><span style='font-size:10.0pt;
+line-height:200%'>-</span><span style='font-size:7.0pt;line-height:200%'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span><span style='font-size:10.0pt;line-height:200%;font-family:"Courier New"'>Delays
+a reply or fails to reply to an Advantech request for further information (such
+as application environment and configuration).</span></p>
+
+<p class=MsoNormal style='margin-top:0in;margin-right:5.0pt;margin-bottom:0in;
+margin-left:30.0pt;margin-bottom:.0001pt;line-height:12.0pt;layout-grid-mode:
+char;text-autospace:none'>&nbsp;</p>
+
+<p class=MsoNormal style='margin-top:0in;margin-right:5.0pt;margin-bottom:0in;
+margin-left:1.0in;margin-bottom:.0001pt;text-align:justify;text-indent:-24.0pt;
+line-height:200%;layout-grid-mode:char;text-autospace:none'><span
+style='font-size:8.0pt;line-height:200%;font-family:Wingdings'>n</span><span
+style='font-size:7.0pt;line-height:200%'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span><b><span style='font-size:10.0pt;line-height:200%;font-family:"Courier New"'>Repair
+service for phased-out products</span></b></p>
+
+<p class=MsoBlockText style='margin-top:0in;margin-right:5.0pt;margin-bottom:
+0in;margin-left:84.0pt;margin-bottom:.0001pt;text-align:justify;text-indent:
+-.25in;line-height:200%;layout-grid-mode:char'><span style='font-family:Symbol'>·</span><span
+style='font-size:7.0pt;line-height:200%'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span><span style='font-size:10.0pt;line-height:200%;font-family:"Courier New"'>Advantech
+offers a continuous repair service for one years after the date of announcement
+of the product phase-out. </span></p>
+
+<p class=MsoNormal style='margin-right:5.0pt;line-height:12.0pt;layout-grid-mode:
+char;text-autospace:none'>&nbsp;</p>
+
+<p class=MsoNormal style='margin-right:5.0pt;line-height:12.0pt;layout-grid-mode:
+char;text-autospace:none'>&nbsp;</p>
+
+<p class=MsoNormal style='margin-top:0in;margin-right:5.0pt;margin-bottom:0in;
+margin-left:1.0in;margin-bottom:.0001pt;text-align:justify;text-indent:-24.0pt;
+line-height:200%;layout-grid-mode:char;text-autospace:none'><span
+style='font-size:8.0pt;line-height:200%;font-family:Wingdings'>n</span><span
+style='font-size:7.0pt;line-height:200%'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span><b><span style='font-size:10.0pt;line-height:200%;font-family:"Courier New"'>Repair
+report</span></b></p>
+
+<p class=MsoBlockText style='margin-top:0in;margin-right:5.0pt;margin-bottom:
+0in;margin-left:84.0pt;margin-bottom:.0001pt;text-align:justify;text-indent:
+-.25in;line-height:200%;layout-grid-mode:char'><span style='font-family:Symbol'>·</span><span
+style='font-size:7.0pt;line-height:200%'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span><span style='font-size:10.0pt;line-height:200%;font-family:"Courier New"'>Advantech
+returns each product with a “Shipment document ” which shows the RMA Number.</span></p>
+
+<p class=MsoBlockText style='margin-top:0in;margin-right:5.0pt;margin-bottom:
+0in;margin-left:84.0pt;margin-bottom:.0001pt;text-align:justify;text-indent:
+-.25in;line-height:200%;layout-grid-mode:char'><span style='font-family:Symbol'>·</span><span
+style='font-size:7.0pt;line-height:200%'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span><span style='font-size:10.0pt;line-height:200%;font-family:"Courier New"'>The
+RMA report can be found via the website “RMA service”. </span></p>
+
+<p class=MsoBlockText style='margin-top:0in;margin-right:5.0pt;margin-bottom:
+0in;margin-left:66.0pt;margin-bottom:.0001pt;text-align:justify;line-height:
+200%;layout-grid-mode:char'><span style='font-size:10.0pt;line-height:200%;
+font-family:"Courier New"'>&nbsp;</span></p>
+
+<p class=MsoNormal style='margin-right:-50.25pt;line-height:12.0pt;layout-grid-mode:
+char;text-autospace:none'>&nbsp;</p>
+
+<p class=MsoNormal style='margin-top:0in;margin-right:5.0pt;margin-bottom:0in;
+margin-left:1.0in;margin-bottom:.0001pt;text-align:justify;text-indent:-24.0pt;
+line-height:200%;layout-grid-mode:char;text-autospace:none'><span
+style='font-size:8.0pt;line-height:200%;font-family:Wingdings'>n</span><span
+style='font-size:7.0pt;line-height:200%'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span><b><span style='font-size:10.0pt;line-height:200%;font-family:"Courier New"'>Custody
+of products submitted for repair</span></b></p>
+
+<p class=MsoBlockText style='margin-top:0in;margin-right:5.0pt;margin-bottom:
+0in;margin-left:84.0pt;margin-bottom:.0001pt;text-align:justify;text-indent:
+-.25in;line-height:200%;layout-grid-mode:char'><span style='font-family:Symbol'>·</span><span
+style='font-size:7.0pt;line-height:200%'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span><span style='font-size:10.0pt;line-height:200%;font-family:"Courier New"'>Advantech
+will retain custody of a product submitted for repair for three months whilst
+it is waiting for return of a signed PI or payment (A/R). If the customer fails
+to respond within such period, Advantech will close the case automatically.
+Advantech will take reasonable measures to stay in proper contact with the
+customer during this 3-month period.</span></p>
+
+<p class=MsoNormal style='margin-right:5.0pt;line-height:12.0pt;layout-grid-mode:
+char;text-autospace:none'>&nbsp; </p>
+
+<p class=MsoNormal style='margin-top:0in;margin-right:5.0pt;margin-bottom:0in;
+margin-left:1.0in;margin-bottom:.0001pt;text-align:justify;text-indent:-24.0pt;
+line-height:200%;layout-grid-mode:char;text-autospace:none'><span
+style='font-size:8.0pt;line-height:200%;font-family:Wingdings'>n</span><span
+style='font-size:7.0pt;line-height:200%'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span><b><span style='font-size:10.0pt;line-height:200%;font-family:"Courier New"'>Returning
+repaired goods to customer</span></b></p>
+
+<p class=MsoBlockText style='margin-top:0in;margin-right:5.0pt;margin-bottom:
+0in;margin-left:84.0pt;margin-bottom:.0001pt;text-align:justify;text-indent:
+-.25in;line-height:200%;layout-grid-mode:char'><span style='font-family:Symbol'>·</span><span
+style='font-size:7.0pt;line-height:200%'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span><span style='font-size:10.0pt;line-height:200%;font-family:"Courier New"'>ADVANTECH
+normally ships RMA returns by TNT. Advantech can change from forwarder without any
+notifications to the Customers.</span></p>
+
+<p class=MsoBlockText style='margin-top:0in;margin-right:5.0pt;margin-bottom:
+0in;margin-left:66.0pt;margin-bottom:.0001pt;text-align:justify;line-height:
+200%;layout-grid-mode:char'><span style='font-size:10.0pt;line-height:200%;
+font-family:"Courier New"'>&nbsp;</span></p>
+
+<p class=MsoNormal style='margin-left:49.6pt;text-align:justify;text-indent:
+-28.35pt;line-height:200%'><b><span style='font-size:10.0pt;line-height:200%;
+font-family:"Courier New"'>1.5</span></b><b><span style='font-size:7.0pt;
+line-height:200%'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; </span></b><b><span
+style='font-size:10.0pt;line-height:200%;font-family:"Courier New"'>eRMA Repair
+Service System (eRMA)</span></b></p>
+
+<p class=MsoNormal style='margin-top:0in;margin-right:5.0pt;margin-bottom:0in;
+margin-left:1.0in;margin-bottom:.0001pt;text-align:justify;text-indent:-24.0pt;
+line-height:200%;layout-grid-mode:char;text-autospace:none'><span
+style='font-size:8.0pt;line-height:200%;font-family:Wingdings'>n</span><span
+style='font-size:7.0pt;line-height:200%'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span><span style='font-size:10.0pt;line-height:200%;font-family:"Courier New"'>A
+written Advantech RMA service policy is available for customer reference from
+our web site and our front offices. This document informs and educates the
+customer on how to deal with all RMA situations that may arise. The figure
+below shows how Advantech has constructed a repair service information system
+for our customers.</span></p>
+
+<table class=MsoNormalTable border=0 cellspacing=0 cellpadding=0 align=left
+ style='mso-cellspacing:0in;margin-left:21.25pt;mso-table-lspace:2.25pt;
+ mso-table-rspace:2.25pt;mso-table-anchor-vertical:paragraph;mso-table-anchor-horizontal:
+ column;mso-table-left:left;mso-padding-alt:0in 0in 0in 0in'>
+ <tr style='mso-yfti-irow:0;mso-yfti-firstrow:yes'>
+  <td width=84 style='width:63.0pt;padding:0in 0in 0in 0in'>
+  <p class=MsoNormal style='mso-element:frame;mso-element-frame-hspace:2.25pt;
+  mso-element-wrap:around;mso-element-anchor-vertical:paragraph;mso-element-anchor-horizontal:
+  column;mso-height-rule:exactly'><o:p>&nbsp;</o:p></p>
+  </td>
+ </tr>
+ <tr style='mso-yfti-irow:1;mso-yfti-lastrow:yes'>
+  <td style='padding:0in 0in 0in 0in'>
+  <p class=MsoNormal style='mso-element:frame;mso-element-frame-hspace:2.25pt;
+  mso-element-wrap:around;mso-element-anchor-vertical:paragraph;mso-element-anchor-horizontal:
+  column;mso-height-rule:exactly'><o:p>&nbsp;</o:p></p>
+  </td>
+  <td style='padding:0in 0in 0in 0in'>
+  <p class=MsoNormal style='mso-element:frame;mso-element-frame-hspace:2.25pt;
+  mso-element-wrap:around;mso-element-anchor-vertical:paragraph;mso-element-anchor-horizontal:
+  column;mso-height-rule:exactly'><img border=0 width=464 height=331
+  id="_x0000_i1026" src="rma_english_files/image002.gif"></p>
+  </td>
+ </tr>
+</table>
+
+<p class=MsoNormal style='margin-left:21.25pt;text-align:justify;line-height:
+200%'><br clear=all style='mso-special-character:line-break'>
+</p>
+
+<p class=MsoNormal style='margin-left:21.25pt;text-align:justify;line-height:
+200%'><span style='font-size:10.0pt;line-height:200%;font-family:"Courier New"'>&nbsp;</span></p>
+
+<p class=MsoNormal style='margin-left:21.25pt;text-align:justify;line-height:
+200%'><span style='font-size:10.0pt;line-height:200%;font-family:"Courier New"'>&nbsp;</span></p>
+
+<p class=MsoNormal style='margin-left:49.6pt;text-align:justify;text-indent:
+-28.35pt;line-height:200%'><b><span style='font-size:10.0pt;line-height:200%;
+font-family:"Courier New"'>1.6</span></b><b><span style='font-size:7.0pt;
+line-height:200%'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; </span></b><b><span
+style='font-size:10.0pt;line-height:200%;font-family:"Courier New"'>INTERNATIONAL
+SERVICE CENTRES</span></b></p>
+
+<p class=MsoNormal style='margin-top:0in;margin-right:5.0pt;margin-bottom:0in;
+margin-left:1.0in;margin-bottom:.0001pt;text-align:justify;line-height:200%;
+layout-grid-mode:char;text-autospace:none'><span style='font-size:10.0pt;
+line-height:200%;font-family:"Courier New"'>ADVANTECH provides warranty and
+out-of-warranty repair services for customers at its facilities in the
+following locations: Fremont, California USA; Taipei, Taiwan; Beijing, Mainland
+China; and Advantech Europe Support Center (AESC), Eindhoven, the Netherlands.</span></p>
+
+<table class=MsoNormalTable border=0 cellspacing=0 cellpadding=0 width=624
+ style='width:6.5in;margin-left:25.4pt;border-collapse:collapse;mso-padding-alt:
+ 0in 0in 0in 0in'>
+ <tr style='mso-yfti-irow:0;mso-yfti-firstrow:yes'>
+  <td width=120 valign=top style='width:1.25in;border:solid windowtext 1.0pt;
+  border-bottom:none;background:#E5E5E5;padding:0in 1.4pt 0in 1.4pt'>
+  <h2 align=center style='margin-top:3.0pt;margin-right:0in;margin-bottom:3.0pt;
+  margin-left:0in;text-align:center;line-height:12.0pt;layout-grid-mode:char'><span
+  style='font-size:10.0pt;font-family:"Courier New"'>Region</span></h2>
+  </td>
+  <td width=128 valign=top style='width:96.0pt;border-top:solid windowtext 1.0pt;
+  border-left:none;border-bottom:none;border-right:solid windowtext 1.0pt;
+  background:#E5E5E5;padding:0in 1.4pt 0in 1.4pt'>
+  <h2 align=center style='margin-top:3.0pt;margin-right:0in;margin-bottom:3.0pt;
+  margin-left:0in;text-align:center;line-height:12.0pt;layout-grid-mode:char'><span
+  style='font-size:10.0pt;font-family:"Courier New"'>Group</span></h2>
+  </td>
+  <td width=128 valign=top style='width:96.0pt;border-top:solid windowtext 1.0pt;
+  border-left:none;border-bottom:none;border-right:solid windowtext 1.0pt;
+  background:#E5E5E5;padding:0in 1.4pt 0in 1.4pt'>
+  <h6 style='margin-top:3.0pt;margin-right:0in;margin-bottom:3.0pt;margin-left:
+  0in'><span style='font-family:"Courier New"'>Contact</span></h6>
+  </td>
+  <td width=248 valign=top style='width:186.0pt;border-top:solid windowtext 1.0pt;
+  border-left:none;border-bottom:none;border-right:solid windowtext 1.0pt;
+  background:#E5E5E5;padding:0in 1.4pt 0in 1.4pt'>
+  <p class=MsoNormal align=center style='margin-top:3.0pt;margin-right:0in;
+  margin-bottom:3.0pt;margin-left:0in;text-align:center;line-height:12.0pt;
+  layout-grid-mode:char'><b><span style='font-size:10.0pt;font-family:"Courier New"'>E-mail
+  Address</span></b></p>
+  </td>
+ </tr>
+ <tr style='mso-yfti-irow:1;page-break-inside:avoid'>
+  <td width=120 valign=top style='width:1.25in;border:solid windowtext 1.0pt;
+  padding:0in 1.4pt 0in 1.4pt'>
+  <h4 style='margin-top:2.0pt;margin-right:0in;margin-bottom:2.0pt;margin-left:
+  0in;text-align:justify;line-height:12.0pt;layout-grid-mode:char'><span
+  style='font-size:10.0pt;font-weight:normal'>Asia-Pacific</span></h4>
+  </td>
+  <td width=128 valign=top style='width:96.0pt;border:solid windowtext 1.0pt;
+  border-left:none;padding:0in 1.4pt 0in 1.4pt'>
+  <h4 style='margin-top:2.0pt;margin-right:0in;margin-bottom:2.0pt;margin-left:
+  0in;text-align:justify;line-height:12.0pt;layout-grid-mode:char'><span
+  style='font-size:10.0pt;font-weight:normal'>Taipei (ATSC)</span></h4>
+  </td>
+  <td width=128 valign=top style='width:96.0pt;border:solid windowtext 1.0pt;
+  border-left:none;padding:0in 1.4pt 0in 1.4pt'>
+  <p class=MsoNormal style='margin-top:2.0pt;margin-right:0in;margin-bottom:
+  2.0pt;margin-left:0in;text-align:justify;line-height:12.0pt;layout-grid-mode:
+  char'><span style='font-size:10.0pt;font-family:"Courier New"'>Jennifer Lin</span></p>
+  </td>
+  <td width=248 valign=top style='width:186.0pt;border:solid windowtext 1.0pt;
+  border-left:none;padding:0in 1.4pt 0in 1.4pt'>
+  <p class=MsoNormal style='margin-top:2.0pt;margin-right:0in;margin-bottom:
+  2.0pt;margin-left:0in;line-height:12.0pt;layout-grid-mode:char'><span
+  style='font-size:10.0pt;font-family:"Courier New"'><a
+  href="mailto:Jennifer.Lin@advantech.com.tw">Jennifer.Lin@advantech.com.tw</a></span></p>
+  </td>
+ </tr>
+ <tr style='mso-yfti-irow:2;page-break-inside:avoid'>
+  <td width=120 valign=top style='width:1.25in;border:solid windowtext 1.0pt;
+  border-top:none;padding:0in 1.4pt 0in 1.4pt'>
+  <p class=MsoHeader style='margin-top:2.0pt;margin-right:0in;margin-bottom:
+  2.0pt;margin-left:0in;text-align:justify;line-height:12.0pt'><span
+  style='font-family:"Courier New"'>Mainland China</span> </p>
+  </td>
+  <td width=128 valign=top style='width:96.0pt;border-top:none;border-left:
+  none;border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
+  padding:0in 1.4pt 0in 1.4pt'>
+  <p class=MsoHeader style='margin-top:2.0pt;margin-right:0in;margin-bottom:
+  2.0pt;margin-left:0in;text-align:justify;line-height:12.0pt'><span
+  style='font-family:"Courier New"'>Beijing (ACSC)</span></p>
+  </td>
+  <td width=128 valign=top style='width:96.0pt;border-top:none;border-left:
+  none;border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
+  padding:0in 1.4pt 0in 1.4pt'>
+  <p class=MsoHeader style='margin-top:2.0pt;margin-right:0in;margin-bottom:
+  2.0pt;margin-left:0in;text-align:justify;line-height:12.0pt'><span lang=NL
+  style='font-family:"Courier New";mso-ansi-language:NL'>Jiang Lin</span></p>
+  </td>
+  <td width=248 valign=top style='width:186.0pt;border-top:none;border-left:
+  none;border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
+  padding:0in 1.4pt 0in 1.4pt'>
+  <p class=MsoNormal style='margin-top:2.0pt;margin-right:0in;margin-bottom:
+  2.0pt;margin-left:0in;line-height:12.0pt;layout-grid-mode:char'><span
+  lang=NL style='font-size:10.0pt;font-family:"Courier New";mso-ansi-language:
+  NL'><a href="mailto:Jiang.Lin@advantech.com.cn">Jiang.Lin@advantech.com.cn</a></span></p>
+  </td>
+ </tr>
+ <tr style='mso-yfti-irow:3;page-break-inside:avoid'>
+  <td width=120 valign=top style='width:1.25in;border-top:none;border-left:
+  solid windowtext 1.0pt;border-bottom:none;border-right:solid windowtext 1.0pt;
+  padding:0in 1.4pt 0in 1.4pt'>
+  <p class=MsoNormal style='margin-top:2.0pt;margin-right:0in;margin-bottom:
+  2.0pt;margin-left:0in;text-align:justify;line-height:12.0pt;layout-grid-mode:
+  char'><span lang=IT style='font-size:10.0pt;font-family:"Courier New";
+  mso-ansi-language:IT'>America</span></p>
+  </td>
+  <td width=128 valign=top style='width:96.0pt;border:none;border-right:solid windowtext 1.0pt;
+  padding:0in 1.4pt 0in 1.4pt'>
+  <p class=MsoNormal style='margin-top:2.0pt;margin-right:0in;margin-bottom:
+  2.0pt;margin-left:0in;text-align:justify;line-height:12.0pt;layout-grid-mode:
+  char'><span lang=IT style='font-size:10.0pt;font-family:"Courier New";
+  mso-ansi-language:IT'>Fremont (AASC)</span></p>
+  </td>
+  <td width=128 valign=top style='width:96.0pt;border:none;border-right:solid windowtext 1.0pt;
+  padding:0in 1.4pt 0in 1.4pt'>
+  <p class=MsoNormal style='margin-top:2.0pt;margin-right:0in;margin-bottom:
+  2.0pt;margin-left:0in;text-align:justify;line-height:12.0pt;layout-grid-mode:
+  char'><span lang=NL style='font-size:10.0pt;font-family:"Courier New";
+  mso-ansi-language:NL'>Peter Tang</span></p>
+  </td>
+  <td width=248 valign=top style='width:186.0pt;border:none;border-right:solid windowtext 1.0pt;
+  padding:0in 1.4pt 0in 1.4pt'>
+  <p class=MsoNormal style='margin-top:2.0pt;margin-right:0in;margin-bottom:
+  2.0pt;margin-left:0in;line-height:12.0pt;layout-grid-mode:char'><span
+  lang=NL style='font-size:10.0pt;font-family:"Courier New";mso-ansi-language:
+  NL'><a href="mailto:Peter.Tang@advantech.com">Peter.Tang@advantech.com</a></span></p>
+  </td>
+ </tr>
+ <tr style='mso-yfti-irow:4;mso-yfti-lastrow:yes;page-break-inside:avoid'>
+  <td width=120 valign=top style='width:1.25in;border:solid windowtext 1.0pt;
+  padding:0in 1.4pt 0in 1.4pt'>
+  <h4 style='margin-top:2.0pt;margin-right:0in;margin-bottom:2.0pt;margin-left:
+  1.4pt;text-align:justify;text-indent:-1.4pt;line-height:12.0pt;layout-grid-mode:
+  char'><span lang=NL style='font-size:10.0pt;mso-ansi-language:NL'>Europe</span></h4>
+  </td>
+  <td width=128 valign=top style='width:96.0pt;border:solid windowtext 1.0pt;
+  border-left:none;padding:0in 1.4pt 0in 1.4pt'>
+  <h4 style='margin-top:2.0pt;margin-right:0in;margin-bottom:2.0pt;margin-left:
+  0in;text-align:justify;line-height:12.0pt;layout-grid-mode:char'><span
+  lang=NL style='font-size:10.0pt;mso-ansi-language:NL'>Europe (AESC)</span></h4>
+  </td>
+  <td width=128 valign=top style='width:96.0pt;border:solid windowtext 1.0pt;
+  border-left:none;padding:0in 1.4pt 0in 1.4pt'>
+  <p class=MsoNormal style='margin-top:2.0pt;margin-right:0in;margin-bottom:
+  2.0pt;margin-left:0in;text-align:justify;line-height:12.0pt;layout-grid-mode:
+  char'><b><span lang=NL style='font-size:10.0pt;font-family:"Courier New";
+  mso-ansi-language:NL'>Rick de Vries</span></b></p>
+  </td>
+  <td width=248 valign=top style='width:186.0pt;border:solid windowtext 1.0pt;
+  border-left:none;padding:0in 1.4pt 0in 1.4pt'>
+  <p class=MsoNormal style='margin-top:2.0pt;margin-right:0in;margin-bottom:
+  2.0pt;margin-left:0in;line-height:12.0pt;layout-grid-mode:char'><b><span
+  lang=NL style='font-size:10.0pt;font-family:"Courier New";mso-ansi-language:
+  NL'><a href="mailto:Rick.deVries@advantech.com">Rick.deVries@advantech.com</a></span></b></p>
+  </td>
+ </tr>
+</table>
+
+<span lang=NL style='font-size:10.0pt;line-height:200%;font-family:"Courier New";
+mso-fareast-font-family:"Times New Roman";mso-ansi-language:NL;mso-fareast-language:
+EN-US;mso-bidi-language:AR-SA'><br clear=all style='page-break-before:always'>
+</span>
+
+<p class=MsoNormal style='margin-left:49.6pt;text-align:justify;text-indent:
+-28.35pt;line-height:200%'><b><span style='font-size:10.0pt;line-height:200%;
+font-family:"Courier New"'>1.7</span></b><b><span style='font-size:7.0pt;
+line-height:200%'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; </span></b><b><span
+lang=NL style='font-size:10.0pt;line-height:200%;font-family:"Courier New";
+mso-ansi-language:NL'>EXTENDEN GLOBAL WARRANTY</span></b></p>
+
+<p class=MsoNormal style='margin-top:0in;margin-right:5.0pt;margin-bottom:0in;
+margin-left:1.0in;margin-bottom:.0001pt;text-align:justify;line-height:200%;
+layout-grid-mode:char;text-autospace:none'><span style='font-size:10.0pt;
+line-height:200%;font-family:"Courier New"'>Warranty service is optional for
+maximum five years included product standard warranty. ADVANTECH provides
+extended warranty service and global warranty service upon request. </span></p>
+
+<p class=MsoNormal style='margin-top:0in;margin-right:5.0pt;margin-bottom:0in;
+margin-left:48.0pt;margin-bottom:.0001pt;text-align:justify;line-height:200%;
+layout-grid-mode:char;text-autospace:none'><span style='font-size:10.0pt;
+line-height:200%;font-family:"Courier New"'>&nbsp;</span></p>
+
+<p class=MsoNormal style='margin-top:0in;margin-right:5.0pt;margin-bottom:0in;
+margin-left:48.0pt;margin-bottom:.0001pt;text-align:justify;text-indent:24.0pt;
+line-height:200%;layout-grid-mode:char;text-autospace:none'><span
+style='font-size:10.0pt;line-height:200%;font-family:"Courier New"'>Extra
+services can be ordered via Advantech B2B website.</span></p>
+
+<p class=MsoNormal style='margin-top:0in;margin-right:5.0pt;margin-bottom:0in;
+margin-left:12.0pt;margin-bottom:.0001pt;text-align:justify;line-height:12.0pt;
+layout-grid-mode:char;text-autospace:none'>&nbsp;</p>
+
+<h6 style='text-indent:21.25pt'><span style='font-size:11.0pt;font-family:"Courier New"'>Warranty
+= Standard warranty + Extended warranty</span></h6>
+
+<p class=MsoNormal style='text-align:justify;line-height:200%;layout-grid-mode:
+char'><span style='font-size:10.0pt;line-height:200%;font-family:"Courier New"'>&nbsp;</span></p>
+
+<p class=MsoNormal style='text-align:justify;line-height:200%;layout-grid-mode:
+char'><span lang=NL style='font-size:10.0pt;line-height:200%;font-family:"Courier New";
+mso-ansi-language:NL'>&nbsp;</span></p>
+
+<p class=MsoNormal style='margin-left:49.6pt;text-align:justify;text-indent:
+-28.35pt;line-height:200%'><b><span style='font-size:10.0pt;line-height:200%;
+font-family:"Courier New"'>1.8</span></b><b><span style='font-size:7.0pt;
+line-height:200%'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; </span></b><b><span
+lang=NL style='font-size:10.0pt;line-height:200%;font-family:"Courier New";
+mso-ansi-language:NL'>DEAD ON ARRIVAL (DOA) PROCEDURE</span></b></p>
+
+<p class=MsoNormal style='text-align:justify;line-height:200%;layout-grid-mode:
+char'><span lang=NL style='font-size:10.0pt;line-height:200%;font-family:"Courier New";
+mso-ansi-language:NL'>&nbsp;</span></p>
+
+<p class=MsoNormal style='margin-top:0in;margin-right:5.0pt;margin-bottom:0in;
+margin-left:1.0in;margin-bottom:.0001pt;text-align:justify;line-height:200%;
+layout-grid-mode:char;text-autospace:none'><b><span style='font-size:10.0pt;
+line-height:200%;font-family:"Courier New"'>Definition</span></b></p>
+
+<p class=MsoNormal style='margin-top:0in;margin-right:5.0pt;margin-bottom:0in;
+margin-left:1.0in;margin-bottom:.0001pt;text-align:justify;line-height:200%;
+layout-grid-mode:char;text-autospace:none'><span style='font-size:10.0pt;
+line-height:200%;font-family:"Courier New"'>Goods received, which do not
+function within 15 days (for Channel partners 45 days) after receipt (Shipment
+date). This does not apply to any products that have been repaired or altered
+by persons other than Advantech authorized service personnel or any products
+that have been subject to misuse, abuse or improper installation or operation.
+Advantech assumes no liability as a consequence of such events under the terms
+of the warranty.</span></p>
+
+<p class=MsoNormal style='margin-top:0in;margin-right:5.0pt;margin-bottom:0in;
+margin-left:12.0pt;margin-bottom:.0001pt;text-align:justify;line-height:12.0pt;
+layout-grid-mode:char;text-autospace:none'>&nbsp;</p>
+
+<p class=MsoNormal style='margin-top:0in;margin-right:5.0pt;margin-bottom:0in;
+margin-left:12.0pt;margin-bottom:.0001pt;text-align:justify;line-height:12.0pt;
+layout-grid-mode:char;text-autospace:none'>&nbsp;</p>
+
+<p class=MsoNormal style='margin-top:0in;margin-right:5.0pt;margin-bottom:0in;
+margin-left:1.0in;margin-bottom:.0001pt;text-align:justify;text-indent:-24.0pt;
+line-height:200%;layout-grid-mode:char;text-autospace:none'><span
+style='font-size:8.0pt;line-height:200%;font-family:Wingdings'>n</span><span
+style='font-size:7.0pt;line-height:200%'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span><b><span style='font-size:10.0pt;line-height:200%;font-family:"Courier New"'>Procedures</span></b></p>
+
+<p class=MsoNormal style='margin-top:0in;margin-right:5.0pt;margin-bottom:0in;
+margin-left:84.0pt;margin-bottom:.0001pt;text-align:justify;text-indent:-.25in;
+line-height:200%;layout-grid-mode:char;text-autospace:none'><span
+style='font-family:Symbol'>·</span><span style='font-size:7.0pt;line-height:
+200%'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; </span><span style='font-size:
+10.0pt;line-height:200%;font-family:"Courier New"'>Apply for a RMA Number on
+the Advantech Europe Service center (AESC) RMA website accordingly chapter 3.1.
+Fill in the DOA form (will be send by the Customer service center) and prepare
+the packaging. Advantech will inform the Forwarder for a pickup.&nbsp; </span></p>
+
+<p class=MsoNormal style='margin-top:0in;margin-right:5.0pt;margin-bottom:0in;
+margin-left:12.0pt;margin-bottom:.0001pt;text-align:justify;line-height:12.0pt;
+layout-grid-mode:char;text-autospace:none'>&nbsp;</p>
+
+<p class=MsoNormal style='margin-top:0in;margin-right:5.0pt;margin-bottom:0in;
+margin-left:84.0pt;margin-bottom:.0001pt;text-align:justify;text-indent:-.25in;
+line-height:200%;layout-grid-mode:char;text-autospace:none'><span
+style='font-family:Symbol'>·</span><span style='font-size:7.0pt;line-height:
+200%'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; </span><span style='font-size:
+10.0pt;line-height:200%;font-family:"Courier New"'>After receipt of the goods
+we will exchange or&nbsp;immediately repair the product. If the received
+material is not in the original packaging or accessories is missing (Handbook,
+CD, etc...) a exchange will not be issued.</span></p>
+
+<p class=MsoNormal style='margin-top:0in;margin-right:5.0pt;margin-bottom:0in;
+margin-left:66.0pt;margin-bottom:.0001pt;text-align:justify;line-height:200%;
+layout-grid-mode:char;text-autospace:none'><span style='font-size:10.0pt;
+line-height:200%;font-family:"Courier New"'>&nbsp;</span></p>
+
+<p class=MsoNormal style='margin-left:.75in;text-align:justify;line-height:
+200%'><span lang=NL style='font-size:10.0pt;line-height:200%;font-family:"Courier New";
+mso-ansi-language:NL'>&nbsp;</span></p>
+
+<p class=MsoNormal style='margin-left:49.6pt;text-align:justify;text-indent:
+-28.35pt;line-height:200%'><b><span style='font-size:10.0pt;line-height:200%;
+font-family:"Courier New"'>1.9</span></b><b><span style='font-size:7.0pt;
+line-height:200%'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; </span></b><b><span
+style='font-size:10.0pt;line-height:200%;font-family:"Courier New"'>Amendment
+of Procedure</span></b></p>
+
+<p class=MsoNormal style='margin-left:.75in;text-align:justify;line-height:
+200%'><b><span style='font-size:10.0pt;line-height:200%;font-family:"Courier New"'>This
+Policy / Procedure will be reviewed on a semi-yearly base starting the date
+stipulated above. This document will be effective unless a further announcement
+of amendment.</span></b></p>
+
+<p class=MsoNormal style='margin-left:.75in;text-align:justify;line-height:
+200%'><span style='font-size:10.0pt;line-height:200%;font-family:"Courier New"'>&nbsp;</span></p>
+
+<p class=MsoNormal style='margin-left:.75in;text-align:justify;line-height:
+200%'><span style='font-size:10.0pt;line-height:200%;font-family:"Courier New"'>&nbsp;</span></p>
+
+<p class=MsoNormal style='margin-left:.75in;text-align:justify;line-height:
+200%'><span style='font-size:10.0pt;line-height:200%;font-family:"Courier New"'>&nbsp;</span></p>
+
+<p class=MsoNormal style='margin-left:.75in;text-align:justify;line-height:
+200%'><span style='font-size:10.0pt;line-height:200%;font-family:"Courier New"'>&nbsp;</span></p>
+
+<p class=MsoNormal style='margin-left:.75in;text-align:justify;line-height:
+200%'><span style='font-size:10.0pt;line-height:200%;font-family:"Courier New"'>&nbsp;</span></p>
+
+<p class=MsoNormal style='margin-left:.75in;text-align:justify;line-height:
+200%'><span style='font-size:10.0pt;line-height:200%;font-family:"Courier New"'>&nbsp;</span></p>
+
+<p class=MsoNormal style='margin-left:.75in;text-align:justify;line-height:
+200%'><span style='font-size:10.0pt;line-height:200%;font-family:"Courier New"'>&nbsp;</span></p>
+
+<p class=MsoNormal style='margin-left:.75in;text-align:justify;line-height:
+200%'><span style='font-size:10.0pt;line-height:200%;font-family:"Courier New"'>&nbsp;</span></p>
+
+<p class=MsoNormal style='margin-left:.75in;text-align:justify;line-height:
+200%'><span style='font-size:10.0pt;line-height:200%;font-family:"Courier New"'>&nbsp;</span></p>
+
+<p class=MsoNormal style='margin-left:.75in;text-align:justify;line-height:
+200%'><span style='font-size:10.0pt;line-height:200%;font-family:"Courier New"'>&nbsp;</span></p>
+
+<p class=MsoNormal style='margin-left:.75in;text-align:justify;line-height:
+200%'><span style='font-size:10.0pt;line-height:200%;font-family:"Courier New"'>&nbsp;</span></p>
+
+<p class=MsoNormal style='margin-left:.75in;text-align:justify;line-height:
+200%'><span style='font-size:10.0pt;line-height:200%;font-family:"Courier New"'>&nbsp;</span></p>
+
+<p class=MsoNormal style='margin-left:.75in;text-align:justify;line-height:
+200%'><span style='font-size:10.0pt;line-height:200%;font-family:"Courier New"'>&nbsp;</span></p>
+
+<table class=MsoNormalTable border=0 cellspacing=0 cellpadding=0 width=312
+ style='width:3.25in;margin-left:10.4pt;border-collapse:collapse;mso-padding-alt:
+ 0in 0in 0in 0in'>
+ <tr style='mso-yfti-irow:0;mso-yfti-firstrow:yes'>
+  <td width=288 valign=top style='width:3.0in;border:solid windowtext 1.0pt;
+  padding:0in 1.4pt 0in 1.4pt'>
+  <p class=MsoNormal style='text-align:justify;line-height:200%'><span
+  style='font-size:10.0pt;line-height:200%;font-family:"Courier New"'>&nbsp;</span></p>
+  </td>
+  <td width=24 valign=top style='width:.25in;padding:0in 1.4pt 0in 1.4pt'>
+  <p class=MsoNormal style='text-align:justify;line-height:200%'><span
+  style='font-size:10.0pt;line-height:200%;font-family:"Courier New"'>&nbsp;</span></p>
+  </td>
+ </tr>
+ <tr style='mso-yfti-irow:1;height:17.25pt'>
+  <td width=288 valign=top style='width:3.0in;border:solid windowtext 1.0pt;
+  border-top:none;padding:0in 1.4pt 0in 1.4pt;height:17.25pt'>
+  <p class=MsoNormal style='margin-top:6.0pt;line-height:200%'><span
+  style='font-size:10.0pt;line-height:200%;font-family:"Courier New"'>Andrea
+  Zolli</span></p>
+  </td>
+  <td width=24 valign=top style='width:.25in;padding:0in 1.4pt 0in 1.4pt;
+  height:17.25pt'>
+  <p class=MsoNormal style='margin-top:6.0pt;line-height:200%'><span
+  style='font-size:10.0pt;line-height:200%;font-family:"Courier New"'>&nbsp;</span></p>
+  </td>
+ </tr>
+ <tr style='mso-yfti-irow:2;mso-yfti-lastrow:yes'>
+  <td width=288 valign=top style='width:3.0in;border:solid windowtext 1.0pt;
+  border-top:none;padding:0in 1.4pt 0in 1.4pt'>
+  <p class=MsoNormal style='text-align:justify;line-height:200%'><span
+  style='font-size:10.0pt;line-height:200%;font-family:"Courier New"'>Managing
+  Director, Advantech Europe</span></p>
+  </td>
+  <td width=24 valign=top style='width:.25in;padding:0in 1.4pt 0in 1.4pt'>
+  <p class=MsoNormal style='text-align:justify;line-height:200%'><span
+  style='font-size:10.0pt;line-height:200%;font-family:"Courier New"'>&nbsp;</span></p>
+  </td>
+ </tr>
+</table>
+
+<p class=MsoNormal style='line-height:200%'><span style='font-size:10.0pt;
+line-height:200%;font-family:"Courier New"'>&nbsp;</span></p>
+
+</div>
+
+</body>
+
+</html>

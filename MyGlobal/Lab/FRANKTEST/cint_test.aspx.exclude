@@ -1,0 +1,121 @@
+﻿<%@ Page Language="VB" %>
+
+<%@ Import Namespace="System.Diagnostics" %>
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<script runat="server">
+
+    Protected Sub Page_Load(sender As Object, e As System.EventArgs)
+        Dim _part As String = "E19605584"
+        'Dim _b As Object = "a"
+        'Dim _c As Integer = _b
+        
+        'Dim a As Date = SAPDOC.GetLocalTime("US")
+        'Me.Label1.Text = a.ToString
+        
+        'Me.Label2.Text=Now.ToString
+        
+        'Dim sql As DataSet = SAPDAL.CommonLogic.getSingleSAPCustomer("EDDEAR10", False)
+        
+        'getSingleSAPCustomer
+        
+        Dim mWatch As Stopwatch = New Stopwatch
+        
+
+        Dim _newpart As String = String.Empty
+
+        'Dim _Str1 As New StringBuilder
+        '_Str1.AppendLine(Now)
+        mWatch.Start()
+        'mWatch.ElapsedMilliseconds
+        Label1.Text = mWatch.ElapsedMilliseconds
+        For i As Integer = 0 To 10000
+
+            _newpart = SAPDAL.SAPDAL.Format2SAPItem(_part)
+            '_newpart = SAPDAL.SAPDAL.TransferPartNoToSAPFormat1(_part)
+            
+        Next
+        mWatch.Stop()
+        Label2.Text = mWatch.ElapsedMilliseconds
+        mWatch = Nothing
+        '_Str1.AppendLine("<br />" & Now)
+        Me.Label3.Text = _newpart
+        
+        
+        
+    End Sub
+    
+    Private Function part1(ByVal partno As String) As String
+        Dim IsNumericPn As Boolean = False
+        For i As Integer = 0 To partno.Length - 1
+            If IsNumeric(partno.Substring(i, 1)) Then
+                IsNumericPn = True
+            Else
+                IsNumericPn = False : Exit For
+            End If
+        Next
+        If IsNumericPn Then
+            Dim intZeros As Integer = 18 - partno.Length
+            For i As Integer = 1 To intZeros
+                partno = "0" + partno
+            Next
+        End If
+        Return partno
+    End Function
+    
+        
+        
+        
+    
+    'Protected Sub Page_Load(sender As Object, e As System.EventArgs)
+    '    'Dim _a As String = "a"
+    '    'Dim _b As Object = "a"
+    '    'Dim _c As Integer = _b
+        
+    '    'Dim a As Date = SAPDOC.GetLocalTime("US")
+    '    'Me.Label1.Text = a.ToString
+        
+    '    'Me.Label2.Text=Now.ToString
+        
+    '    'Dim sql As DataSet = SAPDAL.CommonLogic.getSingleSAPCustomer("EDDEAR10", False)
+        
+    '    'getSingleSAPCustomer
+        
+    '    Dim _result As Boolean = True
+    '    Dim _int As Integer = 0
+        
+    '    '_result = Integer.TryParse("E102", _int)
+    '    Dim partno As String = "E102"
+    '    If Integer.Parse(partno) = 1 Then
+    '        Me.Label1.Text = _int
+    '        Me.Label2.Text = _result
+            
+    '    End If
+        
+        
+    'End Sub
+</script>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head runat="server">
+    <title></title>
+</head>
+<body>
+    <form id="form1" runat="server">
+    <div>
+<%--        GetLocalTime:<asp:Label ID="Label1" runat="server" Text="Label"></asp:Label>
+
+        Now:<asp:Label ID="Label2" runat="server" Text="Label"></asp:Label>
+--%>
+
+    start:<asp:Label ID="Label1" runat="server" Text="Label" />
+    <br />
+    end:<asp:Label ID="Label2" runat="server" Text="Label" />
+      <br />
+    part no:<asp:Label ID="Label3" runat="server" Text="Label" />
+    </div>
+
+    </form>
+</body>
+</html>

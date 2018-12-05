@@ -1,0 +1,90 @@
+﻿<%@ Page Language="VB" MasterPageFile="~/Includes/MyMaster.master" Title="IServices Group Admin" %>
+
+<script runat="server">
+
+    Protected Sub Button1_Click(ByVal sender As Object, ByVal e As System.EventArgs)
+        Label1.Visible = False
+        If TextBox1.Text.Trim <> "" Then
+            Dim row_id As String = System.Guid.NewGuid().ToString()
+            Dim InsertCommand As String = "INSERT INTO [DB_iServices_Group] ( [ROW_ID], [CompayidOrEmail], [LAST_UPD_DATE]) VALUES " & _
+            " ('" + row_id + "', '" + TextBox1.Text.Replace("'", "''").Trim() + "', GETDATE())"
+            dbUtil.dbExecuteNoQuery("my", InsertCommand)
+            Label1.Visible = True
+            gv1.DataBind()
+            gv2.DataBind()
+        End If
+              
+    End Sub
+
+    Protected Sub src2_Inserting(ByVal sender As Object, ByVal e As System.Web.UI.WebControls.SqlDataSourceCommandEventArgs)
+     
+        For Each param In e.Command.Parameters
+            Response.Write(" ＜b＞" & Server.HtmlEncode(param.ParameterName) & "＜/b＞=" & Server.HtmlEncode(param.Value) & " (" & Server.HtmlEncode(param.Value.GetType().Name) & ")＜br /＞")
+        Next
+
+    End Sub
+
+    Protected Sub Page_Load(ByVal sender As Object, ByVal e As System.EventArgs)
+        If Session("user_id") IsNot Nothing AndAlso (Session("user_id").ToString.ToLower.Trim = "tam.tran@advantech.eu" _
+        OrElse Util.IsAdmin() _
+        OrElse Session("user_id").ToString.ToLower.Trim = "ming.zhao@advantech.com.cn" _
+        OrElse Session("user_id").ToString.ToLower.Trim = "tam.tran@advantech.nl") Then
+        Else
+            Response.End()
+        End If
+        Label1.Visible = False
+    End Sub
+</script>
+
+<asp:Content ID="Content1" ContentPlaceHolderID="_main" Runat="Server">
+    <center>
+        <asp:UpdatePanel runat="server" ID="up1" UpdateMode="Conditional">
+            <ContentTemplate>
+                <div style="line-height:25px; font-weight:bold; text-align:left; width:50%;">CompanyID:</div>
+                <asp:GridView runat="server" ID="gv1" AutoGenerateColumns="false" AllowPaging="false" AllowSorting="false" 
+                    DataSourceID="src1" DataKeyNames="ROW_ID"  Width="50%" >
+                    <Columns>
+                        <asp:CommandField ItemStyle-Width="180PX"  ShowEditButton="true" EditText="Edit" ShowCancelButton="true" CancelText="Cancel" ShowDeleteButton="true" />
+                        <asp:BoundField HeaderText="ROW_ID" Visible="false" DataField="ROW_ID" ReadOnly="true" SortExpression="ROW_ID" />
+                        <asp:BoundField HeaderText="CompanyID" DataField="CompayidOrEmail" SortExpression="CompayidOrEmail" ItemStyle-HorizontalAlign="Left" />
+                        <asp:BoundField HeaderText="LAST_UPDATE_DATE" ItemStyle-Width="180PX" DataField="LAST_UPD_DATE" DataFormatString="{0:yyyy-MM-dd}" ReadOnly="true" SortExpression="LAST_UPD_DATE" />
+                    </Columns>
+                </asp:GridView>
+                <asp:SqlDataSource runat="server" ID="src1" ConnectionString="<%$ConnectionStrings:MY %>" 
+                    SelectCommand="SELECT * FROM DB_iServices_Group where CompayidOrEmail not like '%@%' order by row_id"
+                    UpdateCommand="UPDATE DB_iServices_Group SET CompayidOrEmail = @CompayidOrEmail ,LAST_UPD_DATE = GETDATE() where row_id=@ROW_ID"
+                     DeleteCommand="DELETE FROM [DB_iServices_Group] WHERE [row_id] = @row_id" > 
+                     <DeleteParameters>
+                        <asp:Parameter Name="row_id" Type="String" />
+                     </DeleteParameters>             
+                </asp:SqlDataSource><br />
+                <div style="line-height:25px; font-weight:bold; text-align:left; width:50%;">User Email: </div>
+                <asp:GridView runat="server" ID="gv2" AutoGenerateColumns="false" AllowPaging="false" AllowSorting="false" 
+                    DataSourceID="src2" DataKeyNames="ROW_ID"  Width="50%" >
+                    <Columns>
+                        <asp:CommandField ItemStyle-Width="180PX" ShowEditButton="true" EditText="Edit" ShowCancelButton="true" CancelText="Cancel" ShowDeleteButton="true" />
+                        <asp:BoundField HeaderText="ROW_ID"  Visible="false" DataField="ROW_ID" ReadOnly="true" SortExpression="ROW_ID" />
+                        <asp:BoundField HeaderText="User Email" DataField="CompayidOrEmail" SortExpression="CompayidOrEmail" ItemStyle-HorizontalAlign="Left" />
+                        <asp:BoundField HeaderText="LAST_UPDATE_DATE" ItemStyle-Width="180PX" DataField="LAST_UPD_DATE" DataFormatString="{0:yyyy-MM-dd}" ReadOnly="true" SortExpression="LAST_UPD_DATE" />
+                    </Columns>
+                </asp:GridView>
+                <asp:SqlDataSource runat="server" ID="src2" ConnectionString="<%$ConnectionStrings:MY %>" 
+                    SelectCommand="SELECT * FROM DB_iServices_Group where CompayidOrEmail like '%@%' order by row_id"
+                    UpdateCommand="UPDATE DB_iServices_Group SET CompayidOrEmail = @CompayidOrEmail,LAST_UPD_DATE = GETDATE() where row_id=@ROW_ID"
+                     DeleteCommand="DELETE FROM [DB_iServices_Group] WHERE [row_id] = @row_id" 
+                     > 
+                     <DeleteParameters>
+                        <asp:Parameter Name="row_id" Type="String" />
+                     </DeleteParameters>  
+                             
+                </asp:SqlDataSource>
+                <br />
+                Please enter CompanyID or User Email:
+                <asp:TextBox ID="TextBox1" runat="server" Width="180px"></asp:TextBox>
+                <asp:Button ID="Button1" runat="server" Text="Add" OnClick="Button1_Click" /> <br/>
+                <asp:Label ID="Label1" runat="server" Text="Add new record succeed!" ForeColor="Red" Visible="false"></asp:Label>                                           
+        </ContentTemplate>
+    </asp:UpdatePanel>
+    </center>
+</asp:Content>
+

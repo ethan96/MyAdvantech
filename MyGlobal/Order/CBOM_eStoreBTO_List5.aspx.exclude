@@ -1,0 +1,135 @@
+﻿<%@ Page Title="MyAdvantech - CBOM List" ValidateRequest="false" Language="VB" MasterPageFile="~/Includes/MyMaster.master" %>
+
+<script runat="server">
+    Dim CATEGORY3_title As String = "", CATEGORY2_title As String = "", CATEGORY1_title As String = ""
+    Protected Sub Page_Load(ByVal sender As Object, ByVal e As System.EventArgs)
+        If Session("org_id") Is Nothing OrElse Session("org_id").ToString <> "US01" Then
+            Response.End()
+        End If
+        If Request("CATEGORY2") IsNot Nothing AndAlso Request("CATEGORY3") IsNot Nothing AndAlso Request("CATEGORY1") IsNot Nothing Then
+            SqlDataSource1.SelectCommand = "SELECT distinct DisplayPartno,ImageURL from ESTORE_BTOS where CATEGORY2='" + Request("CATEGORY2").ToString.Trim + "' AND CATEGORY3='" + Request("CATEGORY3").ToString.Trim + "'  AND CATEGORY1='" + Request("CATEGORY1").ToString.Trim + "' and storeid='AUS'"
+            CATEGORY1_title = Request("CATEGORY1").ToString.Trim
+            CATEGORY2_title = Request("CATEGORY2").ToString.Trim
+            CATEGORY3_title = Request("CATEGORY3").ToString.Trim
+        Else
+            Response.End()
+        End If
+    End Sub
+    Protected Sub Button1_Click(ByVal sender As Object, ByVal e As System.EventArgs)
+        'DataList1.DataKeys(e.Item.ItemIndex).ToString().Trim()      
+        Dim item As DataListItem = CType(CType(sender, Control).NamingContainer, DataListItem)
+        Dim i As Integer = item.ItemIndex
+        'Dim neirong As String = DirectCast(DataList1.Items(i).FindControl("textbox1"), TextBox).Text
+        'Response.Write(DataList1.DataKeys(i).ToString().Trim())
+        Response.Redirect("./Configurator.aspx?BTOITEM=" + DataList1.DataKeys(i).ToString().Trim() + "&QTY=1")
+    End Sub
+
+    Protected Sub DataList1_ItemDataBound(ByVal sender As Object, ByVal e As System.Web.UI.WebControls.DataListItemEventArgs)
+        If e.Item.ItemType = ListItemType.Item OrElse e.Item.ItemType = ListItemType.AlternatingItem Then
+            ' Dim dv As DataRowView = CType(e.Item.DataItem, DataRowView)
+            ' Dim Image1 As Image = DirectCast(e.Item.FindControl("Image1"), Image)
+            '  Image1.ImageUrl ="http://buy.advantech.com/resource/ProductCategory/TREK-775_01-S.jpg" 'dv.Row("DisplayPartno").ToString()         
+        End If
+    End Sub
+</script>
+<asp:Content ID="Content1" ContentPlaceHolderID="_main" runat="Server">
+    <style type="text/css">
+        .eStoreList
+        {
+            padding: 5px 5px 5px 15px;
+            list-style-image: url(../IMAGES/arrow_black2.jpg);
+            vertical-align: top;
+        }
+        .dotlinemidial
+        {
+            width: 30px;
+            background-image: url(../IMAGES/DOTLINE_Mid.gif);
+            background-repeat: repeat-y;
+        }
+        .viewConfigbutton
+        {
+            background: url(../IMAGES/Complete196.gif) left top;
+            background-repeat: no-repeat;
+            display: inline-block;
+            font-weight: bold;
+            line-height: 22px;
+            text-decoration: none;
+            float: left;
+            padding: 0px 0px 0px 15px;
+            cursor: pointer;
+            white-space: nowrap;
+        }
+        .viewConfigbutton span
+        {
+            background: url(../IMAGES/Complete196.gif) right top;
+            background-repeat: no-repeat;
+            float: left;
+            padding: 0px 25px 0px 0px;
+            display: inline-block;
+        }
+        .Pimg
+        {
+            max-width: 150px;
+            max-height: 150px;
+        }
+    </style>
+    <table width="100%" border="0" align="center">
+        <tr>
+            <td>
+                <h3>
+                    <img src="../images/title-dot.gif" width="25" height="17" /><a href="./CBOM_eStoreBTO_List1.aspx">
+                        <%= CATEGORY3_title%></a> >> <a href="./CBOM_eStoreBTO_List3.aspx?CATEGORY2=<%= CATEGORY2_title%>&CATEGORY3=<%= CATEGORY3_title%>">
+                            ><%= CATEGORY2_title%></a> >>
+                    <%= CATEGORY3_title%>
+                </h3>
+            </td>
+        </tr>
+        <tr>
+            <td height="10">
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <table width="100%" border="0" align="center" cellpadding="0" cellspacing="0" bgcolor="#CCCCCC">
+                    <tr>
+                        <td bgcolor="#FFFFFF">
+                            <asp:DataList ID="DataList1" runat="server" DataKeyField="DisplayPartno" RepeatColumns="3"
+                                DataSourceID="SqlDataSource1" Width="100%" RepeatDirection="Horizontal" ItemStyle-Width="33.3%"
+                                ItemStyle-HorizontalAlign="Center" ItemStyle-VerticalAlign="Top" CellPadding="0"
+                                RepeatLayout="Flow" OnItemDataBound="DataList1_ItemDataBound">
+                                <ItemTemplate>
+                                    <table border="0" align="center" cellpadding="0" cellspacing="0">
+                                        <tr>
+                                            <td colspan="2" height="15">
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td height="25px" width="230px" align="center">
+                                                <b>
+                                                    <%# Eval("DisplayPartno")%></b>
+                                            </td>
+                                            <td rowspan="3" class="dotlinemidial">
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td align="center">
+                                                <img alt="" class="Pimg" src="<%# Eval("ImageURL") %>" />
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td align="center">
+                                                <asp:Button ID="Button1" runat="server" Text="Customize it" OnClick="Button1_Click" />
+                                            </td>
+                                        </tr>
+                                    </table>
+                                </ItemTemplate>
+                            </asp:DataList>
+                            <asp:SqlDataSource ID="SqlDataSource1" runat="server" ConnectionString="<%$ ConnectionStrings:MY %>">
+                            </asp:SqlDataSource>
+                        </td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+    </table>
+</asp:Content>

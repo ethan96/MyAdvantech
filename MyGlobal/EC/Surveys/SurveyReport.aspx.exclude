@@ -1,0 +1,265 @@
+﻿<%@ Page Title="eSurvey - Survey Report" Language="VB" MasterPageFile="~/Includes/MyMaster.master" %>
+<%@ Register Src="~/EC/Surveys/SurveyFunctionLinks.ascx" TagName="FunctionLinks" TagPrefix="uc2" %>
+
+<script runat="server">
+    Public Enum QuestionType
+        MultipleChoiceOneAnswer
+        MultipleChoiceMultipleAnswers
+        Essay
+        Ranking
+        TextBoxs
+        Descritive
+        ContactInfo
+    End Enum
+    
+    Protected Sub gv1_RowDataBound(ByVal sender As Object, ByVal e As System.Web.UI.WebControls.GridViewRowEventArgs)
+        If e.Row.RowType = DataControlRowType.DataRow Then
+            CType(e.Row.FindControl("sql2"), SqlDataSource).SelectParameters("ROW_ID").DefaultValue = DataBinder.Eval(e.Row.DataItem, "ROW_ID")
+        End If
+    End Sub
+    
+    Protected Sub gv2_RowDataBound(ByVal sender As Object, ByVal e As System.Web.UI.WebControls.GridViewRowEventArgs)
+        If e.Row.RowType = DataControlRowType.DataRow Then
+            Dim lblAnswer As Label = CType(e.Row.FindControl("lblAnswer"), Label)
+            Dim question_id As String = DataBinder.Eval(e.Row.DataItem, "QUESTION_ID")
+            Select Case DataBinder.Eval(e.Row.DataItem, "QUESTION_TYPE")
+                Case "Ranking"
+                    Dim sb As New StringBuilder
+                    Dim dt As DataTable = dbUtil.dbGetDataTable("MyLocal", String.Format("select answer_name from survey_answer where question_id='{0}' order by answer_index", question_id))
+                    Dim answers() As String = lblAnswer.Text.Split("|")
+                    For i As Integer = 0 To dt.Rows.Count - 1
+                        sb.AppendFormat("<font color='black'>" + dt.Rows(i).Item(0) + "</font> : " + answers(i) + "<br/>")
+                    Next
+                    If answers(dt.Rows.Count + 1) <> "" Then
+                        sb.AppendFormat("<font color='black'>" + answers(dt.Rows.Count + 1) + "</font> : " + answers(dt.Rows.Count) + "<br/>")
+                    End If
+                    lblAnswer.Text = sb.ToString
+                Case "MultipleChoiceMultipleAnswers"
+                    lblAnswer.Text = lblAnswer.Text.Replace("|", "<br/>")
+            End Select
+        End If
+    End Sub
+    
+    Public Function GetReport(Optional ByVal ConvertGrade As Boolean = False) As DataTable
+        Dim dtQ As DataTable = dbUtil.dbGetDataTable("MYLOCAL", String.Format("select question_id, question_index, question_seq from survey_question where survey_id='{0}' and question_seq<>'' and question_type <> 'ContactInfo' order by question_index", Request("sid")))
+        If dtQ.Rows.Count > 0 Then
+            Dim dtR As New DataTable
+            With dtR.Columns
+                .Add("Email")
+                For Each row As DataRow In dtQ.Rows
+                    .Add("Q" + row.Item("question_seq").ToString)
+                Next
+                .Add("Timestamp") : .Add("Personal Info")
+            End With
+            Dim dt As DataTable = dbUtil.dbGetDataTable("MYLOCAL", String.Format("select a.*, b.question_index, b.question_seq, b.question_type, (select top 1 isnull(c.name,'') +'<br/>'+ isnull(c.company,'') +'<br/>'+ isnull(c.phone,'') +'<br/>'+ isnull(c.job,'') from survey_personal_info c where c.result_id=a.row_id) as personal_info, isnull(d.answer_grade,0) as answer_grade, e.comment, d.answer_name from survey_result a inner join survey_question b on a.question_id=b.question_id left join survey_answer d on d.answer_id=a.answer_id and d.question_id=b.question_id left join survey_result_comment e on a.comment_id=e.row_id where a.survey_id='{0}' order by a.timestamp desc", Request("sid")))
+            Try
+                If dt.Rows.Count > 0 Then
+                    For Each row As DataRow In dt.Rows
+                        Dim dr() As DataRow = dtR.Select(String.Format("email='{0}' and timestamp='{1}'", row.Item("user_id"), row.Item("timestamp")))
+                        Select Case row.Item("question_type")
+                            Case QuestionType.Essay.ToString
+                                row.Item("answer_name") = row.Item("comment").ToString.Replace("<br/>", vbCrLf)
+                            Case QuestionType.Ranking.ToString
+                                row.Item("answer_name") = row.Item("answer") + " " + row.Item("answer_name")
+                            Case Else
+                                If ConvertGrade Then row.Item("answer_name") = CInt(row.Item("answer_grade"))
+                        End Select
+                        If dr.Length = 0 Then
+                            Dim r As DataRow = dtR.NewRow
+                            r.Item("Email") = row.Item("user_id") : r.Item("Q" + row.Item("question_seq").ToString) = row.Item("answer_name")
+                            r.Item("Timestamp") = row.Item("timestamp") : r.Item("Personal Info") = row.Item("personal_info")
+                            dtR.Rows.Add(r)
+                        Else
+                            dr(0).Item("Email") = row.Item("user_id") : dr(0).Item("Q" + row.Item("question_seq").ToString) += row.Item("answer_name") + vbCrLf
+                            dtR.AcceptChanges()
+                        End If
+                    Next
+                End If
+            Catch ex As Exception
+                Response.Write(ex.ToString)
+            End Try
+            
+            Return dtR
+        End If
+        Return Nothing
+    End Function
+    
+    Protected Sub btnToXls1_Click(ByVal sender As Object, ByVal e As System.EventArgs)
+        'Dim sb As New StringBuilder
+        'With sb
+        '    .AppendFormat(" select distinct user_id, region, timestamp as date, ")
+        '    .AppendFormat(" isnull((select top 1 z.answer from survey_result z where z.question_id='8066ca1679' and z.row_id=a.row_id),'') as Q1, ")
+        '    .AppendFormat(" isnull((select top 1 z.answer from survey_result z where z.question_id='4662929a59' and z.row_id=a.row_id),'') as Q2, ")
+        '    .AppendFormat(" isnull((select top 1 z.answer from survey_result z where z.question_id='03acd43301' and z.row_id=a.row_id),'') as Q3, ")
+        '    .AppendFormat(" isnull((select top 1 z.answer from survey_result z where z.question_id='d534544b38' and z.row_id=a.row_id),'') as Q4, ")
+        '    .AppendFormat(" isnull((select top 1 z.answer from survey_result z where z.question_id='a57fdd7e90' and z.row_id=a.row_id),'') as Q5, ")
+        '    .AppendFormat(" isnull((select top 1 z.answer from survey_result z where z.question_id='9d36fd7ce2' and z.row_id=a.row_id),'') as Q6 ")
+        '    .AppendFormat(" from survey_result a ")
+        '    .AppendFormat(" where a.row_id in (select distinct row_id from survey_result where survey_id is null or survey_id='') ")
+        'End With
+        'Dim dt As DataTable = dbUtil.dbGetDataTable("MyLocal", sb.ToString)
+        'For Each row As DataRow In dt.Rows
+        '    Dim answer() As String = row.Item("Q1").ToString.Split("|")
+        '    Dim dt1 As DataTable = dbUtil.dbGetDataTable("MyLocal", String.Format("select answer_name from survey_answer where question_id='8066ca1679' order by answer_index"))
+        '    Dim arr As New ArrayList
+        '    For i As Integer = 0 To dt1.Rows.Count - 1
+        '        arr.Add(dt1.Rows(i).Item(0) + " : " + answer(i))
+        '    Next
+        '    If answer(dt1.Rows.Count + 1) <> "" Then
+        '        arr.Add(answer(dt1.Rows.Count + 1) + " : " + answer(dt1.Rows.Count))
+        '    End If
+        '    row.Item("Q1") = String.Join(vbCrLf, arr.ToArray())
+        '    row.Item("Q3") = row.Item("Q3").ToString.Replace("<br/>", vbCrLf)
+        '    row.Item("Q4") = row.Item("Q4").ToString.Replace("<br/>", vbCrLf)
+        '    row.Item("Q5") = row.Item("Q5").ToString.Replace("<br/>", vbCrLf)
+        '    row.Item("Q6") = row.Item("Q6").ToString.Replace("<br/>", vbCrLf)
+        '    row.AcceptChanges()
+        'Next
+        Dim dt As DataTable = GetReport(IIf(cbGrade.Checked, True, False))
+        DataTable2ExcelDownload(dt, "Survey Report.xls")
+    End Sub
+    
+    Public Shared Sub DataTable2ExcelDownload(ByVal dt As DataTable, ByVal FileName As String)
+        Util.SetASPOSELicense()
+        Dim wb As New Aspose.Cells.Workbook
+        wb.Worksheets.Add(Aspose.Cells.SheetType.Worksheet)
+        For i As Integer = 0 To dt.Columns.Count - 1
+            wb.Worksheets(0).Cells(0, i).PutValue(dt.Columns(i).ColumnName)
+        Next
+        For i As Integer = 0 To dt.Rows.Count - 1
+            For j As Integer = 0 To dt.Columns.Count - 1
+                If IsDate(dt.Rows(i).Item(j)) Then
+                    wb.Worksheets(0).Cells(i + 1, j).PutValue(dt.Rows(i).Item(j).ToString)
+                Else
+                    If Not IsDBNull(dt.Rows(i).Item(j)) AndAlso Integer.TryParse(dt.Rows(i).Item(j), 0) Then
+                        wb.Worksheets(0).Cells(i + 1, j).PutValue(CInt(dt.Rows(i).Item(j)))
+                    Else
+                        wb.Worksheets(0).Cells(i + 1, j).PutValue(dt.Rows(i).Item(j))
+                    End If
+                End If
+            Next
+        Next
+        With HttpContext.Current.Response
+            'If FileName.StartsWith("AEUIT") = False Then FileName = "AEUIT_" + FileName
+            .Clear()
+            .ContentType = "application/vnd.ms-excel"
+            .AddHeader("Content-Disposition", String.Format("attachment; filename={0};", FileName))
+            .BinaryWrite(wb.SaveToStream().ToArray)
+        End With
+    End Sub
+
+    Protected Sub Page_Load(ByVal sender As Object, ByVal e As System.EventArgs)
+        If Not Page.IsPostBack Then
+            If Request.IsAuthenticated = False Then
+                Dim strRuntimeSiteUrl As String = Util.GetRuntimeSiteUrl()
+                Response.Redirect(strRuntimeSiteUrl & "/home.aspx?ReturnUrl=" & strRuntimeSiteUrl & "/EC/Surveys/SurveyReport.aspx?sid=" & Request("sid"))
+            End If
+            gvR.DataSource = GetReport()
+            gvR.DataBind()
+        End If
+    End Sub
+
+    Protected Sub gvR_RowDataBoundDataRow(ByVal sender As Object, ByVal e As System.Web.UI.WebControls.GridViewRowEventArgs)
+        If e.Row.RowType = DataControlRowType.DataRow Then
+            For i As Integer = 1 To e.Row.Cells.Count - 1
+                e.Row.Cells(i).Text = e.Row.Cells(i).Text.Replace(vbCrLf, "<br/>").Replace("&lt;br/&gt;", "")
+            Next
+        End If
+    End Sub
+
+    Protected Sub cbGrade_CheckedChanged(ByVal sender As Object, ByVal e As System.EventArgs)
+        gvR.DataSource = GetReport(IIf(cbGrade.Checked, True, False))
+        gvR.DataBind() : up1.Update()
+    End Sub
+</script>
+
+<asp:Content ID="Content1" ContentPlaceHolderID="_main" Runat="Server">
+    <table>
+        <tr><td><uc2:FunctionLinks runat="server" ID="ucFunctionLinks" /></td></tr>
+        <tr><td height="10"></td></tr>
+        <tr>
+            <th align="left"><font size="4">Survey Report</font></th>
+        </tr>
+        <tr><td height="20"></td></tr>
+        <tr>
+            <td>
+                <table>
+                    <tr><td><asp:Image runat="server" ID="imgExcel1" ImageUrl="~/Images/excel.gif" /><asp:LinkButton runat="server" ID="btnToXls1" Text="Export To Excel" OnClick="btnToXls1_Click" /></td></tr>
+                    <tr><td><asp:CheckBox runat="server" ID="cbGrade" AutoPostBack="true" Text=" Show Answer as grade" OnCheckedChanged="cbGrade_CheckedChanged" /></td></tr>
+                    <tr>
+                        <td>
+                            <asp:UpdatePanel runat="server" ID="up1" UpdateMode="Conditional">
+                                <ContentTemplate>
+                                    <sgv:SmartGridView runat="server" ID="gvR" Width="100%" AutoGenerateColumns="true" OnRowDataBoundDataRow="gvR_RowDataBoundDataRow">
+                                        <Columns>
+                                            <asp:TemplateField ItemStyle-Width="50px" ItemStyle-ForeColor="#636563" 
+                                                ItemStyle-HorizontalAlign="Center">
+                                                <headertemplate>
+                                                    No.
+                                                </headertemplate>
+                                                <itemtemplate>
+                                                    <%# Container.DataItemIndex + 1 %>.
+                                                </itemtemplate>
+                                            </asp:TemplateField>
+                                        </Columns>
+                                        <FixRowColumn FixColumns="0" TableWidth="900px" TableHeight="600px" />
+                                    </sgv:SmartGridView>
+                                </ContentTemplate>
+                                <Triggers>
+                                    <asp:AsyncPostBackTrigger ControlID="cbGrade" EventName="CheckedChanged" />
+                                </Triggers>
+                            </asp:UpdatePanel>
+                        </td>
+                    </tr>
+                </table>
+                
+                
+                <%--<asp:GridView runat="server" ID="gv1" Width="100%" AutoGenerateColumns="false" DataSourceID="sql1" OnRowDataBound="gv1_RowDataBound">
+                    <Columns>
+                        <asp:BoundField DataField="user_id" HeaderText="Participate" />
+                        <asp:TemplateField HeaderText="Answer">
+                            <ItemTemplate>
+                                <asp:GridView runat="server" ID="gv2" AutoGenerateColumns="false" EnableTheming="false" DataSourceID="sql2" ShowHeader="false" BorderWidth="0" BorderColor="White" OnRowDataBound="gv2_RowDataBound">
+                                    <Columns>
+                                        <asp:TemplateField>
+                                            <ItemTemplate>
+                                                <table width="100%" border="0">
+                                                    <tr>
+                                                        <th width="20" align="left" valign="top">
+                                                            <font color="gray" size="3"><%# Eval("question_index") %>.</font>
+                                                        </th>
+                                                        <td align="left"><%#Eval("question_title")%></td>
+                                                    </tr>
+                                                    <tr><td colspan="2"></td></tr>
+                                                    <tr>
+                                                        <td></td>
+                                                        <td align="left"><asp:label runat="server" ID="lblAnswer" Text='<%#Eval("answer") %>' ForeColor="Red" /></td>
+                                                    </tr>
+                                                </table>
+                                            </ItemTemplate>
+                                        </asp:TemplateField>
+                                    </Columns>
+                                </asp:GridView>
+                                <asp:SqlDataSource runat="server" ID="sql2" ConnectionString="<%$ connectionStrings:MYLocal %>"
+                                    SelectCommand="select a.*, b.question_title, b.question_type, b.question_index from survey_result a left join survey_question b on a.question_id=b.question_id where a.row_id=@ROW_ID">
+                                    <SelectParameters>
+                                        <asp:Parameter Name="ROW_ID" Type="String" />
+                                    </SelectParameters>
+                                </asp:SqlDataSource>
+                            </ItemTemplate>
+                        </asp:TemplateField>
+                        <asp:BoundField DataField="timestamp" HeaderText="Date" />
+                    </Columns>
+                </asp:GridView>
+                <asp:SqlDataSource runat="server" ID="sql1" ConnectionString="<%$ connectionStrings:MYLocal %>"
+                    SelectCommand="select distinct row_id, user_id, timestamp, survey_id from survey_result where survey_id=@survey_id order by timestamp desc">
+                    <SelectParameters>
+                        <asp:QueryStringParameter Name="survey_id" QueryStringField="sid" Type="String" />
+                    </SelectParameters>
+                </asp:SqlDataSource>--%>
+            </td>
+        </tr>
+        <tr><td height="10"></td></tr>
+    </table>
+</asp:Content>
+

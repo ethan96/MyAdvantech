@@ -1,0 +1,12 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<ordesignerObjectsDiagram dslVersion="1.0.0.0" absoluteBounds="0, 0, 11, 8.5" name="CHANNELTRAINING">
+  <DataContextMoniker Name="/CHANNELTRAININGDataContext" />
+  <nestedChildShapes>
+    <classShape Id="915683a6-8227-4c97-b6ae-2ad4768419ae" absoluteBounds="3.5, 2.5, 2, 1.5891951497395831">
+      <DataClassMoniker Name="/CHANNELTRAININGDataContext/CHANNEL_TRAINING" />
+      <nestedChildShapes>
+        <elementListCompartment Id="fb5dd7dd-2924-43d9-b001-756db0e09608" absoluteBounds="3.515, 2.96, 1.9700000000000002, 1.0291951497395833" name="DataPropertiesCompartment" titleTextColor="Black" itemTextColor="Black" />
+      </nestedChildShapes>
+    </classShape>
+  </nestedChildShapes>
+</ordesignerObjectsDiagram>

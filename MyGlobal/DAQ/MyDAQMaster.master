@@ -1,0 +1,488 @@
+﻿<%@ Master Language="VB" %>
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<script runat="server">
+
+    Protected Sub Page_Load(ByVal sender As Object, ByVal e As System.EventArgs)
+        If LCase(Request.ServerVariables("PATH_INFO")) Like "*daq/default.aspx*" Then
+            tb_menu.Visible = False
+        End If
+        If Not IsPostBack() Then
+            If LCase(Request.ServerVariables("Query_String")) Like "*bjst*" Then
+                Session("bjst") = "bjst"
+            Else
+                ' Session("bjst") = ""
+            End If
+        End If
+        If Session("bjst") IsNot Nothing AndAlso Session("bjst").ToString = "bjst" Then
+            Hide1.Visible = False : Hide3.Visible = False
+            Hide2.InnerHtml = "<img src=""image/header.jpg"" />"
+            foot1.Visible = False
+        Else
+            foot2.Visible = False
+        End If
+    End Sub
+    Public Head_title9 As String = "", Page_Title As String = "", Page_Keywords = ""
+    Protected Sub Page_Init(ByVal sender As Object, ByVal e As System.EventArgs)
+        If Not IsPostBack Then
+        
+            If Session("Browser_lan") Is Nothing OrElse Session("Browser_lan").ToString() = "" Then
+                If Request.ServerVariables("HTTP_ACCEPT_LANGUAGE") IsNot Nothing AndAlso Request.ServerVariables("HTTP_ACCEPT_LANGUAGE").ToString.Trim <> "" Then
+                    Dim lan As String = Request.ServerVariables("HTTP_ACCEPT_LANGUAGE").ToString.ToLower
+                    Select Case 1
+                        Case InStr(lan, "zh-cn")
+                            Session("Browser_lan") = "zh-cn"
+                        Case InStr(lan, "zh-tw")
+                            ' Session("Browser_lan") = "zh-tw"
+                            Session("Browser_lan") = "en"
+                        Case Else
+                            Session("Browser_lan") = "en"
+                    End Select
+                Else
+                    Session("Browser_lan") = "en"
+                End If
+                                     
+            End If
+        
+        End If
+        
+        If Session("Browser_lan") IsNot Nothing AndAlso Session("Browser_lan").ToString() <> "" Then
+            Dim lan As String = Session("Browser_lan").ToString.ToLower
+            Select Case lan
+                Case "zh-cn"
+                    Head_title1id.Text = "首页" : Head_title1id.NavigateUrl = "http://www.advantech.com.cn"
+                    Head_title2id.Text = "研华产品" : Head_title2id.NavigateUrl = "http://www.advantech.com.cn/products/Data-Acquisition-(DAQ)-Control/sub_1-2MLJZA.aspx"
+                    Head_title3id.Text = "解决方案" : Head_title3id.NavigateUrl = "http://www.advantech.com.cn/sector/default.aspx"
+                    Head_title4id.Text = "合作伙伴" : Head_title4id.NavigateUrl = "http://www.advantech.com.cn/solutions/"
+                    Head_title5id.Text = "技术支持" : Head_title5id.NavigateUrl = "http://support.advantech.com.cn/support/default.aspx"
+                    Head_title6id.Text = "服务" : Head_title6id.NavigateUrl = "http://www.advantech.com.cn/ags/"
+                    Head_title7id.Text = "联系我们" : Head_title7id.NavigateUrl = "http://www.advantech.com.cn/contact/"
+                    Head_title8id.Text = "在线购买" : Head_title8id.NavigateUrl = "http://buy.advantech.com.cn/"
+                    Head_title9 = "搜索"
+                    lan1.Enabled = False
+                    Labdi1.Text = "订阅RSS" : Labdi2.Text = "网站地图" : Labdi3.Text = "隐私权政策"
+                    Me.A1.Attributes.Add("onMouseOver", "MM_swapImage('" + Image61.ClientID + "','','./image/Jbar-1_05_2.jpg',1)")
+                    Me.A2.Attributes.Add("onMouseOver", "MM_swapImage('" + Image60.ClientID + "','','./image/Jbar-1_07_2.jpg',1)")
+                    Me.A3.Attributes.Add("onMouseOver", "MM_swapImage('" + Image62.ClientID + "','','./image/Jbar-1_09_2.jpg',1)")
+                    Image61.Src = "./image/Jbar-1_05.jpg"
+                    Image60.Src = "./image/Jbar-1_07.jpg"
+                    Image62.Src = "./image/Jbar-1_09.jpg"
+                    A3.HRef = "http://www.advantech.com.cn/eautomation/data-acquisition-control/"
+                    Page_Title = "研华DAQ Your Way为您配置理想的数据采集解决方案"
+                    Page_Keywords = "advantech,data acquisition,daq,digital io,analog io,pci card,pci board,pci 104,pc/104,pci-104,usb data acquisition, advantech adam,ethernet io,remote io,distributed io,industrial io,rs-485 io,isa card,isa board"
+                    Page_Copy.Text = "版权所有 &copy; 1983-2011 研华科技股份有限公司，保留所有权利"
+                Case "zh-tw"
+                    Head_title1id.Text = "首頁" : Head_title1id.NavigateUrl = "http://www.advantech.tw/"
+                    Head_title2id.Text = "產品資訊" : Head_title2id.NavigateUrl = "http://www.advantech.tw/products/Data-Acquisition-(DAQ)-Control/sub_1-2MLJZA.aspx"
+                    Head_title3id.Text = "解決方案" : Head_title3id.NavigateUrl = "http://www.advantech.tw/sector/default.aspx"
+                    Head_title4id.Text = "策略聯盟" : Head_title4id.NavigateUrl = "http://www.advantech.tw/solutions/"
+                    Head_title5id.Text = "技術支援" : Head_title5id.NavigateUrl = "http://support.advantech.com.tw/support/default.aspx"
+                    Head_title6id.Text = "產品服務" : Head_title6id.NavigateUrl = "http://www.advantech.tw/ags/"
+                    Head_title7id.Text = "聯絡研華" : Head_title7id.NavigateUrl = "http://www.advantech.tw/contact/"
+                    Head_title8id.Text = "線上商店" : Head_title8id.NavigateUrl = "http://buy.advantech.com.tw/"
+                    Head_title9 = "搜索"
+                    lan2.Enabled = False
+                    Labdi1.Text = "訂閱RSS" : Labdi2.Text = "網站地圖" : Labdi3.Text = "隱私權政策"
+                    Me.A1.Attributes.Add("onMouseOver", "MM_swapImage('" + Image61.ClientID + "','','./image/Fbar-1_05_2.jpg',1)")
+                    Me.A2.Attributes.Add("onMouseOver", "MM_swapImage('" + Image60.ClientID + "','','./image/Fbar-1_07_2.jpg',1)")
+                    Me.A3.Attributes.Add("onMouseOver", "MM_swapImage('" + Image62.ClientID + "','','./image/Fbar-1_09_2.jpg',1)")
+                    Image61.Src = "./image/Fbar-1_05.jpg"
+                    Image60.Src = "./image/Fbar-1_07.jpg"
+                    Image62.Src = "./image/Fbar-1_09.jpg"
+                    A3.HRef = "http://buy.advantech.com.tw/seo/data-acquisition-module.htm"
+                    Page_Title = "研華DAQ Your Way．最好用的資料擷取產品選型工具．多功能資料擷取卡/USB資料擷取模組/遠端資料擷取模組輕鬆搞定"
+                    Page_Keywords = "研華,工業用資料擷取,資料擷取板,數位資料擷取,類比資料擷取,運動控制卡,usb 資料擷取,運動控制,運動控制器,daq"
+                    Page_Copy.Text = "版權所有 &copy; 1983-2011 研華科技股份有限公司，保留所有權利"
+                Case Else
+                    Dim Domainstr As String = Request.Url.Host.ToLower
+                    If InStr(Domainstr, "daqyourway.advantech.eu") > 0 Then
+                        Head_title1id.Text = "Home" : Head_title1id.NavigateUrl = "http://www.advantech.eu"
+                        Head_title2id.Text = "Products" : Head_title2id.NavigateUrl = "http://www.advantech.eu/products/Data-Acquisition-%28DAQ%29-Control/sub_1-2MLJZA.aspx"
+                        Head_title3id.Text = "Solutions" : Head_title3id.NavigateUrl = "http://www.advantech.eu/sector/default.aspx"
+                        Head_title4id.Text = "Partners" : Head_title4id.NavigateUrl = "http://www.advantech.eu/partner/"
+                        Head_title5id.Text = "Support" : Head_title5id.NavigateUrl = "http://support.advantech.com.tw/support/new_default.aspx"
+                        Head_title6id.Text = "Contact" : Head_title6id.NavigateUrl = "http://www.advantech.eu/contact/"
+                        Head_title7id.Text = "Resources" : Head_title7id.NavigateUrl = "http://support.advantech.com.tw/OnlineResources/index.aspx"
+                        Head_title8id.Text = "eStore" : Head_title8id.NavigateUrl = "http://buy.advantech.eu/storelocator.aspx?f=www.advantech.com"
+                    Else
+                        Head_title1id.Text = "Home" : Head_title1id.NavigateUrl = "http://www.advantech.com"
+                        Head_title2id.Text = "Products" : Head_title2id.NavigateUrl = "http://www.advantech.com/products/Data-Acquisition-%28DAQ%29-Control/sub_1-2MLJZA.aspx"
+                        Head_title3id.Text = "Solutions" : Head_title3id.NavigateUrl = "http://www.advantech.com/sector/default.aspx"
+                        Head_title4id.Text = "Partners" : Head_title4id.NavigateUrl = "http://www.advantech.com/solutions/"
+                        Head_title5id.Text = "Support" : Head_title5id.NavigateUrl = "http://support.advantech.com"
+                        Head_title6id.Text = "Contact" : Head_title6id.NavigateUrl = "http://www.advantech.com/contact/"
+                        Head_title7id.Text = "Resources" : Head_title7id.NavigateUrl = "http://resources.advantech.com/"
+                        Head_title8id.Text = "eStore" : Head_title8id.NavigateUrl = "http://buy.advantech.com/storelocator.aspx?f=www.advantech.com"
+                    End If
+                 
+                    Head_title9 = "Search"
+                    lan3.Enabled = False
+                    Me.A1.Attributes.Add("onMouseOver", "MM_swapImage('" + Image61.ClientID + "','','./image/bar-1_05_2.jpg',1)")
+                    Me.A2.Attributes.Add("onMouseOver", "MM_swapImage('" + Image60.ClientID + "','','./image/bar-1_07_2.jpg',1)")
+                    Me.A3.Attributes.Add("onMouseOver", "MM_swapImage('" + Image62.ClientID + "','','./image/bar-1_09_2.jpg',1)")
+                    Image61.Src = "./image/bar-1_05.jpg"
+                    Image60.Src = "./image/bar-1_07.jpg"
+                    Image62.Src = "./image/bar-1_09.jpg"
+                    Page_Title = "Advantech DAQ Your Way - Click, Search, and Discover the Perfect Data Acquisition Solution"
+                    Page_Keywords = "advantech,data acquisition,daq,digital io,analog io,pci card,pci board,pci 104,pc/104,pci-104,usb data acquisition, advantech adam,ethernet io,remote io,distributed io,industrial io,rs-485 io,isa card,isa board"
+            End Select
+            ' add head
+            Dim head As HtmlHead = CType(Page.Header, HtmlHead)
+            Dim keywordMeta As New HtmlMeta()
+            keywordMeta.Name = "keywords"
+            keywordMeta.Content = Page_Keywords
+            Dim detailMeta As New HtmlMeta()
+            detailMeta.Name = "Description"
+            detailMeta.Content = "Advantech’s DAQ Your Way program provides a user-friendly online tool to help you find the right data acquisition product for your application. After answering a few simple questions, we will provide a list for products that meet your needs with links for more information and online purchasing. Even if you can’t find the exact product you’re looking for, Advantech can provide customized options."
+            head.Controls.Add(keywordMeta)
+            head.Controls.Add(detailMeta)
+            ' end
+        End If
+    End Sub
+
+    Protected Sub lan1_Click(ByVal sender As Object, ByVal e As System.EventArgs)
+        Session("Browser_lan") = "zh-cn"
+        Session("q1_vid") = ""
+        Session("q2_vid") = ""
+        Session("q3_vid") = ""
+        Session("q4_vid") = ""
+        If Request.ServerVariables("HTTP_REFERER") IsNot Nothing Then Response.Redirect(Request.ServerVariables("HTTP_REFERER"))
+    End Sub
+    Protected Sub lan2_Click(ByVal sender As Object, ByVal e As System.EventArgs)
+        Session("Browser_lan") = "zh-tw"
+        Session("q1_vid") = ""
+        Session("q2_vid") = ""
+        Session("q3_vid") = ""
+        Session("q4_vid") = ""
+        If Request.ServerVariables("HTTP_REFERER") IsNot Nothing Then Response.Redirect(Request.ServerVariables("HTTP_REFERER"))
+    End Sub
+    Protected Sub lan3_Click(ByVal sender As Object, ByVal e As System.EventArgs)
+        Session("Browser_lan") = "en"
+        Session("q1_vid") = ""
+        Session("q2_vid") = ""
+        Session("q3_vid") = ""
+        Session("q4_vid") = ""
+        If Request.ServerVariables("HTTP_REFERER") IsNot Nothing Then Response.Redirect(Request.ServerVariables("HTTP_REFERER"))
+    End Sub
+</script>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head runat="server">
+    <title>
+        <%= Page_Title %></title>
+    <link href="css.css" rel="stylesheet" type="text/css" />
+    <link rel="Shortcut Icon" href="./image/favicon.ico" />
+    <script type="text/javascript">
+        var GB_ROOT_DIR = "./greybox/";
+    </script>
+    <script type="text/javascript" src="greybox/AJS.js"></script>
+    <script type="text/javascript" src="greybox/AJS_fx.js"></script>
+    <script type="text/javascript" src="greybox/gb_scripts.js"></script>
+    <link href="greybox/gb_styles.css" rel="stylesheet" type="text/css" media="all" />
+    <script type="text/javascript">
+        function search_advantech() {
+            var item = document.getElementById("search_box").value;
+            if (item == "") { alert("The Keyword can't empty"); return false; }
+            window.open('http://my-global.advantech.eu/Product/ProductSearch.aspx?key=' + item);
+            // location.replace('http://my-global.advantech.eu/Product/ProductSearch.aspx?key=' + item);
+        }
+    </script>
+</head>
+<body onload="onload_get_wishlist();">
+    <form id="form1" runat="server">
+    <ajaxToolkit:ToolkitScriptManager runat="server" ID="tlsm1" AsyncPostBackTimeout="600"
+        EnableScriptGlobalization="true" EnableScriptLocalization="true" EnablePageMethods="true"
+        ScriptMode="Debug">
+    </ajaxToolkit:ToolkitScriptManager>
+    <%-- <marquee>系統正在維護，請稍候再試... 謝謝！</marquee> --%>
+    <div>
+        <div class="DivHeader" style="z-index: 1;">
+            <!-- Header Start -->
+            <table style="margin-left: 20px;" width="890" border="0" cellspacing="0" cellpadding="0">
+                <tr id="Hide1" runat="server">
+                    <td width="180" height="27">
+                        <a href="/" id="ctl00_Header_Corp2_logo" title="Advantech">
+                            <img alt="Advantech" border="0" src="./image/logo_advantech.gif" style="height: 35px;
+                                border-width: 0px;" />
+                        </a>
+                    </td>
+                    <td width="710" align="right" style="text-align: right;" class="text">
+                        <table align="right">
+                            <tr>
+                                <td>
+                                    <!-- AddThis Button BEGIN -->
+                                    <div class="addthis_toolbox addthis_default_style">
+                                        <a href="http://www.addthis.com/bookmark.php?v=250&amp;username=daqyourway100" class="addthis_button_compact">
+                                            Share</a> <span class="addthis_separator">|</span> <a class="addthis_button_preferred_1">
+                                            </a><a class="addthis_button_preferred_2"></a><a class="addthis_button_preferred_3">
+                                            </a><a class="addthis_button_preferred_4"></a>
+                                    </div>
+                                    <script type="text/javascript">                                        var addthis_config = { "data_track_clickback": true };</script>
+                                    <script type="text/javascript" src="http://s7.addthis.com/js/250/addthis_widget.js#username=daqyourway100"></script>
+                                    <!-- AddThis Button END -->
+                                </td>
+                                <td width="25">
+                                </td>
+                                <td>
+                                    <asp:LinkButton ID="lan1" CssClass="lantext" runat="server" OnClick="lan1_Click">[ 简体中文 ]</asp:LinkButton>
+                                    <asp:LinkButton ID="lan2" CssClass="lantext" runat="server" OnClick="lan2_Click">[ 繁體中文 ]</asp:LinkButton>
+                                    <asp:LinkButton ID="lan3" CssClass="lantext" runat="server" OnClick="lan3_Click">[ English ]</asp:LinkButton>
+                                    <a href="http://my-global.advantech.eu" target="_blank" style="color: #062F67;">MyAdvantech</a>
+                                </td>
+                            </tr>
+                        </table>
+                    </td>
+                </tr>
+                <tr>
+                    <td colspan="2" height="10" id="Hide2" runat="server">
+                    </td>
+                </tr>
+                <tr id="Hide3" runat="server">
+                    <td colspan="2">
+                        <table style="width: 100%;" border="0" cellspacing="0" cellpadding="0">
+                            <tr>
+                                <td width="7">
+                                    <img src="./image/menu_left.jpg" width="7" height="30" alt="" />
+                                </td>
+                                <td bgcolor="#E5E5E5">
+                                    <table style="width: 100%;" border="0" cellspacing="0" cellpadding="0" class="text">
+                                        <tr>
+                                            <td>
+                                                <span>
+                                                    <img src="./image/clear.gif" width="10" height="10" alt="" /></span> <span>
+                                                        <asp:HyperLink ID="Head_title1id" runat="server" CssClass="headlink" Target="_blank"></asp:HyperLink>
+                                                    </span><span>
+                                                        <img src="./image/clear.gif" width="10" height="10" alt="" /></span> <span>
+                                                            <asp:HyperLink ID="Head_title2id" runat="server" CssClass="headlink" Target="_blank"></asp:HyperLink>
+                                                        </span><span>
+                                                            <img src="./image/clear.gif" width="10" height="10" alt="" /></span>
+                                                <span>
+                                                    <asp:HyperLink ID="Head_title3id" runat="server" CssClass="headlink" Target="_blank"></asp:HyperLink>
+                                                </span><span>
+                                                    <img src="./image/clear.gif" width="10" height="10" alt="" /></span> <span>
+                                                        <asp:HyperLink ID="Head_title4id" runat="server" CssClass="headlink" Target="_blank"></asp:HyperLink>
+                                                    </span><span>
+                                                        <img src="./image/clear.gif" width="10" height="10" alt="" /></span> <span>
+                                                            <asp:HyperLink ID="Head_title5id" runat="server" CssClass="headlink" Target="_blank"></asp:HyperLink>
+                                                        </span><span></span><span></span><span>
+                                                            <img src="./image/clear.gif" width="10" height="10" alt="" /></span>
+                                                <span>
+                                                    <asp:HyperLink ID="Head_title6id" runat="server" CssClass="headlink" Target="_blank"></asp:HyperLink>
+                                                </span><span>
+                                                    <img id="ctl00_Header_Corp2_imgClear1" alt="" src="./image/clear.gif" style="height: 10px;
+                                                        width: 10px; border-width: 0px;" /></span> <span></span><span><a id="ctl00_Header_Corp2_Phone"
+                                                            style="cursor: pointer; color: #767373" target="_blank"></a></span><span>
+                                                                <asp:HyperLink ID="Head_title7id" runat="server" CssClass="headlink" Target="_blank"></asp:HyperLink>
+                                                            </span><span>
+                                                                <img src="./image/clear.gif" width="10" height="10" alt="" /></span>
+                                                <span>
+                                                    <img src="./image/cart.gif" width="22" height="16" alt="" /></span> <span>
+                                                        <asp:HyperLink ID="Head_title8id" runat="server" CssClass="headlink" Target="_blank"></asp:HyperLink>
+                                                    </span>
+                                            </td>
+                                            <td align="right" style="padding-right: 10px;">
+                                                <table>
+                                                    <tr>
+                                                        <td>
+                                                            <span><span id="ctl00_Header_Corp2_Label1" style="font-size: 12px">
+                                                                <%= Head_title9%></span> </span><span>
+                                                                    <input name="search_box" type="text" id="search_box" style="width: 160px;" />
+                                                                </span><span></span>
+                                                        </td>
+                                                        <td valign="middle">
+                                                            <img id="imgSearch" src="./image/btn_arrow.gif" style="cursor: pointer;" alt="" onclick='search_advantech();' />
+                                                        </td>
+                                                    </tr>
+                                                </table>
+                                            </td>
+                                        </tr>
+                                    </table>
+                                </td>
+                                <td style="width: 7px;">
+                                    <img src="./image/menu_right.jpg" width="7" height="30" alt="" />
+                                </td>
+                            </tr>
+                        </table>
+                    </td>
+                </tr>
+            </table>
+            <!-- Header End -->
+            <!-- Menubar -->
+            <script type="text/javascript">
+                function MM_swapImgRestore() { //v3.0
+                    var i, x, a = document.MM_sr; for (i = 0; a && i < a.length && (x = a[i]) && x.oSrc; i++) x.src = x.oSrc;
+                }
+
+                function MM_findObj(n, d) { //v4.01
+                    var p, i, x; if (!d) d = document; if ((p = n.indexOf("?")) > 0 && parent.frames.length) {
+                        d = parent.frames[n.substring(p + 1)].document; n = n.substring(0, p);
+                    }
+                    if (!(x = d[n]) && d.all) x = d.all[n]; for (i = 0; !x && i < d.forms.length; i++) x = d.forms[i][n];
+                    for (i = 0; !x && d.layers && i < d.layers.length; i++) x = MM_findObj(n, d.layers[i].document);
+                    if (!x && d.getElementById) x = d.getElementById(n); return x;
+                }
+
+                function MM_swapImage() { //v3.0
+                    var i, j = 0, x, a = MM_swapImage.arguments; document.MM_sr = new Array; for (i = 0; i < (a.length - 2); i += 3)
+                        if ((x = MM_findObj(a[i])) != null) { document.MM_sr[j++] = x; if (!x.oSrc) x.oSrc = x.src; x.src = a[i + 2]; }
+                }
+            </script>
+            <table runat="server" id="tb_menu" valign="top" style="margin-left: 20px;" width="890"
+                border="0" cellpadding="0" cellspacing="0">
+                <tr>
+                    <td colspan="3" height="4" valign="top">
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <img src="./image/bar-1_01.jpg" width="42" height="90" alt="">
+                    </td>
+                    <td>
+                        <table width="100%" border="0" cellspacing="0" cellpadding="0">
+                            <tr>
+                                <td>
+                                    <img src="./image/bar-1_02.jpg" alt="" width="286" height="67" border="0" usemap="#Map1">
+                                </td>
+                                <map name="Map1" id="Map1">
+                                    <area shape="rect" coords="26,5,280,60" href="./default.aspx?pn=2" target="_self" />
+                                </map>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <img src="./image/bar-1_14.jpg" width="286" height="23" alt="" border="0">
+                                </td>
+                            </tr>
+                        </table>
+                    </td>
+                    <td>
+                        <table width="100%" border="0" cellspacing="0" cellpadding="0">
+                            <tr>
+                                <td colspan="8">
+                                    <img src="./image/bar-1_03.jpg" width="562" height="11" alt="">
+                                </td>
+                            </tr>
+                            <tr>
+                                <td rowspan="2">
+                                    <img src="./image/bar-1_04.jpg" width="45" height="79" border="0" alt="">
+                                </td>
+                                <td>
+                                    <a href="default.aspx?pn=2" runat="server" id="A1" onmouseout="MM_swapImgRestore()">
+                                        <img src="./image/bar-1_05.jpg" runat="server" id="Image61" name="Image61" width="103"
+                                            height="38" border="0"></a>
+                                </td>
+                                <td rowspan="2">
+                                    <img src="./image/bar-1_06.jpg" width="18" height="79" border="0" alt="">
+                                </td>
+                                <td>
+                                    <a href="what.htm" title="What's DAQ Your Way" rel="gb_page_center[814, 399]" id="A2"
+                                        runat="server" onmouseout="MM_swapImgRestore()">
+                                        <img src="./image/bar-1_07.jpg" id="Image60" runat="server" name="Image60" width="197"
+                                            height="38" border="0"></a>
+                                </td>
+                                <td rowspan="2">
+                                    <img src="./image/bar-1_08.jpg" width="20" height="79" border="0" alt="">
+                                </td>
+                                <td>
+                                    <a href="http://www.advantech.com/eautomation/data-acquisition-control/" id="A3"
+                                        runat="server" target="_blank" onmouseout="MM_swapImgRestore()">
+                                        <img src="./image/bar-1_09.jpg" id="Image62" runat="server" name="Image62" width="124"
+                                            height="38" border="0" /></a>
+                                </td>
+                                <td rowspan="2">
+                                    <img src="./image/bar-1_10.jpg" width="55" height="79" border="0" alt="">
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <img src="./image/bar-1_11.jpg" width="103" height="41" border="0" alt="">
+                                </td>
+                                <td>
+                                    <img src="./image/bar-1_12.jpg" width="197" height="41" border="0" alt="">
+                                </td>
+                                <td>
+                                    <img src="./image/bar-1_13.jpg" width="124" height="41" border="0" alt="">
+                                </td>
+                            </tr>
+                        </table>
+                    </td>
+                </tr>
+            </table>
+            <!-- Menubar -->
+        </div>
+        <asp:ContentPlaceHolder ID="_main" runat="server">
+        </asp:ContentPlaceHolder>
+        <!-- Footer Start -->
+        <table style="margin-left: 20px; height: 25px;" width="890" border="0" cellpadding="0"
+            cellspacing="0" class="text_mini" bgcolor="#868F99">
+            <tr runat="server" id="foot1">
+                <td width="10" height="25">
+                    <img src="./image/clear.gif" alt="" width="10" height="10" />
+                </td>
+                <td style="width: 785px;" align="left">
+                    <span id="ctl00_Footer_Corp2_lblCopyRight" class="text_mini" style="color: White;">
+                        <asp:Literal runat="server" ID="Page_Copy">Copyright &copy; 1983-2011 Advantech Co., Ltd. All
+                Rights Reserved</asp:Literal>
+                    </span>
+                </td>
+                <td width="30%">
+                </td>
+                <td width="15">
+                    <img src="./image/arrow_white.gif" alt="" />
+                </td>
+                <td nowrap="nowrap" style="text-align: right;">
+                    <a href="http://www.advantech.com/rss/" class="text_mini" style="color: White;">
+                        <asp:Label ID="Labdi1" runat="server" Text="RSS"></asp:Label>
+                    </a>
+                </td>
+                <td style="width: 15px;">
+                </td>
+                <td width="15">
+                    <img src="./image/arrow_white.gif" alt="" />
+                </td>
+                <td nowrap="nowrap" style="text-align: right;">
+                    <a id="ctl00_Footer_Corp2_hlSiteMap" class="text_mini" href="http://www.advantech.com/sitemap/"
+                        style="color: White;">
+                        <asp:Label ID="Labdi2" runat="server" Text="Site Map"></asp:Label>
+                    </a>
+                </td>
+                <td style="width: 15px;">
+                </td>
+                <td width="15">
+                    <img src="./image/arrow_white.gif" alt="" />
+                </td>
+                <td nowrap="nowrap" style="text-align: right;">
+                    <a id="ctl00_Footer_Corp2_hlPolicy" class="text_mini" href="http://www.advantech.com/privacy.asp"
+                        style="color: White;">
+                        <asp:Label ID="Labdi3" runat="server" Text="Privacy Policy"></asp:Label>
+                    </a>
+                </td>
+                <td style="width: 15px;">
+                </td>
+                <td style="width: 10px;">
+                </td>
+            </tr>
+            <tr runat="server" id="foot2">
+                <td>
+                    <img src="image/footer.jpg" />
+                </td>
+            </tr>
+        </table>
+        <script type="text/javascript">
+
+            var _gaq = _gaq || [];
+            _gaq.push(['_setAccount', 'UA-2826869-51']);
+            _gaq.push(['_setDomainName', 'daqyourway.advantech.com']);
+            _gaq.push(['_setAllowLinker', true]);
+            _gaq.push(['_trackPageview']);
+
+            (function () {
+                var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+                ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+                var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+            })();
+
+        </script>
+        <!-- Footer End -->
+    </div>
+    </form>
+</body>
+</html>

@@ -1,0 +1,204 @@
+﻿<%@ Page Title="DataMining - Cross Product Line Selling Analysis" Language="VB" MasterPageFile="~/Includes/MyMaster.master" %>
+
+<script runat="server">
+    Function GetSql() As String
+        Dim sb As New System.Text.StringBuilder
+        With sb
+            .AppendLine(String.Format(" select top 10000 BASE_PN, CROSS_PN, BASE_ORDER, CROSS_ORDER, SECTOR, "))
+            .AppendLine(String.Format(" cast(CROSS_ORDER/cast(BASE_ORDER as float)*100 as numeric(18,2)) as Percentage "))
+            .AppendLine(String.Format(" from CONDITIONAL_CROSS_ORDER  "))
+            .AppendLine(String.Format(" where BASE_PN not like '%-BTO' and CROSS_PN not like '%-BTO' "))
+            If Trim(txtBasePN.Text) <> "" Then
+                .AppendLine(String.Format(" and BASE_PN like '{0}%' ", Trim(txtBasePN.Text).Replace("'", "''").Replace("*", "%")))
+            End If
+            If Trim(txtCrossPN.Text) <> "" Then
+                .AppendLine(String.Format(" and CROSS_PN like '{0}%' ", Trim(txtCrossPN.Text).Replace("'", "''").Replace("*", "%")))
+            End If
+            If rblSectors.SelectedIndex < 2 Then
+                .AppendLine(String.Format(" and SECTOR='{0}' ", rblSectors.SelectedValue))
+            End If
+            .AppendLine(String.Format(" order by BASE_ORDER*CROSS_ORDER/cast(BASE_ORDER as float) desc "))
+        End With
+        Return sb.ToString()
+    End Function
+
+    Protected Sub btnQuery_Click(sender As Object, e As System.EventArgs)
+        src1.SelectCommand = GetSql() : gv1.PageIndex = 0
+    End Sub
+
+    Protected Sub Page_Load(sender As Object, e As System.EventArgs)
+        If Not Page.IsPostBack Then
+            src1.SelectCommand = GetSql()
+        End If
+    End Sub
+
+    Protected Sub gv1_PageIndexChanging(sender As Object, e As System.Web.UI.WebControls.GridViewPageEventArgs)
+        src1.SelectCommand = GetSql()
+    End Sub
+
+    Protected Sub gv1_Sorting(sender As Object, e As System.Web.UI.WebControls.GridViewSortEventArgs)
+        src1.SelectCommand = GetSql()
+    End Sub
+    
+    Protected Sub gvRowCreated(ByVal sender As Object, ByVal e As System.Web.UI.WebControls.GridViewRowEventArgs)
+        If Not (e.Row Is Nothing) AndAlso e.Row.RowType = DataControlRowType.Header Then
+            Dim GridView1 As GridView = sender
+            For Each cell As TableCell In e.Row.Cells
+                If cell.HasControls Then
+                    Dim button As LinkButton = DirectCast(cell.Controls(0), LinkButton)
+                    If Not (button Is Nothing) Then
+                        Dim image As New ImageButton
+                        image.ImageUrl = "/Images/sort_1.jpg"
+                        image.CommandArgument = button.CommandArgument : image.CommandName = button.CommandName
+                        If GridView1.SortExpression = button.CommandArgument Then
+                            If GridView1.SortDirection = SortDirection.Ascending Then
+                                image.ImageUrl = "/Images/sort_2.jpg"
+                            Else
+                                image.ImageUrl = "/Images/sort_1.jpg"
+                            End If
+                        End If
+                        cell.Controls.Add(image)
+                    End If
+                End If
+            Next
+        End If
+    End Sub
+    
+    Protected Sub lnkBothOrder_Click(sender As Object, e As System.EventArgs)
+        div_Detail.Visible = True
+        Dim basePN As String = CType(CType(sender, LinkButton).NamingContainer.FindControl("hd_ROWBASEPN"), HiddenField).Value
+        Dim crossPN As String = CType(CType(sender, LinkButton).NamingContainer.FindControl("hd_ROWCROSSPN"), HiddenField).Value
+        lbBothOrder.Text = String.Format("Orders which contain both <b>{0}</b> and <b>{1}</b>", basePN, crossPN)
+        Dim sql As String = _
+            " select distinct a.order_no, dbo.DateOnly(a.order_date) as order_date, a.sector, b.COMPANY_NAME, b.ORG_ID, b.COUNTRY, b.city, b.VM  " + _
+            " from EAI_ORDER_LOG a inner join SAP_DIMCOMPANY b on a.Customer_ID=b.COMPANY_ID and a.org=b.ORG_ID  " + _
+            " where a.order_no in " + _
+            " ( " + _
+            " 	select distinct order_no from EAI_ORDER_LOG where order_no in  " + _
+            " 	( " + _
+            " 		select distinct order_no from EAI_ORDER_LOG  " + _
+            " 		where item_no='" + basePN + "' and orderyear>=2009  " + _
+            " 		and sector in ('eA KASF','EC-KA','eP KASF','ES-KA','IA-KA','iS-KA','KA','KA:eAutomation','KA:ePlatform','AOnline','EC-AOnline','EP-AOnline','ES-AOnline','IA-AOnline') " + _
+            " 	) and item_no='" + crossPN + "' " + _
+            " ) " + _
+            " order by dbo.DateOnly(a.order_date) desc "
+        gvBothOrders.DataSource = dbUtil.dbGetDataTable("MY", sql)
+        gvBothOrders.DataBind()
+    End Sub
+
+    Protected Sub lnkCloseDetail_Click(sender As Object, e As System.EventArgs)
+        div_Detail.Visible = False
+    End Sub
+
+    Protected Sub imgXls_Click(sender As Object, e As System.Web.UI.ImageClickEventArgs)
+        Util.DataTable2ExcelDownload(dbUtil.dbGetDataTable("MyDM", GetSql()), "CrossSellAnalysis.xls")
+    End Sub
+</script>
+<asp:Content ID="Content1" ContentPlaceHolderID="_main" runat="Server">
+    <table width="100%">
+        <tr>
+            <td>
+                <table>
+                    <tr>
+                        <th align="left">
+                            Part Number (Base):
+                        </th>
+                        <td>
+                            <ajaxToolkit:AutoCompleteExtender runat="server" ID="AutoCompleteExtender1" TargetControlID="txtBasePN"
+                                MinimumPrefixLength="2" ServiceMethod="GetPartNo" ServicePath="~/Services/AutoComplete.asmx" />
+                            <asp:TextBox runat="server" ID="txtBasePN" />
+                        </td>
+                        <th align="left">
+                            Part Number (Also Buy):
+                        </th>
+                        <td>
+                            <ajaxToolkit:AutoCompleteExtender runat="server" ID="AutoCompleteExtender2" TargetControlID="txtCrossPN"
+                                MinimumPrefixLength="2" ServiceMethod="GetPartNo" ServicePath="~/Services/AutoComplete.asmx" />
+                            <asp:TextBox runat="server" ID="txtCrossPN" />
+                        </td>                        
+                    </tr>
+                    <tr>
+                        <th align="left">Sector:</th>
+                        <td colspan="3">
+                            <asp:RadioButtonList runat="server" ID="rblSectors" RepeatColumns="3">
+                                <asp:ListItem Text="AOnline" Selected="True" Value="AOnline" />
+                                <asp:ListItem Text="Key Account" Value="KA" />
+                                <asp:ListItem Text="Both" />
+                            </asp:RadioButtonList>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td colspan="4">
+                            <asp:Button runat="server" ID="btnQuery" Text="Query" OnClick="btnQuery_Click" />
+                        </td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <asp:ImageButton runat="server" ID="imgXls" ImageUrl="~/Images/excel.gif" AlternateText="Download to Excel" OnClick="imgXls_Click" />
+                <asp:UpdatePanel runat="server" ID="up1" UpdateMode="Conditional">
+                    <ContentTemplate>
+                        <asp:GridView runat="server" ID="gv1" Width="100%" DataSourceID="src1" AutoGenerateColumns="false" 
+                            AllowPaging="true" AllowSorting="true" PageSize="100" PagerSettings-Position="TopAndBottom" 
+                            OnPageIndexChanging="gv1_PageIndexChanging" OnSorting="gv1_Sorting" OnRowCreated="gvRowCreated">
+                            <Columns>
+                                <asp:BoundField HeaderText="Part Number (Base)" DataField="BASE_PN" SortExpression="BASE_PN" />
+                                <asp:BoundField HeaderText="Part Number (Also Buy):" DataField="CROSS_PN" SortExpression="CROSS_PN" />
+                                <asp:BoundField HeaderText="# of Orders (Base)" DataField="BASE_ORDER" SortExpression="BASE_ORDER" ItemStyle-HorizontalAlign="Center" />
+                                <asp:TemplateField HeaderText="# of Orders (Both)" SortExpression="CROSS_ORDER" ItemStyle-HorizontalAlign="Center">
+                                    <ItemTemplate>
+                                        <asp:HiddenField runat="server" ID="hd_ROWBASEPN" Value='<%#Eval("BASE_PN") %>' />
+                                        <asp:HiddenField runat="server" ID="hd_ROWCROSSPN" Value='<%#Eval("CROSS_PN") %>' />
+                                        <asp:LinkButton runat="server" ID="lnkBothOrder" Text='<%#Eval("CROSS_ORDER") %>' OnClick="lnkBothOrder_Click" />
+                                    </ItemTemplate>
+                                </asp:TemplateField>
+                                <asp:TemplateField HeaderText="Percentage" SortExpression="Percentage" ItemStyle-HorizontalAlign="Center">
+                                    <ItemTemplate>
+                                        <%#Eval("Percentage")%>%
+                                    </ItemTemplate>
+                                </asp:TemplateField>
+                                <asp:BoundField HeaderText="Sector" DataField="SECTOR" SortExpression="SECTOR" ItemStyle-HorizontalAlign="Center" />
+                            </Columns>
+                        </asp:GridView>
+                        <asp:SqlDataSource runat="server" ID="src1" ConnectionString="<%$ConnectionStrings:MyDM %>" />
+                        <ajaxToolkit:AlwaysVisibleControlExtender ID="AlwaysVisibleControlExtender1" runat="server"
+                            TargetControlID="PanelDetail" HorizontalSide="Center" VerticalSide="Middle" HorizontalOffset="0"
+                            VerticalOffset="0" />
+                        <asp:Panel runat="server" ID="PanelDetail">
+                            <div runat="server" id="div_Detail" visible="false" style="background-color: white;
+                                border: solid 1px silver; padding: 10px; width: 800px; height: 620px; overflow: auto;">
+                                <table width="100%">
+                                    <tr>
+                                        <td>
+                                            <asp:LinkButton runat="server" ID="lnkCloseDetail" Text="Close" OnClick="lnkCloseDetail_Click" />
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>
+                                            <asp:Label runat="server" ID="lbBothOrder" />
+                                            <asp:GridView runat="server" ID="gvBothOrders" AutoGenerateColumns="false">
+                                                <Columns>
+                                                    <asp:HyperLinkField HeaderText="Order No." DataNavigateUrlFields="order_no" 
+                                                        DataNavigateUrlFormatString="~/DM/SingleOrderHistory.aspx?SONO={0}" DataTextField="order_no" Target="_blank" />
+                                                    <asp:BoundField HeaderText="Order Date" DataField="order_date" />
+                                                    <asp:BoundField HeaderText="Sector" DataField="sector" />
+                                                    <asp:BoundField HeaderText="Customer Name" DataField="COMPANY_NAME" />
+                                                    <asp:BoundField HeaderText="Vertial Market" DataField="VM" />
+                                                </Columns>
+                                            </asp:GridView>
+                                        </td>
+                                    </tr>
+                                </table>
+                            </div>
+                        </asp:Panel>
+                    </ContentTemplate>
+                    <Triggers>
+                        <asp:AsyncPostBackTrigger ControlID="btnQuery" EventName="Click" />
+                    </Triggers>
+                </asp:UpdatePanel>
+            </td>
+        </tr>
+    </table>
+</asp:Content>

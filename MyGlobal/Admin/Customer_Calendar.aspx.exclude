@@ -1,0 +1,372 @@
+﻿<%@ Page Language="VB" MasterPageFile="~/Includes/MyMaster.master" Title="Customer Calendar" %>
+
+<script runat="server">
+    Dim Companies As String = ""
+    Protected Sub Page_Load(ByVal sender As Object, ByVal e As System.EventArgs)
+        Me.txt_Company.BackColor = Drawing.Color.White
+        Me.txt_fCompany.BackColor = Drawing.Color.White
+        Me.txt_CalendarID.BackColor = Drawing.Color.Azure
+        Me.btn_Search.BackColor = Drawing.Color.LightGray
+        Me.btn_New.BackColor = Drawing.Color.LightGray
+        Me.btn_Copy.BackColor = Drawing.Color.LightGray
+        
+        Dim tb As New Table
+        For i As Integer = 0 To 11
+            Dim cell As New TableCell
+            Dim myCal As New Calendar
+            If Me.txt_Year.Text.Trim = "" Then
+                Me.txt_Year.Text = Now.Year.ToString
+            End If
+            myCal.VisibleDate = CDate(Me.txt_Year.Text.Trim & "-" & (i + 1) & "-1")
+            
+            myCal.SelectionMode = CalendarSelectionMode.Day
+           
+            '<style>
+            myCal.ShowNextPrevMonth = False
+            myCal.FirstDayOfWeek = WebControls.FirstDayOfWeek.Monday
+            myCal.OtherMonthDayStyle.ForeColor = System.Drawing.Color.LightGray
+            myCal.WeekendDayStyle.ForeColor = System.Drawing.Color.LightBlue
+            myCal.ShowGridLines = True
+            myCal.BorderColor = System.Drawing.Color.Silver
+            myCal.SelectedDayStyle.ForeColor = Drawing.Color.Black
+            myCal.SelectedDayStyle.BackColor = Drawing.Color.White
+            '</style>
+            
+            AddHandler myCal.DayRender, AddressOf myRender
+            AddHandler myCal.SelectionChanged, AddressOf mychange
+            AddHandler myCal.PreRender, AddressOf myRender
+            myCal.ID = "Cal" & (i + 1)
+            cell.Controls.Add(myCal)
+            If i Mod 4 = 0 Then
+                Dim row As New TableRow
+                row.Cells.Add(cell)
+                tb.Rows.Add(row)
+            Else
+                tb.Rows(Int(i / 4)).Cells.Add(cell)
+            End If
+        Next
+        Me.tdCalendar.Controls.Add(tb)
+        
+    End Sub
+    
+    
+    Sub myRender(ByVal sender As Object, ByVal e As System.Web.UI.WebControls.DayRenderEventArgs)
+        Dim o As Calendar = CType(sender, Calendar)
+        If e.Day.IsOtherMonth Then
+            e.Cell.Text = e.Day.Date.Day
+        Else
+            If Not IsNothing(ViewState("HolidayByCust")) AndAlso CType(ViewState("HolidayByCust"), DataTable).Select("hdate='" & e.Day.Date & "'").Length > 0 Then
+                e.Cell.BackColor = System.Drawing.Color.DarkOrange
+                e.Cell.ForeColor = System.Drawing.Color.White
+            End If
+        
+        End If
+  
+    End Sub
+    Sub mychange(ByVal sender As Object, ByVal e As System.EventArgs)
+        Dim o As Calendar = CType(sender, Calendar)
+        
+        If Me.txt_Company.Text = "" Then
+            Util.JSAlert(Me.Page, "Company is null!")
+            Me.txt_Company.BackColor = Drawing.Color.Aquamarine
+            Exit Sub
+        End If
+        If Me.txt_CalendarID.Text.Trim = "" Then
+            Util.JSAlert(Me.Page, "Calendar Name is null!")
+            Me.txt_CalendarID.BackColor = Drawing.Color.Aquamarine
+            Me.btn_New.BackColor = Drawing.Color.LawnGreen
+            Exit Sub
+        End If
+        Dim isExist As Integer = dbUtil.dbExecuteScalar("b2b", "select count(CalendarName) from customer_calendar where CalendarName='" & Me.txt_CalendarID.Text.Trim & "' and hdate='" & o.SelectedDate & "'")
+        If isExist > 0 Then
+            dbUtil.dbExecuteNoQuery("b2b", "delete from customer_calendar where CalendarName='" & Me.txt_CalendarID.Text.Trim & "' and hdate='" & o.SelectedDate & "'")
+        Else
+            dbUtil.dbExecuteNoQuery("b2b", "insert into customer_calendar values('" & Me.txt_CalendarID.Text.Trim & "','" & o.SelectedDate & "',getdate())")
+        End If
+        Dim isExist_C As Integer = dbUtil.dbExecuteScalar("b2b", "select count(CalendarName) from customer_calendar where CalendarName='" & Me.txt_CalendarID.Text.Trim & "'")
+        Dim isExist_M As Integer = dbUtil.dbExecuteScalar("b2b", "SELECT count(CalendarName) FROM Cust_Calendar_mapping where company_id='" & Me.txt_Company.Text.Trim & "'")
+        If isExist_C > 0 Then
+            If isExist_M = 0 Then
+                dbUtil.dbExecuteNoQuery("b2b", "insert into Cust_Calendar_mapping values('" & Me.txt_CalendarID.Text.Trim & "','" & Me.txt_Company.Text.Trim.ToUpper & "',getdate(),'" & Session("user_id") & "')")
+            Else
+                Dim isExist_CM As Integer = dbUtil.dbExecuteScalar("b2b", "SELECT count(CalendarName) FROM Cust_Calendar_mapping where company_id='" & Me.txt_Company.Text.Trim & "' and calendarName='" & Me.txt_CalendarID.Text.Trim & "'")
+                If isExist_CM = 0 Then
+                    dbUtil.dbExecuteNoQuery("b2b", "update Cust_Calendar_mapping set calendarName='" & Me.txt_CalendarID.Text.Trim & "' where company_id='" & Me.txt_Company.Text.Trim & "'")
+                End If
+            End If
+        Else
+            dbUtil.dbExecuteNoQuery("b2b", "DELETE FROM Cust_Calendar_mapping WHERE CalendarName='" & Me.txt_CalendarID.Text.Trim & "'")
+        End If
+        init_vst()
+    End Sub
+    
+    Sub myrender(ByVal sender As Object, ByVal e As System.EventArgs)
+        Dim o As Calendar = CType(sender, Calendar)
+        o.SelectedDate = "1900-1-1"
+    End Sub
+    Protected Sub init_vst()
+        If Me.txt_CalendarID.Text.Trim <> "" Then
+            ViewState("HolidayByCust") = dbUtil.dbGetDataTable("b2b", "select hdate from customer_calendar where CalendarName='" & Me.txt_CalendarID.Text.Trim & "' and year(hdate)='" & Me.txt_Year.Text.Trim & "'")
+        Else
+            ViewState("HolidayByCust") = Nothing
+        End If
+        getCompanies(Me.txt_CalendarID.Text.Trim)
+    End Sub
+
+    Protected Sub btn_Search_Click(ByVal sender As Object, ByVal e As System.EventArgs)
+        Dim CalendarID As Object = Nothing
+        If Me.txt_Company.Text <> "" Then
+            CalendarID = dbUtil.dbExecuteScalar("B2B", "select calendarName from Cust_Calendar_mapping where company_id='" & Me.txt_Company.Text.Trim & "'")
+            If Not IsNothing(CalendarID) Then
+                Me.txt_CalendarID.Text = CalendarID.ToString()
+            Else
+                Me.txt_CalendarID.Text = ""
+            End If
+        Else
+            Util.JSAlert(Me.Page, "Company cannot be null!")
+            Me.txt_Company.BackColor = Drawing.Color.Aquamarine
+            Exit Sub
+        End If
+        init_vst()
+    End Sub
+    Sub getCompanies(ByVal CID As String)
+        Dim dt As DataTable = dbUtil.dbGetDataTable("B2B", "SELECT COMPANY_ID FROM Cust_Calendar_mapping WHERE CALENDARNAME='" & CID & "'")
+        If dt.Rows.Count > 0 Then
+            Companies &= "<table cellspacing=""0"" cellpadding=""0""><tr><td bgcolor=""#cccccc""><TABLE cellspacing=""1"" cellpadding=""3""><TR>"
+            For I As Integer = 0 To dt.Rows.Count - 1
+                Companies &= "<TD bgcolor=""#ffffff"">"
+                Companies &= "<font color=""#666666"">" & dt.Rows(I).Item("COMPANY_ID") & "</font>"
+                Companies &= "</TD>"
+                If (I + 1) Mod 10 = 0 Then
+                    Companies &= "</TR><TR>"
+                End If
+                If (I + 1) > 10 Then
+                    If I = dt.Rows.Count - 1 And ((I + 1) Mod 10 <> 0) Then
+                        Companies &= "<TD bgcolor=""#ffffff"" colspan=""" & 10 - ((I + 1) Mod 10) & """>"
+                        Companies &= "&nbsp;"
+                        Companies &= "</TD>"
+                    End If
+                End If
+            Next
+            Companies &= "</TR></TABLE></td></tr></table>"
+        End If
+    End Sub
+    Sub getCid(ByRef id As String)
+        Dim temp As Integer = dbUtil.dbExecuteScalar("B2B", "select Cid from CalendarId")
+        temp = temp + 1
+        id = "C" & temp.ToString("000000")
+        dbUtil.dbExecuteNoQuery("b2b", "update CalendarId set Cid=" & temp)
+    End Sub
+
+    Protected Sub btn_Copy_Click(ByVal sender As Object, ByVal e As System.EventArgs)
+        If Me.txt_Company.Text.Trim = "" Then
+            Util.JSAlert(Me.Page, "Company is null!")
+            Me.txt_Company.BackColor = Drawing.Color.Aquamarine
+            Exit Sub
+        End If
+        If Me.txt_fCompany.Text.Trim = "" Then
+            Util.JSAlert(Me.Page, "From Company is null!")
+            Me.txt_fCompany.BackColor = Drawing.Color.Aquamarine
+            Exit Sub
+        End If
+        Dim TEMP As Object = Nothing
+        TEMP = dbUtil.dbExecuteScalar("B2B", "SELECT CalendarName FROM Cust_Calendar_mapping WHERE COMPANY_ID='" & Me.txt_fCompany.Text.Trim & "'")
+        If Not IsNothing(TEMP) Then
+            Me.txt_CalendarID.Text = TEMP.ToString()
+            Dim isExist_M As Integer = dbUtil.dbExecuteScalar("b2b", "SELECT count(CalendarName) FROM Cust_Calendar_mapping where company_id='" & Me.txt_Company.Text.Trim & "'")
+            If isExist_M = 0 Then
+                dbUtil.dbExecuteNoQuery("b2b", "insert into Cust_Calendar_mapping values('" & Me.txt_CalendarID.Text.Trim & "','" & Me.txt_Company.Text.Trim.ToUpper & "',getdate(),'" & Session("user_id") & "')")
+            Else
+                dbUtil.dbExecuteNoQuery("b2b", "update Cust_Calendar_mapping set CalendarName='" & Me.txt_CalendarID.Text.Trim & "' where Company_id='" & Me.txt_Company.Text.Trim.ToUpper & "'")
+            End If
+            init_vst()
+        Else
+            Util.JSAlert(Me.Page, "Calendar not be found!")
+            Exit Sub
+        End If
+    End Sub
+
+    Protected Sub btn_New_Click(ByVal sender As Object, ByVal e As System.EventArgs)
+        If Me.txt_Company.Text = "" Then
+            Util.JSAlert(Me.Page, "Company cannot be null!")
+            Me.txt_Company.BackColor = Drawing.Color.Aquamarine
+            Exit Sub
+        End If
+        
+        Dim NewCid As String = ""
+        getCid(NewCid)
+        Me.txt_CalendarID.Text = NewCid
+        init_vst()
+    End Sub
+</script>
+
+<asp:Content ID="Content1" ContentPlaceHolderID="_main" runat="Server">
+<script type="text/javascript">
+function PickCompanyID(xElement,xType,xCompanyID){
+    var Url;
+    //alert("test");
+    //alert(document.getElementsByName("company_id").value);
+    Url="/Includes/ChangeCompany.aspx?Element=" + xElement + "&Type=" + xType + "&CompanyID=" + document.getElementById('<%=Me.txt_Company.ClientID  %>').value + "";
+    window.open(Url, "pop","height=570,width=480,scrollbars=yes");
+}
+function updateFromChildWindow(updateValue)
+{
+ document.getElementById('<%= Me.txt_Company.ClientID %>').value = updateValue;
+}
+
+function PickCompanyID1(){
+    var Url;
+    Url="PICK_CustCalenderCompany.aspx"
+    window.open(Url, "pop","height=570,width=480,scrollbars=yes");
+}
+function updateFromChildWindow1(updateValue)
+{
+ document.getElementById('<%= Me.txt_fCompany.ClientID %>').value = updateValue;
+}
+</script>
+    <table width="100%" height="100%" border="0" cellspacing="0" cellpadding="0">
+        <tr valign="top">
+            <td>
+            </td>
+        </tr>
+        <tr valign="top">
+            <td>
+                <table width="100%" id="Table2">
+                    <tr valign="top">
+                        <td height="2">
+                            &nbsp;
+                        </td>
+                    </tr>
+                    <tr valign="top">
+                        <td colspan="2">
+                            <div class="euPageTitle">
+                                Customer Calendar Setting</div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td colspan="2" align="right">
+                            <br />
+                            <br />
+                        </td>
+                    </tr>
+                    <tr valign="top">
+                        <td colspan="2" height="2" align="center">
+                            <table width="800px" cellpadding="2" cellspacing="0" runat="server" border="0" id="RegTable">
+                                <tr>
+                                    <th align="left" style="width: 30%; border-bottom: SOLID 1PX #EEEEEE;">
+                                        Company ID :
+                                    </th>
+                                    <td align="left" style="width: 70%; border-bottom: SOLID 1PX #EEEEEE; border-left: SOLID 1PX #EEEEEE">
+                                        &nbsp;<asp:TextBox runat="server" ForeColor="#666666" ID="txt_Company" Width="100px" />
+                                        <img src="../images/pickPick.gif" onclick="PickCompanyID('leftmenu_company_id','SOLDTO','')" width="18" height="18" />
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <th align="left" style="width: 30%; border-bottom: SOLID 1PX #EEEEEE;">
+                                        Year :
+                                    </th>
+                                    <td align="left" style="width: 70%; border-bottom: SOLID 1PX #EEEEEE; border-left: SOLID 1PX #EEEEEE">
+                                        &nbsp;<asp:TextBox runat="server" ForeColor="#666666" ID="txt_Year" Width="50px" /><font color="#cccccc">[yyyy]</font>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <th align="right" style="width: 30%; border-bottom: SOLID 1PX #EEEEEE;">
+                                        <font color="#f8bb00">Operation :</font>
+                                    </th>
+                                    <td align="left" style="width: 70%; border-bottom: SOLID 1PX #EEEEEE; border-left: SOLID 1PX #EEEEEE">
+                                        &nbsp;<asp:Button ID="btn_Search" Text="Search" runat="server" OnClick="btn_Search_Click" />
+                                        
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <th align="right" style="width: 30%; border-bottom: SOLID 1PX #EEEEEE;">
+                                    &nbsp;
+                                    </th>
+                                    <td align="left" style="width: 70%; border-bottom: SOLID 1PX #EEEEEE;
+                                        border-left: SOLID 1PX #EEEEEE">
+                                        &nbsp;<asp:Button ID="btn_New" Text="Create New Calendar" runat="server" OnClick="btn_New_Click" />
+                                        &nbsp; OR &nbsp;<asp:Button ID="btn_Copy" Text="Copy Calendar From" runat="server" OnClick="btn_Copy_Click" />
+                                        <asp:TextBox runat="server" ForeColor="#666666" ID="txt_fCompany" Width="100px" />
+                                        <img src="../images/pickPick.gif" onclick="PickCompanyID1()" width="18" height="18" />
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <th align="left" style="width: 30%; border-bottom: SOLID 1PX #EEEEEE;">
+                                        Calendar ID :
+                                    </th>
+                                    <td align="left" style="width: 70%; border-bottom: SOLID 1PX #EEEEEE; border-left: SOLID 1PX #EEEEEE">
+                                        &nbsp;<asp:TextBox runat="server" BorderWidth="1" ForeColor="#999999" ReadOnly="true"
+                                            ID="txt_CalendarID" Width="100px" />
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <th align="left" style="width: 30%; border-bottom: SOLID 1PX #EEEEEE;">
+                                        Company in the Same Group :
+                                    </th>
+                                    <td align="left" style="width: 70%; border-bottom: SOLID 1PX #EEEEEE; border-left: SOLID 1PX #EEEEEE">
+                                        &nbsp;<div style="margin-left: 0; overflow: scroll; width: 600px;
+                                            height: 100px">
+                                            <%=Companies%>
+                                        </div>
+                                    </td>
+                                </tr>
+                            </table>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td colspan="2" style="border-bottom: solid 1px #eeeeee">
+                            &nbsp;
+                        </td>
+                    </tr>
+                    <tr valign="top">
+                        <td align="left">
+                            <table cellpadding="1" width="100%">
+                                <tr>
+                                    <td align="center">
+                                        <table border="0" cellspacing="0" cellpadding="0" align="center" style="width: 800px;
+                                            vertical-align: middle" id="Table3">
+                                            <tr>
+                                                <td style="padding-left: 10px; width: 20%; border-bottom: #af4a0d 1px solid; height: 20px;
+                                                    background-color: #af4a0d" align="left" valign="middle" class="text">
+                                                    <font color="#ffffff"><b>Calendar View :</b></font>
+                                                </td>
+                                                <td style="width: 80%; border-bottom: #af4a0d 1px solid;" align="right">
+                                                    [ <font color="#f8bb00">
+                                                        <%=Me.txt_CalendarID.Text%></font> ],[ <font color="#f8bb00">
+                                                            <%=Me.txt_Year.Text%></font> ]
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td colspan="2">
+                                                    &nbsp;
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td colspan="2" runat="server" id="tdCalendar">
+                                                </td>
+                                            </tr>
+                                        </table>
+                                    </td>
+                                </tr>
+                            </table>
+                        </td>
+                    </tr>
+                    <tr valign="top">
+                        <td height="2">
+                            &nbsp;
+                        </td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+        <tr valign="top">
+            <td height="2">
+                &nbsp;
+            </td>
+        </tr>
+        <tr valign="top">
+            <td>
+            </td>
+        </tr>
+    </table>
+</asp:Content>

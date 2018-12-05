@@ -1,0 +1,44 @@
+﻿
+    /* 於顯示「強制回應彈出式方塊」時，背景項目所用的樣式 */
+    .cssModalBackground
+    {
+        background-color: Gray;
+        filter: alpha(opacity=75);
+        opacity: 0.75;
+    }
+    /* 強制回應彈出式對話方塊所用的樣式 */
+    .cssModalPopup
+    {
+        background-image: url(Images/BG_03.gif);
+        border-width: 3px;
+        border-style: solid;
+        border-color: Gray;
+        padding: 3px;
+        width: 250px;
+    }
+    /* 樣式 1 */
+    .cssStyle1
+    {
+        background-image: url(Images/BG_01.gif);
+        font: bold 120%;
+    }
+    /* 樣式 2 */
+    .cssStyle2
+    {
+        background-color: #fef4cc;
+        font: bold 13pt 標楷體, 楷体;
+    }
+    /* 樣式 3 */
+    .cssStyle3
+    {
+        background-image: url(Images/BG_02.gif);
+        color: Blue;
+        font: italic 22px 新細明體, 宋体;
+    }
+    /* 樣式 4 */
+    .cssStyle4
+    {
+        background-color: Blue;
+        color: White;
+        font: 13pt SimHei, 微軟正黑體, 黑体;
+    }

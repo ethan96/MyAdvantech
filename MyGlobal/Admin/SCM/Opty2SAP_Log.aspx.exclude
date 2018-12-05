@@ -1,0 +1,159 @@
+﻿<%@ Page Title="MyAdvantech - SIEBEL Opportunities to SAP Virtual Order Report" Language="VB" MasterPageFile="~/Includes/MyMaster.master" %>
+
+<script runat="server">
+
+    Protected Sub lnkRowOptyID_Click(ByVal sender As Object, ByVal e As System.EventArgs)
+        Dim s As LinkButton = sender
+        'Me.lbOpty.Text = s.Text
+        Dim dt As DataTable = GetOptyDetail(s.Text), pdt As DataTable = GetOptyFcst(s.Text)
+        If dt.Rows.Count > 0 Then
+            With dt.Rows(0)
+                lbOptyAccount.Text = .Item("ACCOUNT_NAME") : lbOptyDesc.Text = .Item("DESC_TEXT")
+                lbOptyName.Text = .Item("NAME") : lbOptyRBU.Text = .Item("RBU")
+                If .Item("SUM_EFFECTIVE_DT") IsNot DBNull.Value AndAlso Date.TryParse(.Item("SUM_EFFECTIVE_DT"), Now) Then
+                    lbOptyCloseDate.Text = CDate(.Item("SUM_EFFECTIVE_DT")).ToString("yyyy/MM/dd")
+                End If
+                lbOptyAmt.Text = .Item("currency") + " " + CDbl(.Item("SUM_REVN_AMT")).ToString()
+                lbOptyProb.Text = .Item("SUM_WIN_PROB").ToString() + "%"
+            End With
+        Else
+            lbOptyAccount.Text = "" : lbOptyDesc.Text = "" : lbOptyName.Text = "" : lbOptyRBU.Text = "" : lbOptyAmt.Text = "" : lbOptyProb.Text = ""
+        End If
+        If pdt.Rows.Count > 0 Then
+            gvOptyProducts.DataSource = pdt : gvOptyProducts.DataBind()
+        Else
+            gvOptyProducts.DataSource = Nothing : gvOptyProducts.DataBind()
+        End If
+        Me.ModalPopupExtender1.Show()
+    End Sub
+
+    Protected Sub lnkRowSONO_Click(ByVal sender As Object, ByVal e As System.EventArgs)
+
+    End Sub
+
+    Protected Sub lnkCloseOptyPanel_Click(ByVal sender As Object, ByVal e As System.EventArgs)
+        Me.ModalPopupExtender1.Hide()
+    End Sub
+    
+    Function GetOptyDetail(ByVal OptyId As String) As DataTable
+        Dim sb As New System.Text.StringBuilder
+        With sb
+           
+            .AppendLine(String.Format(" 	select A.ROW_ID, A.CREATED, A.LAST_UPD, A.NAME,  A.PR_DEPT_OU_ID as ACCOUNT_ROW_ID, IsNull(A.DESC_TEXT,'') as DESC_TEXT, "))
+            .AppendLine(String.Format(" IsNull((select top 1 z.NAME from S_ORG_EXT z where z.ROW_ID=A.PR_DEPT_OU_ID),'') as ACCOUNT_NAME, "))
+            .AppendLine(String.Format(" 	IsNull(B.NAME,'') as RBU, A.SUM_EFFECTIVE_DT, IsNull(C.ATTRIB_05,'') as ERP_ID, "))
+            .AppendLine(String.Format(" 	case (select count(z5.ROW_ID) from S_REVN z5 where z5.OPTY_ID=A.ROW_ID and z5.PROD_ID is not null) when 1 then 'Y' else 'N' end as HAS_FCST,  "))
+            .AppendLine(String.Format(" 	A.CURCY_CD as currency, cast(A.SUM_WIN_PROB as int) as SUM_WIN_PROB,   "))
+            .AppendLine(String.Format(" 	cast(A.SUM_REVN_AMT as numeric(18,0)) as SUM_REVN_AMT  "))
+            .AppendLine(String.Format(" 	from S_OPTY A left  join S_BU B on A.BU_ID = B.ROW_ID left join S_ORG_EXT_X C on A.PR_DEPT_OU_ID=C.ROW_ID "))
+            .AppendLine(String.Format(" 	where A.ROW_ID='{0}'   ", OptyId))
+        End With
+        Return dbUtil.dbGetDataTable("CRMDB75", sb.ToString())
+    End Function
+
+    Function GetOptyFcst(ByVal OptyId As String) As DataTable
+        Dim sb As New System.Text.StringBuilder
+        With sb
+            .AppendLine(String.Format(" SELECT S_OPTY.CREATED, cast(IsNull(S_REVN.QTY,1) as int) as FCST_QTY, S_CONTACT.EMAIL_ADDR as SALES_EMAIL, S_CONTACT.FST_NAME, S_CONTACT.LAST_NAME, ISNULL(S_CONTACT.ALIAS_NAME, S_CONTACT.FST_NAME + ' ' + S_CONTACT.LAST_NAME) AS ALIAS_NAME,  "))
+            .AppendLine(String.Format(" S_PROD_INT.NAME AS PART_NO, S_USER.LOGIN AS SALES_NAME, S_PARTY.NAME AS RBU, S_OPTY.NAME AS OPTY_NAME,  "))
+            .AppendLine(String.Format(" IsNull(S_OPTY.DESC_TEXT,'') as DESC_TEXT, cast(S_OPTY.SUM_WIN_PROB as int) as SUM_WIN_PROB,   "))
+            .AppendLine(String.Format(" S_OPTY.LEAD_QUALITY_CD, S_OPTY.LAST_UPD, S_REVN.ROW_ID, S_USER.LOGIN AS PRIMARY_CREATOR, S_ORG_EXT.NAME AS ACCOUNT_NAME,  "))
+            .AppendLine(String.Format(" S_ORG_EXT.ROW_ID as ACCOUNT_ROW_ID,S_ORG_EXT.LOC AS [SITE], SUM_EFFECTIVE_DT AS CLOSE_DATE, S_OPTY.ROW_ID as OPTY_ID, "))
+            .AppendLine(String.Format(" cast(IsNull(IsNull(S_REVN_X.ATTRIB_14,0)+IsNull(S_REVN_X.ATTRIB_15,0)+IsNull(S_REVN_X.ATTRIB_16,0)+IsNull(S_REVN_X.ATTRIB_17,0)+IsNull(S_REVN_X.ATTRIB_18,0)+IsNull(S_REVN_X.ATTRIB_19,0)+IsNull(S_REVN_X.ATTRIB_20,0)+IsNull(S_REVN_X.ATTRIB_21,0)+IsNull(S_REVN_X.ATTRIB_22,0)+IsNull(S_REVN_X.ATTRIB_23,0)+IsNull(S_REVN_X.ATTRIB_24,0)+IsNull(S_REVN_X.ATTRIB_25,0),0) as int) as TOTAL_QTY, "))
+            .AppendLine(String.Format(" S_REVN_X.ATTRIB_14 AS Jan_Qty, S_REVN_X.ATTRIB_15 AS Feb_Qty, S_REVN_X.ATTRIB_16 AS March_Qty, S_REVN_X.ATTRIB_17 AS April_Qty,  "))
+            .AppendLine(String.Format(" S_REVN_X.ATTRIB_18 AS May_Qty, S_REVN_X.ATTRIB_19 AS June_Qty, S_REVN_X.ATTRIB_20 AS July_Qty, S_REVN_X.ATTRIB_21 AS Aug_Qty,  "))
+            .AppendLine(String.Format(" S_REVN_X.ATTRIB_22 AS Sept_Qty, S_REVN_X.ATTRIB_23 AS Oct_Qty, S_REVN_X.ATTRIB_24 AS Nov_Qty, S_REVN_X.ATTRIB_25 AS Dec_Qty, "))
+            .AppendLine(String.Format(" S_ORG_EXT_X.ATTRIB_05 AS ERP_ID, PAR_ORG_EXT.NAME as PARENT_NAME, PAR_ORG_EXT.ROW_ID as PARENT_ACCOUNT_ID, PAR_ORG_EXT.LOC as PARENT_SITE "))
+            .AppendLine(String.Format(" FROM S_REVN LEFT JOIN S_REVN_X ON S_REVN.ROW_ID=S_REVN_X.PAR_ROW_ID INNER JOIN "))
+            .AppendLine(String.Format(" S_OPTY ON S_REVN.OPTY_ID = S_OPTY.ROW_ID INNER JOIN S_PROD_INT ON S_REVN.PROD_ID = S_PROD_INT.ROW_ID INNER JOIN "))
+            .AppendLine(String.Format(" S_POSTN ON S_REVN.CRDT_POSTN_ID = S_POSTN.PAR_ROW_ID INNER JOIN S_USER ON S_POSTN.PR_EMP_ID = S_USER.PAR_ROW_ID INNER JOIN "))
+            .AppendLine(String.Format(" S_PARTY ON S_REVN.BU_ID = S_PARTY.ROW_ID INNER JOIN S_ORG_EXT ON S_OPTY.PR_DEPT_OU_ID = S_ORG_EXT.ROW_ID INNER JOIN "))
+            .AppendLine(String.Format(" S_POSTN U_POSTN ON S_OPTY.PR_POSTN_ID = U_POSTN.PAR_ROW_ID INNER JOIN S_CONTACT ON U_POSTN.PR_EMP_ID = S_CONTACT.ROW_ID INNER JOIN "))
+            .AppendLine(String.Format(" S_ORG_EXT_X ON S_ORG_EXT_X.ROW_ID = S_ORG_EXT.ROW_ID LEFT OUTER JOIN S_ORG_EXT AS PAR_ORG_EXT ON S_ORG_EXT.PAR_OU_ID = PAR_ORG_EXT.PAR_ROW_ID "))
+            .AppendLine(String.Format(" where S_REVN.OPTY_ID='{0}' ", OptyId))
+        End With
+        Dim dt As DataTable = dbUtil.dbGetDataTable("CRMDB75", sb.ToString())
+        'dt.Columns.Add("ABCInd")
+        Return dt
+    End Function
+    
+</script>
+
+<asp:Content ID="Content1" ContentPlaceHolderID="_main" Runat="Server">
+    <asp:UpdatePanel runat="server" ID="up1" UpdateMode="Conditional">
+        <ContentTemplate>
+            <asp:GridView runat="server" ID="gv1" AutoGenerateColumns="false" AllowSorting="true" AllowPaging="true" 
+                PageSize="50" PagerSettings-Position="TopAndBottom" DataSourceID="src1">
+                <Columns>
+                    <asp:TemplateField HeaderText="Opportunity ID" SortExpression="OPTY_ID">
+                        <ItemTemplate>
+                            <asp:LinkButton runat="server" ID="lnkRowOptyID" Text='<%#Eval("OPTY_ID") %>' OnClick="lnkRowOptyID_Click" />
+                        </ItemTemplate>
+                    </asp:TemplateField>
+                    <asp:TemplateField HeaderText="SAP Order No." SortExpression="ORDER_NO">
+                        <ItemTemplate>
+                            <asp:LinkButton runat="server" ID="lnkRowSONO" Text='<%#Eval("ORDER_NO") %>' OnClick="lnkRowSONO_Click" />
+                        </ItemTemplate>
+                    </asp:TemplateField>
+                    <asp:BoundField HeaderText="Process Time" DataField="PROC_TIME" SortExpression="PROC_TIME" />
+                    <asp:BoundField HeaderText="Process Message" DataField="PROC_MSG" SortExpression="PROC_MSG" />
+                </Columns>
+            </asp:GridView>
+            <asp:SqlDataSource runat="server" ID="src1" ConnectionString="<%$ConnectionStrings:MYLOCAL %>" 
+                SelectCommand="select top 10000 * from OPTY_TO_VORDER_LOG order by PROC_TIME desc" />
+            <asp:LinkButton runat="server" ID="link1" />
+            <ajaxToolkit:ModalPopupExtender runat="server" ID="ModalPopupExtender1" PopupControlID="OptyPanel" 
+                PopupDragHandleControlID="OptyPanel" TargetControlID="link1" />
+            <asp:Panel runat="server" ID="OptyPanel" Width="600px" Height="200px" BackColor="White">
+                <table width="99%">
+                    <tr>
+                        <td colspan="2" align="right"><asp:LinkButton runat="server" ID="lnkCloseOptyPanel" Text="Close" OnClick="lnkCloseOptyPanel_Click" /></td>
+                    </tr>
+                    <tr>
+                        <th align="left">Name</th><td><asp:Label runat="server" ID="lbOptyName" /></td>
+                    </tr>
+                    <tr>
+                        <th align="left">Description</th><td><asp:Label runat="server" ID="lbOptyDesc" /></td>
+                    </tr>
+                    <tr>
+                        <th align="left">Org.</th><td><asp:Label runat="server" ID="lbOptyRBU" /></td>
+                    </tr>
+                    <tr>
+                        <th align="left">Account</th><td><asp:Label runat="server" ID="lbOptyAccount" /></td>
+                    </tr>
+                    <tr>
+                        <th align="left">Close Date</th><td><asp:Label runat="server" ID="lbOptyCloseDate" /></td>
+                    </tr>
+                    <tr>
+                        <th align="left">Amount</th><td><asp:Label runat="server" ID="lbOptyAmt" /></td>
+                    </tr>
+                    <tr>
+                        <th align="left">Probability</th><td><asp:Label runat="server" ID="lbOptyProb" /></td>
+                    </tr>
+                    <tr>
+                        <th colspan="2" align="left">Products</td>
+                    </tr>
+                    <tr valign="top">
+                        <td colspan="2" valign="top">
+                            <asp:GridView runat="server" ID="gvOptyProducts" Width="100%" AutoGenerateColumns="false">
+                                <Columns>
+                                    <asp:BoundField DataField="PART_NO" HeaderText="Part No." />
+                                    <asp:HyperLinkField HeaderText="Part No." DataNavigateUrlFields="part_no" 
+                                        DataNavigateUrlFormatString="~/DM/ProductDashboard.aspx?PN={0}" 
+                                        DataTextField="part_no" Target="_blank" SortExpression="part_no" />
+                                    <asp:BoundField DataField="FCST_QTY" HeaderText="Qty." />
+                                </Columns>
+                            </asp:GridView>
+                        </td>
+                    </tr>
+                </table>
+            </asp:Panel>
+            <asp:LinkButton runat="server" ID="link2" />
+            <ajaxToolkit:ModalPopupExtender runat="server" ID="ModalPopupExtender2" PopupControlID="SOPanel" 
+                PopupDragHandleControlID="SOPanel" TargetControlID="link2" BackgroundCssClass="modalBackground" />
+            <asp:Panel runat="server" ID="SOPanel" Width="600px" Height="200px">
+                <asp:Label runat="server" ID="Label1" />
+            </asp:Panel>
+        </ContentTemplate>
+    </asp:UpdatePanel>
+</asp:Content>

@@ -1,0 +1,33 @@
+﻿<?xml version="1.0" encoding="utf-8"?><Database Class="Quote2OrderPopPNDataContext" xmlns="http://schemas.microsoft.com/linqtosql/dbml/2007">
+  <Table Name="" Member="QuoteLists">
+    <Type Name="QuoteList">
+      <Column Member="quoteId" Type="System.String" CanBeNull="false" />
+      <Column Member="quoteNo" Type="System.String" CanBeNull="false" />
+      <Column Member="createdBy" Type="System.String" CanBeNull="false" />
+      <Column Member="salesEmail" Type="System.String" CanBeNull="false" />
+      <Column Member="createdDate" Type="System.DateTime" CanBeNull="false" />
+      <Column Member="quoteToErpId" Type="System.String" CanBeNull="false" />
+      <Column Member="partNo" Type="System.String" CanBeNull="false" />
+      <Column Member="qty" Type="System.Int32" CanBeNull="false" />
+      <Column Member="MODEL_NO" Type="System.String" CanBeNull="false" />
+      <Column Member="EGROUP" Type="System.String" CanBeNull="false" />
+      <Column Member="EDIVISION" Type="System.String" CanBeNull="false" />
+      <Column Member="PRODUCT_LINE" Type="System.String" CanBeNull="false" />
+      <Column Member="MATERIAL_GROUP" Type="System.String" CanBeNull="false" />
+    </Type>
+  </Table>
+  <Table Name="" Member="Quote2Orders">
+    <Type Name="Quote2Order">
+      <Column Member="QUOTEID" Type="System.String" CanBeNull="false" />
+      <Column Member="SO_NO" Type="System.String" CanBeNull="false" />
+      <Column Member="ORDER_DATE" Type="System.DateTime" CanBeNull="false" />
+      <Column Member="ORDER_BY" Type="System.String" CanBeNull="false" />
+      <Column Member="COMPANY_ID" Type="System.String" CanBeNull="false" />
+      <Column Member="PART_NO" Type="System.String" CanBeNull="false" />
+      <Column Member="UNIT_PRICE" Type="System.Decimal" CanBeNull="false" />
+      <Column Member="CURRENCY" Type="System.String" CanBeNull="false" />
+      <Column Member="US_AMT" Type="System.Decimal" CanBeNull="false" />
+      <Column Member="ORDER_QTY" Type="System.Decimal" CanBeNull="false" />
+    </Type>
+  </Table>
+</Database>

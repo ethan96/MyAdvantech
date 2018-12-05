@@ -1,0 +1,48 @@
+﻿     <ol>
+                            <li>
+                                <div class="faq-question">
+                                    How can I become an Advantech Champion Club member?</div>
+                                <div class="faq-answer">
+                                    You can click into <strong>Regional Program &amp; Registration</strong> page, learn
+                                    about the program detail and decide to participate by pressing the registration
+                                    icon at the bottom.</div>
+                            </li>
+                            <li>
+                                <div class="faq-question">
+                                    How can I check and manage my points?</div>
+                                <div class="faq-answer">
+                                    When you click into <strong>Point Management</strong> page you will firstly find
+                                    your company’s main page. Find and click your account name to check for your personal
+                                    point management.</div>
+                            </li>
+							<li>
+                                <div class="faq-question">
+                                    How to get points after reached for the gaming rules?</div>
+                                <div class="faq-answer">
+                                    Please upload your report and related papers which can help Advantech evaluate and measure the result. 
+Advantech’s marcom will allocate the points into your personal system as soon as approved.
+</div>
+                            </li>
+                            <li>
+                                <div class="faq-question">
+                                    There are some points available in my account. How can I make the prize redemption?</div>
+                                <div class="faq-answer">
+                                    Please go to <strong>Redemption</strong> page and read the prize information. You
+                                    will be able to redeem for a selected prize under its required points.</div>
+                            </li>
+                            <li>
+                                <div class="faq-question">
+                                    How can I know if I am qualified for the Year-End Top Performance Prize?</div>
+                                <div class="faq-answer">
+                                    The system will identify the highest point accounts in your region and automatically
+                                    show into the <strong>Ranking List</strong> page.</div>
+                            </li>
+                            <li>
+                                <div class="faq-question">
+                                    According to the redemption schedule, I see deadlines for the process. If I could
+                                    not make redemp tion before the date, what should I do?</div>
+                                <div class="faq-answer">
+                                    The event hours can be found on the invitations to the event, or in the Advantech
+                                    Online Forum Series official website.</div>
+                            </li>
+                        </ol>

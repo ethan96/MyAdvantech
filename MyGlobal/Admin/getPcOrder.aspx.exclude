@@ -1,0 +1,91 @@
+﻿<%@ Page Language="VB" MasterPageFile="~/Includes/MyMaster.master" Title="MyAdvantech --PC Order Inquiry" %>
+
+<script runat="server">
+
+    Protected Sub Page_Load(ByVal sender As Object, ByVal e As System.EventArgs)
+        If Not Page.IsPostBack Then
+            Dim sql As String = "select a.order_no,a.op_note,a.po_no,a.order_date,a.Total_amount,b.currency,b.company_id,a.created_by from dbo.ORDER_MASTER a left join company  b on a.soldto_id=b.company_id where a.op_note like '%Cost-effectivec%' or a.op_note like '%Great Scalability%' or a.op_note like '%High Performance%'"
+       
+            SqlDataSource1.SelectCommand = sql
+        End If
+        gv1.DataBind()
+    End Sub
+    Protected Sub btnToXls_Click(ByVal sender As Object, ByVal e As System.EventArgs)
+        gv1.AllowPaging = False
+        gv1.DataBind()
+        gv1.Export2Excel("PcOrder.xls")
+    End Sub
+</script>
+
+<asp:Content ID="Content1" ContentPlaceHolderID="_main" Runat="Server">
+    <table width="100%" border="0" cellspacing="0" cellpadding="0">
+    <tr>
+    <td>
+    <div class="euPageTitle">PC Order Inquiry</div>
+    </td>
+    </tr>
+  	<tr>
+							<td colspan="3" style="height:15px">
+							</td>
+						</tr>
+						 	<tr>
+							<td colspan="3" style="height:15px">
+							</td>
+						</tr>
+						<tr>
+						  
+							<td colspan="2" style="height:15px"><asp:Button runat="server" ID="btnToXls" Text="Export To Excel" OnClick="btnToXls_Click" />
+							</td>
+						</tr>
+						<tr>
+						<td>
+						
+     <sgv:SmartGridView runat="server" ID="gv1" DataSourceID="SqlDataSource1" ShowWhenEmpty="true" AutoGenerateColumns="false" AllowPaging="true" AllowSorting="true" PageSize="50" Width="100%"
+								               >
+ <Columns>
+        <asp:TemplateField ItemStyle-Width="50px" ItemStyle-HorizontalAlign="Center">
+                                                        <headertemplate>
+                                                            No.
+                                                        </headertemplate>
+                                                        <itemtemplate>
+                                                            <%# Container.DataItemIndex + 1 %>
+                                                        </itemtemplate>
+                                                    </asp:TemplateField>
+       
+            <asp:BoundField DataField="order_no" HeaderText="Order No" />
+        
+      
+            <asp:BoundField DataField="Po_no" HeaderText="Po No" />
+  
+            <asp:BoundField DataField="Total_amount" HeaderText="Total Amount" />
+            
+     <asp:BoundField DataField="company_id" HeaderText="Company Id" />
+      <asp:BoundField DataField="Currency" HeaderText="Currency" />
+      
+                    <asp:BoundField DataField="Po_no" HeaderText="Po No" />
+  
+                    <asp:BoundField DataField="op_note" HeaderText="Note" />
+ 
+                    <asp:BoundField DataField="created_by" HeaderText="Creator" />
+    
+            <asp:BoundField DataField="order_date" HeaderText="Order Date" />
+        </Columns>
+        <FooterStyle BackColor="#A4B5BD" ForeColor="White" Font-Bold="True" />
+	                                            <RowStyle BackColor="#F7F6F3" ForeColor="#333333" />
+	                                            <SelectedRowStyle BackColor="#E2DED6" Font-Bold="True" ForeColor="#333333" />
+	                                            <PagerStyle BackColor="#284775" ForeColor="White" HorizontalAlign="Justify"  />
+	                                            <HeaderStyle BackColor="#A4B5BD" Font-Bold="True" ForeColor="White" />
+	                                            <AlternatingRowStyle BackColor="White" ForeColor="#284775" />
+                                                <PagerSettings PageButtonCount="10" Position="TopAndBottom" />						         
+		            </sgv:SmartGridView>
+		             <asp:SqlDataSource runat="server" ID="SqlDataSource1" ConnectionString="<%$ ConnectionStrings:B2B %>" SelectCommand="" >
+								            </asp:SqlDataSource>
+						
+						</td>
+						
+						
+						</tr>
+    </table>
+
+</asp:Content>
+

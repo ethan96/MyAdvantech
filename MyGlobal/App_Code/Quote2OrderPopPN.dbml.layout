@@ -1,0 +1,18 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<ordesignerObjectsDiagram dslVersion="1.0.0.0" absoluteBounds="0, 0, 11, 8.5" name="Quote2OrderPopPN">
+  <DataContextMoniker Name="/Quote2OrderPopPNDataContext" />
+  <nestedChildShapes>
+    <classShape Id="ec6ee15e-f9b9-46f5-9f7a-48856b4d1a79" absoluteBounds="4.125, 1.625, 2, 3.3093082682291666">
+      <DataClassMoniker Name="/Quote2OrderPopPNDataContext/QuoteList" />
+      <nestedChildShapes>
+        <elementListCompartment Id="564310d2-02dd-47d0-ab31-93a8256d9b48" absoluteBounds="4.14, 2.085, 1.9700000000000002, 2.7493082682291665" name="DataPropertiesCompartment" titleTextColor="Black" itemTextColor="Black" />
+      </nestedChildShapes>
+    </classShape>
+    <classShape Id="770dd663-5a47-4a29-b1f4-4921499a1e3b" absoluteBounds="6.875, 1.25, 2, 2.7324039713541666">
+      <DataClassMoniker Name="/Quote2OrderPopPNDataContext/Quote2Order" />
+      <nestedChildShapes>
+        <elementListCompartment Id="030745fd-af12-41b8-a4b0-5899a3f227af" absoluteBounds="6.89, 1.71, 1.9700000000000002, 2.1724039713541665" name="DataPropertiesCompartment" titleTextColor="Black" itemTextColor="Black" />
+      </nestedChildShapes>
+    </classShape>
+  </nestedChildShapes>
+</ordesignerObjectsDiagram>

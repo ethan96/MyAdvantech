@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="utf-8"?>
+<xs:schema xmlns="http://tempuri.org/SalesOrder.xsd" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata" xmlns:mstns="http://tempuri.org/SalesOrder.xsd" attributeFormDefault="qualified" elementFormDefault="qualified" targetNamespace="http://tempuri.org/SalesOrder.xsd" id="SalesOrder" xmlns:xs="http://www.w3.org/2001/XMLSchema">
+  <xs:element msdata:IsDataSet="true" msdata:UseCurrentLocale="true" name="SalesOrder">
+    <xs:complexType>
+      <xs:choice minOccurs="0" maxOccurs="unbounded">
+        <xs:element name="OrderHeader">
+          <xs:complexType>
+            <xs:sequence>
+              <xs:element minOccurs="0" default="ZOR2" name="ORDER_TYPE" type="xs:string" />
+              <xs:element minOccurs="0" default="" name="SALES_ORG" type="xs:string" />
+              <xs:element minOccurs="0" default="" name="DIST_CHAN" type="xs:string" />
+              <xs:element minOccurs="0" default="" name="DIVISION" type="xs:string" />
+              <xs:element minOccurs="0" default="" name="INCO1" type="xs:string" />
+              <xs:element minOccurs="0" default="" name="INCO2" type="xs:string" />
+              <xs:element minOccurs="0" default="" name="SHIPTO_COUNTRY" type="xs:string" />
+              <xs:element minOccurs="0" default="" name="TAX_CLASS" type="xs:string" />
+              <xs:element minOccurs="0" default="" name="TRIANGULAR_INDICATOR" type="xs:string" />
+              <xs:element minOccurs="0" default="" name="REQUIRE_DATE" type="xs:string" />
+              <xs:element minOccurs="0" default="" name="SHIP_CONDITION" type="xs:string" />
+              <xs:element minOccurs="0" default="" name="CUST_PO_NO" type="xs:string" />
+              <xs:element minOccurs="0" default="" name="SHIP_CUST_PO_NO" type="xs:string" />
+              <xs:element minOccurs="0" default="" name="PO_DATE" type="xs:string" />
+              <xs:element minOccurs="0" default="" name="PARTIAL_SHIPMENT" type="xs:string" />
+              <xs:element minOccurs="0" default="" name="EARLY_SHIP" type="xs:string" />
+              <xs:element minOccurs="0" default="" name="TAXDEL_CTY" type="xs:string" />
+              <xs:element minOccurs="0" default="" name="TAXDES_CTY" type="xs:string" />
+              <xs:element minOccurs="0" default="0" name="DEST_TYPE" type="xs:string" />
+            </xs:sequence>
+          </xs:complexType>
+        </xs:element>
+        <xs:element name="HeaderTexts">
+          <xs:complexType>
+            <xs:sequence>
+              <xs:element minOccurs="0" name="TEXT_ID" type="xs:string" />
+              <xs:element minOccurs="0" name="LANG_ID" type="xs:string" />
+              <xs:element minOccurs="0" name="TEXT_LINE" type="xs:string" />
+            </xs:sequence>
+          </xs:complexType>
+        </xs:element>
+        <xs:element name="PartnerFunc">
+          <xs:complexType>
+            <xs:sequence>
+              <xs:element minOccurs="0" name="ROLE" type="xs:string" />
+              <xs:element minOccurs="0" name="NUMBER" type="xs:string" />
+            </xs:sequence>
+          </xs:complexType>
+        </xs:element>
+        <xs:element name="CreditCard">
+          <xs:complexType>
+            <xs:sequence>
+              <xs:element minOccurs="0" name="HOLDER" type="xs:string" />
+              <xs:element minOccurs="0" name="EXPIRED" type="xs:string" />
+              <xs:element minOccurs="0" name="TYPE" type="xs:string" />
+              <xs:element minOccurs="0" name="NUMBER" type="xs:string" />
+            </xs:sequence>
+          </xs:complexType>
+        </xs:element>
+        <xs:element name="Condition">
+          <xs:complexType>
+            <xs:sequence>
+              <xs:element minOccurs="0" name="VALUE" type="xs:string" />
+              <xs:element minOccurs="0" name="TYPE" type="xs:string" />
+              <xs:element minOccurs="0" name="CURRENCY" type="xs:string" />
+            </xs:sequence>
+          </xs:complexType>
+        </xs:element>
+        <xs:element name="OrderLines">
+          <xs:complexType>
+            <xs:sequence>
+              <xs:element minOccurs="0" default="" name="PART_Dlv" type="xs:string" />
+              <xs:element minOccurs="0" default="" name="HIGHER_LEVEL" type="xs:string" />
+              <xs:element minOccurs="0" default="" name="LINE_NO" type="xs:string" />
+              <xs:element minOccurs="0" default="" name="DELIVERY_GROUP" type="xs:string" />
+              <xs:element minOccurs="0" default="" name="PLANT" type="xs:string" />
+              <xs:element minOccurs="0" default="" name="MATERIAL" type="xs:string" />
+              <xs:element minOccurs="0" default="" name="CUST_MATERIAL" type="xs:string" />
+              <xs:element minOccurs="0" default="" name="DMF_FLAG" type="xs:string" />
+              <xs:element minOccurs="0" default="" name="QTY" type="xs:string" />
+              <xs:element minOccurs="0" default="" name="REQ_DATE" type="xs:string" />
+              <xs:element minOccurs="0" default="" name="PRICE" type="xs:string" />
+              <xs:element minOccurs="0" default="" name="CURRENCY" type="xs:string" />
+            </xs:sequence>
+          </xs:complexType>
+        </xs:element>
+      </xs:choice>
+    </xs:complexType>
+  </xs:element>
+</xs:schema>

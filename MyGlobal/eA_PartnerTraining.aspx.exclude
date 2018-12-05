@@ -1,0 +1,48 @@
+﻿<%@ Page Language="VB" MasterPageFile="~/Includes/MyMaster.master" Title="eA Training Matreial" %>
+
+<script runat="server">
+
+    Protected Sub sqleA_Load(ByVal sender As Object, ByVal e As System.EventArgs)
+        Dim RowID() As String = {"'1-3HHSKT'", "'1-3HHSKL'", "'FZ-9BTO3'", "'FZ-9BTOA'", "'FZ-80ROD'", "'FZ-80RO7'", "'1-313JWJ'", "'1-313JWD'", "'1-2ZME7L'", "'1-2ZME7S'"}
+        sqleA.SelectCommand = "select literature_id, 'Event Presentation' as type, lit_desc as file_name, lit_name as file_desc, file_ext from literature where literature_id in (" + String.Join(",", RowID) + ")"
+    End Sub
+</script>
+
+<asp:Content ID="Content1" ContentPlaceHolderID="_main" Runat="Server">
+    <table width="100%">
+        <tr><td height="5"></td></tr>
+        <tr><td><div class="euPageTitle">eA Training Material</div></td></tr>
+        <tr><td height="5"></td></tr>
+        <tr>
+            <td>
+                <table border="0" width="100%">
+                    <tr><td width="30"></td>
+                        <td>
+                            <sgv:SmartGridView runat="server" ID="gveA" AutoGenerateColumns="false" DataSourceID="sqleA">
+                                <Columns>
+                                    <asp:TemplateField ItemStyle-Width="50px" ItemStyle-HorizontalAlign="Center">
+                                        <headertemplate>
+                                            No.
+                                        </headertemplate>
+                                        <itemtemplate>
+                                            <%# Container.DataItemIndex + 1 %>
+                                        </itemtemplate>
+                                    </asp:TemplateField>
+                                    <asp:BoundField HeaderText="Type" DataField="type" ItemStyle-Width="120px" ItemStyle-HorizontalAlign="Center" />
+                                    <asp:HyperLinkField HeaderText="File Name" DataNavigateUrlFields="literature_id" DataNavigateUrlFormatString="/Product/Unzip_File.aspx?Literature_ID={0}" DataTextField="file_name" Target="_blank" ItemStyle-Width="350px" ItemStyle-HorizontalAlign="Left" />
+                                    <asp:BoundField HeaderText="Description" DataField="file_desc" ItemStyle-Width="250px" ItemStyle-HorizontalAlign="Left" />
+                                    <asp:BoundField HeaderText="File Type" DataField="file_ext" ItemStyle-HorizontalAlign="Center" />
+                                </Columns>
+                            </sgv:SmartGridView>
+                            <asp:SqlDataSource runat="server" ID="sqleA" ConnectionString="<%$connectionStrings:My %>"
+                                 SelectCommand="" OnLoad="sqleA_Load">
+                            </asp:SqlDataSource>
+                        </td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+        <tr><td height="190"></td></tr>
+    </table>
+</asp:Content>
+

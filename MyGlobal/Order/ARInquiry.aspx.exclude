@@ -1,0 +1,407 @@
+﻿<%@ Page Language="VB" MasterPageFile="~/Includes/MyMaster.master" Title="Advantech B2B Europe - A/P Inquiry" %>
+<%@ Register TagPrefix="NaviOrderTracking" TagName="Inc" Src="~/Includes/OrderTrackingNavi_Inc.ascx" %>
+
+<script runat="server">
+    
+    Dim dateFrom As String = "", dateTo As String = "", dueDateFrom As String = "", dueDateTo As String = ""
+      
+    Protected Sub btnSearch_ServerClick(ByVal sender As Object, ByVal e As System.EventArgs)
+        Call InitSearch()
+    End Sub
+    
+    Protected Sub Page_Load(ByVal sender As Object, ByVal e As System.EventArgs)
+        If Not Page.IsPostBack Then
+            Me.txtDateFrom.Value = FormatDate(Date.Now.AddDays(-60))
+            Me.txtDateTo.Value = FormatDate(Date.Now)
+            Me.txtDueDateFrom.Value = FormatDate(Date.Now.AddDays(-30))
+            Me.txtDueDateTo.Value = FormatDate(Date.Now.AddDays(60))
+        End If
+        Call InitSearch()
+    End Sub
+    
+    Private Sub InitSearch()
+        Dim SQL As String
+        SQL = "select distinct  " & _
+              "AR_NO , " & _
+              "convert(varchar(11),ar_date,111) as ar_date, " & _
+              "CURRENCY, " & _
+              "AMOUNT, " & _
+              "OPEN_AMOUNT, " & _
+              "convert(varchar(11),ar_due_date,111) as ar_due_date, " & _
+              "status = DATEDIFF(DAY,AR_DUE_DATE,getdate()), " & _
+              "OPEN_STATUS " & _
+              "from OC_AR_INFO where SOLDTO_ID = '" & Session("Company_Id") & "' "
+        
+        If Me.txtInvoiceNO.Value <> "" Then
+            SQL = SQL & " and ar_no like '%" & Me.txtInvoiceNO.Value & "%'"
+        End If
+        Select Case Me.ddlType.Value
+            Case "Open"
+                SQL = SQL & " and open_status = 'Open'"
+            Case "Over Due"
+                SQL = SQL & " and (open_status = 'OverDue' or open_status = 'Partial Overdue')"
+        End Select
+            
+        If Me.txtDateFrom.Value <> "" Then
+            Me.dateFrom = Me.txtDateFrom.Value
+        Else
+            Me.dateFrom = FormatDate(System.DateTime.Today.AddDays(-60))
+        End If
+        If Me.txtDateTo.Value <> "" Then
+            Me.dateTo = Me.txtDateTo.Value
+        Else
+            Me.dateTo = FormatDate(System.DateTime.Today())
+        End If
+        SQL = SQL & " and ar_date>='" & Me.dateFrom & "' and ar_date <='" & Me.dateTo & "'"
+        If Me.txtDueDateFrom.Value <> "" Then
+            Me.dueDateFrom = Me.txtDueDateFrom.Value
+        Else
+            Me.dueDateFrom = FormatDate(System.DateTime.Today.AddDays(-30))
+        End If
+        If Me.txtDueDateTo.Value <> "" Then
+            Me.dueDateTo = Me.txtDueDateTo.Value
+        Else
+            Me.dueDateTo = FormatDate(System.DateTime.Today.AddDays(60))
+        End If
+        SQL = SQL & " and ar_due_date >= '" & Me.dueDateFrom & "' and ar_due_date <='" & Me.dueDateTo & "'"
+        
+        ViewState("SqlCommand") = ""
+        Me.SqlDataSource1.SelectCommand = SQL
+        ViewState("SqlCommand") = Me.SqlDataSource1.SelectCommand
+        gv1.DataBind()
+    End Sub
+    
+    Function FormatDate(ByVal xDate) As String
+        Dim xYear As String = "0000"
+        Dim xMonth As String = "00"
+        Dim xDay As String = "00"
+        
+        If IsDate(xDate) = True Then
+            xYear = Year(xDate).ToString
+            xMonth = Month(xDate).ToString
+            xDay = Day(xDate).ToString
+        Else
+            Dim ArrDate() As String = xDate.Split("/")
+        
+            If ArrDate(0).Length = 4 Then
+                xYear = ArrDate(0)
+                xMonth = ArrDate(1)
+                xDay = ArrDate(2)
+            Else
+                xYear = ArrDate(2)
+                xMonth = ArrDate(0)
+                xDay = ArrDate(1)
+            End If
+        End If
+        
+        If xMonth.Length = 1 Then
+            xMonth = "0" & xMonth
+        End If
+        If xDay.Length = 1 Then
+            xDay = "0" & xDay
+        End If
+        FormatDate = xYear & "/" & xMonth & "/" & xDay
+    End Function
+    
+    Protected Sub SqlDataSource1_Load(ByVal sender As Object, ByVal e As System.EventArgs)
+        If ViewState("SqlCommand") = "" Then
+            gv1.EmptyDataText = ""
+        Else
+            SqlDataSource1.SelectCommand = ViewState("SqlCommand")
+            gv1.EmptyDataText = "No search results were found.<br /> Please try again or submit the feedback form to let us know what you need . "
+        End If
+    End Sub
+    
+    Protected Sub gv1_RowDataBound(ByVal sender As Object, ByVal e As System.Web.UI.WebControls.GridViewRowEventArgs)
+        If e.Row.RowType = DataControlRowType.DataRow Then
+            e.Row.Attributes.Add("onmouseover", "currentcolor=this.style.backgroundColor;this.style.backgroundColor='#FFEEAA'")
+            e.Row.Attributes.Add("onmouseout", "this.style.backgroundColor=currentcolor")
+            e.Row.Cells(1).Text = "<a href='/Order/BO_InvoiceInquiry.aspx?inv_no=" & CInt(e.Row.Cells(1).Text) & "'>" & e.Row.Cells(1).Text & "</a>"
+            Dim strRowCell7 As String = e.Row.Cells(7).Text
+            If CInt(strRowCell7) > 0 And CInt(e.Row.Cells(5).Text) = 0 Then
+                e.Row.Cells(7).Text = "<font >" & "--" & "</font>"
+            ElseIf CInt(strRowCell7) > 0 Then
+                e.Row.Cells(7).Text = "<table width='100%'><tr><td bgcolor='#ffcc66'><font color='red'>" & CStr(Math.Abs(CInt(e.Row.Cells(7).Text))) & "</font></td></tr></table>"
+                'e.Row.Cells(0).Text = "<table width='100%'><tr><td bgcolor='#ffcc66'><font color='red'>" & CStr(Math.Abs(CInt(e.Row.Cells(0).Text))) & "</font></td></tr></table>"
+                'style="BACKGROUND-COLOR: #ffcc66;WIDTH=100%"     style='BACKGROUND-COLOR: #99ff66;WIDTH=100%'
+            End If
+            If CInt(strRowCell7) <= 0 And CInt(e.Row.Cells(5).Text) <> 0 Then
+                e.Row.Cells(7).Text = "<table width='100%'><tr><td bgcolor='#99ff66'><font color='red'>" & "Open" & "</font></td></tr></table>"
+            End If
+
+            e.Row.Cells(4).Text = Math.Abs(CInt(e.Row.Cells(4).Text)).ToString("#,##0.00")
+            e.Row.Cells(5).Text = Math.Abs(CInt(e.Row.Cells(5).Text)).ToString("#,##0.00")
+        End If
+    End Sub
+</script>
+
+<asp:Content runat="server" ID="_main" ContentPlaceHolderID="_main">
+    <script type="text/javascript" language="javascript" src="../Includes/popcalendar.js"></script>
+    <div>
+    <table width="100%" border="0" cellspacing="0" cellpadding="0">
+			<tr>
+				<td style="height:15px">
+				</td>
+			</tr>
+			<tr>
+				<td>
+					<table align="center" width="100%" border="0" cellspacing="0" cellpadding="0" >
+						<tr>
+							<td style="width:10px">
+							</td>
+							<td style="width: 684px">
+								<!--Page Navi Bar-->
+								<table border="0" cellspacing="0" cellpadding="0">
+									<tr>
+										<td><asp:HyperLink runat="server" ID="hlHome" NavigateUrl="~/home.aspx" Text="Home" /></td>
+										<td width="15" align="center">></td>
+										<td><asp:HyperLink runat="server" ID="hlHere" NavigateUrl="~/Order/BO_OrderTracking.aspx" Text="Order Tracking" /></td>
+										<td width="15" align="center">></td>
+										<td><div class="euPageNaviBar">A/P Inquiry</div></td>
+									</tr>
+								</table>
+							</td>
+							<td style="width:20px">
+							</td>
+						</tr>
+						<tr>
+							<td colspan="3" style="height:15px">
+							</td>
+						</tr>
+						<tr>
+							<td style="width:10px">
+							</td>
+							<td style="width: 684px">
+								<!--Page Title-->
+								<div class="euPageTitle">
+                                    <div class="euPageTitle">
+                                        A/P Inquiry</div>
+                                </div>
+							</td>
+							<td style="width:20px">
+							</td>
+						</tr>
+						<tr>
+							<td colspan="3" style="height:15px">
+							</td>
+						</tr>
+						<tr>
+							<td style="width:10px">
+							</td>
+							<td valign="top">
+								<table border="0" cellpadding="0" cellspacing="0">
+									<tr valign="top">
+										<td>
+											<!--New Table Start-->
+											<table width="445" border="0" cellpadding="0" cellspacing="0" id="Table1">
+												<tr>
+													<td>
+														<table width="100%" border="0" cellpadding="0" cellspacing="0" class="text" id="Table2">
+															<tr>
+																<td style="width:2%" rowspan="2"><img alt="" src="../images/ebiz.aeu.face/bluefolder_left.jpg" width="7" height="23"/></td>
+																<td style="width:15%;background-color:#A3BFD4" valign="top"><img alt="" src="../images/ebiz.aeu.face/bluefolder_top.jpg" width="138" height="3"/></td>
+																<td style="width:2%" rowspan="2"><img alt="" src="../images/ebiz.aeu.face/bluefolder_right.jpg" width="7" height="23"/></td>
+																<td style="width:2%" rowspan="2"><img alt="" src="../images/ebiz.aeu.face/clear.gif" width="5" height="8"/></td>
+																<td style="width:2%" rowspan="2"><img alt="" src="../images/ebiz.aeu.face/skyfolder_left.jpg" width="6" height="23"/></td>
+																<td style="width:17%;background-color:#E7EFF1"><img alt="" src="../images/ebiz.aeu.face/skyfolder_top.jpg" width="140" height="3"/></td>
+																<td style="width:2%" rowspan="2"><img alt="" src="../images/ebiz.aeu.face/skyfolder_right.jpg" width="7" height="23"/></td>
+																<td style="width:2%" rowspan="2"><img alt="" src="../images/ebiz.aeu.face/clear.gif" width="5" height="8"/></td>
+																<td style="width:2%" rowspan="2"><img alt="" src="../images/ebiz.aeu.face/skyfolder_left.jpg" width="6" height="23"/></td>
+																<td style="width:31%;background-color:#E7EFF1"><img alt="" src="../images/ebiz.aeu.face/skyfolder_top.jpg" width="140" height="3"/></td>
+																<td style="width:2%" rowspan="2"><img alt="" src="../images/ebiz.aeu.face/skyfolder_right.jpg" width="7" height="23"/></td>
+															</tr>
+															<tr>
+																<td style="height:13" class="euFormCaption">
+																	Query Criteria
+																</td>
+																<td style="width:17%" class="euFormCaptionInactive">
+																	&nbsp;
+																</td>
+																<td style="width:31%" class="euFormCaptionInactive">
+																	&nbsp;
+																</td>
+															</tr>
+														</table>
+													</td>
+												</tr>
+												<tr>
+													<td style="width:100%;height:5;background-color:#A0BFD3" ></td>
+												</tr>
+												<tr>
+													<td style="height:145px;width:50%;background-color:#A4B5BD">
+														<table width="100%" border="0" cellpadding="0" cellspacing="1" id="Table3">
+															<tr valign="top">
+																<td style="height:100%;background-color:#F1F2F4">
+																	<table width="100%" border="0" cellpadding="0" cellspacing="0">
+																		<!--form id="bofrm" name="bofrm" action="BackOrderInquiry.asp" method="post"-->
+																			<tr>
+																				<td colspan="4" style="height:4px">
+																				</td>
+																			</tr>
+																			<tr valign="middle">
+																				<td style="width:5%;height:30px" align="right">
+																					<img alt="" src="../images/ebiz.aeu.face/square_gray.gif" width="7" height="7"/>&nbsp;&nbsp;
+																				</td>
+																				<td style="width:21%">
+																					<div class="euFormFieldCaption">
+                                                                                        Type&nbsp;:</div>
+																				</td>
+																				<td style="width:40%">
+																					<select name="ddlType" size="1" class="euFormFieldValue" runat="server" id="ddlType" >
+																						<option value="All">All</option>
+																						<option value="Over Due">Over Due</option>
+																						<option value="Open">Open</option>
+																					</select>
+																				</td>
+																				<td align="left">
+																					<div class="euFormFieldDesc">
+                                                                                        &nbsp;</div>
+																				</td>
+																			</tr>
+																			<tr valign="middle">
+																				<td style="width:5%;height:30px" align="right">
+																					<img alt="" src="../images/ebiz.aeu.face/square_gray.gif" width="7" height="7"/>&nbsp;&nbsp;
+																				</td>
+																				<td style="width:21%">
+																					<div class="euFormFieldCaption">
+                                                                                        Invoice Number:</div>
+																				</td>
+																				<td style="width:40%">
+																					<input type="text" name="txtInvoiceNO" value="" class="euFormFieldValue" size="10" id="txtInvoiceNO" runat="server"/>
+																				</td>
+																				<td align="left">
+																					<div class="euFormFieldDesc"></div>
+																				</td>
+																			</tr>
+																			<tr valign="middle">
+																				<td style="width:5%;height:30px" align="right">
+																					<img alt="" src="../images/ebiz.aeu.face/square_gray.gif" width="7" height="7"/>&nbsp;&nbsp;
+																				</td>
+																				<td style="width:21%">
+																					<div class="euFormFieldCaption">
+                                                                                        Shipping Date&nbsp;:</div>
+																				</td>
+																				<td style="width:40%">
+                                                                                    <input type="text" name="txtDateFrom" value="" onclick="javascript:popUpCalendar(this, this, 'yyyy/mm/dd')" class="euFormFieldValue" size="10" id="txtDateFrom" runat="server"/>&nbsp;~&nbsp;
+																					<input id="txtDateTo" type="text" name="txtDateTo" value="" onclick="javascript:popUpCalendar(this, this, 'yyyy/mm/dd')" class="euFormFieldValue" size="10" runat="server"/></td>
+																				<td align="left">
+																					<div class="euFormFieldDesc">yyyy/mm/dd</div>
+																				</td>
+																			</tr>
+																			<tr valign="middle">
+																				<td style="width:5%;height:30px" align="right">
+																					<img alt="" src="../images/ebiz.aeu.face/square_gray.gif" width="7" height="7"/>&nbsp;&nbsp;
+																				</td>
+																				<td style="width:21%">
+																					<div class="euFormFieldCaption">
+                                                                                        Due Date&nbsp;:</div>
+																				</td>
+																				<td style="width:40%">
+                                                                                    <input type="text" name="txtDueDateFrom" value="" onclick="javascript:popUpCalendar(this, this, 'yyyy/mm/dd')" class="euFormFieldValue" size="10" id="txtDueDateFrom" runat="server"/>&nbsp;~&nbsp;
+																					<input type="text" name="txtDueDateTo" value="" onclick="javascript:popUpCalendar(this, this, 'yyyy/mm/dd')" class="euFormFieldValue" size="10" id="txtDueDateTo" runat="server"/></td>
+																				<td align="left">
+																					<div class="euFormFieldDesc">yyyy/mm/dd</div>
+																				</td>
+																			</tr>
+																			<tr>
+																				<td colspan="4" style="height:3px">
+																				</td>
+																			</tr>
+																			<tr valign="middle">
+																				<td style="width:5%;height:30px"  align="right">
+																				</td>
+																				<td style="width:21%">
+																				</td>
+																				<td style="width:40%">
+																					<input type="submit" name="submit" class="euFormSubmit" value="Search&nbsp;&nbsp;&nbsp;>>"
+																						id="btnSearch" runat="server" onserverclick="btnSearch_ServerClick"/>
+																				</td>
+																				<td align="left">
+                                                                                    </td>
+																			</tr>
+																			<tr>
+																				<td colspan="4" style="height:4px">
+																				</td>
+																			</tr>
+																		<!--/form-->
+																	</table>
+																</td>
+															</tr>
+														</table>
+													</td>
+												</tr>
+											</table>
+    
+											<!--New Table End--></td>
+										<td style="width:150px">&nbsp;
+										</td>
+										<td>
+											<!--Navi Table Start-->
+												<!-- include file = "incOrderTrackingNavi_WS.asp" -->
+												<NaviOrderTracking:Inc runat="server" ID="NaviOrderTrackingInc1"></NaviOrderTracking:Inc>
+											<!--Navi Table End-->
+										</td>
+									</tr>
+								</table>
+							</td>
+							<td style="width:20px">
+							</td>
+						</tr>
+						<tr>
+							<td colspan="3" style="height:15px">
+							</td>
+						</tr>
+						<tr>
+							<td style="width:10px">
+							</td>
+							<td valign="top">
+							    <table width="100%" border="0" cellpadding="0" cellspacing="0">
+							        <tr>
+							            <td>
+							                <asp:GridView runat="server" ID="gv1" DataSourceID="SqlDataSource1" AutoGenerateColumns="false" AllowPaging="true" AllowSorting="true" PageSize="20" Width="100%"
+								                 EmptyDataRowStyle-Font-Size="Larger" EmptyDataRowStyle-Font-Bold="true" OnRowDataBound="gv1_RowDataBound">
+								                <Columns>
+								                    <asp:TemplateField ItemStyle-Width="50px" ItemStyle-HorizontalAlign="Center">
+                                                        <headertemplate>
+                                                            No.
+                                                        </headertemplate>
+                                                        <itemtemplate>
+                                                            <%# Container.DataItemIndex + 1 %>
+                                                        </itemtemplate>
+                                                    </asp:TemplateField>
+								                    <asp:BoundField HeaderText="Invoice NO" DataField="ar_no" SortExpression="ar_no" ItemStyle-HorizontalAlign="Center" />
+								                    <asp:BoundField HeaderText="Shipping Date" DataField="ar_date" SortExpression="ar_date" />
+								                    <asp:BoundField HeaderText="Currency" DataField="currency" SortExpression="currency" />
+								                    <asp:BoundField HeaderText="Amount" DataField="amount" SortExpression="amount" />
+								                    <asp:BoundField HeaderText="Open Amount" DataField="open_amount" SortExpression="open_amount" />
+								                    <asp:BoundField HeaderText="Due Date" DataField="ar_due_date" SortExpression="ar_due_date" />
+								                    <asp:BoundField HeaderText="Over Due" DataField="Status" SortExpression="Status" />
+								                </Columns>
+								                <FooterStyle BackColor="#A4B5BD" ForeColor="White" Font-Bold="True" />
+	                                            <RowStyle BackColor="#F7F6F3" ForeColor="#333333" />
+	                                            <SelectedRowStyle BackColor="#E2DED6" Font-Bold="True" ForeColor="#333333" />
+	                                            <PagerStyle BackColor="#284775" ForeColor="White" HorizontalAlign="Justify"  />
+	                                            <HeaderStyle BackColor="#A4B5BD" Font-Bold="True" ForeColor="White" />
+	                                            <AlternatingRowStyle BackColor="White" ForeColor="#284775" />
+                                                <PagerSettings PageButtonCount="10" Position="TopAndBottom" />
+								            </asp:GridView>
+								            <asp:SqlDataSource runat="server" ID="SqlDataSource1" ConnectionString="<%$ ConnectionStrings:B2B %>" SelectCommand="" OnLoad="SqlDataSource1_Load">
+								            </asp:SqlDataSource>
+							            </td>
+							        </tr>
+							    </table>
+							</td>
+							<td style="width:20px">
+							</td>
+						</tr>
+					</table>
+				</td>
+			</tr>
+			<tr>
+				<td style="height:150px">
+					<!--Buffer--> &nbsp;
+				</td>
+			</tr>
+		</table>
+    </div>
+</asp:Content>

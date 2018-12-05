@@ -1,0 +1,187 @@
+﻿<%@ Page Language="VB" MasterPageFile="~/Includes/MyMaster.master" Title="MyAdvantech - Channel Partner Detail" %>
+
+<script runat="server">
+
+    Protected Sub Page_Load(ByVal sender As Object, ByVal e As System.EventArgs)
+        If Not IsNothing(Request("ERPID")) AndAlso Request("ERPID") <> "" Then
+            Dim reqErpId As String = Request("ERPID").ToString.Trim()
+            Dim dtimg As DataTable = dbUtil.dbGetDataTable("RFM", String.Format("select * from SAP_COMPANY_LOGO where company_id ='{0}'", reqErpId.Replace("'", "")))
+            If Not IsNothing(dtimg) And dtimg.Rows.Count > 0 Then
+                Image1.Width = dtimg.Rows(0).Item("logo_width").ToString
+                Image1.Height = dtimg.Rows(0).Item("logo_height").ToString
+                If Integer.TryParse(dtimg.Rows(0).Item("logo_width"), 0) AndAlso CInt(dtimg.Rows(0).Item("logo_width")) > 350 Then Image1.Width = "350"
+                If Integer.TryParse(dtimg.Rows(0).Item("logo_height"), 0) AndAlso CInt(dtimg.Rows(0).Item("logo_height")) > 120 Then Image1.Height = "120"
+                Image1.ImageUrl = "/Includes/CPLogo.ashx?ERPID=" + dtimg.Rows(0).Item("company_id").ToString + ""
+                'td_img.Width = Convert.ToString(Convert.ToInt32(dtimg.Rows(0).Item("logo_width").ToString) + 20)
+            Else
+                Image1.Width = "140"
+                Image1.Height = "100"
+                Image1.ImageUrl = "../images/cpinfo_03.gif"
+                td_img.Width = "160"
+            End If
+            Dim sql As String = "select a.row_id, a.account_name as company,a.phone_num as phone," + _
+            " a.address,a.city,a.url,b.contact_email as email" + _
+            " from SIEBEL_ACCOUNT as a inner join SAP_DIMCOMPANY as b on a.ERP_ID = b.company_id " + _
+            " and a.ERP_ID = '" + reqErpId.Replace("'", "") + "'"
+            Dim dt_Lit As DataTable = dbUtil.dbGetDataTable("RFM", sql)
+            Dim rowid As String = ""
+            If Not IsNothing(dt_Lit) And dt_Lit.Rows.Count > 0 Then
+                rowid = dt_Lit.Rows(0).Item("row_id").ToString
+                Lit_company.Text = dt_Lit.Rows(0).Item("company").ToString
+                Me.Title += " - " + Lit_company.Text
+                Lit_phone.Text = Split(dt_Lit.Rows(0).Item("phone").ToString, vbLf)(0)
+                Lit_address.Text = dt_Lit.Rows(0).Item("address").ToString
+                Lit_city.Text = dt_Lit.Rows(0).Item("city").ToString
+                Hylink_email.Text = dt_Lit.Rows(0).Item("email").ToString
+                If Hylink_email.Text.Trim = "" OrElse Hylink_email.Text.ToLower() Like "*@advantech*" OrElse Hylink_email.Text.ToLower() Like "*@*.*" = False Then
+                    Dim obj As Object = dbUtil.dbExecuteScalar("RFM", String.Format("select top 1 email_address from siebel_contact where erpid='{0}' and primary_flag='Y' and email_address like '%@%.%'", reqErpId.Replace("'", "")))
+                    If obj IsNot Nothing Then
+                        Hylink_email.Text = obj.ToString().Trim()
+                    End If
+                End If
+                Hylink_email.NavigateUrl = "mailto:" + Hylink_email.Text
+                If dt_Lit.Rows(0).Item("url").ToString.ToUpper.StartsWith("HTTP://WWW.") Then
+                    partner_homepage.NavigateUrl = dt_Lit.Rows(0).Item("url").ToString
+                Else
+                    partner_homepage.NavigateUrl = "Http://" + dt_Lit.Rows(0).Item("url").ToString
+                End If
+            End If
+            Dim dtbaa As DataTable = dbUtil.dbGetDataTable("RFM", String.Format("select BAA from SIEBEL_ACCOUNT_BAA where account_row_id ='{0}'", rowid.Trim))
+            Repeater_baa.DataSource = dtbaa
+            Repeater_baa.DataBind()
+            SetGP()
+        Else
+            Util.JSAlertGoBack(Me.Page, "ERPID can not be empty.")
+        End If
+        
+    End Sub
+    Private Function GetSql() As String
+        Dim sb As New System.Text.StringBuilder
+        With sb
+            .AppendFormat(" select top 1 a.row_id, a.erp_id, a.account_name, a.account_status, ")
+            .AppendFormat(" IsNull((select top 1 z.TEL_NO from sap_dimcompany z where z.company_id=a.erp_id),'') as phone_num, a.url, a.rbu, ")
+            .AppendFormat(" IsNull((select top 1 logo_width from sap_company_logo z where z.company_id=a.erp_id),330) as logo_width, ")
+            .AppendFormat(" IsNull((select top 1 logo_height from sap_company_logo z where z.company_id=a.erp_id),120) as logo_height, ")
+            .AppendFormat(" IsNull((select count(z.company_id) from sap_company_logo z where z.company_id=a.erp_id),0) as HasLogo,   ")
+            .AppendFormat(" case a.country when 'UK' then 'UNITED KINGDOM' else a.country end as country, a.city, a.address, a.zipcode, a.baa as baa, a.primary_sales_email ")
+            .AppendFormat(" FROM SIEBEL_ACCOUNT AS a ")
+            .AppendFormat(" WHERE a.account_name not like N'%delete%' ")
+            .AppendFormat(" and (a.ACCOUNT_STATUS IN ('01-Platinum Channel Partner','02-Gold Channel Partner','03-Certified Channel Partner')) ")
+            .AppendFormat(" and a.PRIMARY_SALES_EMAIL<>'' and a.primary_sales_email<>'sieowner@advantech.com.tw' ")
+            .AppendFormat(" and a.RBU in ('ADL','AFR','AIT','AEE','AUK','ABN') ")
+            .AppendFormat(" and a.erp_id = '{0}' ", Request("ERPID").ToString.Trim)           
+        End With
+        Return sb.ToString()
+    End Function
+    Sub SetGP()
+        PartnerMap.Markers.Clear()
+        Dim dt As DataTable = dbUtil.dbGetDataTable("RFM", GetSql())
+        If dt.Rows.Count > 0 Then
+            Dim r As DataRow = dt.Rows(0)
+            Dim gp As New GoogleMarker
+            gp.Address = r.Item("zipcode") + " " + r.Item("city") + ", " + r.Item("Country")
+            Dim ic As New Artem.Web.UI.Controls.GoogleMarker.InfoWindowContent()
+            gp.Text = GetCP(r.Item("account_name"), _
+                      String.Format("{0}, {1} {2}, {3}", r.Item("address"), r.Item("zipcode"), r.Item("city"), r.Item("account_name")), _
+                      r.Item("phone_num"), r.Item("url"), r.Item("row_id"), _
+                      r.Item("erp_id"), r.Item("logo_width"), r.Item("logo_height"), r.Item("HasLogo"))
+            PartnerMap.Markers.Add(gp)
+            PartnerMap.Address = gp.Address
+         
+        End If
+        
+    End Sub
+    Private Function GetCP(ByVal CPName As String, ByVal CPAddress As String, ByVal CPPhone As String, ByVal Url As String, _
+                          ByVal RowId As String, ByVal ErpId As String, ByVal LogoW As Integer, _
+                          ByVal LogoH As Integer, ByVal LogoCounts As Integer) As String
+        If LogoW > 330 Then LogoW = 330
+        If LogoH > 120 Then LogoH = 120
+        'Url = "/Order/CPInfo.aspx?ERPID=" + ErpId
+        Dim sb As New System.Text.StringBuilder
+        With sb
+            .AppendLine(String.Format("<table width='350px' height='200px'>"))
+            '.AppendLine(String.Format("<tr><td style='color:Navy'><h4><a href='{0}' target='_blank'>{1}</a></h4></td></tr>", Url, CPName))
+            .AppendLine(String.Format("<tr><td style='color:Navy'><h4>{0}</h4></td></tr>", CPName))
+            .AppendLine(String.Format("<tr><td>Phone: {0}</td></tr>", CPPhone))
+            .AppendLine(String.Format("<tr><td>{0}</td></tr>", CPAddress))
+            If LogoCounts > 0 Then .AppendLine(String.Format("<tr><td><img width='{0}px' height='{1}px' src='/Includes/CPLogo.ashx?ERPID={2}' alt='{3}'/></td></tr>", LogoW.ToString(), LogoH.ToString(), ErpId, CPName))
+            .AppendLine(String.Format("</table>"))
+        End With
+        Return sb.ToString()
+    End Function
+</script>
+
+<asp:Content ID="Content1" ContentPlaceHolderID="_main" Runat="Server">
+    <style type="text/css">
+        #contact li{
+        	font-weight: bold;
+	        color: #1D1C22;
+	        line-height:20px;
+		    list-style-type: none;	
+        }
+        .con_text {
+	        font-weight: normal;
+	        color: #2E292D;
+		    margin-left:5px;
+        }
+        #saa li{
+        	
+	        color: #1D1C22;
+	        line-height:20px;
+	        list-style-position: inside;
+	        list-style-type: disc;	
+	        margin-left:5px;
+        }
+        .Hyper_more
+        {
+          text-align: right;
+	      width: 90%;
+	      margin-right: 95px;
+	      margin-top: 5px;	      
+        	}
+    </style>
+    <table width="90%" border="0" align="center">
+        <tr>
+            <td id="td_img" runat="server" style="width:350px"><asp:Image ID="Image1" runat="server" /></td>
+            <td>
+                <ul id="contact">
+                <li><img src="../images/cpinfo_bg_01.gif" alt="" width="8" height="8" /> <asp:Label ID="Label2" Width="63" runat="server" Text="Company :" /><asp:Label CssClass="con_text" ID="Lit_company" runat="server"></asp:Label></li>
+                <li><img src="../images/cpinfo_bg_01.gif" alt="" width="8" height="8" /> <asp:Label ID="Label1" Width="63" runat="server" Text="Phone :" /><asp:Label CssClass="con_text"  ID="Lit_phone" runat="server"></asp:Label></li>
+                <li><img src="../images/cpinfo_bg_01.gif" alt="" width="8" height="8" /> <asp:Label ID="Label3" Width="63" runat="server" Text="Address :" /><asp:Label CssClass="con_text"  ID="Lit_address" runat="server"></asp:Label></li>
+                <li><img src="../images/cpinfo_bg_01.gif" alt="" width="8" height="8" /> <asp:Label ID="Label4" Width="63" runat="server" Text="City :" /><asp:Label CssClass="con_text"  ID="Lit_city" runat="server"></asp:Label></li>
+                <li><img src="../images/cpinfo_bg_01.gif" alt="" width="8" height="8" /> <asp:Label ID="Label5" Width="63" runat="server" Text="eMail :" /><asp:HyperLink CssClass="con_text"  ID="Hylink_email" runat="server">HyperLink</asp:HyperLink></li>
+                </ul>
+            </td>
+            <td align="right" ></td>
+        </tr>
+        <tr><td height="2" colspan="3"></td></tr> 
+        <tr><td height="1" colspan="3" style="background-color:Gray;"></td></tr> 
+        <tr><td height="5" colspan="3"></td></tr> 
+        <tr>
+            <td  valign="top" width="300">
+                <b style="margin-left:5px;">:::  Business Application Area</b> 
+                <ul id="saa">
+                    <asp:Repeater ID="Repeater_baa" runat="server">
+                        <ItemTemplate>
+                         <li> <%#Eval("BAA")%> </li>
+                        </ItemTemplate>
+                    </asp:Repeater>   
+                </ul> 
+                <div  class="Hyper_more">
+                <asp:HyperLink ID="partner_homepage" Target="_blank" runat="server"><img alt="Click to partner's homepage" src="../images/cpinfo_02.gif" width="8" height="8" />  more detail</asp:HyperLink>
+                </div>   
+            </td>
+            <td colspan="2">
+            <artem:GoogleMap ID="PartnerMap" OnClientMapLoad="setTimeout('showInfoWindow(0)', 1000)"  runat="server" Width="100%" Height="430px"  InsideUpdatePanel="true" EnableScrollWheelZoom="true"
+                  Key="ABQIAAAAAdfarN5qMcZFUCMW5ctIMxS7U-QakKK4NN0qiNtkDx0ft3WtLRTtqpIg2UuGTqli0-yZKOoGyh9wDw" Zoom="6">                   
+             </artem:GoogleMap>
+            </td>
+        </tr>      
+    </table>   
+    <script type="text/javascript">
+    function showInfoWindow(index) {     
+        var marker = PartnerMap.Markers[index];     
+        marker.openInfoWindowHtml(marker.Text);
+    }                  
+</script>
+</asp:Content>

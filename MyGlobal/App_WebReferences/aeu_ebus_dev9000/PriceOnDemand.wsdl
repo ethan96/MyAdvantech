@@ -1,0 +1,241 @@
+<?xml version="1.0" encoding="utf-8"?>
+<wsdl:definitions xmlns:http="http://schemas.xmlsoap.org/wsdl/http/" xmlns:soapenc="http://schemas.xmlsoap.org/soap/encoding/" xmlns:mime="http://schemas.xmlsoap.org/wsdl/mime/" xmlns:tns="MyAdvantech" xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/" xmlns:tm="http://microsoft.com/wsdl/mime/textMatching/" xmlns:s="http://www.w3.org/2001/XMLSchema" xmlns:soap12="http://schemas.xmlsoap.org/wsdl/soap12/" targetNamespace="MyAdvantech" xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/">
+  <wsdl:types>
+    <s:schema elementFormDefault="qualified" targetNamespace="MyAdvantech">
+      <s:element name="HelloKitty">
+        <s:complexType />
+      </s:element>
+      <s:element name="HelloKittyResponse">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="HelloKittyResult" type="s:string" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="GetPriceList">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="CompanyId" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="Org" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="DownloadTargetPG" type="s:string" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="GetPriceListResponse">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="GetPriceListResult">
+              <s:complexType>
+                <s:sequence>
+                  <s:any minOccurs="0" maxOccurs="unbounded" namespace="http://www.w3.org/2001/XMLSchema" processContents="lax" />
+                  <s:any minOccurs="1" namespace="urn:schemas-microsoft-com:xml-diffgram-v1" processContents="lax" />
+                </s:sequence>
+              </s:complexType>
+            </s:element>
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="SendPriceListByEmail">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="CompanyId" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="Org" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="request_email" type="s:string" />
+            <s:element minOccurs="1" maxOccurs="1" name="DownloadFormat" type="tns:DownloadFormat" />
+            <s:element minOccurs="0" maxOccurs="1" name="DownloadTargetPG" type="s:string" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:simpleType name="DownloadFormat">
+        <s:restriction base="s:string">
+          <s:enumeration value="Excel" />
+          <s:enumeration value="Rar" />
+          <s:enumeration value="Zip" />
+        </s:restriction>
+      </s:simpleType>
+      <s:element name="SendPriceListByEmailResponse">
+        <s:complexType />
+      </s:element>
+      <s:element name="SendPriceList">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="CompanyId" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="Org" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="request_email" type="s:string" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="SendPriceListResponse">
+        <s:complexType />
+      </s:element>
+      <s:element name="SendPriceList_Tmp">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="CompanyId" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="Org" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="request_email" type="s:string" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="SendPriceList_TmpResponse">
+        <s:complexType />
+      </s:element>
+    </s:schema>
+  </wsdl:types>
+  <wsdl:message name="HelloKittySoapIn">
+    <wsdl:part name="parameters" element="tns:HelloKitty" />
+  </wsdl:message>
+  <wsdl:message name="HelloKittySoapOut">
+    <wsdl:part name="parameters" element="tns:HelloKittyResponse" />
+  </wsdl:message>
+  <wsdl:message name="GetPriceListSoapIn">
+    <wsdl:part name="parameters" element="tns:GetPriceList" />
+  </wsdl:message>
+  <wsdl:message name="GetPriceListSoapOut">
+    <wsdl:part name="parameters" element="tns:GetPriceListResponse" />
+  </wsdl:message>
+  <wsdl:message name="SendPriceListByEmailSoapIn">
+    <wsdl:part name="parameters" element="tns:SendPriceListByEmail" />
+  </wsdl:message>
+  <wsdl:message name="SendPriceListByEmailSoapOut">
+    <wsdl:part name="parameters" element="tns:SendPriceListByEmailResponse" />
+  </wsdl:message>
+  <wsdl:message name="SendPriceListSoapIn">
+    <wsdl:part name="parameters" element="tns:SendPriceList" />
+  </wsdl:message>
+  <wsdl:message name="SendPriceListSoapOut">
+    <wsdl:part name="parameters" element="tns:SendPriceListResponse" />
+  </wsdl:message>
+  <wsdl:message name="SendPriceList_TmpSoapIn">
+    <wsdl:part name="parameters" element="tns:SendPriceList_Tmp" />
+  </wsdl:message>
+  <wsdl:message name="SendPriceList_TmpSoapOut">
+    <wsdl:part name="parameters" element="tns:SendPriceList_TmpResponse" />
+  </wsdl:message>
+  <wsdl:portType name="PriceOnDemandSoap">
+    <wsdl:operation name="HelloKitty">
+      <wsdl:input message="tns:HelloKittySoapIn" />
+      <wsdl:output message="tns:HelloKittySoapOut" />
+    </wsdl:operation>
+    <wsdl:operation name="GetPriceList">
+      <wsdl:input message="tns:GetPriceListSoapIn" />
+      <wsdl:output message="tns:GetPriceListSoapOut" />
+    </wsdl:operation>
+    <wsdl:operation name="SendPriceListByEmail">
+      <wsdl:input message="tns:SendPriceListByEmailSoapIn" />
+      <wsdl:output message="tns:SendPriceListByEmailSoapOut" />
+    </wsdl:operation>
+    <wsdl:operation name="SendPriceList">
+      <wsdl:input message="tns:SendPriceListSoapIn" />
+      <wsdl:output message="tns:SendPriceListSoapOut" />
+    </wsdl:operation>
+    <wsdl:operation name="SendPriceList_Tmp">
+      <wsdl:input message="tns:SendPriceList_TmpSoapIn" />
+      <wsdl:output message="tns:SendPriceList_TmpSoapOut" />
+    </wsdl:operation>
+  </wsdl:portType>
+  <wsdl:binding name="PriceOnDemandSoap" type="tns:PriceOnDemandSoap">
+    <soap:binding transport="http://schemas.xmlsoap.org/soap/http" />
+    <wsdl:operation name="HelloKitty">
+      <soap:operation soapAction="MyAdvantech/HelloKitty" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="GetPriceList">
+      <soap:operation soapAction="MyAdvantech/GetPriceList" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="SendPriceListByEmail">
+      <soap:operation soapAction="MyAdvantech/SendPriceListByEmail" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="SendPriceList">
+      <soap:operation soapAction="MyAdvantech/SendPriceList" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="SendPriceList_Tmp">
+      <soap:operation soapAction="MyAdvantech/SendPriceList_Tmp" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+  </wsdl:binding>
+  <wsdl:binding name="PriceOnDemandSoap12" type="tns:PriceOnDemandSoap">
+    <soap12:binding transport="http://schemas.xmlsoap.org/soap/http" />
+    <wsdl:operation name="HelloKitty">
+      <soap12:operation soapAction="MyAdvantech/HelloKitty" style="document" />
+      <wsdl:input>
+        <soap12:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap12:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="GetPriceList">
+      <soap12:operation soapAction="MyAdvantech/GetPriceList" style="document" />
+      <wsdl:input>
+        <soap12:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap12:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="SendPriceListByEmail">
+      <soap12:operation soapAction="MyAdvantech/SendPriceListByEmail" style="document" />
+      <wsdl:input>
+        <soap12:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap12:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="SendPriceList">
+      <soap12:operation soapAction="MyAdvantech/SendPriceList" style="document" />
+      <wsdl:input>
+        <soap12:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap12:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="SendPriceList_Tmp">
+      <soap12:operation soapAction="MyAdvantech/SendPriceList_Tmp" style="document" />
+      <wsdl:input>
+        <soap12:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap12:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+  </wsdl:binding>
+  <wsdl:service name="PriceOnDemand">
+    <wsdl:port name="PriceOnDemandSoap" binding="tns:PriceOnDemandSoap">
+      <soap:address location="http://myadvan-global:9000/PriceOnDemand.asmx" />
+    </wsdl:port>
+    <wsdl:port name="PriceOnDemandSoap12" binding="tns:PriceOnDemandSoap12">
+      <soap12:address location="http://myadvan-global:9000/PriceOnDemand.asmx" />
+    </wsdl:port>
+  </wsdl:service>
+</wsdl:definitions>

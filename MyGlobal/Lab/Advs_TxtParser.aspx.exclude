@@ -1,0 +1,65 @@
+﻿<%@ Page Language="VB" ValidateRequest="false" %>
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<script runat="server">
+
+    Protected Sub btnUp_Click(sender As Object, e As System.EventArgs)
+        txt1.Text = ""
+        If fup1.HasFile AndAlso fup1.FileName.EndsWith(".txt", StringComparison.CurrentCultureIgnoreCase) Then
+            Dim txtReader As New System.IO.StreamReader(fup1.FileContent)
+            Dim strAllLines As String = txtReader.ReadToEnd()
+            txtReader.Close()
+            Dim txtResult As New System.Text.StringBuilder
+            
+            Dim Lines() As String = Split(strAllLines, "AAAAAAAAAA")
+            For Each Line As String In Lines
+                If Line.Contains("Parity Fail Rate=") Then
+                    Dim intIdx As Integer = Line.IndexOf("Parity Fail Rate=")
+                    If intIdx > 0 Then
+                        Dim subLine As String = Line.Substring(intIdx + 17)
+                        Dim intSSeQIdx As Integer = subLine.IndexOf("ss=")
+                        If intSSeQIdx > 0 Then
+                            'Console.WriteLine(subLine.Substring(0, intSSeQIdx + 5))
+                            txtResult.Append(subLine.Substring(0, intSSeQIdx + 5) + vbCrLf)
+                        End If
+                    End If
+                ElseIf Line.Contains("TTFF=") Then
+                    Dim intFstIdx As Integer = Line.IndexOf("TTFF=")
+                    Dim intFstSpaceIdx As Integer = Line.Substring(intFstIdx + 1).IndexOf(" ")
+                    txtResult.Append(Line.Substring(intFstIdx, intFstSpaceIdx - 1))
+                ElseIf Line.Contains("Fail Rate=") Then
+                    Dim intIdx As Integer = Line.IndexOf("Fail Rate=")
+                    If intIdx > 0 Then
+                        Console.WriteLine("last one checking:")
+                        Dim subLine As String = Line.Substring(intIdx + 10)
+                        Dim intRightPIdx As Integer = subLine.IndexOf(")")
+                        If intRightPIdx > 0 Then
+                            'Console.WriteLine(subLine.Substring(0, intRightPIdx + 1))
+                            txtResult.Append(subLine.Substring(0, intRightPIdx + 1) + vbCrLf)
+                        End If
+                    End If
+                End If
+            Next
+            txt1.Text = txtResult.ToString()
+        End If
+    End Sub
+
+    Protected Sub Page_Load(sender As Object, e As System.EventArgs)
+        'txt1.Text = "aaaa" + vbCrLf + "bbbb"
+    End Sub
+</script>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head runat="server">
+    <title></title>
+</head>
+<body>
+    <form id="form1" runat="server">
+    <div>
+        <asp:FileUpload runat="server" ID="fup1" />&nbsp;<asp:Button runat="server" ID="btnUp" Text="Upload" OnClick="btnUp_Click" /><br />
+        <asp:TextBox runat="server" ID="txt1" Width="1000px" Height="700px" TextMode="MultiLine" />        
+    </div>
+    </form>
+</body>
+</html>

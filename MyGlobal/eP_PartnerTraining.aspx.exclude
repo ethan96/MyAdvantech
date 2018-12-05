@@ -1,0 +1,78 @@
+﻿<%@ Page Language="VB" MasterPageFile="~/Includes/MyMaster.master" Title="2009Q1 Sales Kits & Roadmap" %>
+
+<script runat="server">
+
+    Protected Sub sqlINCG_Load(ByVal sender As Object, ByVal e As System.EventArgs)
+        Dim RowID() As String = {"'1-2ZZT0M'", "'1-2ZZT1A'", "'1-2ZZT1E'", "'1-2ZZT0E'", "'1-2ZZT0U'", "'1-2ZZT06'"}
+        sqlINCG.SelectCommand = "select literature_id, 'Sales Kit & Roadmap' as type, lit_desc as file_name, lit_name as file_desc, file_ext from literature where literature_id in (" + String.Join(",", RowID) + ")"
+    End Sub
+
+    Protected Sub sqlECG_Load(ByVal sender As Object, ByVal e As System.EventArgs)
+        Dim RowID() As String = {"'1-2ZZT0Q'", "'1-2ZZT0Y'", "'1-2ZZT0I'", "'1-2ZZT12'", "'1-2ZM1FG'", "'1-2ZZPQM'", "'1-2ZZT0A'", "'1-2ZZSZO'", "'1-36AE50'", "'1-2ZM1FW'", "'1-2HKVS9'"}
+        sqlECG.SelectCommand = "select literature_id, 'Sales Kit & Roadmap' as type, lit_desc as file_name, lit_name as file_desc, file_ext from literature where literature_id in (" + String.Join(",", RowID) + ")"
+    End Sub
+</script>
+
+<asp:Content ID="Content1" ContentPlaceHolderID="_main" Runat="Server">
+    <table width="100%">
+        <tr><td height="5"></td></tr>
+        <tr><td><div class="euPageTitle">2009Q1 Sales Kits & Roadmap</div></td></tr>
+        <tr><td height="5"></td></tr>
+        <tr>
+            <td>
+                <table border="0" width="100%">
+                    <tr><td width="30"><b>INCG</b></td><td></td></tr>
+                    <tr><td></td>
+                        <td>
+                            <sgv:SmartGridView runat="server" ID="gvINCG" AutoGenerateColumns="false" DataSourceID="sqlINCG">
+                                <Columns>
+                                    <asp:TemplateField ItemStyle-Width="50px" ItemStyle-HorizontalAlign="Center">
+                                        <headertemplate>
+                                            No.
+                                        </headertemplate>
+                                        <itemtemplate>
+                                            <%# Container.DataItemIndex + 1 %>
+                                        </itemtemplate>
+                                    </asp:TemplateField>
+                                    <asp:BoundField HeaderText="Type" DataField="type" ItemStyle-Width="120px" ItemStyle-HorizontalAlign="Center" />
+                                    <asp:HyperLinkField HeaderText="File Name" DataNavigateUrlFields="literature_id" DataNavigateUrlFormatString="/Product/Unzip_File.aspx?Literature_ID={0}" DataTextField="file_name" Target="_blank" ItemStyle-Width="350px" />
+                                    <asp:BoundField HeaderText="Description" DataField="file_desc" ItemStyle-Width="250px" />
+                                    <asp:BoundField HeaderText="File Type" DataField="file_ext" ItemStyle-HorizontalAlign="Center" />
+                                </Columns>
+                            </sgv:SmartGridView>
+                            <asp:SqlDataSource runat="server" ID="sqlINCG" ConnectionString="<%$connectionStrings:My %>"
+                                 SelectCommand="" OnLoad="sqlINCG_Load">
+                            </asp:SqlDataSource>
+                        </td>
+                    </tr>
+                    <tr><td colspan="2" height="10"></td></tr>
+                    <tr><td width="30"><b>ECG</b></td><td></td></tr>
+                    <tr><td></td>
+                        <td>
+                            <sgv:SmartGridView runat="server" ID="gvECG" AutoGenerateColumns="false" DataSourceID="sqlECG">
+                                <Columns>
+                                    <asp:TemplateField ItemStyle-Width="50px" ItemStyle-HorizontalAlign="Center">
+                                        <headertemplate>
+                                            No.
+                                        </headertemplate>
+                                        <itemtemplate>
+                                            <%# Container.DataItemIndex + 1 %>
+                                        </itemtemplate>
+                                    </asp:TemplateField>
+                                    <asp:BoundField HeaderText="Type" DataField="type" ItemStyle-Width="120px" ItemStyle-HorizontalAlign="Center" />
+                                    <asp:HyperLinkField HeaderText="File Name" DataNavigateUrlFields="literature_id" DataNavigateUrlFormatString="/Product/Unzip_File.aspx?Literature_ID={0}" DataTextField="file_name" Target="_blank" ItemStyle-Width="350px" />
+                                    <asp:BoundField HeaderText="Description" DataField="file_desc" ItemStyle-Width="250px" />
+                                    <asp:BoundField HeaderText="File Type" DataField="file_ext" ItemStyle-HorizontalAlign="Center" />
+                                </Columns>
+                            </sgv:SmartGridView>
+                            <asp:SqlDataSource runat="server" ID="sqlECG" ConnectionString="<%$connectionStrings:My %>"
+                                 SelectCommand="" OnLoad="sqlECG_Load">
+                            </asp:SqlDataSource>
+                        </td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+    </table>
+</asp:Content>
+

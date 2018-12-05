@@ -1,0 +1,127 @@
+﻿<%@ Page Title="MyAdvantech - Mind Catch eDM Survey Report" Language="VB" MasterPageFile="~/Includes/MyMaster.master" %>
+
+<script runat="server">
+    Public Function GetSQL() As String
+        Dim eDM As String() = {"IoT", "Environmental Monitoring", "Intelligent Video", "Slim Box", "Quiet IPC", "Low Power Embedded Board", "Ultra-bright Industrial Display", "Nursing Cart", "In-vehicle", "UTC"}
+        Dim sb As New StringBuilder
+        With sb
+            .AppendFormat("SELECT distinct a.NAME, ")
+            For i As Integer = 0 To eDM.Length - 1
+                .AppendFormat("isnull((select top 1 z.rank+'|'+z.comment from MindCatchEDMSurvey z where z.edm='{0}' and z.row_id=a.row_id),'') as '{0}',", eDM(i))
+            Next
+            .AppendFormat(" a.TIMESTAMP as LOG_DATE from MindCatchEDMSurvey a order by a.TIMESTAMP desc")
+        End With
+        Return sb.ToString
+    End Function
+    
+    Protected Sub sql1_Load(ByVal sender As Object, ByVal e As System.EventArgs)
+        sql1.SelectCommand = GetSQL()
+    End Sub
+    
+    Protected Sub btnToXls1_Click(ByVal sender As Object, ByVal e As System.EventArgs)
+        Dim eDM As String() = {"IoT", "Environmental Monitoring", "Intelligent Video", "Slim Box", "Quiet IPC", "Low Power Embedded Board", "Ultra-bright Industrial Display", "Nursing Cart", "In-vehicle", "UTC"}
+        Dim sb As New StringBuilder
+        With sb
+            .AppendFormat("SELECT distinct a.NAME, ")
+            For i As Integer = 0 To eDM.Length - 1
+                .AppendFormat("(select top 1 cast(z.rank as int) from MindCatchEDMSurvey z where z.edm='{0}' and z.row_id=a.row_id) as '{0}',", eDM(i))
+                .AppendFormat("isnull((select top 1 z.comment from MindCatchEDMSurvey z where z.edm='{0}' and z.row_id=a.row_id),'') as '{0} Comment',", eDM(i))
+            Next
+            .AppendFormat(" a.TIMESTAMP as LOG_DATE from MindCatchEDMSurvey a order by a.TIMESTAMP desc")
+        End With
+        Util.DataTable2ExcelDownload(dbUtil.dbGetDataTable("MyLocal", sb.ToString), "Survey Report.xls")
+    End Sub
+
+    Protected Sub gv1_RowDataBound(ByVal sender As Object, ByVal e As System.Web.UI.WebControls.GridViewRowEventArgs)
+        If e.Row.RowType = DataControlRowType.DataRow Then
+            For i As Integer = 1 To 10
+                If e.Row.Cells(i).Text.Split("|")(1) <> "" Then
+                    e.Row.Cells(i).Text = "<table cellpadding='0' cellspacing='0'><tr><td height='35' valign='top'>" + e.Row.Cells(i).Text.Split("|")(0) + "</td></tr><tr><td>" + "<b>Comment: </b><br/>" + e.Row.Cells(i).Text.Split("|")(1).Replace("&lt;br/&gt;", "<br/>") + "</td></tr></table>"
+                Else
+                    e.Row.Cells(i).Text = e.Row.Cells(i).Text.Replace("|", "")
+                End If
+            Next
+        End If
+    End Sub
+
+    Protected Sub Page_Load(ByVal sender As Object, ByVal e As System.EventArgs)
+        
+    End Sub
+
+    Protected Sub sql2_Load(ByVal sender As Object, ByVal e As System.EventArgs)
+        'Dim eDM As String() = {"IoT", "Environmental Monitoring", "Intelligent Video", "Slim Box", "Quiet IPC", "Low Power Embedded Board", "Ultra-bright Industrial Display", "Nursing Cart", "In-vehicle", "UTC"}
+        'Dim sb As New StringBuilder
+        'With sb
+        '    .AppendFormat("SELECT distinct ")
+        '    For i As Integer = 0 To eDM.Length - 2
+        '        .AppendFormat("(select SUM(cast(z.rank as int)) from MindCatchEDMSurvey z where z.edm='{0}') as '{0}',", eDM(i))
+        '    Next
+        '    .AppendFormat("(select SUM(cast(z.rank as int)) from MindCatchEDMSurvey z where z.edm='UTC') as 'UTC' ")
+        '    .AppendFormat(" from MindCatchEDMSurvey a")
+        'End With
+        'sql2.SelectCommand = sb.ToString
+    End Sub
+
+    Protected Sub gv1_PreRender(ByVal sender As Object, ByVal e As System.EventArgs)
+        Dim eDM As String() = {"IoT", "Environmental Monitoring", "Intelligent Video", "Slim Box", "Quiet IPC", "Low Power Embedded Board", "Ultra-bright Industrial Display", "Nursing Cart", "In-vehicle", "UTC"}
+        Dim sb As New StringBuilder
+        With sb
+            .AppendFormat("SELECT distinct ")
+            For i As Integer = 0 To eDM.Length - 2
+                .AppendFormat("(select SUM(cast(z.rank as int)) from MindCatchEDMSurvey z where z.edm='{0}') as '{0}',", eDM(i))
+            Next
+            .AppendFormat("(select SUM(cast(z.rank as int)) from MindCatchEDMSurvey z where z.edm='UTC') as 'UTC' ")
+            .AppendFormat(" from MindCatchEDMSurvey a")
+        End With
+        Dim dt As DataTable = dbUtil.dbGetDataTable("MYLOCAL", sb.ToString)
+        Dim row As New GridViewRow(0, 0, DataControlRowType.DataRow, DataControlRowState.Normal)
+        row.HorizontalAlign = HorizontalAlign.Center
+        Dim cell As New TableCell
+        cell.Text = "<b>Total</b>"
+        row.Cells.Add(cell)
+        For i As Integer = 0 To eDM.Length - 1
+            Dim cell1 As New TableCell
+            cell1.Text = "<font color='red'>" + dt.Rows(0).Item(i).ToString + "</font>"
+            row.Cells.Add(cell1)
+        Next
+        Dim cell2 As New TableCell
+        cell2.Text = " "
+        row.Cells.Add(cell2)
+        gv1.Controls(0).Controls.AddAt(gv1.Controls(0).Controls.Count - 1, row)
+    End Sub
+</script>
+
+<asp:Content ID="Content1" ContentPlaceHolderID="_main" Runat="Server">
+    <table>
+        <tr><td height="10"></td></tr>
+        <tr>
+            <th align="left"><font size="4">Mind Catch eDM Survey Report</font></th>
+        </tr>
+        <tr><td height="20"></td></tr>
+        <tr><td><asp:Image runat="server" ID="imgExcel1" ImageUrl="~/Images/excel.gif" /><asp:LinkButton runat="server" ID="btnToXls1" Text="Export To Excel" OnClick="btnToXls1_Click" /></td></tr>
+        <tr>
+            <td>
+                <asp:GridView runat="server" ID="gv1" AutoGenerateColumns="false" PageSize="50" AllowPaging="true" AllowSorting="true" DataSourceID="sql1" OnRowDataBound="gv1_RowDataBound" OnPreRender="gv1_PreRender">
+                    <Columns>
+                        <asp:BoundField DataField="NAME" HeaderText="Advise By" SortExpression="NAME" />
+                        <asp:BoundField DataField="IoT" HeaderText="IoT" ItemStyle-VerticalAlign="Top" />
+                        <asp:BoundField DataField="Environmental Monitoring" HeaderText="Environmental Monitoring" ItemStyle-VerticalAlign="Top" />
+                        <asp:BoundField DataField="Intelligent Video" HeaderText="Intelligent Video" ItemStyle-VerticalAlign="Top" />
+                        <asp:BoundField DataField="Slim Box" HeaderText="Slim Box" ItemStyle-VerticalAlign="Top" />
+                        <asp:BoundField DataField="Quiet IPC" HeaderText="Quiet IPC" ItemStyle-VerticalAlign="Top" />
+                        <asp:BoundField DataField="Low Power Embedded Board" HeaderText="Low Power Embedded Board" ItemStyle-VerticalAlign="Top" />
+                        <asp:BoundField DataField="Ultra-bright Industrial Display" HeaderText="Ultra-bright Industrial Display" ItemStyle-VerticalAlign="Top" />
+                        <asp:BoundField DataField="Nursing Cart" HeaderText="Nursing Cart" ItemStyle-VerticalAlign="Top" />
+                        <asp:BoundField DataField="In-vehicle" HeaderText="In-vehicle" ItemStyle-VerticalAlign="Top" />
+                        <asp:BoundField DataField="UTC" HeaderText="UTC" ItemStyle-VerticalAlign="Top" />
+                        <asp:BoundField DataField="LOG_DATE" HeaderText="Date" SortExpression="LOG_DATE" />
+                    </Columns>
+                </asp:GridView>
+                <asp:SqlDataSource runat="server" ID="sql1" ConnectionString="<%$ connectionStrings: MYLOCAL %>"
+                    SelectCommand="" OnLoad="sql1_Load">
+                </asp:SqlDataSource>
+            </td>
+        </tr>
+    </table>
+</asp:Content>
+

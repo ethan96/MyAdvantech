@@ -1,0 +1,14 @@
+﻿<?xml version="1.0" encoding="utf-8"?><Database Name="MyAdvantechGlobal" Class="L2SCBOMDataContext" xmlns="http://schemas.microsoft.com/linqtosql/dbml/2007">
+  <Connection Mode="WebSettings" ConnectionString="Data Source=ACLSTNR12;Initial Catalog=MyAdvantechGlobal;Persist Security Info=True;User ID=b2bsa" SettingsObjectName="System.Configuration.ConfigurationManager.ConnectionStrings" SettingsPropertyName="MyAdvantechGlobalConnectionString2" Provider="System.Data.SqlClient" />
+  <Table Name="dbo.CBOM_EDITOR_LOG" Member="CBOM_EDITOR_LOGs">
+    <Type Name="CBOM_EDITOR_LOG">
+      <Column Name="uid" Type="System.String" DbType="VarChar(50) NOT NULL" IsPrimaryKey="true" CanBeNull="false" />
+      <Column Name="userid" Type="System.String" DbType="VarChar(50)" CanBeNull="true" />
+      <Column Name="timestamp" Type="System.DateTime" DbType="DateTime" CanBeNull="true" />
+      <Column Name="btoid" Type="System.String" DbType="VarChar(80)" CanBeNull="true" />
+      <Column Name="otype" Type="System.String" DbType="VarChar(20)" CanBeNull="true" />
+      <Column Name="sqlstr" Type="System.String" DbType="VarChar(4000)" CanBeNull="true" />
+      <Column Name="tagsign" Type="System.String" DbType="VarChar(200)" CanBeNull="true" />
+    </Type>
+  </Table>
+</Database>

@@ -1,0 +1,306 @@
+﻿<%@ Page Language="VB" MasterPageFile="~/Includes/MyMaster.master" Title="MyAdvantech - Resource Search" ValidateRequest="false" %>
+<%@ MasterType VirtualPath="~/Includes/MyMaster.master" %>
+<script runat="server">
+    
+    <Services.WebMethod()> _
+    <Web.Script.Services.ScriptMethod()> _
+    Public Shared Function GetNewsContent(ByVal recid As String, ByVal Type As String) As String
+        Try
+            Return Util.GetCMSContent(recid, Type)
+        Catch ex As Exception
+            Util.SendEmail("tc.chen@advantech.eu", "ebiz.aeu@advantech.eu", "Error GetWWWNews", "recid:" + recid + "<br/>" + ex.ToString, False, "", "")
+        End Try
+        Return "Content currently not available"
+    End Function
+    
+    Public Shared Function ShowOrHideViewLink(ByVal url As String, ByVal recid As String) As String
+        If IsValidUrlFormat(url) Then
+            Return String.Format("<a href='/Includes/RecLink.ashx?RECID={0}' target='_blank'>View</a>", recid)
+        Else
+            Return ""
+        End If
+    End Function
+    
+    Public Shared Function IsValidUrlFormat(ByVal url As String) As Boolean
+        Dim reg As String = "(http:\/\/([\w.]+\/?)\S*)"
+        Dim options As RegexOptions = RegexOptions.Singleline
+        If Regex.Matches(url, reg, options).Count = 0 Then
+            Return False
+        Else
+            Return True
+        End If
+    End Function
+    
+    Function GetSql() As String
+        Dim fts As New eBizAEU.FullTextSearch(Server.HtmlEncode(txtKey.Text))
+        Dim strKey As String = fts.NormalForm.Replace("'", "''")
+        Dim sb As New System.Text.StringBuilder
+        With sb
+            .AppendLine(String.Format(" SELECT distinct top 500 a.TITLE, a.RELEASE_DATE, a.LASTUPDATED,  "))
+            .AppendLine(String.Format(" a.CATEGORY_NAME, a.RECORD_ID, a.RECORD_IMG, a.HYPER_LINK,  "))
+            .AppendLine(String.Format(" a.ABSTRACT, a.COUNTRY, a.CITY, a.BOOTH, a.CONTACT_NAME,  "))
+            .AppendLine(String.Format(" a.CONTACT_PHONE, a.CONTACT_EMAIL, a.AP_TYPE, a.CMS_TYPE, a.BAA,  "))
+            .AppendLine(String.Format(" a.HOURS, a.MINUTE, a.SECOND "))
+            .AppendLine(String.Format(" FROM WWW_RESOURCES AS a  "))
+            .AppendLine(String.Format(" WHERE a.RBU in ('AEU','AUS','AAU') "))
+            If txtKey.Text.Trim <> "" Then
+                .AppendLine(String.Format(" and a.ROW_ID in (SELECT top 500 [key] as row_id FROM CONTAINSTABLE(WWW_RESOURCES, (ABSTRACT,TITLE,BAA), N'{0}') order by rank desc) ", strKey))
+                '.AppendLine(String.Format(" a.TITLE like N'%{0}%' or a.ABSTRACT like N'%{0}%') ", txtKey.Text.Trim.Replace("'", "''").Replace("*", "%")))
+            End If
+            If Not Page.IsPostBack And txtKey.Text.Trim = "" Then
+                Dim userBaa As ArrayList = GetUserBAA()
+                'userBaa.Add("N'Machine Automation'")
+                If userBaa.Count > 0 Then
+                    .AppendLine(String.Format(" and a.BAA in ({0}) ", String.Join(",", CType(userBaa.ToArray(GetType(String)), String()))))
+                End If
+            End If
+            If Util.GetCheckedCountFromCheckBoxList(cblRecType) > 0 And Util.GetCheckedCountFromCheckBoxList(cblRecType) < cblRecType.Items.Count Then
+                .AppendLine(String.Format(" and a.CATEGORY_NAME in {0} ", Util.GetInStrinFromCheckBoxList(cblRecType)))
+            End If
+            .AppendLine(String.Format(" order by lastupdated desc, release_date desc "))
+        End With
+        lbSql.Text = sb.ToString()
+        Util.SendEmail("tc.chen@advantech.eu", "ebiz.aeu@advantech.eu", "", sb.ToString, False, "", "")
+        Return sb.ToString()
+    End Function
+    
+    Shared Function RecImgTdStyle(ByVal rectype As String) As String
+        Select Case rectype.ToUpper()
+            Case "VIDEO"
+                Return "width:113px; display:block;"
+            Case Else
+                Return "width:0px; display:none;"
+        End Select
+    End Function
+    
+    Function GetUserBAA() As ArrayList
+        Dim arrBaa As New ArrayList
+        If Session IsNot Nothing AndAlso Session("user_id") <> "" Then
+            If Session("company_id") <> "" And Session("company_id") <> "EDDEAA01" Then
+                Dim dt As DataTable = dbUtil.dbGetDataTable("RFM", String.Format("select b.baa from siebel_account a inner join siebel_account_baa b on a.row_id=b.account_row_id where a.erp_id<>'' and a.erp_id='{0}' and b.baa<>'' and b.baa<>'N/A'", Session("company_id")))
+                For Each r As DataRow In dt.Rows
+                    arrBaa.Add("N'" + r.Item("BAA") + "'")
+                Next
+            End If
+            If arrBaa.Count = 0 Then
+                Dim dt As DataTable = dbUtil.dbGetDataTable("RFM", String.Format("select a.NAME as BAA from siebel_contact_baa a inner join siebel_contact b on a.contact_row_id=b.row_id and b.email_address='{0}' and a.NAME<>'' and a.NAME<>'N/A'", Session("user_id")))
+                For Each r As DataRow In dt.Rows
+                    arrBaa.Add("N'" + r.Item("BAA") + "'")
+                Next
+            End If
+        End If
+        If arrBaa.Contains("N'Home Automation'") Then
+            arrBaa.Add("N'Building Automation'")
+        Else
+            If arrBaa.Contains("N'Building Automation'") Then
+                arrBaa.Add("N'Home Automation'")
+            End If
+        End If
+        If arrBaa.Contains("N'Factory Automation'") Then
+            arrBaa.Add("N'Machine Automation'")
+        Else
+            If arrBaa.Contains("N'Machine Automation'") Then
+                arrBaa.Add("N'Factory Automation'")
+            End If
+        End If
+        Return arrBaa
+    End Function
+    
+    <Services.WebMethod()> _
+    <Web.Script.Services.ScriptMethod()> _
+    Public Shared Function GetRecKey(ByVal prefixText As String, ByVal count As Integer) As String()
+        Dim dt As DataTable = Nothing
+        If True Then
+            If prefixText.EndsWith(" ") Then
+                Dim ps() As String = Split(prefixText, " ")
+                prefixText = Replace(Replace(Trim(ps(0)), "'", "''"), "*", "%")
+                Dim sb As New System.Text.StringBuilder
+                With sb
+                    .AppendLine(String.Format(" select top 10 display_term  "))
+                    .AppendLine(String.Format(" from sys.dm_fts_index_keywords_by_document( DB_ID('MyAdvantechGlobal'), OBJECT_ID('WWW_RESOURCES') )  "))
+                    .AppendLine(String.Format(" where display_term not in ('END OF FILE','br','li') and document_id in "))
+                    .AppendLine(String.Format(" ( "))
+                    .AppendLine(String.Format(" 	select document_id "))
+                    .AppendLine(String.Format(" 	from sys.dm_fts_index_keywords_by_document( DB_ID('MyAdvantechGlobal'), OBJECT_ID('WWW_RESOURCES') )  "))
+                    .AppendLine(String.Format(" 	where display_term='{0}' ", prefixText))
+                    .AppendLine(String.Format(" ) and display_term<>'{0}' ", prefixText))
+                    .AppendLine(String.Format(" group by display_term order by COUNT(distinct document_id) desc "))
+                End With
+                dt = dbUtil.dbGetDataTable("MY", sb.ToString())
+                For Each r As DataRow In dt.Rows
+                    r.Item("display_term") = prefixText + " " + r.Item("display_term")
+                Next
+            Else
+                prefixText = Replace(Replace(Trim(prefixText), "'", "''"), "*", "%")
+                dt = dbUtil.dbGetDataTable("MY", String.Format("select top 10 display_term, COUNT(distinct document_id) from sys.dm_fts_index_keywords_by_document( DB_ID('MyAdvantechGlobal'), OBJECT_ID('WWW_RESOURCES') ) where display_term like '%{0}%' group by display_term order by COUNT(distinct document_id) desc", prefixText))
+            End If
+
+        Else
+        End If
+        If dt.Rows.Count > 0 Then
+            Dim str(dt.Rows.Count - 1) As String
+            For i As Integer = 0 To dt.Rows.Count - 1
+                str(i) = dt.Rows(i).Item(0)
+            Next
+            Return str
+        End If
+        Return Nothing
+    End Function
+    
+    Protected Sub btnQuery_Click(ByVal sender As Object, ByVal e As System.Web.UI.ImageClickEventArgs)
+        src1.SelectCommand = GetSql() : gv1.PageIndex = 0
+        If Me.txtKey.Text.Length >= 3 Then Response.Filter = New eBizAEU.HighlighterFilter(Response.Filter, HttpUtility.UrlDecode(Me.txtKey.Text))
+    End Sub
+
+    Protected Sub gv1_PageIndexChanging(ByVal sender As Object, ByVal e As System.Web.UI.WebControls.GridViewPageEventArgs)
+        src1.SelectCommand = GetSql()
+        If Me.txtKey.Text.Length >= 3 Then Response.Filter = New eBizAEU.HighlighterFilter(Response.Filter, HttpUtility.UrlDecode(Me.txtKey.Text))
+    End Sub
+
+    Protected Sub gv1_Sorting(ByVal sender As Object, ByVal e As System.Web.UI.WebControls.GridViewSortEventArgs)
+        src1.SelectCommand = GetSql()
+        If Me.txtKey.Text.Length >= 3 Then Response.Filter = New eBizAEU.HighlighterFilter(Response.Filter, HttpUtility.UrlDecode(Me.txtKey.Text))
+    End Sub
+
+    Protected Sub Page_Load(ByVal sender As Object, ByVal e As System.EventArgs)
+        Response.Redirect("~/Product/MaterialSearch.aspx")
+        If Not Page.IsPostBack Then
+            Me.Master.SearchDlSelIdx = 3
+            If Request("key") IsNot Nothing Then
+                Me.txtKey.Text = HttpUtility.UrlDecode(Request("key"))
+            End If
+            src1.SelectCommand = GetSql()
+            If Session IsNot Nothing AndAlso Session("user_id") = "tc.chen@advantech.com.tw" Then lbSql.Visible = True
+        Else
+            gv1.EmptyDataText = "No result, please refine your search"
+        End If
+    End Sub
+    
+    Shared Function RecLength(ByVal hour As Integer, ByVal minute As Integer, _
+                                        ByVal sec As Integer) As String
+        If hour = 0 And minute = 0 And sec = 0 Then Return "N/A"
+        Return String.Format("{0}''{1}'{2}", hour, minute, sec)
+    End Function
+
+    Protected Sub src1_Selecting(ByVal sender As Object, ByVal e As System.Web.UI.WebControls.SqlDataSourceSelectingEventArgs)
+        e.Command.CommandTimeout = 99999999
+    End Sub
+    
+    Public Shared Function ShowAbstract(ByVal abstract As String, ByVal rectype As String, ByVal recid As String, ByVal GvRowIdx As Integer) As String
+        If rectype.ToLower() = "news" Or rectype.ToLower() = "case study" Then
+            Return abstract + "<br>" + String.Format("<div id='{0}'><a href='javascript:void(0);' onclick=""GetNews('{0}', '{1}', '{2}');"">Read {2}</a><div>", "NewsNode_" + GvRowIdx.ToString(), recid, rectype.ToLower())
+        Else
+            Return HttpContext.Current.Server.HtmlEncode(abstract)
+        End If
+    End Function
+</script>
+
+<asp:Content ID="Content1" ContentPlaceHolderID="_main" Runat="Server">
+    <table width="100%">
+        <tr>
+            <th align="left" style="font-size:large; color:Navy;">Advantech Resources</th>
+        </tr>
+        <tr>
+            <td>
+                <asp:Panel ID="Panel1" runat="server" DefaultButton="btnQuery">
+                    <table width="500px">
+                        <tr>
+                            <th align="left">Keywords</th>
+                            <td>
+                                <ajaxToolkit:AutoCompleteExtender runat="server" ID="ac1" TargetControlID="txtKey" 
+                                    MinimumPrefixLength="1" CompletionInterval="500" ServiceMethod="GetRecKey" />
+                                <asp:TextBox runat="server" ID="txtKey" Width="300px" />
+                            </td>
+                        </tr>
+                        <tr>
+                            <th align="left">Type</th>
+                            <td>
+                                <asp:CheckBoxList runat="server" ID="cblRecType" RepeatColumns="6" RepeatDirection="Horizontal">
+                                    <asp:ListItem Text="Video" Value="Video" Selected="True" />
+                                    <asp:ListItem Text="Case Study" Value="Case Study" Selected="True" />
+                                    <asp:ListItem Text="News" Value="News" Selected="True" />
+                                    <asp:ListItem Text="White Papers" Value="White Papers" Selected="True" />
+                                    <asp:ListItem Text="Webcast" Value="Webcast" Selected="True" />
+                                    <asp:ListItem Text="Podcast" Value="Podcast" Selected="True" />
+                                </asp:CheckBoxList>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td colspan="2">
+                                <asp:ImageButton runat="server" ID="btnQuery" ImageUrl="~/Images/btn7.jpg" AlternateText="Search" OnClick="btnQuery_Click" />
+                            </td>
+                        </tr>
+                    </table>
+                </asp:Panel>                
+            </td>
+        </tr>
+        <tr>
+            <td>                
+                <asp:GridView runat="server" ID="gv1" Width="800px" AutoGenerateColumns="false" 
+                    DataKeyNames="RECORD_ID" AllowPaging="true" AllowSorting="true" DataSourceID="src1"
+                    PageSize="5" PagerSettings-Position="TopAndBottom" OnPageIndexChanging="gv1_PageIndexChanging" 
+                    OnSorting="gv1_Sorting">
+                    <Columns>
+                        <asp:TemplateField SortExpression="title">
+                            <ItemTemplate>
+                                <table width="100%">
+                                    <tr valign="top">
+                                        <th align="left" style="width:80px"><%#Eval("category_name")%></th>
+                                        <th align="left" style="font-size:medium; color:Navy;"><%#Trim(Eval("title"))%></th>
+                                    </tr>
+                                    <tr>
+                                        <td style="height:170px" valign="top" colspan="2">
+                                            <table width="100%">
+                                                <tr valign="top">
+                                                    <td style='<%#RecImgTdStyle(Eval("category_name")) %>'>                                                                
+                                                        <img width='113px' src='<%#Eval("RECORD_IMG") %>' alt='' />
+                                                    </td>
+                                                    <td align="left">
+                                                        <%#ShowAbstract(Eval("abstract"), Eval("category_name"), Eval("record_id"), Container.DataItemIndex)%>                                                                
+                                                    </td>
+                                                </tr>
+                                            </table>
+                                        </td>
+                                    </tr>
+                                    <tr><td colspan="2"><hr /></td></tr>
+                                    <tr>
+                                        <td colspan="2">
+                                            <table width="100%">
+                                                <tr>
+                                                    <th align="left">Length:</th>
+                                                    <td><%#RecLength(Eval("HOURS"), Eval("MINUTE"), Eval("SECOND"))%></td>
+                                                    <th align="left">Date:</th>
+                                                    <td><%#CDate(Eval("RELEASE_DATE")).ToString("yyyy/MM/dd")%></td>
+                                                </tr>
+                                                <tr>
+                                                    <td align="right" colspan="4">
+                                                        <%#ShowOrHideViewLink(Eval("HYPER_LINK"), Eval("RECORD_ID"))%>
+                                                    </td>
+                                                </tr>
+                                            </table>
+                                        </td>
+                                    </tr>
+                                </table>
+                            </ItemTemplate>
+                        </asp:TemplateField>
+                    </Columns>
+                </asp:GridView>
+                <asp:SqlDataSource runat="server" ID="src1" ConnectionString="<%$ConnectionStrings:MY %>" OnSelecting="src1_Selecting" />
+                <asp:Label runat="server" ID="lbSql" Visible="false" />
+            </td>
+        </tr>
+    </table>
+    <script type="text/javascript">
+        function GetNews(nodeid, recid, cattype) {
+            document.getElementById(nodeid).innerHTML = "<img src='/Images/loading2.gif' alt='Loading News...' width='35' height='35' />Loading...";
+            PageMethods.GetNewsContent(recid, cattype,
+                function (pagedResult, eleid, methodName) {
+                    document.getElementById(nodeid).innerHTML = pagedResult;
+                },
+                function (error, userContext, methodName) {
+                    //alert(error.get_message());
+                    //document.getElementById('div_myrecentitems').innerHTML="";
+                });
+        }        
+    </script> 
+</asp:Content>

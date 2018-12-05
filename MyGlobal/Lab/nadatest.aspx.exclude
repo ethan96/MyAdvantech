@@ -1,0 +1,51 @@
+﻿<%@ Page Language="VB" %>
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<script runat="server">
+
+    Protected Sub test_Click(ByVal sender As Object, ByVal e As System.EventArgs)
+        Dim t As New MYSAPDAL
+        Dim em As String = ""
+        Dim tt As New List(Of MYSAPDAL.OrgPN)
+        Dim ttt As New MYSAPDAL.OrgPN
+        ttt.PN = "ADAM-4520-D2E"
+        ttt.Plant = "EUH1"
+        ttt.Org = "EU10"
+        tt.Add(ttt)
+        Dim ttt1 As New MYSAPDAL.OrgPN
+        ttt1.PN = "ADAM-4012-DE"
+        ttt1.Plant = "EUH1"
+        ttt.Org = "EU10"
+        tt.Add(ttt1)
+        Dim ttt2 As New MYSAPDAL.OrgPN
+        ttt2.PN = "ADAM-4520-D2E"
+        ttt2.Plant = "USH1"
+        ttt.Org = "TW01"
+        tt.Add(ttt2)
+        Dim P As List(Of MYSAPDAL.PNCostInfo) = t.GetProductCostByOrg(tt, em)
+        For Each PP As MYSAPDAL.PNCostInfo In P
+            Response.Write(PP.PN)
+            Response.Write("<BR/>")
+            Response.Write(PP.CostCurrency)
+            Response.Write("<BR/>")
+            Response.Write(PP.Cost)
+            Response.Write("<BR/>")
+            Response.Write(PP.ProductStatus)
+            Response.Write("<BR/>")
+        Next
+    End Sub
+</script>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head runat="server">
+    <title></title>
+</head>
+<body>
+    <form id="form1" runat="server">
+    <div>
+    <asp:Button runat="server" ID="test" Text="go" OnClick="test_Click" />
+    </div>
+    </form>
+</body>
+</html>

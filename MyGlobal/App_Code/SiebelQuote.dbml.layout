@@ -1,0 +1,25 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<ordesignerObjectsDiagram dslVersion="1.0.0.0" absoluteBounds="0, 0, 11, 8.5" name="SiebelQuote">
+  <DataContextMoniker Name="/SiebelQuoteDataContext" />
+  <nestedChildShapes>
+    <classShape Id="fdbc34f9-ba1e-4078-b0b0-b0c570f20632" absoluteBounds="3, 3.75, 2, 2.2914453125">
+      <DataClassMoniker Name="/SiebelQuoteDataContext/SiebelQuoteDetail" />
+      <nestedChildShapes>
+        <elementListCompartment Id="ffaaa769-73cb-4984-bdca-ef6e6e6be9dd" absoluteBounds="3.015, 4.21, 1.9700000000000002, 1.7314453125" name="DataPropertiesCompartment" titleTextColor="Black" itemTextColor="Black" />
+      </nestedChildShapes>
+    </classShape>
+    <classShape Id="4650773f-85dc-415a-a8c2-85c3007f0f27" absoluteBounds="1.25, 1.75, 2, 2.4600651041666666">
+      <DataClassMoniker Name="/SiebelQuoteDataContext/SiebelQuoteMaster" />
+      <nestedChildShapes>
+        <elementListCompartment Id="013c9322-62d1-4763-8a4f-20b4847a1773" absoluteBounds="1.2650000000000001, 2.21, 1.9700000000000002, 1.9000651041666665" name="DataPropertiesCompartment" titleTextColor="Black" itemTextColor="Black" />
+      </nestedChildShapes>
+    </classShape>
+    <associationConnector edgePoints="[(3.25 : 2.7499995); (4.1250005 : 2.7499995); (4.1250005 : 3.75)]" fixedFrom="Algorithm" fixedTo="Algorithm">
+      <AssociationMoniker Name="/SiebelQuoteDataContext/SiebelQuoteMaster/SiebelQuoteMaster_SiebelQuoteDetail" />
+      <nodes>
+        <classShapeMoniker Id="4650773f-85dc-415a-a8c2-85c3007f0f27" />
+        <classShapeMoniker Id="fdbc34f9-ba1e-4078-b0b0-b0c570f20632" />
+      </nodes>
+    </associationConnector>
+  </nestedChildShapes>
+</ordesignerObjectsDiagram>

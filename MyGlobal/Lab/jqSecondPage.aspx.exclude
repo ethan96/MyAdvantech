@@ -1,0 +1,50 @@
+﻿<%@ Page Title="" Language="VB" MasterPageFile="~/Includes/MyMaster.master" %>
+
+<script runat="server">
+   
+    Protected Sub btnAddPN_Click(sender As Object, e As EventArgs)
+        Dim dtPNList As DataTable = Nothing
+        If ViewState("pnList") Is Nothing Then
+            dtPNList = New DataTable()
+            dtPNList.Columns.Add("PartNo") : ViewState("pnList") = dtPNList
+        Else
+            dtPNList = ViewState("pnList")
+        End If
+      
+        Dim nr As DataRow = dtPNList.NewRow()
+        nr.Item("PartNo") = txtPN.Text
+        dtPNList.Rows.Add(nr)
+        
+        gv1.DataSource = dtPNList : gv1.DataBind()
+        
+    End Sub
+
+    Protected Sub btnSaveQuote_Click(sender As Object, e As EventArgs)
+
+    End Sub
+</script>
+
+<asp:Content ID="Content1" ContentPlaceHolderID="_main" Runat="Server">
+    <script type="text/javascript" src="../EC/jquery-latest.min.js"></script>
+    <script type="text/javascript" src="../EC/jquery-ui.js"></script>
+    <script type="text/javascript" src="../EC/json2.js"></script>
+    <script type="text/javascript">
+        $(document).ready(function ($) {
+            if (window.history && window.history.pushState) {
+                window.history.pushState('forward', null, '');
+                $(window).on('popstate', function () {
+                    saveQuote();
+                });
+
+            }
+        });
+
+        function saveQuote() {
+            console.log("Save quote");
+            window.location = "jqFirstPage.aspx";
+        }
+    </script>
+    PartNo:<asp:TextBox runat="server" ID="txtPN" />&nbsp;<asp:Button runat="server" ID="btnAddPN" Text="Add PN" OnClick="btnAddPN_Click" /><br />
+    <asp:Button runat="server" ID="btnSaveQuote" Text="Save Quote" OnClick="btnSaveQuote_Click" />
+    <asp:GridView runat="server" ID="gv1" />
+</asp:Content>

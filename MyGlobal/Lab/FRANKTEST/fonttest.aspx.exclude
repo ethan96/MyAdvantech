@@ -1,0 +1,35 @@
+﻿<%@ Page Language="VB" %>
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<script runat="server">
+
+    Protected Sub Page_Load(sender As Object, e As System.EventArgs)
+        'Me.Label1.Text = ConfigurationManager.ConnectionStrings("PIS").ConnectionString
+        'Me.Label1.Text = Request.Url
+        'Dim _uri As Uri = Request.Url
+        
+        'sessionStorage()
+        
+        'System.Web.HttpContext.Current.Sess()
+        
+        Dim _SessionID As String = System.Web.HttpContext.Current.Session.SessionID
+        Me.Label1.Text = _SessionID
+        'If _uri IsNot Nothing Then Me.Label1.Text = _uri.Host & _uri.Port
+    End Sub
+</script>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head runat="server">
+    <title></title>
+</head>
+<body>
+    <form id="form1" runat="server">
+    <font style="font-family: Arial Unicode MS; font-size: 9px">
+    Adddddddd ddddd
+    </font>
+    <br />
+    pis connection string：<asp:Label ID="Label1" runat="server" Text=""></asp:Label>
+    </form>
+</body>
+</html>

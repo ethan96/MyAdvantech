@@ -1,0 +1,56 @@
+﻿<%@ Page Language="VB" MasterPageFile="~/Includes/MyMaster.master" Title="MyAdvantech Feedback" %>
+
+<script runat="server">
+
+    Protected Sub Page_Load(ByVal sender As Object, ByVal e As System.EventArgs)
+        If Not Page.IsPostBack Then
+            txtEmail.Text = Session("user_id")
+            If txtEmail.Text <> "" Then
+                Dim dt As DataTable = dbUtil.dbGetDataTable("My", String.Format("select top 1 firstname,lastname from contact where userid = '{0}'", txtEmail.Text))
+                If Not IsNothing(dt) AndAlso dt.Rows.Count > 0 Then
+                    txtName.Text = dt.Rows(0).Item(0).ToString() + " " + dt.Rows(0).Item(1).ToString()
+                End If
+                If Trim(txtName.Text) = "" Then txtName.Text = ""
+            End If
+        End If
+    End Sub
+
+    Protected Sub btnSubmit_Click(ByVal sender As Object, ByVal e As System.EventArgs)
+        Dim FROM_Email As String = "", TO_Email As String = "", CC_Email As String = "", BCC_Email As String = "", Subject_Email As String = "", AttachFile As String = "", MailBody As String = ""
+        MailBody = "From " & Trim(txtName.Text) & "," & "<br/><br/>"
+        MailBody = MailBody & Server.HtmlEncode(txtContent.Text.Replace(vbCrLf, "<br/>"))
+
+        FROM_Email = "ebusiness.aeu@advantech.eu"
+        TO_Email = "ebusiness.aeu@advantech.eu"
+        CC_Email = ""
+        BCC_Email = ""
+        Subject_Email = "MyAdvantech feedback from customer : " + Server.HtmlEncode(Trim(txtSubject.Text))
+        AttachFile = ""
+        Util.SendEmail(TO_Email, FROM_Email, Subject_Email, MailBody, True, CC_Email, BCC_Email)
+        Util.JSAlert(Page, "Your feedback has been sent to Advantech ebussiness team.\r\nWe will reply you as soon as possible.\r\nThanks for your feedback.")
+    End Sub
+</script>
+
+<asp:Content runat="server" ID="_main" ContentPlaceHolderID="_main">
+    <br /><br />
+    <table border="1" width="700" cellpadding="0" cellspacing="0" align="center">
+        <tr>
+            <td width="80" style="background-color:#D6E0E5"><asp:Label runat="server" ID="lblName" Text="Name" Font-Bold="true" ForeColor="Blue" /></td>
+            <td width="220"><asp:TextBox runat="server" ID="txtName" Width="200" /><asp:RequiredFieldValidator runat="server" ID="rfvName" ControlToValidate="txtName" Text=" *" /></td>
+            <td width="80" style="background-color:#D6E0E5"><asp:Label runat="server" ID="lblEmail" Text="Email" Font-Bold="true" ForeColor="Blue" /></td>
+            <td width="320"><asp:TextBox runat="server" ID="txtEmail" Width="300" /><asp:RequiredFieldValidator runat="server" ID="rfvEmail" ControlToValidate="txtEmail" Text=" *" /></td>
+        </tr>
+        <tr><td height="10" colspan="4"></td></tr>
+        <tr>
+            <td width="80" style="background-color:#D6E0E5"><asp:Label runat="server" ID="lblSubject" Text="Subject" Font-Bold="true" ForeColor="Blue" /></td>
+            <td colspan="3"><asp:TextBox runat="server" ID="txtSubject" Width="97%" /><asp:RequiredFieldValidator runat="server" ID="rfvSubject" ControlToValidate="txtSubject" Text=" *" /></td>
+        </tr>
+        <tr><td height="10"></td></tr>
+        <tr>
+            <td width="80" style="background-color:#D6E0E5"><asp:Label runat="server" ID="lblContent" Text="Feedback" Font-Bold="true" ForeColor="Blue" /></td>
+            <td colspan="3"><asp:TextBox runat="server" ID="txtContent" TextMode="MultiLine" Height="100" Width="97%" /><asp:RequiredFieldValidator runat="server" ID="rfvContent" ControlToValidate="txtContent" Text=" *" /></td>
+        </tr>
+        <tr><td colspan="4" valign="bottom" align="right"><asp:Button runat="server" ID="btnSubmit" Text="Submit" OnClick="btnSubmit_Click" /></td></tr>
+    </table>
+    <br /><br />
+</asp:Content>

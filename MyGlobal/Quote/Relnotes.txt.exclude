@@ -1,0 +1,170 @@
+================================================================
+SAP .NET Connector 1.0.3
+================================================================
+Release Notes
+================================================================
+
+
+1. Installation
+===============
+
+- Use "SAP .NET Connector 1.0.3 Installation for Visual Studio 2003" for a full version installation on development computers with Visual Studio .NET 2003.
+  
+- Use "SAP .NET Connector 1.0.3 Runtime Installation" to install the .NET Connector 1.0.3 runtime on deployment computers.
+
+- If you already have an older or beta version of SAP .NET Connector installed, uninstall it before installing this release.
+
+
+2. What's new in 1.0.3
+======================
+
+SAP .NET Connector 1.0.3 is a "support release" that is designed to be fully backward compatible to releases 1.0, 1.0.1 and 1.0.2. Therefore the assembly version stays the same (1.2.0.0). Only the file version is updated to 1.2.3.0.
+
+
+2.1 Runtime
+===========
+
+2.1.1 Bug fixes
+
+- Memory leaks when running RFC server programs developed with the .NET Connector
+- Character conversion issues related to some codepages used in central and eastern Europe
+- Other bugs
+
+2.1.2 New Features
+
+- Support to RFC callback has been added to the RFC client proxy based on SAPClient.  
+
+- With version 1.0.3, a .NET Connector RFC server program can also be configured as "Start on Fronend Workstation" in SM59. With earlier versions, such program can only be run as "Registered Server Program".   
+
+
+
+2.2 Design Time
+===============
+
+- Nothing
+ 
+
+
+2.3 Documentation / Samples
+===========================
+
+Nothing
+
+
+3. Known issues
+===============
+
+3.1 Runtime
+===========================
+
+Nothing
+
+
+3.2 Design Time
+===============
+
+- If you encounter "Out of memory"-errors of the Java Runtime during proxy generation, please set an environment variable "NCO_JAVA_PARAMS" to   "-Xmx256m" or higher.
+- Proxies can not be created from SAP 3.x Systems. This limitation is by design.
+- Proxies that use a special kind of nested structures (so called Type1 structures) must be manually marked to generate correctly:
+  - Double click .sapwsdl file
+  - Select the Type1-structure, right click and select "Properties".
+  - Set the "IsNestedType1" property to "True".
+- 
+
+
+3.3 Documentation / Samples
+===========================
+
+- All samples are built using Visual Studio 2002 and must be converted on first use.
+- Please update the appropriate Destination object in each sample to reflect your SAP system connection information before running the code for the first time. The destination default is for the standard SAP 
+mini-web application server running on your local machine (user: minisap, pass: minisap). 
+
+
+================================================================
+SAP .NET Connector 1.0.2
+================================================================
+Release Notes
+================================================================
+
+
+1. Installation
+===============
+- SAP .NET Connector 1.0.2 is only available for Visual Studio 2003.
+
+- If you already have an older version of SAP .NET Connector (for Vs 2003) installed
+ - Uninstall it before installing Release 1.0.2
+ - Remove the old "SAP Proxy" Toolbox tab inlcluding all items. 
+   It will be automatically recreated when you run the SAP .NET Connector Wizard the first time.
+
+- If you have troubles with the installation, run it from the Command line with the following options: 
+"msiexec /l*v install.log  /i SAP.Net.Setup<Version>.msi". 
+Check install.log for error messages and provide this file to SAP for analysis.
+
+- A Java VM is required to generate proxies from the SAP system. The Java VM is not required once the proxy is generated. To use a Java VM other than the Sun Java VM, you will need to have a registry key pointing to your Java VM. As an example, you can copy the registry information below into a .reg file and run it to change to the JavaHome directory for your VM.
+
+------------------------------------------------------------------------------
+Windows Registry Editor Version 5.00
+
+[HKEY_LOCAL_MACHINE\SOFTWARE\JavaSoft]
+
+[HKEY_LOCAL_MACHINE\SOFTWARE\JavaSoft\Java Runtime Environment]
+"CurrentVersion"="1.3"
+
+[HKEY_LOCAL_MACHINE\SOFTWARE\JavaSoft\Java Runtime Environment\1.3]
+"JavaHome"="C:\\Program Files\\IBM\\Java13\\jre"
+------------------------------------------------------------------------------
+
+
+2. What's new in 1.0.2
+======================
+
+SAP .NET Connector 1.0.2 is a "support release" that does not introduce new features, but fixes serveral issues. The release is designed to be fully backward compatible to releases 1.0 and 1.0.1. Therefore the assembly version stays the same (1.2.0.0). Only the file version is updated to 1.2.2.0.
+
+
+2.1 Runtime
+===========
+
+- Several bug fixes
+
+
+
+2.2 Design Time
+===============
+
+- Several bug fixes
+ 
+
+
+2.3 Documentation / Samples
+===========================
+
+Nothing
+
+
+3. Known issues
+===============
+
+3.1 Runtime
+===========================
+
+Nothing
+
+
+3.2 Design Time
+===============
+
+- If you encounter "Out of memory"-errors of the Java Runtime during proxy generation, please set an environment variable "NCO_JAVA_PARAMS" to   "-Xmx256m" or higher.
+- Proxies can not be created from SAP 3.x Systems. This limitation is by design.
+- Proxies that use a special kind of nested structures (so called Type1 structures) must be manually marked to generate correctly:
+  - Double click .sapwsdl file
+  - Select the Type1-structure, right click and select "Properties".
+  - Set the "IsNestedType1" property to "True".
+- 
+
+
+3.3 Documentation / Samples
+===========================
+
+- All samples are built using Visual Studio 2002 and must be converted on first use.
+- Please update the appropriate Destination object in each sample to reflect your SAP system connection information before running the code for the first time. The destination default is for the standard SAP 
+mini-web application server running on your local machine (user: minisap, pass: minisap).

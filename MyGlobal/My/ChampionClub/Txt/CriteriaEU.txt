@@ -1,0 +1,114 @@
+﻿<div class="main-intro">
+                <div class="intro-heading">
+                    Regional Program Criteria
+                </div>
+                <!-- end .main-intro -->
+            </div>
+            <div class="main-content">
+                <div class="content-heading" style="font-weight:bolder;">
+                    European Gaming Rules for 3rd Quarter 2013</div>
+                <div id="Opp_table">
+                    <table width="100%">
+                        <thead>
+                            <tr>
+								<th>Rule #</th>
+                                <th width="60%" scope="col" style="padding: 10px; text-align: left">
+                                    Sales Revenue 1K = 1 Point
+                                </th>
+                                <th width="20%" scope="col">
+                                </th>
+                                <th width="20%" scope="col" style="padding: 10px; text-align: left">
+                                    Example
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr class="odd1">
+								<td>1</td>
+                                <td style="padding: 10px; text-align: left">
+                                    Minimum Threshold of Quarterly Revenue Achievement for Redemption
+                                </td>
+                                <td style="padding: 10px; text-align: left">
+                                    = 100K<br />
+                                    = 100 Points
+                                </td>
+                                <td>
+                                </td>
+                            </tr>
+                            <tr class="odd2">
+								<td>2</td>
+                                <td style="padding: 10px; text-align: left">
+                              
+
+<table width="100%" style="line-height:25px;; border:0px;" class="xcss">
+<tr><td style="line-height:25px; text-align:center">Models</td></tr>
+<tr><td style="line-height:25px; text-align:left">ADAM 6xxx series (6000 - 6100 – 6200 - 6600)</td></tr>
+<tr><td style="line-height:25px; text-align:left">WebOP 2000C & 2000D</td></tr>
+<tr><td style="line-height:25px; text-align:left">PICMG board</td></tr>
+<tr><td style="line-height:25px; text-align:left">EKI 3000</td></tr>
+</table>
+
+
+
+
+
+
+
+
+
+
+
+
+                                </td>
+                                <td style="padding: 10px; text-align: left">
+                                <table width="100%" style="line-height:25px;; border:0px;" class="xcss">
+<tr><td style="line-height:25px; text-align:center">Turnover</td></tr>
+<tr><td style="line-height:25px; text-align:center">5K</td></tr>
+<tr><td style="line-height:25px; text-align:center">5K</td></tr>
+<tr><td style="line-height:25px; text-align:center">5K</td></tr>
+<tr><td style="line-height:25px; text-align:center">5K</td></tr>
+</table>
+
+                                </td>
+                                <td style="padding: 10px; text-align: left">
+                                     <table width="100%" style="line-height:25px;; border:0px;" class="xcss">
+<tr><td style="line-height:25px; text-align:center">PROMO points</td></tr>
+<tr><td style="line-height:25px; text-align:center">20</td></tr>
+<tr><td style="line-height:25px; text-align:center">20</td></tr>
+<tr><td style="line-height:25px; text-align:center">20</td></tr>
+<tr><td style="line-height:25px; text-align:center">20</td></tr>
+</table>
+                                </td>
+                            </tr>
+                            <tr class="odd1">
+								<td>3</td>
+                                <td style="padding: 10px; text-align: left">
+                                 Project registration in PRM system
+
+                                </td>
+                                <td style="padding: 10px; text-align: center">
+                                    10K 
+                                </td>
+                                <td style="padding: 10px; text-align: center">
+                                  30
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="main-content">
+                <div class="content-heading">
+                    Point Accumulate Regulations:</div>
+                <p>
+                    When overlap between above rules, participant can only select for the best rule
+                    to apply for exchanging the points. See examples:
+                </p>
+                <ul type="disc">
+                    <li>160K (including 150K from rule #1 and 10K from rule #3): 150 points + 30 points = 150 + 30 points = 180 points </li>
+                    <li>70K (including 20K from Special Offering + 50K from PRM project registration): 80 points + 150 points = 230 points</li>
+                </ul>
+				<p>(The calculation will base on the best fit rule from the revenue achievement to get for more points as possible)</p>
+                <div class="sure">
+                    <a href="PersonalInfo.aspx">Join Us</a></div>
+            </div>

@@ -1,0 +1,179 @@
+﻿<%@ Page Language="VB" MasterPageFile="~/Includes/MyMaster.master" Title="MyAdvantech Download & Support Search" ValidateRequest="false" EnableEventValidation="false" %>
+<%@ MasterType VirtualPath="~/Includes/MyMaster.master" %>
+<script runat="server">
+    
+    Function GetSRDownloadLink(ByVal SRType As String, ByVal SRID As String) As String
+        If SRType.ToLower() = "knowledge base" Then
+            Return "/Product/SR_Detail.aspx?SR_ID=" + SRID
+        Else
+            Return "/Product/SR_Download.aspx?SR_ID=" + SRID
+        End If
+    End Function
+    
+    Function GetSql() As String
+        If txt_Key.Text.Trim = "" And Request("LitType") Is Nothing Then Return ""
+        Dim fts As New eBizAEU.FullTextSearch(Server.HtmlEncode(txt_Key.Text))
+        Dim strKey As String = fts.NormalForm.Replace("'", "''")
+        Dim sb As New System.Text.StringBuilder
+        With sb
+            .AppendLine(" SELECT distinct top 1000 Replace(a.SR_ID,'+','%2B') as SR_ID, a.ABSTRACT, a.SR_DESCRIPTION, a.SR_NUM, a.SEARCH_TYPE, ")
+            .AppendLine(" dbo.DateOnly(a.UPDATED_DATE) as UPDATED_DATE, b.[rank] as score ")
+            .AppendLine(" FROM SIEBEL_SUPPORT AS a ")
+            .AppendLine(" inner join ")
+            .AppendLine(" ( ")
+            .AppendLine(String.Format(" SELECT [key], [rank] FROM CONTAINSTABLE(SIEBEL_SUPPORT,(SR_DESCRIPTION,ABSTRACT,PRODUCTS),N'{0}') ", strKey))
+            .AppendLine(" ) b on a.row_id=b.[key] ")
+            .AppendLine(" union ")
+            .AppendLine(" SELECT distinct Replace(a.SR_ID,'+','%2B') as SR_ID, a.ABSTRACT, a.SR_DESCRIPTION, a.SR_NUM, a.SEARCH_TYPE,  ")
+            .AppendLine(" dbo.DateOnly(a.UPDATED_DATE) as UPDATED_DATE, 50 as score  ")
+            .AppendLine(String.Format(" FROM SIEBEL_SUPPORT AS a where a.SR_NUM like '%{0}%' ", txt_Key.Text.Trim.Replace("'", "")))
+            If Request("LitType") = "0" Then .AppendFormat(" and a.SEARCH_TYPE='Driver' ")
+            If Request("LitType") = "1" Then .AppendFormat(" and a.SEARCH_TYPE='BIOS' ")
+            '.AppendLine(" inner join ")
+            '.AppendLine(" ( ")
+            '.AppendLine(String.Format(" SELECT [key], [rank] FROM CONTAINSTABLE(SIEBEL_SUPPORT,(SOLUTION_NAME,SOLUTION_DESC),N'{0}') ", strKey))
+            '.AppendLine(" ) b on a.row_id=b.[key] ")
+            .AppendLine(" order by score desc, UPDATED_DATE desc, SR_ID ")
+
+        End With
+        Return sb.ToString()
+    End Function
+
+    Protected Sub btn_Search_Click(ByVal sender As Object, ByVal e As System.Web.UI.ImageClickEventArgs)
+        If dlSearchOption.SelectedIndex = 2 Then
+            Try
+                dbUtil.dbExecuteNoQuery("My", String.Format("insert into user_query_log (userid,keyword,ip,type) values ('{0}','{1}','{2}','{3}')", Session("user_id"), txt_Key.Text.Trim.Replace("'", "''"), Request.ServerVariables("REMOTE_ADDR"), "Support"))
+            Catch ex As Exception
+
+            End Try
+            gv1.PageIndex = 0 : src1.SelectCommand = GetSql()
+            'Util.SendEmail("tc.chen@advantech.eu", "ebiz.aeu@advantech.eu", "MYDLSEARCH by " + User.Identity.Name, src1.SelectCommand, False, "", "")
+            If User.IsInRole("Administrator") Then lbSql.Text = Replace(src1.SelectCommand, vbCrLf, "<br/>")
+            'If Me.txt_Key.Text.Length >= 3 Then Response.Filter = New eBizAEU.HighlighterFilter(Response.Filter, HttpUtility.UrlDecode(Me.txt_Key.Text))
+            gv1.EmptyDataText = "No search results were found.<br /> Please try again or submit the feedback form to let us know what you need . "
+        Else
+            If dlSearchOption.SelectedIndex = 0 Then
+                Response.Redirect("/Product/ProductSearch.aspx?key=" + Me.txt_Key.Text)
+            Else
+                If dlSearchOption.SelectedIndex = 1 Then
+                    Response.Redirect("/Product/LiteratureSearch.aspx?key=" + Me.txt_Key.Text)
+                End If
+            End If
+        End If
+    End Sub
+
+    Protected Sub gv1_PageIndexChanging(ByVal sender As Object, ByVal e As System.Web.UI.WebControls.GridViewPageEventArgs)
+        src1.SelectCommand = GetSql()
+        If Me.txt_Key.Text.Length >= 3 Then Response.Filter = New eBizAEU.HighlighterFilter(Response.Filter, HttpUtility.UrlDecode(Me.txt_Key.Text))
+    End Sub
+
+    Protected Sub gv1_SelectedIndexChanging(ByVal sender As Object, ByVal e As System.Web.UI.WebControls.GridViewSelectEventArgs)
+        src1.SelectCommand = GetSql()
+        If Me.txt_Key.Text.Length >= 3 Then Response.Filter = New eBizAEU.HighlighterFilter(Response.Filter, HttpUtility.UrlDecode(Me.txt_Key.Text))
+    End Sub
+
+    Protected Sub gv1_RowDataBound(ByVal sender As Object, ByVal e As System.Web.UI.WebControls.GridViewRowEventArgs)
+        src1.SelectCommand = GetSql()
+    End Sub
+
+    Protected Sub gv1_Sorting(ByVal sender As Object, ByVal e As System.Web.UI.WebControls.GridViewSortEventArgs)
+        src1.SelectCommand = GetSql()
+        If Me.txt_Key.Text.Length >= 3 Then Response.Filter = New eBizAEU.HighlighterFilter(Response.Filter, HttpUtility.UrlDecode(Me.txt_Key.Text))
+    End Sub
+    
+    Protected Sub Page_Load(ByVal sender As Object, ByVal e As System.EventArgs)
+        If Not Page.IsPostBack Then
+            Me.Master.SearchDlSelIdx = 2
+            If Request("key") IsNot Nothing And Request("LitType") IsNot Nothing Then
+                Me.txt_Key.Text = HttpUtility.UrlDecode(Request("key")) : btn_Search_Click(Nothing, Nothing)
+            End If
+        End If
+    End Sub
+
+    Protected Sub src1_Selecting(ByVal sender As Object, ByVal e As System.Web.UI.WebControls.SqlDataSourceSelectingEventArgs)
+        e.Command.CommandTimeout = 999999
+    End Sub
+
+    Protected Sub gv1_DataBound(ByVal sender As Object, ByVal e As System.EventArgs)
+        If gv1.PageIndex = 0 And gv1.Rows.Count = 0 And txt_Key.Text.Trim <> "" Then
+            txt_Key.Text = txt_Key.Text.Replace("*", "") + "*"
+            src1.SelectCommand = GetSql()
+        End If
+    End Sub
+</script>
+<asp:Content ID="Content1" ContentPlaceHolderID="_main" Runat="Server">    
+    <table width="100%">
+        <tr>
+            <td align="center">
+                <table cellpadding="0" cellspacing="0" border="0">
+                    <tr align="center">
+                        <td><img src="../Images/newlogo.gif" alt="" width="140" height="52" /></td>
+                    </tr>
+                    <tr style="height:2px">
+                        <td></td>
+                    </tr>
+                    <tr align="center">
+                        <td valign="middle">
+                            <ajaxToolkit:AutoCompleteExtender runat="server" ID="ace1"                                             
+                                ServiceMethod="GetPartNo" TargetControlID="txt_Key" ServicePath="~/Services/AutoComplete.asmx" 
+                                MinimumPrefixLength="1" FirstRowSelected="true" />
+                            <asp:Panel runat="server" ID="PanelQueryBtn" DefaultButton="btn_Search">
+                                <asp:TextBox Height="16" ID="txt_Key" runat="server" Width="350"/>
+                            </asp:Panel>
+                        </td>
+                    </tr>
+                    <tr style="height:2px">
+                        <td></td>
+                    </tr>
+                    <tr align="center">
+                        <td colspan="1" valign="middle">                            
+                            <asp:ImageButton ID="btn_Search" runat="server" AlternateText="Search" ImageUrl="~/Images/newgo.gif" OnClick="btn_Search_Click" />
+                        </td>
+                    </tr>
+                    <tr align="center">
+                        <td colspan="1" valign="middle">
+                            <asp:RadioButtonList Height="20" ID="dlSearchOption" runat="server" RepeatDirection="Horizontal" RepeatColumns="3">
+                                <asp:ListItem Value="Product" />
+                                <asp:ListItem Value="Literature" Text="Marketing material" />
+                                <asp:ListItem Value="Support" Selected="True" />
+                            </asp:RadioButtonList> 
+                        </td>
+                    </tr>                    
+                </table>
+            </td>
+        </tr>
+        <tr>
+            <td>       
+                <asp:GridView runat="server" ID="gv1" Width="98%" AutoGenerateColumns="false" ShowHeader="true" 
+                    AllowPaging="true" AllowSorting="true" PageSize="25" DataSourceID="src1" PagerSettings-Position="TopAndBottom" 
+                    OnPageIndexChanging="gv1_PageIndexChanging" OnSelectedIndexChanging="gv1_SelectedIndexChanging" 
+                    OnRowDataBound="gv1_RowDataBound" OnSorting="gv1_Sorting" OnDataBound="gv1_DataBound">
+                    <RowStyle BorderWidth="0px" />
+                    <Columns>
+                         <asp:TemplateField ItemStyle-Width="50px" ItemStyle-ForeColor="#636563" 
+                            ItemStyle-HorizontalAlign="Center" ItemStyle-VerticalAlign="Top">
+                            <headertemplate>
+                                No.
+                            </headertemplate>
+                            <itemtemplate>
+                                <%# Container.DataItemIndex + 1 %>.
+                            </itemtemplate>
+                        </asp:TemplateField>  
+                        <asp:TemplateField HeaderText="Description" SortExpression="ABSTRACT" ItemStyle-Width="75%">
+                            <ItemTemplate>
+                                <a href='<%#GetSRDownloadLink(Eval("SEARCH_TYPE"),Eval("SR_ID"))%>'><%#IIf(Eval("ABSTRACT") = "", Eval("SR_DESCRIPTION"), Eval("ABSTRACT"))%></a>
+                            </ItemTemplate>
+                        </asp:TemplateField>
+                        <asp:BoundField HeaderText="Document No." DataField="SR_NUM" SortExpression="SR_NUM" />
+                        <asp:BoundField HeaderText="Type" DataField="SEARCH_TYPE" SortExpression="SEARCH_TYPE" />
+                        <asp:BoundField HeaderText="Last Update" DataField="UPDATED_DATE" SortExpression="UPDATED_DATE" /> 
+                    </Columns>
+                    <%--<FixRowColumn FixColumns="-1" FixRows="-1" TableHeight="500px" TableWidth="99%" />--%>
+                </asp:GridView>
+                <asp:SqlDataSource runat="server" ID="src1" ConnectionString="<%$ConnectionStrings:MY %>" OnSelecting="src1_Selecting" />
+            </td>
+        </tr>
+    </table>
+    <asp:Label runat="server" ID="lbSql" Width="90%" ForeColor="LightGray" />
+</asp:Content>
+

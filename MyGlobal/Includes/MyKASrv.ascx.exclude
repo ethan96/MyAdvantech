@@ -1,0 +1,54 @@
+﻿<%@ Control Language="VB" ClassName="MyKASrv" %>
+
+<script runat="server">
+
+</script>
+
+<table width="100%" style="border-style:groove;">
+    <tr>
+        <th align="left" style="color:Navy;"><b>Product Services</b></th>
+        <td align="right"><a href="javascript:void(0);" onclick="CloseBlock('tr_MyKASrv','ctl00__main_tr_MyKASrv');"><img src="/Images/close.gif" alt="Close" style="border-width:0px" width="20" height="20" /></a></td>
+    </tr>
+    <tr valign="top">
+        <td valign="top" colspan="2">
+            <div id="div_MyKAService" runat="server" style="height:200px; overflow:auto; width:220px"></div>                
+        </td>
+    </tr>
+</table>
+<script type="text/javascript">
+    function TreeView_ToggleNode(n1,n2,n3,n4,n5){
+        if(n5.style.display=="none"){
+           n5.style.display='block';  
+           n3.firstChild.src='/Images/minus.gif';  
+        }
+        else{
+            n5.style.display='none';  
+            n3.firstChild.src='/Images/plus.gif';   
+        }                    
+    }
+    function getNextSibling(startBrother) {
+        endBrother = startBrother.nextSibling;
+        while (endBrother.nodeType != 1) {
+            endBrother = endBrother.nextSibling;
+        }
+        return endBrother;
+    }  
+         
+    function RefreshKAProdSrv(){
+        document.getElementById('<%=div_MyKAService.ClientID %>').style.display="block";
+        document.getElementById('<%=div_MyKAService.ClientID %>').innerHTML = "<img style='border:0px;' alt='loading' src='../images/loading2.gif' />Loading Service Records..." 
+        PageMethods.GetKAProductList(
+            function(pagedResult, eleid, methodName) {
+                document.getElementById('<%=div_MyKAService.ClientID %>').innerHTML = pagedResult;
+                if(pagedResult==""){
+                    document.getElementById('<%=div_MyKAService.ClientID %>').style.height="15px";
+                }
+            },
+            function(error, userContext, methodName) {
+                //alert('mykaservice error:'+error.get_message());
+                document.getElementById('<%=div_MyKAService.ClientID %>').innerHTML ="";
+            }
+        );
+    }
+    setTimeout("RefreshKAProdSrv()",2000);    
+</script>

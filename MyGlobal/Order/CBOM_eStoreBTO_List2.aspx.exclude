@@ -1,0 +1,97 @@
+﻿<%@ Page Title="MyAdvantech - CBOM List" ValidateRequest="false" Language="VB" MasterPageFile="~/Includes/MyMaster.master" %>
+
+<script runat="server">
+    Dim Parent_CATEGORY As String = ""
+    Protected Sub Page_Load(ByVal sender As Object, ByVal e As System.EventArgs)
+        If Request("CATEGORY") IsNot Nothing AndAlso Request("CATEGORY").ToString <> "" Then
+            SqlDataSource1.SelectCommand = "SELECT distinct CATEGORY2 from ESTORE_BTOS where CATEGORY3='" + Request("CATEGORY").ToString.Trim + "'"
+            Parent_CATEGORY = Request("CATEGORY").ToString.Trim
+        Else
+            SqlDataSource1.SelectCommand = " SELECT distinct CATEGORY3 as CATEGORY from ESTORE_BTOS"
+        End If
+    End Sub
+    Protected Function GetData(ByVal obj As Object) As DataTable
+        Dim sql As String = "SELECT distinct CATEGORY2 as CATEGORY from ESTORE_BTOS where CATEGORY3='" + obj.ToString() + "'"
+        Dim dt As DataTable = dbUtil.dbGetDataTable("MY", sql)
+        Return dt
+    End Function
+</script>
+
+<asp:Content ID="Content1" ContentPlaceHolderID="_main" Runat="Server">
+    <style type="text/css">
+        .eStoreList{padding:5px 5px 5px 15px; list-style-image:url(../IMAGES/arrow_black2.jpg); vertical-align:top;}
+        .dotlinemidial
+            {
+                width:30px;
+               background-image:url(../IMAGES/DOTLINE_Mid.gif) ;
+               background-repeat:repeat-y; 
+              }.viewConfigbutton
+{
+    background:url(../IMAGES/Complete196.gif) left  top;
+    background-repeat:no-repeat;
+    display:inline-block;
+    font-weight: bold;
+    line-height: 22px;
+    text-decoration: none;
+    float:left;
+    padding:0px 0px 0px 15px;
+    cursor:pointer;
+     white-space:nowrap;
+}.viewConfigbutton span
+{
+    background:url(../IMAGES/Complete196.gif) right top;
+    background-repeat:no-repeat;
+    float:left;
+    padding:0px 25px 0px 0px ;
+    display:inline-block;
+}
+    </style>
+    <table width="100%" border="0" align="center">
+      <tr>
+        <td><h1><%= Parent_CATEGORY %></h1></td>
+      </tr>
+      <tr>
+        <td height="10"></td>
+      </tr>
+      <tr>
+        <td>
+            <table width="100%" border="0" align="center" cellpadding="0" cellspacing="0" bgcolor="#CCCCCC">
+              <tr>
+                <td bgcolor="#FFFFFF">
+                    <asp:DataList ID="DataList1" runat="server"  RepeatColumns="3"  DataSourceID="SqlDataSource1" Width="100%" RepeatDirection="Horizontal" ItemStyle-Width="33.3%" ItemStyle-HorizontalAlign="Center" ItemStyle-VerticalAlign="Top" CellPadding="0" RepeatLayout="Flow">
+                        <ItemTemplate>
+                            <table   border="0" align="center" cellpadding="0" cellspacing="0" >
+                              <tr><td colspan="2" height="15"></td></tr>
+                              <tr>
+                                <td height="25px" width="230px">
+                                    <a href="./CBOM_eStoreBTO_List3.aspx?CATEGORY2=<%# Eval("CATEGORY2")%>&CATEGORY3=<%= Parent_CATEGORY%>" >
+                                        <%# Eval("CATEGORY2")%>
+                                    </a>
+                                </td>
+                                <td rowspan="3" class="dotlinemidial"></td></tr>
+                              <tr>
+                                <td>
+                                    <a href="./CBOM_eStoreBTO_List3.aspx?CATEGORY2=<%# Eval("CATEGORY2")%>&CATEGORY3=<%= Parent_CATEGORY%>" >                                   
+                                        <img src="http://buy.advantech.com/resource/ProductCategory/TREK-775_01-S.jpg"  border="0" class="CategoryImg"/>
+                                    </a>
+                                </td>
+                              </tr>
+                              <tr>
+                                <td>
+                                    <a href="./CBOM_eStoreBTO_List3.aspx?CATEGORY2=<%# Eval("CATEGORY2")%>&CATEGORY3=<%= Parent_CATEGORY%>" class="viewConfigbutton"><span>View Complete Selection Now</span></a>
+                                </td>
+                             </tr>
+                            </table>                     
+                         </ItemTemplate>
+                    </asp:DataList>
+                    <asp:SqlDataSource ID="SqlDataSource1" runat="server" ConnectionString="<%$ ConnectionStrings:MY %>"></asp:SqlDataSource>
+                </td>
+              </tr>
+        </table>
+    </td>
+    </tr>
+    </table>
+
+</asp:Content>
+
+

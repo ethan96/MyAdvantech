@@ -1,0 +1,1252 @@
+﻿<%@ Page Language="VB" MasterPageFile="~/Includes/MyMaster.master" enableEventValidation="false" ValidateRequest="false" Title="MyAdvantech - eConfigurator"%>
+
+<script runat="server">
+    <Services.WebMethod()> _
+    <Web.Script.Services.ScriptMethod()> _
+    Public Shared Function GetCurrentConfig(ByVal ConfigTreeTableHtml As String) As String
+        Try
+            Dim doc1 As New HtmlAgilityPack.HtmlDocument
+            doc1.LoadHtml(ConfigTreeTableHtml)
+            Dim hnc As HtmlAgilityPack.HtmlNodeCollection = doc1.DocumentNode.SelectNodes("//input")
+            Dim CompDt As DataTable = Util.GetConfigOrderCartDt(), CatDt As DataTable = Util.GetConfigOrderCartDt()
+            CompDt.Columns.Add("level", GetType(Integer)) : CatDt.Columns.Add("level", GetType(Integer))
+            Dim ConfigTree As New TreeView
+            If IsNothing(hnc) Then
+                Return ""
+            End If
+            For Each n As HtmlAgilityPack.HtmlNode In hnc
+                If n.Attributes("checked") IsNot Nothing Then
+                    Dim r As DataRow = CompDt.NewRow
+                    With r
+                        .Item("CATEGORY_ID") = n.Attributes("value").Value : .Item("PARENT_CATEGORY_ID") = n.Attributes("catname").Value
+                        .Item("SEQ_NO") = CInt(n.Attributes("seqno").Value)
+                        If n.Attributes("price") IsNot Nothing AndAlso Double.TryParse(n.Attributes("price").Value, 0) Then
+                            .Item("CATEGORY_PRICE") = CDbl(n.Attributes("price").Value)
+                        Else
+                            .Item("CATEGORY_PRICE") = 0
+                        End If
+                        .Item("level") = n.Attributes("level").Value
+                    End With
+                    CompDt.Rows.Add(r)
+                End If
+            Next
+            hnc = doc1.DocumentNode.SelectNodes("//div")
+            For Each n As HtmlAgilityPack.HtmlNode In hnc
+                If n.Attributes("parent") IsNot Nothing Then
+                    If CompDt.Select(String.Format("PARENT_CATEGORY_ID='{0}' and level={1}", n.Attributes("value").Value, CInt(n.Attributes("level").Value) + 1)).Length > 0 _
+                     Or n.Attributes("parent").Value = "ROOT" Then
+                        Dim r As DataRow = CatDt.NewRow
+                        With r
+                            .Item("CATEGORY_ID") = n.Attributes("value").Value : .Item("PARENT_CATEGORY_ID") = n.Attributes("parent").Value
+                            .Item("SEQ_NO") = CInt(n.Attributes("seqno").Value)
+                            .Item("level") = n.Attributes("level").Value
+                        End With
+                        If n.Attributes("parent").Value = "ROOT" Then
+                            ConfigTree.Nodes.Add(New TreeNode(n.Attributes("value").Value))
+                        End If
+                        CatDt.Rows.Add(r)
+                    End If
+                End If
+            Next
+            If ConfigTree.Nodes.Count = 1 Then
+                Dim recLevel As Integer = 0
+                BuildSubConfigTreeCat(ConfigTree.Nodes(0), CompDt, CatDt, recLevel)
+                Dim pageHolder As New TBBasePage()
+                pageHolder.IsVerifyRender = False
+                pageHolder.Controls.Add(ConfigTree)
+                Dim output As New IO.StringWriter()
+                HttpContext.Current.Server.Execute(pageHolder, output, False)
+                Return output.ToString()
+            End If
+        Catch ex As Exception
+            Util.SendEmail("nada.liu@advantech.com.cn", "ebiz.aeu@advantech.eu", "EZConfig_GetCurrentConfigError by " + HttpContext.Current.Session("user_id"), ex.ToString(), False, "", "")
+        End Try
+        Return ""
+    End Function
+    Public Shared Sub BuildSubConfigTreeCat(ByRef Node As TreeNode, ByRef CompDt As DataTable, ByRef CatDt As DataTable, ByRef recLevel As Integer)
+        Node.NavigateUrl = "/order/PriceDueCategory.aspx?part_no=" + Node.Text + "&Qty=1"
+        Node.Target = "_blank"
+        Dim Comps() As DataRow = CatDt.Select("PARENT_CATEGORY_ID='" + Node.Text + "' and level=" + (recLevel + 1).ToString(), "SEQ_NO asc")
+        For Each r As DataRow In Comps
+            Node.ChildNodes.Add(New TreeNode(r.Item("CATEGORY_ID")))
+            BuildSubConfigTreeComp(Node.ChildNodes(Node.ChildNodes.Count - 1), CompDt, CatDt, recLevel + 1)
+        Next
+    End Sub
+    Public Shared Sub BuildSubConfigTreeComp(ByRef Node As TreeNode, ByRef CompDt As DataTable, ByRef CatDt As DataTable, ByRef recLevel As Integer)
+        Node.NavigateUrl = "/order/PriceDueCategory.aspx?part_no=" + Node.Text + "&Qty=1"
+        Node.Target = "_blank"
+        Dim Comps() As DataRow = CompDt.Select("PARENT_CATEGORY_ID='" + Node.Text + "' and level=" + (recLevel + 1).ToString(), "SEQ_NO asc")
+        For Each r As DataRow In Comps
+            Node.ChildNodes.Add(New TreeNode(r.Item("CATEGORY_ID")))
+            BuildSubConfigTreeCat(Node.ChildNodes(Node.ChildNodes.Count - 1), CompDt, CatDt, recLevel + 1)
+        Next
+    End Sub
+    <Services.WebMethod()> _
+    <Web.Script.Services.ScriptMethod()> _
+    Public Shared Function SaveToCart(ByVal ConfigTreeTableHtml As String, ByVal OthersHtml As String, ByVal btoItem As String, ByVal Qty As Integer, ByVal IsQuote As Integer) As Boolean
+        Try
+            Dim PriceCompany As String = HttpContext.Current.Session("company_id")
+            If IsQuote = 1 AndAlso HttpContext.Current.Session("current_quote_uid") IsNot Nothing Then
+                Dim DT As DataTable = dbUtil.dbGetDataTable("B2B", Op_Quotation.GET_Quotation_Master_by_ID(HttpContext.Current.Session("current_quote_uid")))
+                If DT.Rows.Count > 0 Then
+                    PriceCompany = DT.Rows(0).Item("Quote_to_Company_id")
+                    
+                Else
+                    Return False
+                End If
+            End If
+            
+            Dim doc1 As New HtmlAgilityPack.HtmlDocument
+            doc1.LoadHtml(ConfigTreeTableHtml)
+            Dim hnc As HtmlAgilityPack.HtmlNodeCollection = doc1.DocumentNode.SelectNodes("//input")
+            Dim CompDt As DataTable = Util.GetConfigOrderCartDt(), totalPrice As Double = 0, totalPrice4EW As Double = 0
+            CompDt.Columns.Add("level", GetType(Integer))
+            If Not IsNothing(hnc) Then
+                
+            
+                For Each n As HtmlAgilityPack.HtmlNode In hnc
+                    If n.Attributes("checked") IsNot Nothing AndAlso n.Attributes("value").Value.ToUpper() Like "*NO NEED*" = False Then
+                        If n.Attributes("value").Value.Contains("|") Then
+                            Dim ps() As String = Split(n.Attributes("value").Value, "|")
+                            Dim intLastUpdBy As Integer = 101
+                            For Each p As String In ps
+                                Dim r As DataRow = CompDt.NewRow
+                                With r
+                                    .Item("CATEGORY_ID") = p : .Item("CATEGORY_NAME") = p
+                                    .Item("CATEGORY_TYPE") = "Component" : .Item("PARENT_CATEGORY_ID") = n.Attributes("catname").Value
+                                    .Item("CATALOG_ID") = HttpContext.Current.Session("G_CATALOG_ID")
+                                    .Item("CATALOGCFG_SEQ") = 1
+                                    .Item("CATEGORY_DESC") = Util.GetCompDesc(p) : .Item("DISPLAY_NAME") = p
+                                    .Item("CREATED") = Now : .Item("CREATED_BY") = HttpContext.Current.User.Identity.Name
+                                    .Item("LAST_UPDATED") = Now : .Item("LAST_UPDATED_BY") = intLastUpdBy.ToString()
+                                    'intSeqNo = CInt(n.Attributes("seqno").Value)
+                                    .Item("SEQ_NO") = CInt(n.Attributes("seqno").Value)
+                                    'intSeqNo += 1
+                                    intLastUpdBy += 1
+                                    If PriceCompany = "" Then
+                                        Dim dtM As DataTable = dbUtil.dbGetDataTable("MY", Op_Quotation.GET_Quotation_Master_by_ID(HttpContext.Current.Session("current_quote_uid")))
+                                        If dtM.Rows.Count > 0 Then
+                                            Dim dtprice As DataTable = Op_Quotation.getPriceByPriceGradeDefault(p, "L0L0L0L0", dtM.Rows(0).Item("QUOTE_COMPANY_TYPE"), dtM.Rows(0).Item("CURRENCY"))
+                                            If Not IsNothing(dtprice) Then
+                                                .Item("CATEGORY_PRICE") = dtprice.Rows(0).Item("AMT1")
+                                            Else
+                                                .Item("CATEGORY_PRICE") = 0
+                                            End If
+                                        Else
+                                            .Item("CATEGORY_PRICE") = 0
+                                        End If
+                                    
+                                    Else
+                                        .Item("CATEGORY_PRICE") = Util.GetSAPPrice(p, PriceCompany)
+                                    End If
+                                    .Item("CATEGORY_QTY") = Qty : .Item("ParentSeqNo") = 1 : .Item("ParentRoot") = 0
+                                    .Item("level") = n.Attributes("level").Value
+                                End With
+                                totalPrice += r.Item("CATEGORY_PRICE")
+                                If Util.IsItemCountForExWarranty(p) Then totalPrice4EW += r.Item("CATEGORY_PRICE")
+                                CompDt.Rows.Add(r)
+                            Next
+                        Else
+                            Dim r As DataRow = CompDt.NewRow
+                            With r
+                                .Item("CATEGORY_ID") = n.Attributes("value").Value : .Item("CATEGORY_NAME") = n.Attributes("value").Value
+                                .Item("CATEGORY_TYPE") = "Component" : .Item("PARENT_CATEGORY_ID") = n.Attributes("catname").Value
+                                .Item("CATALOG_ID") = HttpContext.Current.Session("G_CATALOG_ID")
+                                .Item("CATALOGCFG_SEQ") = 1
+                                .Item("CATEGORY_DESC") = Util.GetCompDesc(n.Attributes("value").Value) : .Item("DISPLAY_NAME") = n.Attributes("value").Value
+                                .Item("CREATED") = Now : .Item("CREATED_BY") = HttpContext.Current.User.Identity.Name
+                                .Item("LAST_UPDATED") = Now : .Item("LAST_UPDATED_BY") = HttpContext.Current.User.Identity.Name
+                                .Item("SEQ_NO") = CInt(n.Attributes("seqno").Value) : .Item("CATEGORY_PRICE") = 0
+                                .Item("CATEGORY_QTY") = Qty : .Item("ParentSeqNo") = 1 : .Item("ParentRoot") = 0
+                                .Item("level") = n.Attributes("level").Value
+                                If n.Attributes("price") IsNot Nothing AndAlso Double.TryParse(n.Attributes("price").Value, 0) _
+                                AndAlso CDbl(n.Attributes("price").Value) > 0 Then
+                                    .Item("CATEGORY_PRICE") = CDbl(n.Attributes("price").Value)
+                                Else
+                                    If PriceCompany = "" Then
+                                        Dim dtM As DataTable = dbUtil.dbGetDataTable("MY", Op_Quotation.GET_Quotation_Master_by_ID(HttpContext.Current.Session("current_quote_uid")))
+                                        If dtM.Rows.Count > 0 Then
+                                            Dim dtprice As DataTable = Op_Quotation.getPriceByPriceGradeDefault(n.Attributes("value").Value, "L0L0L0L0", dtM.Rows(0).Item("QUOTE_COMPANY_TYPE"), dtM.Rows(0).Item("CURRENCY"))
+                                            If Not IsNothing(dtprice) Then
+                                                .Item("CATEGORY_PRICE") = dtprice.Rows(0).Item("AMT1")
+                                            Else
+                                                .Item("CATEGORY_PRICE") = 0
+                                            End If
+                                        Else
+                                            .Item("CATEGORY_PRICE") = 0
+                                        End If
+                                    
+                                    Else
+                                        .Item("CATEGORY_PRICE") = Util.GetSAPPrice(n.Attributes("value").Value, PriceCompany)
+                                    End If
+                                    '.Item("CATEGORY_PRICE") = Util.GetSAPPrice(n.Attributes("value").Value, PriceCompany)
+                                End If
+                            End With
+                            totalPrice += r.Item("CATEGORY_PRICE")
+                            If Util.IsItemCountForExWarranty(r.Item("CATEGORY_ID")) Then totalPrice4EW += r.Item("CATEGORY_PRICE")
+                            CompDt.Rows.Add(r)
+                        End If
+                    End If
+                Next
+            End If
+            'add Other Item
+            Dim docOther As New HtmlAgilityPack.HtmlDocument
+            docOther.LoadHtml(OthersHtml)
+            Dim hncOther As HtmlAgilityPack.HtmlNodeCollection = docOther.DocumentNode.SelectNodes("//input")
+            If Not IsNothing(hncOther) AndAlso hncOther.Count > 0 Then
+                
+            
+                For Each n As HtmlAgilityPack.HtmlNode In hncOther
+                    If Not IsNothing(n.Attributes("value")) AndAlso n.Attributes("value").Value <> "" Then
+                        Dim r As DataRow = CompDt.NewRow
+                        With r
+                            .Item("CATEGORY_ID") = n.Attributes("value").Value : .Item("CATEGORY_NAME") = n.Attributes("value").Value
+                            .Item("CATEGORY_TYPE") = "Component" : .Item("PARENT_CATEGORY_ID") = "Others"
+                            .Item("CATALOG_ID") = HttpContext.Current.Session("G_CATALOG_ID")
+                            .Item("CATALOGCFG_SEQ") = 1
+                            .Item("CATEGORY_DESC") = Util.GetCompDesc(n.Attributes("value").Value) : .Item("DISPLAY_NAME") = n.Attributes("value").Value
+                            .Item("CREATED") = Now : .Item("CREATED_BY") = HttpContext.Current.User.Identity.Name
+                            .Item("LAST_UPDATED") = Now : .Item("LAST_UPDATED_BY") = HttpContext.Current.User.Identity.Name
+                            .Item("SEQ_NO") = 1 : .Item("CATEGORY_PRICE") = 0
+                            .Item("CATEGORY_QTY") = Qty : .Item("ParentSeqNo") = 1 : .Item("ParentRoot") = 0
+                            .Item("level") = 0
+                            If PriceCompany = "" Then
+                                Dim dtM As DataTable = dbUtil.dbGetDataTable("MY", Op_Quotation.GET_Quotation_Master_by_ID(HttpContext.Current.Session("current_quote_uid")))
+                                If dtM.Rows.Count > 0 Then
+                                    Dim dtprice As DataTable = Op_Quotation.getPriceByPriceGradeDefault(n.Attributes("value").Value, "L0L0L0L0", dtM.Rows(0).Item("QUOTE_COMPANY_TYPE"), dtM.Rows(0).Item("CURRENCY"))
+                                    If Not IsNothing(dtprice) Then
+                                        .Item("CATEGORY_PRICE") = dtprice.Rows(0).Item("AMT1")
+                                    Else
+                                        .Item("CATEGORY_PRICE") = 0
+                                    End If
+                                Else
+                                    .Item("CATEGORY_PRICE") = 0
+                                End If
+                                    
+                            Else
+                                .Item("CATEGORY_PRICE") = Util.GetSAPPrice(n.Attributes("value").Value, PriceCompany)
+                            End If
+                            '.Item("CATEGORY_PRICE") = Util.GetSAPPrice(n.Attributes("value").Value, PriceCompany)
+                        End With
+                        totalPrice += r.Item("CATEGORY_PRICE")
+                        If Util.IsItemCountForExWarranty(r.Item("CATEGORY_ID")) Then totalPrice4EW += r.Item("CATEGORY_PRICE")
+                        CompDt.Rows.Add(r)
+                    End If
+                Next
+            End If
+            '/add Other Item
+            Dim agsRows() As DataRow = CompDt.Select("category_id like 'AGS-EW-*'")
+            If agsRows.Length = 1 Then
+                agsRows(0).Item("category_price") = totalPrice4EW * Util.EXWrtyItemRate(agsRows(0).Item("category_id")) * 0.01
+                CompDt.AcceptChanges()
+            End If
+            Dim CatDt As DataTable = Util.GetConfigOrderCartDt()
+            CatDt.Columns.Add("level", GetType(Integer))
+            hnc = doc1.DocumentNode.SelectNodes("//div")
+            If Not IsNothing(hnc) Then
+                For Each n As HtmlAgilityPack.HtmlNode In hnc
+                    If n.Attributes("parent") IsNot Nothing Then
+                        Dim compRows() As DataRow = CompDt.Select(String.Format("PARENT_CATEGORY_ID='{0}' and level={1}", n.Attributes("value").Value, CInt(n.Attributes("level").Value) + 1))
+                        If compRows.Length > 0 _
+                        Or n.Attributes("parent").Value = "ROOT" Then
+                            Dim r As DataRow = CatDt.NewRow
+                            With r
+                                .Item("CATEGORY_ID") = n.Attributes("value").Value : .Item("CATEGORY_NAME") = n.Attributes("value").Value
+                                If n.Attributes("parent").Value = "ROOT" Then
+                                    .Item("CATEGORY_TYPE") = "Component"
+                                Else
+                                    .Item("CATEGORY_TYPE") = "Category"
+                                End If
+                                .Item("PARENT_CATEGORY_ID") = n.Attributes("parent").Value
+                                .Item("CATALOG_ID") = HttpContext.Current.Session("G_CATALOG_ID")
+                                .Item("CATALOGCFG_SEQ") = 1
+                                .Item("CATEGORY_DESC") = n.InnerText : .Item("DISPLAY_NAME") = n.Attributes("value").Value
+                                .Item("CREATED") = Now : .Item("CREATED_BY") = HttpContext.Current.User.Identity.Name
+                                .Item("LAST_UPDATED") = Now : .Item("LAST_UPDATED_BY") = HttpContext.Current.User.Identity.Name
+                                .Item("SEQ_NO") = CInt(n.Attributes("seqno").Value) : .Item("CATEGORY_PRICE") = 0
+                                .Item("CATEGORY_QTY") = Qty : .Item("ParentSeqNo") = 1 : .Item("ParentRoot") = 0
+                                .Item("level") = n.Attributes("level").Value
+                            End With
+                            CatDt.Rows.Add(r)
+                            For Each compr As DataRow In compRows
+                                CatDt.ImportRow(compr)
+                            Next
+                        End If
+                    End If
+                Next
+            End If
+            'add Other Item
+            Dim compRowsOther() As DataRow = CompDt.Select(String.Format("PARENT_CATEGORY_ID='{0}'", "Others"))
+            If compRowsOther.Length > 0 Then
+                Dim r As DataRow = CatDt.NewRow
+                With r
+                    .Item("CATEGORY_ID") = "Others" : .Item("CATEGORY_NAME") = "Others"
+                    .Item("CATEGORY_TYPE") = "Category"
+                    .Item("PARENT_CATEGORY_ID") = btoItem
+                    .Item("CATALOG_ID") = HttpContext.Current.Session("G_CATALOG_ID")
+                    .Item("CATALOGCFG_SEQ") = 1
+                    .Item("CATEGORY_DESC") = "Others" : .Item("DISPLAY_NAME") = "Others"
+                    .Item("CREATED") = Now : .Item("CREATED_BY") = HttpContext.Current.User.Identity.Name
+                    .Item("LAST_UPDATED") = Now : .Item("LAST_UPDATED_BY") = HttpContext.Current.User.Identity.Name
+                    .Item("SEQ_NO") = 0 : .Item("CATEGORY_PRICE") = 0
+                    .Item("CATEGORY_QTY") = Qty : .Item("ParentSeqNo") = 1 : .Item("ParentRoot") = 0
+                    .Item("level") = 0
+                End With
+                CatDt.Rows.Add(r)
+                For Each compr As DataRow In compRowsOther
+                    CatDt.ImportRow(compr)
+                Next
+            End If
+            '/add Other Item
+            
+            If CompDt.Rows.Count > 0 And CatDt.Rows.Count > 0 Then
+                'CompDt.Merge(CatDt)
+                HttpContext.Current.Session("ConfigState") = CatDt.Copy()
+                CatDt.Columns.Remove("level")
+                dbUtil.dbExecuteNoQuery("RFM", String.Format("delete from CONFIGURATION_CATALOG_CATEGORY where CATALOG_ID='{0}'", HttpContext.Current.Session("G_CATALOG_ID")))
+                Dim bk As New System.Data.SqlClient.SqlBulkCopy(ConfigurationManager.ConnectionStrings("B2B").ConnectionString)
+                bk.DestinationTableName = "CONFIGURATION_CATALOG_CATEGORY"
+                bk.WriteToServer(CatDt)
+                HttpContext.Current.Session("ScheisseEstoreBOM") = Nothing
+                HttpContext.Current.Session("current_quote_uid") = Nothing
+                Return True
+            End If
+        Catch ex As Exception
+            Util.SendEmail("nada.liu@advantech.com.cn", "ebiz.aeu@advantech.eu", "EZConfig_SaveCart Error by " + HttpContext.Current.Session("user_id"), ex.ToString() + "|ConfigTable:" + ConfigTreeTableHtml, False, "", "")
+        End Try
+        Return False
+    End Function
+    
+    <Services.WebMethod()> _
+    <Web.Script.Services.ScriptMethod()> _
+    Public Shared Function GetPrice(ByVal PartNo As String, ByVal IsQuote As Integer) As String
+        If PartNo = "No Need" Then Return HttpContext.Current.Session("COMPANY_CURRENCY_SIGN") + "|" + "0"
+        If PartNo.ToUpper.StartsWith("AGS-EW-") Then
+            Return Util.EXWrtyItemRate(PartNo).ToString() + "% of selling price"
+        End If
+        
+        If IsQuote = 0 Then
+            If HttpContext.Current.Session("company_id") Is Nothing OrElse HttpContext.Current.Session("company_id") = "" Then Return "TBD"
+            'If Util.IsSRVItem(PartNo) Then Return "TBD"
+            Dim cid As String = HttpContext.Current.Session("company_id").ToString()
+            If Util.IsRBUCompanyID(cid) Then cid = "EDDEAA01"
+            Dim p As Double = Util.GetSAPPrice(PartNo, cid)
+            If p = 0 Then Return HttpContext.Current.Session("COMPANY_CURRENCY_SIGN") + "|" + "0"
+            'Return p.ToString()
+            Return HttpContext.Current.Session("COMPANY_CURRENCY_SIGN") + "|" + p.ToString()
+        ElseIf IsQuote = 1 Then
+            'Nada Added for equotation
+            If HttpContext.Current.Session("current_quote_uid") IsNot Nothing Then
+                Dim DT As DataTable = dbUtil.dbGetDataTable("B2B", Op_Quotation.GET_Quotation_Master_by_ID(HttpContext.Current.Session("current_quote_uid")))
+                If DT.Rows.Count = 1 Then
+                    Dim quote_to_company As String = DT.Rows(0).Item("Quote_to_Company_id")
+                    Dim currSing As String = DT.Rows(0).Item("currency_sign")
+                    Dim unit_price As Decimal = 0
+                    If quote_to_company = "" Then
+                        Dim dtM As DataTable = dbUtil.dbGetDataTable("MY", Op_Quotation.GET_Quotation_Master_by_ID(HttpContext.Current.Session("current_quote_uid")))
+                        If dtM.Rows.Count > 0 Then
+                            Dim dtprice As DataTable = Op_Quotation.getPriceByPriceGradeDefault(PartNo, "L0L0L0L0", dtM.Rows(0).Item("QUOTE_COMPANY_TYPE"), dtM.Rows(0).Item("CURRENCY"))
+                            If Not IsNothing(dtprice) Then
+                                unit_price = dtprice.Rows(0).Item("AMT1")
+                            Else
+                                unit_price = 0
+                            End If
+                        Else
+                            unit_price = 0
+                        End If
+                        'unit_price = Util.GetSAPPrice(PartNo, "EDDEAA01")
+                    Else
+                        unit_price = Util.GetSAPPrice(PartNo, quote_to_company)
+                    End If
+                    If unit_price = 0 Then Return currSing + "|" + "0"
+                    Return currSing + "|" + unit_price.ToString()
+                End If
+            End If
+            Return "0"
+        Else
+            Return "0"
+        End If
+    End Function
+    
+    Public Shared Function GetReConfigBOM(ByVal Component As String, ByVal Level As Integer, Optional ByVal IsReConfig As Boolean = False) As String
+        If HttpContext.Current.Session("ScheisseEstoreBOM") IsNot Nothing AndAlso CInt(HttpContext.Current.Session("ScheisseEstoreBOM")) = 1 AndAlso Level > 2 Then Return ""
+        Try
+            Dim indent As String = ""
+            For i = 0 To Level
+                indent = indent & "&nbsp;&nbsp;"
+            Next
+            Component = Replace(Trim(Component), "'", "''")
+            
+            Dim dt As DataTable = Util.GetQBOMSql(Component, HttpContext.Current.Session("Q_Org").ToString.ToUpper)
+            Dim CheckedComp() As DataRow = Nothing
+            If IsReConfig AndAlso HttpContext.Current.Session("ConfigState") IsNot Nothing Then
+                CheckedComp = CType(HttpContext.Current.Session("ConfigState"), DataTable).Select(String.Format("parent_category_id='{0}' and category_type='Component' and level={1}", Component, (Level).ToString()))
+            End If
+            If dt.Rows.Count = 0 Then Return ""
+            Dim sb As New System.Text.StringBuilder
+            With sb
+                .AppendLine(String.Format("         <table width='100%'>"))
+                For Each r As DataRow In dt.Rows
+                    .AppendLine(String.Format("         <tr>"))
+                    .AppendLine(String.Format("             <td>"))
+                    .AppendLine(String.Format("                 <table width='100%'>"))
+                    Dim childrens As Integer = 0
+                    If r.Item("category_type") = "Category" Then childrens = Util.GetQBOMSql(r.Item("category_id"), HttpContext.Current.Session("Q_Org").ToString.ToUpper).Rows.Count
+                    .AppendLine(String.Format("                     <tr {0}>", IIf((r.Item("category_type") = "Component" And r.Item("show_hide") = 0) Or (r.Item("category_type") = "Category" And childrens = 0), "style='display:none; height:0px'", "")))
+                    .AppendLine(String.Format("                         <th align='left'>{1}<a href='javascript:void(0);' style='width:5px' onclick='getNextSibling(this.parentNode.parentNode).style.display==""none""?(getNextSibling(this.parentNode.parentNode).style.display=""block"",ShowHide(this,0)):(getNextSibling(this.parentNode.parentNode).style.display=""none"",ShowHide(this,1));'><img border=""0px"" src=""/Images/{0}.gif""/></a>", IIf(r.Item("configuration_rule").ToString.ToUpper.Trim() = "REQUIRED" Or IsReConfig, "minus", "plus"), indent))
+                    If r.Item("category_type") = "Category" Then
+                        .AppendLine(GetCatRow(r.Item("category_id"), r.Item("configuration_rule").ToString.ToUpper().Trim(), r.Item("seq_no"), Component, Level))
+                    Else
+                        If IsReConfig AndAlso CheckedComp IsNot Nothing AndAlso CheckedComp.Length > 0 _
+                        AndAlso CheckedComp(0).Item("category_id").ToString = r.Item("category_id").ToString() Then
+                            r.Item("configuration_rule") = "DEFAULT"
+                        End If
+                        .AppendLine(GetCompRow(Component, r.Item("category_id"), r.Item("CATEGORY_DESC"), r.Item("RoHS"), r.Item("class"), r.Item("configuration_rule").ToString.ToUpper().Trim(), r.Item("seq_no"), Level))
+                    End If
+                    .AppendLine(String.Format("                         </th>"))
+                    .AppendLine(String.Format("                     </tr>"))
+                    If (True Or (r.Item("category_type") <> "Category" And r.Item("configuration_rule").ToString().Trim.ToUpper() = "DEFAULT")) _
+                    And Not (r.Item("category_type") = "Component" And r.Item("show_hide") = 0) Or (r.Item("category_type") = "Category" And childrens = 0) Then
+                        Dim dt2 As DataTable = Util.GetQBOMSql(r.Item("category_id"), HttpContext.Current.Session("Q_Org").ToString.ToUpper)
+                        Dim CheckedComp2() As DataRow = Nothing
+                        If IsReConfig AndAlso HttpContext.Current.Session("ConfigState") IsNot Nothing Then
+                            CheckedComp2 = CType(HttpContext.Current.Session("ConfigState"), DataTable).Select(String.Format( _
+                            "parent_category_id='{0}' and category_type='Component' and level={1}", r.Item("category_id"), (Level + 1).ToString()))
+                        End If
+                        If ((r.Item("configuration_rule").ToString.ToUpper().Trim = "REQUIRED") Or IsReConfig) And dt2.Rows.Count > 0 Then
+                            .AppendLine(String.Format("                 <tr style='display:block'>"))
+                        Else
+                            .AppendLine(String.Format("                 <tr style='display:none'>"))
+                        End If
+                        .AppendLine("                                   <td>")
+                        .AppendLine("                                       <table width='100%'>")
+                        'If dt2.Rows.Count = 0 Then Return ""
+                        For Each r2 As DataRow In dt2.Rows
+                            .AppendLine(String.Format("                     <tr {0}>", IIf(r2.Item("category_type") = "Component" And r2.Item("show_hide") = 0, "style='display:none'", "")))
+                            .AppendLine(String.Format("                         <td>{0}<a href='javascript:void(0);' style='width:5px' onclick='getNextSibling(this.parentNode.parentNode).style.display==""none""?(getNextSibling(this.parentNode.parentNode).style.display=""block"",ShowHide(this,0)):(getNextSibling(this.parentNode.parentNode).style.display=""none"",ShowHide(this,1));'><img border=""0px"" src=""/Images/minus.gif""/></a>", indent))
+                            If r2.Item("category_type") = "Category" Then
+                                .AppendLine(GetCatRow(r2.Item("category_id"), r2.Item("configuration_rule").ToString.ToUpper().Trim(), r2.Item("seq_no"), r.Item("category_id"), Level + 1))
+                            Else
+                                If IsReConfig AndAlso CheckedComp2 IsNot Nothing AndAlso CheckedComp2.Length > 0 _
+                                AndAlso CheckedComp2(0).Item("category_id").ToString = r2.Item("category_id").ToString() Then
+                                    r2.Item("configuration_rule") = "DEFAULT"
+                                End If
+                                .AppendLine(GetCompRow(r.Item("category_id"), r2.Item("category_id"), r2.Item("category_desc"), r2.Item("RoHS"), r2.Item("class"), r2.Item("configuration_rule").ToString.ToUpper().Trim(), r2.Item("seq_no"), Level + 1))
+                            End If
+                            .AppendLine(String.Format("                         </td>"))
+                            .AppendLine(String.Format("                      </tr>"))
+                            If r2.Item("configuration_rule").ToString.ToUpper().Trim() = "DEFAULT" _
+                            And Util.IstScheisseEstoreBOM(Component) = False And Component.ToUpper.StartsWith("SYS") = False And _
+                            Component.ToUpper.StartsWith("C-CTOS-") = False And Level <= 10 Then
+                                .AppendLine("                                    <tr><td>" + GetReConfigBOM(r2.Item("category_id"), Level + 2, IsReConfig) + "</td></tr>")
+                            Else
+                                .AppendLine("                                    <tr><td></td></tr>")
+                            End If
+                        Next
+                        .AppendLine("                                       </table>")
+                        .AppendLine("                                   </td>")
+                        .AppendLine(String.Format("                 </tr>"))
+                    Else
+                        .AppendLine("                               <tr><td></td></tr>")
+                    End If
+                    .AppendLine(String.Format("                 </table>"))
+                    .AppendLine(String.Format("             </td>"))
+                    .AppendLine(String.Format("         </tr>"))
+                Next
+                .AppendLine(String.Format("         </table>"))
+            End With
+            Return sb.ToString()
+        Catch ex As Exception
+            Util.SendEmail("nada.liu@advantech.com.cn", "ebiz.aeu@advantech.eu", _
+                           "EZConfig_GetChildBOM Error by " + HttpContext.Current.Session("user_id"), _
+                           "Comp:" + Component + ".Level:" + Level.ToString() + "<br/>" + ex.ToString(), False, "", "")
+        End Try
+        Return ""
+    End Function
+    
+    <Services.WebMethod()> _
+    <Web.Script.Services.ScriptMethod()> _
+    Public Shared Function GetATP(ByVal PartNo As String, ByVal ReqQty As Integer) As String
+        If PartNo = "No Need" Then Return Now.ToString("yyyy/MM/dd")
+        If PartNo.ToUpper.StartsWith("AGS-EW-") Then
+            Return Now.ToString("yyyy/MM/dd")
+        End If
+        Dim due_date As String = Now.ToString("yyyy/MM/dd")
+        Util.GetDueDate(PartNo, ReqQty, Now.ToString("yyyy/MM/dd"), due_date)
+        Return CDate(due_date).toString("MM/dd/yyyy")
+    End Function
+    <Services.WebMethod()> _
+    <Web.Script.Services.ScriptMethod()> _
+    Public Shared Function GetChildBOM(ByVal Component As String, ByVal Level As Integer) As String
+        Return GetReConfigBOM(Component, Level, False)
+    End Function
+    
+    Private Shared Function GetCatRow(ByVal CatID As String, ByVal ConfigRule As String, ByVal SeqNo As Integer, ByVal Parent As String, ByVal Level As Integer) As String
+        Return String.Format("                         <div seqno='{3}' parent='{4}' style='display:inline' configrule='{2}' value='{0}' level='{5}'><a target='_blank' href='/order/PriceDueCategory.aspx?part_no={0}&qty=1'>{0}</a></div>&nbsp;&nbsp;{1}", CatID, IIf(ConfigRule = "REQUIRED", "<font color='tomato'>(Required)</font>", ""), ConfigRule, SeqNo.ToString(), Parent, Level.ToString())
+    End Function
+    
+    Private Shared Function GetCompRow(ByVal ParentComp As String, ByVal ChildComp As String, ByVal Desc As String, _
+                                       ByVal RoHSFlag As String, ByVal ItemClass As String, ByVal ConfigRule As String, _
+                                       ByVal SeqNo As Integer, ByVal Level As Integer) As String
+        Dim priceStr = "                              <a id='price_{7}' href='javascript:void(0);' value='{1}' onclick='GetPrice(""{1}"",this)'>Price</a>"
+        If OrderUtilities.IsMSSoft(ChildComp) Then
+            priceStr = "bundled program"
+        End If
+        Return String.Format("                         <input id='{7}' type='checkbox' seqno='{6}' onBlur='updateDOM(this)' " + _
+                             "                              name='grp_{0}' catname='{0}' onclick='GetChild(this)' " + _
+                             "                              value='{1}' {5} price='0' duedate='' level='{8}'/>&nbsp;<div style='display:inline'>" + _
+                             "                              <a target='_blank' href='/order/PriceDue.aspx?part_no={1}&qty=1'>{1}</a>" + _
+                             "                              ---{2}  {3}  {4}</div>&nbsp;&nbsp;&nbsp;" + _
+                              priceStr + _
+                             "                              &nbsp;&nbsp;&nbsp;<a id='atp_{7}' href='javascript:void(0);' value='{1}' onclick='GetATP(""{1}"",this)'>Availability</a>", _
+                             ParentComp, ChildComp, Desc, _
+                             IIf(RoHSFlag = "y", "<img src='/Images/rohs.jpg' alt='RoHS'/>", ""), _
+                             IIf(ItemClass = "A" Or ItemClass = "B", "<img src='/Images/Hot-Orange.gif' alt='Hot!'/>", ""), _
+                             IIf(ConfigRule = "DEFAULT", "checked", ""), _
+                             SeqNo.ToString(), ParentComp + "_" + ChildComp + "_" + SeqNo.ToString() + "_" + Level.ToString(), Level.ToString())
+    End Function
+    Private Shared Function get_catalog_type(ByVal name As String) As String
+        Dim catalog_name As String = ""
+        Dim dt As DataTable = dbUtil.dbGetDataTable("B2B", "select catalog_type from CBOM_CATALOG where Catalog_org='" & HttpContext.Current.Session("Q_Org").ToString.ToUpper & "' and CATALOG_NAME = '" + name + "'")
+        If dt.Rows.Count > 0 Then
+            If Not Convert.IsDBNull(dt.Rows(0).Item("catalog_type")) Then
+                catalog_name = dt.Rows(0).Item("catalog_type").ToString.Trim
+            End If
+        End If
+        Return catalog_name
+    End Function
+        
+    Private Sub Source_path()
+        Dim strhtml As String = ""
+        If Not Page.IsPostBack AndAlso Request("BTOITEM") IsNot Nothing AndAlso Request("BTOITEM") <> "" Then
+            If Request("UID") IsNot Nothing AndAlso Trim(Request("UID")) <> "" Then
+                strhtml = "<font color='Navy'>■</font>&nbsp;&nbsp;<a href='../eQuotation/QuotationDetail.aspx?UID=" + Trim(Request("UID")) + "' target='_self' style='color:Navy;font-weight:bold; text-decoration:none;'>Quotation Detail</a><b>&nbsp;&nbsp;>&nbsp;&nbsp;</b>" + _
+                "<a href='./btos_portal.aspx?UID=" + Trim(Request("UID")) + "' target='_self' style='color:Navy;font-weight:bold; text-decoration:none;'>BTOS/CTOS Portal</a> <b>&nbsp;&nbsp;>&nbsp;&nbsp;</b>" + _
+                "<a href='./CBOM_List.aspx?Catalog_Type=" + get_catalog_type(Trim(Request("BTOITEM"))) + "&UID=" + Trim(Request("UID")) + "&SPR=' target='_self' style='color:Navy;font-weight:bold; text-decoration:none;'>" + get_catalog_type(Trim(Request("BTOITEM"))) + "</a> <b>&nbsp;&nbsp;>&nbsp;&nbsp;</b>" + _
+                "<a href='./ConfiguratorJS.aspx?BTOITEM=" + Trim(Request("BTOITEM")) + "&QTY=" + Trim(Request("QTY")) + "&QUOTE=1&UID=" + Trim(Request("UID")) + "&SPR=' target='_self' style='color:Navy;font-weight:bold; text-decoration:none;'>" + Trim(Request("BTOITEM")) + "</a>"
+           
+            Else
+                strhtml = "<font color='Navy'>■</font>&nbsp;&nbsp;<a href='./btos_portal.aspx' target='_self' style='color:Navy;font-weight:bold; text-decoration:none;'>BTOS/CTOS Portal</a><strong>&nbsp;&nbsp;>&nbsp;&nbsp;</strong>" + _
+                 "<a href='./CBOM_List.aspx?Catalog_Type=" + get_catalog_type(Trim(Request("BTOITEM"))) + "' target='_self' style='color:Navy;font-weight:bold;text-decoration:none;'>" + get_catalog_type(Trim(Request("BTOITEM"))) + "</a><strong>&nbsp;&nbsp;>&nbsp;&nbsp;</strong>" + _
+                 "<a href='./ConfiguratorJS.aspx?BTOITEM=" + Trim(Request("BTOITEM")) + "&QTY=" + Trim(Request("QTY")) + "' target='_self' style='color:Navy;font-weight:bold; text-decoration:none;'>" + Trim(Request("BTOITEM")) + "</a>"
+            End If
+        End If
+        page_path.InnerHtml = strhtml
+    End Sub
+    Protected Sub Page_Load(ByVal sender As Object, ByVal e As System.EventArgs)
+        Session("Q_Org") = Session("Org")
+        Call Source_path()
+        If Not Page.IsPostBack AndAlso Request("BTOITEM") IsNot Nothing AndAlso Request("BTOITEM") <> "" Then
+            If Integer.TryParse(Request("QTY"), 0) Then Me.HFQty.Value = CInt(Request("QTY")).ToString()
+            If Util.IstScheisseEstoreBOM(Trim(Request("BTOITEM"))) Then
+                Session("ScheisseEstoreBOM") = 1
+            Else
+                Session("ScheisseEstoreBOM") = 0
+            End If
+            If Request("UID") IsNot Nothing AndAlso Trim(Request("UID")) <> "" Then
+                Session("current_quote_uid") = Trim(Request("UID")).Replace("'", "")
+                Dim DTMSTER As DataTable = dbUtil.dbGetDataTable("MY", Op_Quotation.GET_Quotation_Master_by_ID(Request("UID")))
+                If DTMSTER.Rows.Count > 0 Then
+                    Session("Q_Org") = Left(Util.RBU2Org(DTMSTER.Rows(0).Item("Quote_Company_Type").ToString), 2)
+                Else
+                    Response.Write("can not find quote record!") : Response.End()
+                End If
+            End If
+            If Request("ReConfigure") IsNot Nothing AndAlso Request("ReConfigure") <> "" AndAlso Session("ConfigState") IsNot Nothing Then
+                'gv1.DataSource = Session("ConfigState") : gv1.DataBind()
+                Dim sb As New System.Text.StringBuilder
+                With sb
+                    .AppendLine(String.Format("<table style='border-style:double;' id='ConfigTree' width='100%'>"))
+                    .AppendLine(String.Format(" <tr>"))
+                    .AppendLine(String.Format("     <th align='left'><a href='javascript:void(0);' style='width:5px' onclick='getNextSibling(this.parentNode.parentNode).style.display==""none""?(getNextSibling(this.parentNode.parentNode).style.display=""block"",ShowHide(this,0)):(getNextSibling(this.parentNode.parentNode).style.display=""none"",ShowHide(this,1));'><img border=""0px"" src=""/Images/minus.gif""/></a><div style='display:inline' value='{0}' parent='ROOT' level='0' seqno='0'>{0}</div></th>", Trim(Request("BTOITEM"))))
+                    .AppendLine(String.Format(" </tr>"))
+                    .AppendLine(String.Format(" <tr>"))
+                    .AppendLine(String.Format("     <td>"))
+                    .AppendLine(GetReConfigBOM(Trim(Request("BTOITEM")), 1, True))
+                    .AppendLine(String.Format("     </td>"))
+                    .AppendLine(String.Format(" </tr>"))
+                    .AppendLine(String.Format("</table>"))
+                End With
+                div1.InnerHtml = sb.ToString()
+            Else
+                Dim sb As New System.Text.StringBuilder
+                With sb
+                    .AppendLine(String.Format("<table style='border-style:double;' id='ConfigTree' width='100%'>"))
+                    .AppendLine(String.Format(" <tr>"))
+                    .AppendLine(String.Format("     <th align='left'><a href='javascript:void(0);' style='width:5px' onclick='getNextSibling(this.parentNode.parentNode).style.display==""none""?(getNextSibling(this.parentNode.parentNode).style.display=""block"",ShowHide(this,0)):(getNextSibling(this.parentNode.parentNode).style.display=""none"",ShowHide(this,1));'><img border=""0px"" src=""/Images/minus.gif""/></a><div style='display:inline' value='{0}' parent='ROOT' level='0' seqno='0'>{0}</div></th>", Trim(Request("BTOITEM"))))
+                    .AppendLine(String.Format(" </tr>"))
+                    .AppendLine(String.Format(" <tr>"))
+                    .AppendLine(String.Format("     <td>"))
+                    .AppendLine(GetChildBOM(Trim(Request("BTOITEM")), 1))
+                    .AppendLine(String.Format("     </td>"))
+                    .AppendLine(String.Format(" </tr>"))
+                    .AppendLine(String.Format("</table>"))
+                End With
+                div1.InnerHtml = sb.ToString()
+            End If
+            'Session("ConfigState") = Nothing
+        End If
+        If Request("BTOITEM") Is Nothing Then
+            Me.panel1.Visible = False
+        End If
+    End Sub
+</script>
+
+<asp:Content runat="server" ID="_main" ContentPlaceHolderID="_main">
+    <script type="text/javascript">
+        var asyncThreads = 0;
+        var MaxAsyncThreads =6;
+        if (document.body.__defineGetter__) {
+            if (HTMLElement) {
+              var element = HTMLElement.prototype;
+              if (element.__defineGetter__) {
+                     element.__defineGetter__("outerHTML",
+                           function () {
+                                  var parent = this.parentNode;
+                                  var el = document.createElement(parent.tagName);
+                                  el.appendChild(this);
+                                  var shtml = el.innerHTML;
+                                  parent.appendChild(this);
+                                  return shtml;
+                           }
+                     );
+              }
+            }
+        }
+        
+        function setBodyHeightToContentHeight(){
+            document.body.style.height = Math.max(document.documentElement.scrollHeight, document.body.scrollHeight) + "px";
+        }
+        setBodyHeightToContentHeight();
+        
+        String.prototype.startsWith = function(str)
+        {return (this.match("^"+str)==str)}
+        function getQuerystring(key, default_){
+            if (default_==null) default_="";
+            key = key.replace(/[\[]/,"\\\[").replace(/[\]]/,"\\\]");
+            var regex = new RegExp("[\\?&]"+key.toUpperCase()+"=([^&#]*)");
+            var qs = regex.exec(window.location.href.toUpperCase());
+            if(qs == null)
+            return default_;
+            else
+            return qs[1];
+        }
+        String.prototype.endsWith = function (pattern) {
+            var d = this.length - pattern.length;
+            return d >= 0 && this.lastIndexOf(pattern) === d;
+        };
+
+        function GetChild(PN) {
+            document.body.style.cursor = 'wait';    
+            document.getElementById("ConfigBtnTop").disabled=true;   
+            document.getElementById("ConfigBtnBottom").disabled=true;        
+            CheckUnCheckAll(PN, PN.checked, PN.name);
+            if (PN.checked && getNextSibling(PN.parentNode.parentNode).firstChild.innerHTML == "" && getQuerystring('BTOITEM','').toUpperCase().startsWith('SYS')==false && getQuerystring('BTOITEM','').toUpperCase().startsWith('C-CTOS-')==false) {
+                //PageMethods.GetChildBOM(PN.value, 1, OnGetChildComplete, OnGetChildError, getNextSibling(PN.parentNode.parentNode).firstChild);
+                if (navigator.appName == "Microsoft Internet Explorer") {                     
+                    PageMethods.GetChildBOM(PN.value, parseInt(PN.level)+1, OnGetChildComplete, OnGetChildError, PN);    
+                }
+                else{                   
+                    PageMethods.GetChildBOM(PN.value, parseInt(parseFloat(PN.getAttribute("level")))+1, OnGetChildComplete, OnGetChildError, PN);    
+                }           
+            }
+            else{
+                updateDOM(PN);  
+                ShowCurrentConfig();             
+                document.body.style.cursor = 'default';
+            }
+        }
+        function OnGetChildComplete(result, price, methodName) {
+            getNextSibling(price.parentNode.parentNode).firstChild.innerHTML = result;
+            try{
+                if(price.childNodes[0].childNodes[0].childNodes[0].childNodes[0].childNodes[0].childNodes[0].getElementsByTagName("TBODY")[0].innerHTML==""){
+                    price.innerHTML = "";
+                }
+            }
+            catch(exp){}    
+            //GetPriceATP4OneCheckedComp(price); 
+            //GetPriceATP4SubTree(getNextSibling(price.parentNode.parentNode).firstChild);
+            GetPriceATP4AllCheckedComp();
+            ShowCurrentConfig();   
+            document.getElementById("ConfigBtnTop").disabled =false;   
+            document.getElementById("ConfigBtnBottom").disabled =false;                        
+            document.body.style.cursor = 'default';
+        }
+        function OnGetChildError(error, userContext, methodName) {
+            if (error !== null) {
+                //alert(error.get_message());
+            }
+            document.getElementById("ConfigBtnTop").disabled=false;   
+            document.getElementById("ConfigBtnBottom").disabled=false;   
+            document.body.style.cursor = 'default';
+        }
+        function getNextSibling(startBrother) {
+            endBrother = startBrother.nextSibling;
+            while (endBrother.nodeType != 1) {
+                endBrother = endBrother.nextSibling;
+            }
+            return endBrother;
+        }
+        function getPreSibling(startBrother) {
+            endBrother = startBrother.previousSibling;
+            while (endBrother.nodeType != 1) {
+                endBrother = endBrother.previousSibling;
+            }
+            return endBrother;
+        }
+        function ShowHide(ele, i) {
+            if (i == 1) { ele.innerHTML = "<img border='0px' src='/Images/plus.gif' />"; }
+            else { ele.innerHTML = "<img border='0px' src='/Images/minus.gif' />"; }
+        }
+
+        function CheckUnCheckAll(ele, IsCheck, GrpName) {
+            if (IsCheck) {
+                var cells = ele.parentNode.parentNode.parentNode.getElementsByTagName("input");
+                for (var i = 0; i < cells.length; i++) {
+                    if (cells[i].name == GrpName) {
+                        cells[i].checked = !IsCheck;
+                        updateDOM(cells[i]);
+                        getNextSibling(cells[i].parentNode.parentNode).firstChild.innerHTML = "";
+                    }
+                }
+                ele.checked = IsCheck;                
+                updateDOM(ele);                
+            }
+            else {
+                getNextSibling(ele.parentNode.parentNode).firstChild.innerHTML = "";
+            }
+        }
+        function IsAnyChecked(ele, GrpName) {
+            //alert(GrpName);
+            var cells = getNextSibling(ele.parentNode.parentNode).getElementsByTagName("input");
+            if (cells.length == 0) { return true; }
+            for (var i = 0; i < cells.length; i++) {
+                if (cells[i].name == ('grp_'+GrpName)) {
+                    if (cells[i].checked) { return true; }
+                }
+            }
+            return false;
+        }
+        function SaveConfig() {
+            document.body.style.cursor = 'wait';                    
+            var t = document.getElementById("ConfigTree");
+            if (t) {
+                var divs = t.getElementsByTagName("div");
+                for (var i = 0; i < divs.length; i++) {
+                    if (navigator.appName == "Microsoft Internet Explorer") {
+                        if (divs[i].configrule == "REQUIRED") {
+                            if (!IsAnyChecked(divs[i], divs[i].value)) {
+                                document.body.style.cursor = 'default';
+                                alert('Category ' + divs[i].value + ' is required'); divs[i].focus(); ScrollToElement(divs[i]); return;
+                            }
+                        }
+                    }
+                    else {
+                        if (divs[i].hasAttribute("configrule")) {
+                            if (divs[i].getAttribute("configrule") == "REQUIRED") {
+                                if (!IsAnyChecked(divs[i], divs[i].getAttribute("value"))) {
+                                    document.body.style.cursor = 'default';
+                                    alert('Category ' + divs[i].getAttribute("value") + ' is required'); divs[i].focus(); ScrollToElement(divs[i]); return;
+                                }
+                            }
+                        }
+                    }
+                }
+                //add For Others Class
+                var divOthers = findObj("divOthers", document);
+                //add For Others Class
+                PageMethods.SaveToCart(t.innerHTML , divOthers.innerHTML, '<%=Request("BTOITEM") %>',getQuerystring('QTY',1),getQuerystring('QUOTE',0), OnSaveCartComplete, OnSaveCartError);
+            }
+        }
+        function OnSaveCartComplete(result, price, methodName) {            
+            if(result){
+                var ReferURL = window.location.href;
+                if (getQuerystring('QUOTE',0)==0){
+                             window.location.href = '/order/ConfigurationPage.aspx?BTOITEM='+getQuerystring('BTOITEM','')+'&QTY='+getQuerystring('QTY',1);
+                            
+                        }
+                else if (getQuerystring('QUOTE',0)==1){
+                             window.location.href = '/order/ConfigurationPage.aspx?BTOITEM='+getQuerystring('BTOITEM','')+'&QTY='+getQuerystring('QTY',1)+'&UID='+getQuerystring('UID','')+'&SPR='+getQuerystring('SPR',0);
+                
+                             //window.location.href = '/eQuotation/config2Quote.aspx?UID=' + getQuerystring('UID','');
+                        }
+            }
+            else{
+                alert('Saving Configuration Error, please contact eBusiness.AEU@advantech.eu');
+                document.body.style.cursor = 'default';
+            }
+        }
+        function OnSaveCartError(error, userContext, methodName) {
+            if (error !== null) {
+                alert(error.get_message());
+            }
+            document.body.style.cursor = 'default';
+            var modalP = $find('MPE1');
+            if(modalP) modalP.hide();
+        }
+        function GetPrice(PN, PE) {
+            if (PE) {
+                if (asyncThreads >= MaxAsyncThreads) {
+                    asyncThreads = MaxAsyncThreads;
+                    //alert('Too many requests of get price, please try again later'); return;
+                }
+                asyncThreads++;
+                document.body.style.cursor = 'wait';
+                PE.innerHTML = "<img style='border:0px;' height='20px' alt='loading' src='../images/loading2.gif' />";
+                PageMethods.GetPrice(PN, getQuerystring('QUOTE', 0), OnGetPriceComplete, OnGetPriceError, PE);
+            }            
+        }
+        function OnGetPriceComplete(result, price, methodName) {
+            asyncThreads--;
+            if(asyncThreads<0) asyncThreads=0;
+            price.innerHTML = result.replace("|"," ");
+            document.body.style.cursor = 'default';
+            if(result.indexOf("|")>=0){
+                var sp=result.split("|");
+                if (navigator.appName == "Microsoft Internet Explorer") {
+                    document.getElementById(price.id.replace('price_','')).price=sp[1];  
+                }
+                else{
+                    document.getElementById(price.id.replace('price_','')).setAttribute('price',sp[1]); 
+                }  
+            }
+            else{
+                if (navigator.appName == "Microsoft Internet Explorer") {
+                    document.getElementById(price.id.replace('price_','')).price=0;  
+                }
+                else{
+                    document.getElementById(price.id.replace('price_','')).setAttribute('price',0); 
+                }  
+            }                          
+        }
+        function OnGetPriceError(error, userContext, methodName) {
+            asyncThreads--;
+            if(asyncThreads<0) asyncThreads=0;
+            if (error !== null) {
+                //alert(error.get_message());
+            }
+            document.body.style.cursor = 'default';
+        }
+        function GetATP(PN, PE) {
+             if(asyncThreads>=MaxAsyncThreads){
+                asyncThreads=MaxAsyncThreads;
+                //alert('Too many requests of get availability, please try again later'); return;
+            }
+            asyncThreads++;
+            document.body.style.cursor = 'wait';
+            PE.innerHTML = "<img style='border:0px;' height='20px' alt='loading' src='../images/loading2.gif' />";
+            PageMethods.GetATP(PN, getQuerystring('QTY',1), OnGetATPComplete, OnGetATPError, PE);
+        }
+        function OnGetATPComplete(result, atp, methodName) {
+            asyncThreads--;
+            if(asyncThreads<0) asyncThreads=0;
+            atp.innerHTML = result;
+            if (navigator.appName == "Microsoft Internet Explorer") {document.getElementById(atp.id.replace('atp_','')).duedate=result;  }
+            else{document.getElementById(atp.id.replace('atp_','')).setAttribute('duedate',result);  }
+            document.body.style.cursor = 'default';
+        }
+        function OnGetATPError(error, userContext, methodName) {
+            asyncThreads--;
+            if(asyncThreads<0) asyncThreads=0;
+            if (error !== null) {
+                //alert(error.get_message());
+            }
+            document.body.style.cursor = 'default';
+        }
+        function ShowCurrentConfig(){
+            //GetPriceATP4AllCheckedComp();
+            var t = document.getElementById("ConfigTree");
+            if (t) { 
+                PageMethods.GetCurrentConfig(t.outerHTML, OnShowConfigComplete, OnShowConfigError);            
+            }            
+        }
+        function OnShowConfigComplete(result, atp, methodName) {            
+            document.getElementById('<%=me.div2.ClientID %>').innerHTML = result;
+            document.body.style.cursor = 'default';
+            document.getElementById('TOTALPRICEDIV').innerHTML=GetTotalPrice();
+            document.getElementById('MAXDDDIV').innerHTML=GetMaxDueDate();
+            setTimeout ( "ShowCurrentConfig()", 7000 );
+        }
+        function OnShowConfigError(error, userContext, methodName) {
+            if (error !== null) {
+                //alert(error.get_message());
+            }
+            document.body.style.cursor = 'default';
+        }
+        function ScrollToElement(theElement) {
+            var selectedPosX = 0;
+            var selectedPosY = 0;
+            while (theElement != null) {
+                selectedPosX += theElement.offsetLeft;
+                selectedPosY += theElement.offsetTop;
+                theElement = theElement.offsetParent;
+            }
+            window.scrollTo(selectedPosX, selectedPosY);
+        }
+        function updateDOM(inputField) {          
+            if (typeof inputField == "string") {
+                inputField = document.getElementById(inputField);
+            }
+
+            if (inputField.type == "select-one") {
+                for (var i=0; i<inputField.options.length; i++) {
+                    if (i == inputField.selectedIndex) {
+                        inputField.options[inputField.selectedIndex].setAttribute("selected","selected");
+                    }
+                }
+            } else if (inputField.type == "text") {
+                inputField.setAttribute("value",inputField.value);
+            } else if (inputField.type == "textarea") {
+                inputField.setAttribute("value",inputField.value);
+            } else if ((inputField.type == "checkbox") || (inputField.type == "radio")) {
+                if (inputField.checked) {
+                    inputField.setAttribute("checked","checked");
+                } else {
+                    inputField.removeAttribute("checked");
+                }
+            }
+        }
+        function GetPriceATP4OneCheckedComp(comp){            
+            if(comp.checked){  
+                if (navigator.appName == "Microsoft Internet Explorer") {
+                   if(comp.price=='0'){
+                        GetPrice(comp.value,document.getElementById('price_'+comp.id));
+                   }                     
+                   if(comp.duedate==''){
+                        GetATP(comp.value,document.getElementById('atp_'+comp.id));
+                   } 
+                }
+                else{
+                   if(comp.getAttribute('price')=='0'){
+                        GetPrice(comp.value,document.getElementById('price_'+comp.id));
+                   }                     
+                   if(comp.getAttribute('duedate')==''){
+                        GetATP(comp.value,document.getElementById('atp_'+comp.id));
+                   }  
+                }
+            }
+        }
+        function GetPriceATP4SubTree(subtree){  
+        //alert(subtree);      
+            var inputs=subtree.getElementsByTagName("input");   
+            //alert(inputs.length);
+            for (var i = 0; i < inputs.length; i++) {
+                if(inputs[i].checked){  
+                    if (navigator.appName == "Microsoft Internet Explorer") {
+                       if(true){
+                            GetPrice(inputs[i].value,document.getElementById('price_'+inputs[i].id));
+                            //j=j+1;
+                       } 
+                    }
+                    else{
+                       if(true){
+                            GetPrice(inputs[i].value,document.getElementById('price_'+inputs[i].id));
+                            //j=j+1;
+                       }  
+                    }
+                }
+            }
+        }
+
+        function GetPriceATP4AllComp() {
+            var inputs = document.getElementById("ConfigTree").getElementsByTagName("input");
+            var j = 0;
+            var OriginalAsyncMaxThreads = MaxAsyncThreads;
+            for (var i = 0; i < inputs.length; i++) {
+                if (inputs[i].checked || true) j++;
+            }
+            if (j * 2 > MaxAsyncThreads) {
+                MaxAsyncThreads = j * 2;
+            }
+            j = 0;
+            for (var i = 0; i < inputs.length; i++) {
+                if (inputs[i].checked || true) {
+                    if (navigator.appName == "Microsoft Internet Explorer") {
+                        if (inputs[i].price == '0') {
+                            GetPrice(inputs[i].value, document.getElementById('price_' + inputs[i].id));
+                            GetATP(inputs[i].value, document.getElementById('atp_' + inputs[i].id));
+                            //asyncThreads=0;
+                            j = j + 1;
+                        }
+                    }
+                    else {
+                        if (inputs[i].getAttribute('price') == '0') {
+                            GetPrice(inputs[i].value, document.getElementById('price_' + inputs[i].id));
+                            GetATP(inputs[i].value, document.getElementById('atp_' + inputs[i].id));
+                            //asyncThreads=0;
+                            j = j + 1;
+                        }
+                    }
+                }
+            }
+            MaxAsyncThreads = OriginalAsyncMaxThreads;
+            return j;
+        }
+
+        function GetPriceATP4AllCheckedComp(){
+            var inputs=document.getElementById("ConfigTree").getElementsByTagName("input"); 
+            var j=0;  
+            var OriginalAsyncMaxThreads = MaxAsyncThreads;
+            for (var i = 0; i < inputs.length; i++) {
+                if(inputs[i].checked) j++;
+            }     
+            if(j*2>MaxAsyncThreads){
+                MaxAsyncThreads=j*2;
+            }
+            j=0;
+            for (var i = 0; i < inputs.length; i++) {
+                if(inputs[i].checked){  
+                    if (navigator.appName == "Microsoft Internet Explorer") {
+                       if(inputs[i].price=='0'){
+                           GetPrice(inputs[i].value, document.getElementById('price_' + inputs[i].id));
+                           GetATP(inputs[i].value, document.getElementById('atp_' + inputs[i].id));
+                            //asyncThreads=0;
+                            j = j + 1;                            
+                       } 
+                    }
+                    else{
+                       if(inputs[i].getAttribute('price')=='0'){
+                           GetPrice(inputs[i].value, document.getElementById('price_' + inputs[i].id));
+                           GetATP(inputs[i].value, document.getElementById('atp_' + inputs[i].id));
+                            //asyncThreads=0;
+                            j=j+1;
+                       }                     
+                    }
+                }
+            }
+            MaxAsyncThreads=OriginalAsyncMaxThreads;
+            return j;
+        }
+       
+        function GetTotalPrice(){
+            var inputs=document.getElementById("ConfigTree").getElementsByTagName("input"); 
+            var TotalPrice=0;
+            for (var i = 0; i < inputs.length; i++) {
+                if(inputs[i].checked){  
+                    if (navigator.appName == "Microsoft Internet Explorer") {
+                        if(inputs[i].price!="TBD")
+                            TotalPrice=TotalPrice+parseFloat(inputs[i].price);                                          
+                    }
+                    else{
+                        if(inputs[i].getAttribute('price')!="TBD")
+                            TotalPrice=TotalPrice+parseFloat(inputs[i].getAttribute('price'));  
+                    }                   
+                }
+            }
+            return format_number(TotalPrice,2);
+        }
+        function daysDiff(day1, day2) {
+	        var diff = Math.abs(Date.parse(day1) - Date.parse(day2));
+	        var daysDiff = Math.floor(diff / 1000 / 60 / 60 / 24);
+	        return daysDiff;
+	    }
+        function GetMaxDueDate(){
+            var inputs=document.getElementById("ConfigTree").getElementsByTagName("input"); 
+            var currentTime = new Date();
+    	    var month = currentTime.getMonth() + 1;
+	        var day = currentTime.getDate();
+	        var year = currentTime.getFullYear();
+            var MaxDD=year+"/"+month+"/"+day;
+            for (var i = 0; i < inputs.length; i++) {
+                if(inputs[i].checked){  
+                    var curDD='';
+                    if (navigator.appName == "Microsoft Internet Explorer") {
+                       if(inputs[i].duedate!=''){
+                            curDD=inputs[i].duedate;
+                       }                                         
+                    }
+                    else{
+                       if(inputs[i].getAttribute('duedate')!=''){
+                            curDD=inputs[i].getAttribute('duedate');
+                       } 
+                    }
+                    if(curDD!=''){
+                        if(daysDiff(MaxDD,curDD)>0){MaxDD=curDD;}
+                    }
+                }
+            }
+            return MaxDD;
+        }
+        function format_number(pnumber,decimals){
+	        if (isNaN(pnumber)) { return 0};
+	        if (pnumber=='') { return 0};
+        	
+	        var snum = new String(pnumber);
+	        var sec = snum.split('.');
+	        var whole = parseFloat(sec[0]);
+	        var result = '';
+        	
+	        if(sec.length > 1){
+		        var dec = new String(sec[1]);
+		        dec = String(parseFloat(sec[1])/Math.pow(10,(dec.length - decimals)));
+		        dec = String(whole + Math.round(parseFloat(dec))/Math.pow(10,decimals));
+		        var dot = dec.indexOf('.');
+		        if(dot == -1){
+			        dec += '.'; 
+			        dot = dec.indexOf('.');
+		        }
+		        while(dec.length <= dot + decimals) { dec += '0'; }
+		        result = dec;
+	        } else{
+		        var dot;
+		        var dec = new String(whole);
+		        dec += '.';
+		        dot = dec.indexOf('.');		
+		        while(dec.length <= dot + decimals) { dec += '0'; }
+		        result = dec;
+	        }	
+	        return result;
+        }
+    </script>
+    <asp:HiddenField runat="server" ID="HFQty" Value="1" />
+    <ajaxToolkit:AlwaysVisibleControlExtender runat="server" ID="avcext1" 
+        TargetControlID="panel1" HorizontalOffset="50" VerticalOffset="200" HorizontalSide="Right" />    
+    <table width="90%">
+        <tr>
+            <td><asp:HyperLink runat="server" ID="hyTestLink" Visible="false" /></td>
+        </tr>
+        <tr>
+            <td  style="height:30px">
+                <span style="width:41%;" id="page_path" runat="server"></span>
+                <a href="javascript:void(0);" onclick="SaveConfig()"><img id="ConfigBtnTop" src="/Images/ebiz.aeu.face/btn_save2con.gif" alt="Go" style="border:0px" width="164" height="20" /></a>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <a href="javascript:void(0);" onclick="ExpandAll();" id="a_ExpCol" style="font-weight:bold">Expand All</a>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <div runat="server" id="div1"></div>    
+            </td>
+        </tr>
+         <tr>
+            <td>
+                 <div>
+                    <asp:TextBox runat="server" ID="txtNewItem"></asp:TextBox>
+                    <ajaxToolkit:AutoCompleteExtender  ID="AutoCompleteExtender1" runat="server"
+                        TargetControlID="txtNewItem"
+                        ServicePath="~/Services/AutoComplete.asmx"
+                        ServiceMethod="GetPartNo" 
+                        MinimumPrefixLength="2" >
+                    </ajaxToolkit:AutoCompleteExtender>
+                    <input type="button" name="Submit" value="Add New Item" onclick="AddSignRow()" />
+                    <input type="button" name="Submit2" value="Clear" onclick="ClearAllSign()" />
+                    <input type="hidden" id="HOtherCount" name="HOtherCount" value="0" />
+                </div>
+                <div id="divOthers">
+                    <table width="600px" border="0" cellpadding="2" cellspacing="1" id="SignFrame">
+                        <tr id="trHeader">
+                            <td width="25px" bgcolor="#336699" style="color: #ffffff">
+                                NO.
+                            </td>
+                            <td width="275px" bgcolor="#336699" style="color: #ffffff">
+                                Part No.
+                            </td>
+                            <td width="200px" bgcolor="#336699" style="color: #ffffff">
+                                Qty
+                            </td>
+                            <td width="100px" align="center" bgcolor="#336699" style="color: #ffffff">
+                                Del
+                            </td>
+                        </tr>
+                    </table>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td align="center" style="height:30px">
+                <a href="javascript:void(0);" onclick="SaveConfig()"><img id="ConfigBtnBottom" src="/Images/ebiz.aeu.face/btn_save2con.gif" alt="Go" style="border:0px" width="164" height="20" /></a>
+            </td>
+        </tr>       
+    </table>
+    <asp:Panel runat="server" ID="panel1" Width="300px" Height="400px" ScrollBars="Auto" BackColor="LightGray">
+        Configuration Result<br />        
+        &nbsp;&nbsp;<a href="javascript:void(0)" onclick="getNextSibling(this).style.display=='block'?(getNextSibling(this).style.display='none',this.innerHTML='Open',this.parentNode.style.height='40px'):(getNextSibling(this).style.display='block',this.innerHTML='Close',this.parentNode.style.height='400px');">Close</a><br />
+        Total Price:<div style="display:inline;" id='TOTALPRICEDIV'></div>&nbsp;&nbsp;Max Due Date:<div id='MAXDDDIV' style="display:inline;"></div><br />
+        <div runat="server" id="div2" style="background-color:#D6D3D6; cursor:pointer; display:block;"><img style='border:0px;' alt='loading' src='../images/loading2.gif' width="35" height="35" /></div>
+    </asp:Panel>     
+    <script type="text/javascript"> 
+        if(document.getElementById("ConfigTree")){
+            //document.getElementById('div1').style.height='';
+            var j=GetPriceATP4AllCheckedComp();  
+            //var j = GetPriceATP4AllComp();
+            setTimeout ( "ShowCurrentConfig()", j*200 );
+        }
+        //ShowCurrentConfig();       
+
+        function ExpandAll() {
+            var ele = document.getElementById('a_ExpCol');
+            var imgs = document.getElementById("ConfigTree").getElementsByTagName("img");
+            //alert(ele.innerHTML);
+            if (ele.innerHTML == 'Expand All') {
+                for (var i = 0; i < imgs.length; i++) {
+                    if (imgs[i].src.endsWith('/Images/plus.gif')) {
+                        getNextSibling(imgs[i].parentNode.parentNode.parentNode).style.display = "block";
+                        imgs[i].src = '/Images/minus.gif';
+                    }
+                }
+                ele.innerHTML = 'Collapse All';
+            }
+            else {
+                for (var i = 0; i < imgs.length; i++) {
+                    if (imgs[i].src.endsWith('/Images/minus.gif')) {
+                        getNextSibling(imgs[i].parentNode.parentNode.parentNode).style.display = "none";
+                        imgs[i].src = '/Images/plus.gif';
+                    }
+                }
+                ele.innerHTML = 'Expand All';
+            }            
+        }
+
+        function findObj(theObj, theDoc) { var p, i, foundObj; if (!theDoc) theDoc = document; if ((p = theObj.indexOf("?")) > 0 && parent.frames.length) { theDoc = parent.frames[theObj.substring(p + 1)].document; theObj = theObj.substring(0, p); } if (!(foundObj = theDoc[theObj]) && theDoc.all) foundObj = theDoc.all[theObj]; for (i = 0; !foundObj && i < theDoc.forms.length; i++) foundObj = theDoc.forms[i][theObj]; for (i = 0; !foundObj && theDoc.layers && i < theDoc.layers.length; i++) foundObj = findObj(theObj, theDoc.layers[i].document); if (!foundObj && document.getElementById) foundObj = document.getElementById(theObj); return foundObj; }
+
+        function AddSignRow() {
+            var txtNewItem = findObj('<%=Me.txtNewItem.ClientID%>', document)
+            if (txtNewItem.value == '') {return;}
+            var txtTRLastIndex = findObj("HOtherCount", document);
+            var rowID = parseInt(txtTRLastIndex.value);
+            //alert(rowID);
+            var signFrame = findObj("SignFrame", document);
+
+            rowID = rowID + 1;
+            var newTR = signFrame.insertRow(signFrame.rows.length);
+            newTR.id = "SignItem" + rowID;
+
+            var newNameTD = newTR.insertCell(0);
+            newNameTD.innerHTML = newTR.rowIndex.toString();
+
+            var newNameTD = newTR.insertCell(1);
+            newNameTD.innerHTML = "<input name='txtPartNo" + rowID + "' id='txtPartNo" + rowID + "' readonly='true' type='text' value='" + txtNewItem.value + "' size='20' />";
+
+            var newEmailTD = newTR.insertCell(2);
+            newEmailTD.innerHTML = '<%=Request("qty") %>';
+
+            var newDeleteTD = newTR.insertCell(3);
+            newDeleteTD.innerHTML = "<div align='center' style='width:40px'><a href='javascript:;' onclick=\"DeleteSignRow('SignItem" + rowID + "')\">delete</a></div>";
+            txtTRLastIndex.value = (rowID).toString();
+
+        }
+        function DeleteSignRow(rowid) {
+            var signFrame = findObj("SignFrame", document);
+            var signItem = findObj(rowid, document);
+            var rowIndex = signItem.rowIndex;
+            signFrame.deleteRow(rowIndex);
+            for (i = rowIndex; i < signFrame.rows.length; i++) {
+                signFrame.rows[i].cells[0].innerHTML = i.toString();
+            }
+        }
+        function ClearAllSign() {
+            if (confirm('Are your sure to delete all items？')) {
+                var signFrame = findObj("SignFrame", document);
+                var rowscount = signFrame.rows.length;
+                for (i = rowscount - 1; i > 0; i--) {
+                    signFrame.deleteRow(i);
+                }
+                var txtTRLastIndex = findObj("HOtherCount", document);
+                txtTRLastIndex.value = "0";
+            }
+        } 
+    </script>      
+</asp:Content>

@@ -1,0 +1,111 @@
+﻿<%@ Page Title="Login Time Analysis" Language="VB" MasterPageFile="~/Includes/MyMaster.master" %>
+
+<script runat="server">
+
+    Protected Sub sql1_Load(ByVal sender As Object, ByVal e As System.EventArgs)
+        sql1.SelectCommand = GetSql()
+    End Sub
+
+    Private Function GetSql() As String
+        Dim sb As New StringBuilder
+        With sb
+            .AppendFormat("select *,sso+get_siebel+www as total from login_time_temp where 1=1 ")
+            If txtEmail.Text.Trim.Replace("'", "") <> "" Then .AppendFormat(" and email like '{0}%' ", txtEmail.Text.Trim.Replace("'", ""))
+            If txtDateFrom.Text = "" Then txtDateFrom.Text = Now.ToString("yyyy/MM/dd") : txtDateHFrom.Text = "00"
+            If txtDateTo.Text = "" Then txtDateTo.Text = DateAdd(DateInterval.Day, 1, Now).ToString("yyyy/MM/dd") : txtDateHTo.Text = "00"
+            If txtDateHFrom.Text.Length = 1 Then txtDateHFrom.Text = "0" + txtDateHFrom.Text
+            If txtDateHTo.Text.Length = 1 Then txtDateHTo.Text = "0:" + txtDateHTo.Text
+            .AppendFormat(" and login_time between '{0} {1}:00:00' and '{2} {3}:00:00' ", txtDateFrom.Text, txtDateHFrom.Text, txtDateTo.Text, txtDateHTo.Text)
+            .AppendFormat(" order by login_time asc")
+        End With
+        Return sb.ToString
+    End Function
+    
+    Protected Sub Page_Load(ByVal sender As Object, ByVal e As System.EventArgs)
+        If Not Page.IsPostBack Then
+            txtDateFrom.Text = Now.ToString("yyyy/MM/dd")
+            txtDateTo.Text = DateAdd(DateInterval.Day, 1, Now).ToString("yyyy/MM/dd")
+            txtDateHFrom.Text = "00"
+            txtDateHTo.Text = "00"
+            GetChart()
+        End If
+    End Sub
+
+    Protected Sub btnSearch_Click(ByVal sender As Object, ByVal e As System.EventArgs)
+        GetChart()
+    End Sub
+    
+    Private Sub GetChart()
+        Dim dt As DataTable = dbUtil.dbGetDataTable("MYLOCAL", GetSql())
+        Dim data(dt.Rows.Count) As Double, labels(dt.Rows.Count) As String
+        For i As Integer = 0 To dt.Rows.Count - 1
+            Try
+                data(i) = dt.Rows(i).Item(6) : labels(i) = dt.Rows(i).Item(2)
+            Catch ex As Exception
+
+            End Try
+            
+        Next
+        
+        Dim c As XYChart = New XYChart(900, 450)
+        c.setPlotArea(45, 30, 780, 400)
+        c.addLineLayer(data)
+        c.xAxis().setLabels(labels)
+        c.addTitle(String.Format("Login Time {0} to {1}", txtDateFrom.Text + " " + txtDateHFrom.Text + ":00:00", txtDateTo.Text + " " + txtDateHTo.Text + ":00:00"), "Times New Roman Bold Italic", 14)
+        LineChart.Image = c.makeWebImage(Chart.PNG)
+        LineChart.ImageMap = c.getHTMLImageMap("", "", _
+        "title='{xLabel}: {value}'")
+    End Sub
+
+    Protected Sub gv1_RowDataBound(ByVal sender As Object, ByVal e As System.Web.UI.WebControls.GridViewRowEventArgs)
+        If e.Row.RowType = DataControlRowType.DataRow Then
+            e.Row.Cells(1).Text = CDate(e.Row.Cells(1).Text).ToString("yyyy/MM/dd HH:mm:ss")
+        End If
+    End Sub
+
+    Protected Sub gv1_PageIndexChanged(ByVal sender As Object, ByVal e As System.EventArgs)
+        GetChart()
+    End Sub
+</script>
+
+<asp:Content ID="Content1" ContentPlaceHolderID="_main" Runat="Server">
+    <asp:UpdatePanel runat="server" ID="up1">
+        <ContentTemplate>
+            <table>
+                <tr>
+                    <td>
+                        <table>
+                            <tr>
+                                <td>Email: </td><td><asp:TextBox runat="server" ID="txtEmail" Width="250px" /></td>
+                                <td>Date: </td><td><asp:TextBox runat="server" ID="txtDateFrom" /><asp:TextBox runat="server" ID="txtDateHFrom" Width="20px" /> ~ <asp:TextBox runat="server" ID="txtDateTo" /><asp:TextBox runat="server" ID="txtDateHTo" Width="20px" /><ajaxToolkit:CalendarExtender runat="server" ID="ce1" TargetControlID="txtDateFrom" Format="yyyy/MM/dd" /><ajaxToolkit:CalendarExtender runat="server" ID="ce2" TargetControlID="txtDateTo" Format="yyyy/MM/dd" /><ajaxToolkit:FilteredTextBoxExtender runat="server" ID="ftbe1" FilterMode="ValidChars" FilterType="Numbers" TargetControlID="txtDateHFrom" /><ajaxToolkit:FilteredTextBoxExtender runat="server" ID="ftbe2" FilterMode="ValidChars" FilterType="Numbers" TargetControlID="txtDateHTo" /></td>
+                                <td colspan="2"><asp:Button runat="server" ID="btnSearch" Text="Search" OnClick="btnSearch_Click" /></td>
+                            </tr>
+                        </table>
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <asp:GridView runat="server" ID="gv1" AutoGenerateColumns="false" AllowPaging="true" AllowSorting="true" PageSize="50" DataSourceID="sql1" OnRowDataBound="gv1_RowDataBound" OnPageIndexChanged="gv1_PageIndexChanged">
+                            <Columns>
+                                <asp:BoundField DataField="email" HeaderText="Email" SortExpression="email" ItemStyle-Width="250px" />
+                                <asp:BoundField DataField="login_time" HeaderText="Login Time" SortExpression="login_time" ItemStyle-HorizontalAlign="Center" ItemStyle-Width="150px" />
+                                <asp:BoundField DataField="sso" HeaderText="SSO" SortExpression="sso" ItemStyle-HorizontalAlign="Right" ItemStyle-Width="100px" />
+                                <asp:BoundField DataField="get_siebel" HeaderText="Siebel & SAP" SortExpression="get_siebel" ItemStyle-HorizontalAlign="Right" ItemStyle-Width="100px" />
+                                <asp:BoundField DataField="www" HeaderText="CMS" SortExpression="www" ItemStyle-HorizontalAlign="Right" ItemStyle-Width="100px" />
+                                <asp:BoundField DataField="total" HeaderText="Total" SortExpression="total" ItemStyle-HorizontalAlign="Right" ItemStyle-Width="100px" />
+                            </Columns>
+                        </asp:GridView>
+                        <asp:SqlDataSource runat="server" ID="sql1" ConnectionString="<%$ connectionStrings:MYLOCAL %>"
+                            SelectCommand="" OnLoad="sql1_Load">
+                        </asp:SqlDataSource>
+                    </td>
+                </tr>
+                <tr>
+                    <td><chartdir:WebChartViewer runat="server" ID="LineChart" /></td>
+                </tr>
+            </table>
+        </ContentTemplate>
+    </asp:UpdatePanel>
+</asp:Content>
+
+

@@ -1,0 +1,223 @@
+
+/* Standard Advantech Style Tag Definitions */
+
+A				{ color: #000099; text-decoration: none }
+A:hover			{ color: #000099; text-decoration: underline }
+A.text_mini	{  font-family: "Arial", "Helvetica", "sans-serif"; font-size: 10px; color: #000000 }
+A.text_mini:hover	{  font-family: "Arial", "Helvetica", "sans-serif"; font-size: 10px; color: #000000 }
+A.text	{ font-family: "Arial", "Helvetica", "sans-serif"; font-size: 12px; color: #000000 }
+A.text:hover	{ font-family: "Arial", "Helvetica", "sans-serif"; font-size: 12px; color: #000000 }
+A.pids	{  font-family: "Arial", "Helvetica", "sans-serif"; font-size: 12px; color: #8C8C8C }
+A.pids:hover	{  font-family: "Arial", "Helvetica", "sans-serif"; font-size: 12px; color: #FA5D08 }
+
+
+
+/* Text Styles */
+
+.text_mini	{  font-family: "Arial", "Helvetica", "sans-serif"; font-size: 10px; color: #000000 }
+.text_small	{  font-family: "Arial", "Helvetica", "sans-serif"; font-size: 11px; color: #000000 }
+.text		{ font-family: "Arial", "Helvetica", "sans-serif"; font-size: 12px; color: #000000 }
+.text_big	{ font-family: "Arial", "Helvetica", "sans-serif"; font-size: 14px; color: #000000 }
+.text_list	{  font-family: "Arial", "Helvetica", "sans-serif"; font-size: 12px; line-height: 20px; color: #000000 }
+.text_path		{  font-family: "Arial", "Helvetica", "sans-serif"; font-size: 10px; color: #000099 }
+.text_menu		{  font-family: "Arial", "Helvetica", "sans-serif"; font-size: 12px; color: #000099 }
+.text_box		{  font-family: "Arial", "Helvetica", "sans-serif"; font-size: 12px; color: #000000; height: 20px; background-color: #CCCCFF }
+.text_webSiteMenu	{ font-family: "Arial", "Helvetica", "sans-serif"; font-size: 12px; color:#555555;font-weight:bolder }
+.text_webSite		{ font-family: "Arial", "Helvetica", "sans-serif"; font-size: 12px; color:#4D79BB; }
+.text_path  { font-family: "Arial" , "Helvetica" , "sans-serif"; font-size: 12px; color: white; }
+.text_home
+{
+	margin-bottom: 4px;
+}
+
+/* Text Styles, white */
+
+.text_mini_w 		{  font-family: "Arial", "Helvetica", "sans-serif"; font-size: 10px; color: #FFFFFF }
+.text_small_w 	{  font-family: "Arial", "Helvetica", "sans-serif"; font-size: 11px; color: #FFFFFF }
+.text_w			{  font-family: "Arial", "Helvetica", "sans-serif"; font-size: 12px; color: #FFFFFF }
+.text_list_w		{  font-family: "Arial", "Helvetica", "sans-serif"; font-size: 12px; line-height: 20px; color: #FFFFFF }
+.text_path_w		{  font-family: "Arial", "Helvetica", "sans-serif"; font-size: 10px; color: #FFFFFF }
+
+/* Title Styles */
+
+.title_para		{  font-family: "Arial", "Helvetica", "sans-serif"; font-size: 12px; font-weight: bold; color: #000099 }
+.title_med		{  font-family: "Arial", "Helvetica", "sans-serif"; font-size: 14px; font-weight: bold; color: #000099 }
+.title_big		{  font-family: "Arial", "Helvetica", "sans-serif"; font-size: 16px; font-weight: bold; color: #000099 }
+.title_verybig	{  font-family: "Arial", "Helvetica", "sans-serif"; font-size: 22px; line-height: 26px; font-weight: bold; color: #000099 }
+
+
+/* Title Styles, white */
+
+.title_small_w {  font-family: "Arial", "Helvetica", "sans-serif"; font-size: 11px; font-weight: bold; color: #FFFFFF }
+.title_para_w		{  font-family: "Arial", "Helvetica", "sans-serif"; font-size: 12px; font-weight: bold; color: #FFFFFF }
+.title_paraline_w		{  font-family: "Arial", "Helvetica", "sans-serif"; font-size: 12px; font-weight: bold; line-height: 20px; color: #FFFFFF }
+.title_med_w		{  font-family: "Arial", "Helvetica", "sans-serif"; font-size: 14px; font-weight: bold; color: #FFFFFF }
+.title_big_w		{  font-family: "Arial", "Helvetica", "sans-serif"; font-size: 16px; font-weight: bold; color: #FFFFFF }
+.title_verybig_w	{  font-family: "Arial", "Helvetica", "sans-serif"; font-size: 22px; line-height: 26px; font-weight: bold; color: #FFFFFF }
+
+.headerKeywords {width:400px; height:10px; overflow:hidden; color:#999999; text-align:right; margin-bottom:5px;}
+
+/* Price Styles */
+
+.price_text		{  font-family: "Arial", "Helvetica", "sans-serif"; font-size: 12px; color: #ff0000 }
+.price_med		{  font-family: "Arial", "Helvetica", "sans-serif"; font-size: 14px; color: #ff0000 }
+.price_big		{  font-family: "Arial", "Helvetica", "sans-serif"; font-size: 14px; color: #ff0000 }
+.stock_med		{  font-family: "Arial", "Helvetica", "sans-serif"; font-size: 16px; color: #009900 }
+
+/* Product Styles */
+
+.ProductList	{  font-family: "Arial", "Helvetica", "sans-serif"; font-size: 12px; font-weight: bold; color: #4d79bb; text-decoration: none }
+	
+/* General Styles */
+		
+.GeneralList
+{
+	margin-top:0px;
+	margin-bottom:0px;
+	padding-left:10px;
+	margin-left:10px;
+}	
+
+/* Text_orange Styles */
+.orange {color: #FF6600;font-weight: bold;}
+
+/* List Styles */
+
+.HomeList {padding-left:13px; margin-top:0px; margin-left:3px; list-style-image:url('/images/arrow_white.gif');margin-bottom:0px;}
+.HomeList2
+{
+    padding-left: 35px;
+    margin-top: 0px;
+    margin-left: -28px;
+    list-style-image: url('/images/white_square.jpg' );
+    margin-bottom:0px;
+}
+
+.HomeListB {padding-left:13px; margin-top:0px; margin-left:3px; list-style-image:url('/images/arrow_black.gif'); margin-bottom:0px;}
+
+.ProductFeatureList{	margin-bottom:0px;	padding-left:10px; margin-left:10px; margin-top:5px;}
+
+	/*For the content in PD pages, right beside the flash file*/
+.ListBackArrow
+{
+    padding-left: 35px;
+    margin-top: 0px;
+    margin-left: -18px;
+    list-style-image: url('/images/arrow_black.gif' );
+    margin-bottom:0px;
+    line-height:170%;
+}
+
+	/*For website Path*/
+.text_WebSitePath
+{
+	color:#737373;
+	}
+
+.alignRight
+{
+	float:right;
+}
+
+ul.CssList
+{
+	margin-top:10px;
+	padding-left:10px;
+	margin-left:10px;
+	list-style-image: url(/DTOS/images/square.gif);
+}
+
+ul.CssList li
+{
+	padding-bottom: 5px;
+}
+
+ul.AspNet-Menu 
+{
+    position: relative;
+    font-family: "Arial", "Helvetica", "sans-serif"; font-size: 12px; color: #000099;
+
+}
+
+
+ul.AspNet-Menu, 
+ul.AspNet-Menu ul
+{
+    margin: 0;
+    padding: 0;
+    display: block;
+
+}
+
+ul.AspNet-Menu li
+{
+    position: relative;
+    list-style: none;
+    float: left;
+}
+
+ul.AspNet-Menu li a,
+ul.AspNet-Menu li span
+{
+    display: block;
+    text-decoration: none;
+}
+
+ul.AspNet-Menu ul
+{
+    position: absolute;
+    visibility: hidden;    
+}
+
+/* Add more rules here if your menus have more than three (3) tiers */
+ul.AspNet-Menu li:hover ul ul,
+ul.AspNet-Menu li.AspNet-Menu-Hover ul ul
+{
+    visibility: hidden;
+}
+
+/* Add more rules here if your menus have more than three (3) tiers */
+ul.AspNet-Menu li:hover ul,
+ul.AspNet-Menu li li:hover ul,
+ul.AspNet-Menu li li li:hover ul,
+ul.AspNet-Menu li.AspNet-Menu-Hover ul,
+ul.AspNet-Menu li li.AspNet-Menu-Hover ul,
+ul.AspNet-Menu li li li.AspNet-Menu-Hover ul
+{
+    visibility: visible;
+}
+
+.AspNet-Menu-Vertical ul.AspNet-Menu li
+{
+    width: 100%;
+}
+
+
+/* Header Solution Items */
+.HeaderSolutionBlock
+{
+	border:1px solid #AAAAAA; padding:5px;background-color:#EEEEEE; z-index:999; vertical-align:top;
+	}
+.HeaderSolutionItems div span
+{
+	margin-left:10px;
+	margin-right:5px;
+	}
+	
+.HeaderSolutionItems div 
+{
+	margin-bottom:3px;
+	}
+	
+.ajax__tab_advantech .ajax__tab_header {font-family:verdana,tahoma,helvetica;color: #16387C;font-weight:bold;font-size:11px;background:url("/Catalogs/images/middle.gif") repeat-x bottom;}
+.ajax__tab_advantech .ajax__tab_outer {padding-right:0px;background:url("/Catalogs/images/v-line.gif") no-repeat right;height:21px;}
+.ajax__tab_advantech .ajax__tab_inner {padding-left:1px;background:url("/Catalogs/images/v-line.gif") no-repeat;}
+.ajax__tab_advantech .ajax__tab_tab {height:13px;padding:4px;margin:0;background:url("/Catalogs/images/middle.gif") repeat-x;}
+.ajax__tab_advantech .ajax__tab_hover .ajax__tab_outer {background:url("/Catalogs/images/table_right.gif") no-repeat right;}
+.ajax__tab_advantech .ajax__tab_hover .ajax__tab_inner {background:url("/Catalogs/images/table_left.gif") no-repeat;}
+.ajax__tab_advantech .ajax__tab_hover .ajax__tab_tab {color: #FD6006;background:url("/Catalogs/images/table_middle.gif") repeat-x;}
+.ajax__tab_advantech .ajax__tab_active .ajax__tab_outer {background:url("/Catalogs/images/table_right.gif") no-repeat right;}
+.ajax__tab_advantech .ajax__tab_active .ajax__tab_inner {background:url("/Catalogs/images/table_left.gif") no-repeat;}
+.ajax__tab_advantech .ajax__tab_active .ajax__tab_tab {color: #FD6006;background:url("/Catalogs/images/table_middle.gif") repeat-x;}
+.ajax__tab_advantech .ajax__tab_body {font-family:verdana,tahoma,helvetica;font-size:10pt;border:0px solid #999999;border-top:0;padding:0px;background-color:#ffffff;}
+

@@ -1,0 +1,180 @@
+﻿<%@ Page Title="MyAdvantech - My Team's Project" Language="VB" MasterPageFile="~/Includes/MyMaster.master" %>
+
+<script runat="server">
+    
+    Protected Sub btnSearch_Click(ByVal sender As Object, ByVal e As System.EventArgs)
+        gv1.PageIndex = 0 : src1.SelectCommand = GetSql()
+        'MailUtil.SendDebugMsg("", src1.SelectCommand)
+    End Sub
+    
+    Function GetSql() As String
+        Dim strMgrEmail As String = Session("user_id")
+        If Util.IsANAPowerUser() OrElse Util.IsAEUIT() Then strMgrEmail = "richardh@advantech.com"
+        litMgrName.Text = Util.GetNameVonEmail(strMgrEmail)
+        Dim sb As New System.Text.StringBuilder
+        With sb
+            .AppendLine(String.Format(" select top 5000 a.ROW_ID as opty_id, a.NAME as Project_Name, a.SUM_REVN_AMT, a.CURCY_CD, a.STAGE_NAME, a.CREATED, "))
+            .AppendLine(String.Format(" a.REASON_WON_LOST_CD, a.STATUS_CD as Status, a.SALES_TEAM_NAME, a.SUM_EFFECTIVE_DT as Expire_Date, b.ACCOUNT_NAME, b.PRIMARY_SALES_EMAIL, b.STATE,  "))
+            .AppendLine(String.Format(" IsNull(c.Company,'') as Company, c.Request_id  "))
+            .AppendLine(String.Format(" from SIEBEL_OPPORTUNITY a inner join SIEBEL_ACCOUNT b on a.ACCOUNT_ROW_ID=b.ROW_ID left join US_PRJREG_MSTR c on a.ROW_ID=c.OPTY_ID   "))
+            .AppendLine(String.Format(" where b.PRIMARY_SALES_EMAIL in  "))
+            .AppendLine(String.Format(" (select z.email from SIEBEL_SALES_HIERARCHY z where z.PAR_EMAIL='{0}' and dbo.isemail(z.EMAIL)=1) ", strMgrEmail))
+            If txtCPName.Text.Trim() <> "" Then
+                .AppendLine(String.Format(" and b.ACCOUNT_NAME like N'%{0}%' ", txtCPName.Text.Trim().Replace("'", "''").Replace("*", "%")))
+            End If
+            If txtEndCustName.Text.Trim() <> "" Then
+                .AppendLine(String.Format(" and c.Company like N'%{0}%' ", txtEndCustName.Text.Trim().Replace("'", "''").Replace("*", "%")))
+            End If
+            Dim expFrom As Date = DateAdd(DateInterval.Year, -1, Now), expTo As Date = DateAdd(DateInterval.Year, 1, Now)
+            If txtExpDateFrom.Text.Trim() <> "" Then
+                Date.TryParseExact(txtExpDateFrom.Text, "MM/dd/yyyy", New Globalization.CultureInfo("en-US"), Globalization.DateTimeStyles.None, expFrom)
+            End If
+            If txtExpDateTo.Text.Trim() <> "" Then
+                Date.TryParseExact(txtExpDateTo.Text, "MM/dd/yyyy", New Globalization.CultureInfo("en-US"), Globalization.DateTimeStyles.None, expTo)
+            End If
+            .AppendLine(String.Format(" and a.SUM_EFFECTIVE_DT between '{0}' and '{1}' ", expFrom.ToString("yyyy-MM-dd"), expTo.ToString("yyyy-MM-dd")))
+            'If dlAppStatus.SelectedIndex > 0 Then
+            '    .AppendLine(String.Format(" and a.STATUS_CD=N'{0}' ", dlAppStatus.SelectedValue.Replace("'", "''")))
+            'End If
+            If dlQStage.SelectedIndex > 0 Then
+                .AppendLine(String.Format(" and a.STAGE_NAME=N'{0}' ", dlQStage.SelectedValue.Replace("'", "''")))
+            End If
+            
+            .AppendLine(String.Format(" order by a.CREATED desc "))
+        End With
+        Return sb.ToString()
+    End Function
+
+    Protected Sub Page_Load(ByVal sender As Object, ByVal e As System.EventArgs)
+        If Not Page.IsPostBack Then
+            If MailUtil.IsInRole("Sales.ECG.USA") = False AndAlso MailUtil.IsInRole("Sales.IAG.USA") = False _
+                AndAlso Util.IsAEUIT() = False AndAlso Util.IsANAPowerUser() = False Then
+                Response.Redirect("../../home.aspx")
+            End If
+            src1.SelectCommand = GetSql()
+        End If
+    End Sub
+
+    Protected Sub gv1_PageIndexChanging(ByVal sender As Object, ByVal e As System.Web.UI.WebControls.GridViewPageEventArgs)
+        src1.SelectCommand = GetSql()
+    End Sub
+
+    Protected Sub gv1_Sorting(ByVal sender As Object, ByVal e As System.Web.UI.WebControls.GridViewSortEventArgs)
+        src1.SelectCommand = GetSql()
+    End Sub
+
+    Protected Sub gv1_RowCreated(ByVal sender As Object, ByVal e As System.Web.UI.WebControls.GridViewRowEventArgs)
+        If Not (e.Row Is Nothing) AndAlso e.Row.RowType = DataControlRowType.Header Then
+            Dim GridView1 As GridView = sender
+            For Each cell As TableCell In e.Row.Cells
+                If cell.HasControls Then
+                    Dim button As LinkButton = DirectCast(cell.Controls(0), LinkButton)
+                    If Not (button Is Nothing) Then
+                        Dim image As New ImageButton
+                        image.ImageUrl = "/Images/sort_1.jpg"
+                        image.CommandArgument = button.CommandArgument : image.CommandName = button.CommandName
+                        If GridView1.SortExpression = button.CommandArgument Then
+                            If GridView1.SortDirection = SortDirection.Ascending Then
+                                image.ImageUrl = "/Images/sort_2.jpg"
+                            Else
+                                image.ImageUrl = "/Images/sort_1.jpg"
+                            End If
+                        End If
+                        cell.Controls.Add(image)
+                    End If
+                End If
+            Next
+        End If
+    End Sub
+</script>
+
+<asp:Content ID="Content1" ContentPlaceHolderID="_main" Runat="Server">
+    <table width="100%">
+        <tr>
+            <td>
+                <table>
+                    <tr>
+                        <th align="left" style="color:Navy"><h2><asp:Literal runat="server" ID="litMgrName" /> Team's Project</h2></th>
+                    </tr>
+                    <tr>
+                        <th align="left">End Customer's Name:</th>
+                        <td><asp:TextBox runat="server" ID="txtEndCustName" Width="150px" /></td>
+                        <th align="left">Channel Partner's Name:</th>
+                        <td><asp:TextBox runat="server" ID="txtCPName" Width="150px" /></td>
+                    </tr>
+                    <tr>
+                        <th align="left">Sales Stage:</th>
+                        <td>
+                                <asp:DropDownList runat="server" ID="dlQStage">
+                                <asp:ListItem Text="All Stage" Selected="True" />
+                                <asp:ListItem Value="0% Lost" />
+                                <asp:ListItem Value="5% New Lead" />
+                                <asp:ListItem Value="10% Validating" />
+                                <asp:ListItem Value="25% Proposing/Quoting" />
+                                <asp:ListItem Value="40% Testing" />                                            
+                                <asp:ListItem Value="50% Negotiating" />
+                                <asp:ListItem Value="75% Waiting for PO/Approval" />
+                                <asp:ListItem Value="90% Expected Flow Business" />
+                                <asp:ListItem Value="100% Won-PO Input in SAP" />                   
+                            </asp:DropDownList>
+                        </td>
+                        <th align="left">Expire Date:</th>
+                        <td>
+                            <ajaxToolkit:CalendarExtender runat="server" ID="calext1" TargetControlID="txtExpDateFrom" Format="MM/dd/yyyy" />
+                            <ajaxToolkit:CalendarExtender runat="server" ID="calext2" TargetControlID="txtExpDateTo" Format="MM/dd/yyyy" />
+                            <asp:TextBox runat="server" ID="txtExpDateFrom" Width="90px" />~<asp:TextBox runat="server" ID="txtExpDateTo" Width="90px" />
+                        </td>
+                    </tr>
+                    <tr>                      
+                        <td colspan="4">
+                            <asp:Button runat="server" ID="btnSearch" Text="Search" OnClick="btnSearch_Click" />
+                        </td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <table width="100%">
+                    <tr>
+                        <td>
+                            <asp:UpdatePanel runat="server" ID="up1" UpdateMode="Conditional">
+                                <ContentTemplate>
+                                    <asp:GridView runat="server" ID="gv1" Width="97%" AutoGenerateColumns="false" 
+                                        AllowPaging="true" AllowSorting="true" PageSize="50" 
+                                        PagerSettings-Position="TopAndBottom" DataSourceID="src1" 
+                                        OnPageIndexChanging="gv1_PageIndexChanging" OnSorting="gv1_Sorting"
+                                        EnableTheming="false" 
+                                        RowStyle-BackColor="#FFFFFF" AlternatingRowStyle-BackColor="#ebebeb" HeaderStyle-BackColor="#dcdcdc" 
+                                        BorderWidth="1" BorderColor="#d7d0d0" HeaderStyle-ForeColor="Black" BorderStyle="Solid"
+                                        PagerStyle-BackColor="#ffffff" 
+                                        PagerStyle-BorderWidth="0" PagerStyle-BorderColor="White" OnRowCreated="gv1_RowCreated">
+                                        <Columns>                                          					                    
+								            <asp:BoundField HeaderText="End Customer" DataField="Company" ReadOnly="true" ItemStyle-HorizontalAlign="Left" ItemStyle-Width="150px"  />
+								            <asp:HyperLinkField HeaderText="Project Name" SortExpression="Project_Name" 
+                                                DataNavigateUrlFields="Request_id" DataNavigateUrlFormatString="~/My/ProjectRegReview.aspx?req={0}" 
+                                                DataTextField="Project_Name" Target="_blank" />
+                                            <asp:BoundField HeaderText="Sales Stage" DataField="STAGE_NAME" SortExpression="STAGE_NAME" />
+                                            <asp:BoundField HeaderText="Account Name" DataField="account_name" SortExpression="account_name" />
+								            <asp:BoundField HeaderText="Status" DataField="Status" ReadOnly="true" ItemStyle-HorizontalAlign="Left" SortExpression="status" />
+                                            <asp:BoundField HeaderText="Created Date" DataField="CREATED" SortExpression="CREATED" ReadOnly="true" ItemStyle-HorizontalAlign="Left"/>
+                                            <asp:TemplateField HeaderText="Expire Date" SortExpression="Expire_Date">
+                                            <ItemTemplate>
+                                                <asp:Literal ID="lt1" runat="server" Text='<%# Eval("Expire_Date") %>'></asp:Literal>
+                                            </ItemTemplate>
+                                            </asp:TemplateField>
+                                            <asp:BoundField HeaderText="Account Owner" DataField="PRIMARY_SALES_EMAIL" SortExpression="PRIMARY_SALES_EMAIL" />
+                                            <asp:BoundField HeaderText="Opportunity ID" DataField="OPTY_ID" ReadOnly="true" ItemStyle-Width="80px" 
+                                                ItemStyle-HorizontalAlign="Center" SortExpression="OPTY_ID" />
+                                        </Columns>
+                                    </asp:GridView>
+                                    <asp:SqlDataSource runat="server" ID="src1" ConnectionString="<%$ConnectionStrings:MY %>" />
+                                </ContentTemplate>
+                            </asp:UpdatePanel>
+                        </td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+    </table>
+</asp:Content>

@@ -1,0 +1,227 @@
+@charset "utf-8";
+
+body {
+	background:#f5f5f5;
+	font-size:12px;
+	line-height:1.8;
+	font-family: Verdana ,  Arial, "文泉驛正黑", "WenQuanYi Zen Hei", "儷黑 Pro", "LiHei Pro", "微軟正黑體", "Microsoft JhengHei", "新細明體", DFKai-SB, sans-serif;
+	overflow-y: scroll;
+	overflow-x: hidden;
+}
+
+input , dd , button , select {font-family:Verdana;}
+
+/* Transitions */
+
+div
+{
+   -moz-transition: all .1s;
+    -ms-transition: all .1s;
+     -o-transition: all .1s;
+-webkit-transition: all .1s;
+        transition: all .1s;
+}
+
+img {border:0;}
+
+.bgFFF {padding-bottom:30px;}
+
+.wrap {width:960px;margin:0 auto;padding:0;}
+
+/* top logo */
+
+.logo {width:180px;height:80px;line-height:80px;}
+.logo img {vertical-align:middle;width:180px;height:50px;}
+.logo h1 {display:none;}
+
+/* top login when desktop */
+
+.login-desktop {margin-top:25px;}
+
+.login-desktop input
+{
+	border:1px solid #CCC;
+	width:160px;
+	height:26px;
+	line-height:25px;
+	font-size:12px;
+	color:#666;
+	padding:0 3px;
+	outline:none !important;
+}
+
+.login-desktop p {margin:0;}
+.login-desktop p.link {margin-left:175px;}
+
+.login-desktop .btn
+{
+	color:#FFF;
+	line-height:1;
+	background-color: #003477;
+	border-color: #003477;
+}
+
+.login-desktop .email {float:right;font-size:12px;color:#666;margin-right:10px;}
+.login-desktop .favorite 
+{
+	float:right;
+	font-size:12px;
+	padding-left:30px;
+	background:url(../img/icon_folder.gif) no-repeat;
+}
+
+/* top login when tablet or mobile */
+
+.login-tablet-mobile {margin-top:15px;}
+.login-tablet-mobile .email {font-size:12px;color:#666;}
+.login-tablet-mobile .favorite
+{
+	font-size:12px;
+	padding-left:30px;
+	background:url(../img/icon_folder.gif) no-repeat;
+}
+
+.login-desktop .favorite a , .login-tablet-mobile .favorite a {color:#039;text-decoration:underline;}
+
+.login-tablet-mobile button
+{
+	width:80px;
+	height:30px;
+	margin-top:25px;
+	text-indent:30px;
+	color:#333;
+	font-size:16px;
+	background:#FFF url(../img/icon_login.gif) no-repeat 5px center;
+}
+
+/* top login box show & hide -------------------------------------------------- */
+
+.topLoginBox
+{
+	display:none;
+	width:100%;
+	height:160px;
+	margin:10px 0;
+	border:1px solid #CCC;
+	text-align:center;
+	background:#FFF url(../img/popup_bg.gif) right bottom no-repeat;
+	-webkit-box-shadow: 0 6px 6px -6px #000;
+	   -moz-box-shadow: 0 6px 6px -6px #000;
+	        box-shadow: 0 6px 6px -6px #000;
+}
+
+.topLoginBox .title
+{
+	font-size:18px;
+	color:#F60;
+	line-height:50px;
+}
+
+.topLoginBox input
+{
+	border:1px solid #CCC;
+	width:40%;
+	height:26px;
+	line-height:25px;
+	font-size:12px;
+	color:#666;
+	padding:0 3px;
+	margin:5px;
+	outline:none !important;
+}
+
+.topLoginBox .btn
+{
+	color:#FFF;
+	line-height:1;
+	background-color: #003477;
+	border-color: #003477;
+	margin:0;
+	margin-right:37px;
+}
+
+/* footer */
+
+.footer {text-align:center;font-size:12px;color:#000;line-height:80px;height:80px;}
+
+/* Lightbox */
+
+div.box_popup
+{
+	display:none;	/*記得寫隱藏，可不用寫z-index*/
+	position:absolute;
+	width:460px;
+	min-height:300px;
+	text-align:center;
+	padding:0;
+	color:#333;
+	border:1px solid #666;
+	background:#FFF url(../img/popup_bg.gif) right bottom no-repeat;
+	-webkit-box-shadow: 0 6px 6px -6px #000;
+	   -moz-box-shadow: 0 6px 6px -6px #000;
+	        box-shadow: 0 6px 6px -6px #000;
+}
+
+#lightbox
+{
+	/*底下lightbox灰底基本的五行CSS設定請務必寫好*/
+	z-index: 9999;
+	display: none;
+	background: #000;	/* color */
+	position:absolute;
+	top:0;
+	left:0;
+}
+
+#btn_box_close
+{
+	position: absolute;
+	top: -15px;
+	right: -15px;
+	width: 30px;
+	height: 30px;
+	background: transparent url(../img/fancybox.png) -40px 0px;
+	cursor: pointer;
+	z-index: 1103;
+	display: inline;
+}
+
+.box_popup .content
+{
+	width:260px;
+	height:280px;
+	margin:0 auto;
+}
+
+.box_popup .content .title
+{
+	font-size:18px;
+	color:#F60;
+	line-height:50px;
+	margin-bottom:35px;
+}
+
+.box_popup .content input
+{
+	border:1px solid #CCC;
+	width:97%;
+	height:26px;
+	line-height:25px;
+	font-size:12px;
+	color:#666;
+	padding:0 3px;
+	margin:5px 0;
+	outline:none !important;
+}
+
+.box_popup .content .btn
+{
+	color:#FFF;
+	line-height:1;
+	background-color: #003477;
+	border-color: #003477;
+	margin:0;
+}
+
+
+

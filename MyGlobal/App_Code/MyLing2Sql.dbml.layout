@@ -1,0 +1,48 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<ordesignerObjectsDiagram dslVersion="1.0.0.0" absoluteBounds="0, 0, 11, 12.25" name="MyLing2Sql">
+  <DataContextMoniker Name="/MyLing2SqlDataContext" />
+  <nestedChildShapes>
+    <classShape Id="25446c48-5144-4810-9b16-7cc92e75150a" absoluteBounds="5.875, 2.625, 2, 1.9631982421874996">
+      <DataClassMoniker Name="/MyLing2SqlDataContext/EWPartNo" />
+      <nestedChildShapes>
+        <elementListCompartment Id="0097900d-dca2-4d18-bbfe-4058375a1873" absoluteBounds="5.89, 3.085, 1.9700000000000002, 1.4031982421875" name="DataPropertiesCompartment" titleTextColor="Black" itemTextColor="Black" />
+      </nestedChildShapes>
+    </classShape>
+    <classShape Id="8366a963-b0f5-48c3-9150-7265e2318765" absoluteBounds="5.875, 5.75, 2, 6.1938297526041648">
+      <DataClassMoniker Name="/MyLing2SqlDataContext/OrderItem" />
+      <nestedChildShapes>
+        <elementListCompartment Id="95071bd0-4493-47ba-8244-7a2cf41e8a72" absoluteBounds="5.89, 6.21, 1.9700000000000002, 5.6338297526041661" name="DataPropertiesCompartment" titleTextColor="Black" itemTextColor="Black" />
+      </nestedChildShapes>
+    </classShape>
+    <classShape Id="3ae4a30b-110c-494e-ad73-7c81e98b1d9c" absoluteBounds="1, 1.875, 2, 2.7324039713541666">
+      <DataClassMoniker Name="/MyLing2SqlDataContext/CartMaster" />
+      <nestedChildShapes>
+        <elementListCompartment Id="7e9db56c-b753-4342-81d7-c250e47d0b98" absoluteBounds="1.0150000000000001, 2.335, 1.9700000000000002, 2.1724039713541665" name="DataPropertiesCompartment" titleTextColor="Black" itemTextColor="Black" />
+      </nestedChildShapes>
+    </classShape>
+    <classShape Id="099398ca-13da-4ae2-940f-0ad09340cf8f" absoluteBounds="0.875, 5.375, 2, 1.9631982421874996">
+      <DataClassMoniker Name="/MyLing2SqlDataContext/Cart2OrderMaping" />
+      <nestedChildShapes>
+        <elementListCompartment Id="ec15f29a-a7be-4c8b-add4-c9835f005ed2" absoluteBounds="0.89, 5.835, 1.9700000000000002, 1.4031982421875" name="DataPropertiesCompartment" titleTextColor="Black" itemTextColor="Black" />
+      </nestedChildShapes>
+    </classShape>
+    <classShape Id="77ae856d-fb91-46c6-9eb4-3e674f1974e8" absoluteBounds="2.125, 8.125, 2, 1.5785953776041666">
+      <DataClassMoniker Name="/MyLing2SqlDataContext/orderMasterExtensionV2" />
+      <nestedChildShapes>
+        <elementListCompartment Id="a57f3afc-0143-493b-8f84-6eab80ac1e41" absoluteBounds="2.14, 8.585, 1.9700000000000002, 1.0185953776041665" name="DataPropertiesCompartment" titleTextColor="Black" itemTextColor="Black" />
+      </nestedChildShapes>
+    </classShape>
+    <classShape Id="face4065-efec-40be-b422-d521944b13e5" absoluteBounds="3.375, 1.375, 2, 5.8092268880208326">
+      <DataClassMoniker Name="/MyLing2SqlDataContext/CartItem" />
+      <nestedChildShapes>
+        <elementListCompartment Id="0d15fa90-ec65-4f38-900d-7ca01a90def3" absoluteBounds="3.39, 1.835, 1.9700000000000002, 5.249226888020833" name="DataPropertiesCompartment" titleTextColor="Black" itemTextColor="Black" />
+      </nestedChildShapes>
+    </classShape>
+    <classShape Id="4bf804da-afe8-4776-a023-6082497d7d2d" absoluteBounds="8.375, 1.375, 2, 2.3478011067708335">
+      <DataClassMoniker Name="/MyLing2SqlDataContext/Cart_BtosPart_Manual" />
+      <nestedChildShapes>
+        <elementListCompartment Id="9a3f0221-44e9-4d16-a7ee-011d7cc9cb31" absoluteBounds="8.39, 1.835, 1.9700000000000002, 1.7878011067708335" name="DataPropertiesCompartment" titleTextColor="Black" itemTextColor="Black" />
+      </nestedChildShapes>
+    </classShape>
+  </nestedChildShapes>
+</ordesignerObjectsDiagram>

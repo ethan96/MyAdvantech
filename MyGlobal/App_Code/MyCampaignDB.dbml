@@ -1,0 +1,108 @@
+﻿<?xml version="1.0" encoding="utf-8"?><Database Name="MyAdvantechGlobal" Class="MyCampaignDBDataContext" xmlns="http://schemas.microsoft.com/linqtosql/dbml/2007">
+  <Connection Mode="WebSettings" ConnectionString="Data Source=ACLSTNR12;Initial Catalog=MyAdvantechGlobal;Persist Security Info=True;User ID=b2bsa;Pooling=True;Asynchronous Processing=True;Connect Timeout=300;Application Name=MyAdvantech" SettingsObjectName="System.Configuration.ConfigurationManager.ConnectionStrings" SettingsPropertyName="MY" Provider="System.Data.SqlClient" />
+  <Table Name="dbo.CAMPAIGN_REQUEST" Member="CAMPAIGN_REQUESTs">
+    <Type Name="CAMPAIGN_REQUEST">
+      <Column Name="REQUESTNO" Type="System.String" DbType="NVarChar(20) NOT NULL" IsPrimaryKey="true" CanBeNull="false" />
+      <Column Name="STATUS" Type="System.Int32" DbType="Int" CanBeNull="true" />
+      <Column Name="REQUEST_BY" Type="System.String" DbType="NVarChar(50)" CanBeNull="true" />
+      <Column Name="REQUEST_DATE" Type="System.DateTime" DbType="DateTime" CanBeNull="true" />
+      <Column Name="COMMENT" Type="System.String" DbType="NVarChar(500)" CanBeNull="true" />
+      <Column Name="APPROVED_BY" Type="System.String" DbType="NVarChar(50)" CanBeNull="true" />
+      <Column Name="APPROVED_DATE" Type="System.DateTime" DbType="DateTime" CanBeNull="true" />
+      <Column Name="REJECTED_BY" Type="System.String" DbType="NVarChar(50)" CanBeNull="true" />
+      <Column Name="REJECTED_DATE" Type="System.DateTime" DbType="DateTime" CanBeNull="true" />
+      <Column Name="LAST_UPD_BY" Type="System.String" DbType="NVarChar(50)" CanBeNull="true" />
+      <Column Name="LAST_UPD_DATE" Type="System.DateTime" DbType="DateTime" CanBeNull="true" />
+      <Column Name="CAMPAIGNID" Type="System.String" DbType="NVarChar(50)" CanBeNull="true" />
+      <Column Name="ERPID" Type="System.String" DbType="NVarChar(20)" CanBeNull="true" />
+      <Column Name="RBU" Type="System.String" DbType="NVarChar(20)" CanBeNull="true" />
+      <Column Name="ROLL_OUT_REGION" Type="System.String" DbType="NVarChar(50)" CanBeNull="true" />
+      <Column Name="ROLL_OUT_TIME" Type="System.DateTime" DbType="DateTime" CanBeNull="true" />
+      <Column Name="TARGET_AUDIENCE" Type="System.String" DbType="NVarChar(50)" CanBeNull="true" />
+      <Column Name="PROMOTION_PLAN" Type="System.String" DbType="NVarChar(200)" CanBeNull="true" />
+      <Column Name="REQUEST_SUPPORT" Type="System.String" DbType="NVarChar(200)" CanBeNull="true" />
+      <Column Name="FEEDBACK" Type="System.String" DbType="NVarChar(300)" CanBeNull="true" />
+    </Type>
+  </Table>
+  <Table Name="dbo.CAMPAIGN_REQUEST_Log" Member="CAMPAIGN_REQUEST_Logs">
+    <Type Name="CAMPAIGN_REQUEST_Log">
+      <Column Name="ID" Type="System.Int32" DbType="Int NOT NULL IDENTITY" IsPrimaryKey="true" IsDbGenerated="true" CanBeNull="false" />
+      <Column Name="REQUESTNO" Type="System.String" DbType="NVarChar(20)" CanBeNull="true" />
+      <Column Name="REQUES_STATUS" Type="System.Int32" DbType="Int" CanBeNull="true" />
+      <Column Name="Submitted_by" Type="System.String" DbType="NVarChar(50)" CanBeNull="true" />
+      <Column Name="Submitted_date" Type="System.DateTime" DbType="DateTime" CanBeNull="true" />
+    </Type>
+  </Table>
+  <Table Name="dbo.CAMPAIGN_Request_MarketingManager_RBU" Member="CAMPAIGN_Request_MarketingManager_RBUs">
+    <Type Name="CAMPAIGN_Request_MarketingManager_RBU">
+      <Column Name="ID" Type="System.Int32" DbType="Int NOT NULL IDENTITY" IsPrimaryKey="true" IsDbGenerated="true" CanBeNull="false" />
+      <Column Name="RBU" Type="System.String" DbType="NVarChar(20)" CanBeNull="true" />
+      <Column Name="MarketingManagerID" Type="System.Int32" DbType="Int" CanBeNull="true" />
+      <Column Name="LAST_UPD_BY" Type="System.String" DbType="NVarChar(50)" CanBeNull="true" />
+      <Column Name="LAST_UPD_DATE" Type="System.DateTime" DbType="DateTime" CanBeNull="true" />
+      <Association Name="CAMPAIGN_REQUEST_MarketingManager_CAMPAIGN_Request_MarketingManager_RBU" Member="CAMPAIGN_REQUEST_MarketingManager" ThisKey="MarketingManagerID" OtherKey="ID" Type="CAMPAIGN_REQUEST_MarketingManager" IsForeignKey="true" />
+    </Type>
+  </Table>
+  <Table Name="dbo.CAMPAIGN_REQUEST_MarketingManager" Member="CAMPAIGN_REQUEST_MarketingManagers">
+    <Type Name="CAMPAIGN_REQUEST_MarketingManager">
+      <Column Name="ID" Type="System.Int32" DbType="Int NOT NULL IDENTITY" IsPrimaryKey="true" IsDbGenerated="true" CanBeNull="false" />
+      <Column Name="BU" Type="System.String" DbType="NVarChar(50)" CanBeNull="true" />
+      <Column Name="Responsibility" Type="System.String" DbType="NVarChar(200)" CanBeNull="true" />
+      <Column Name="Name" Type="System.String" DbType="NVarChar(50)" CanBeNull="true" />
+      <Column Name="Email" Type="System.String" DbType="NVarChar(50)" CanBeNull="true" />
+      <Column Name="VOIP" Type="System.String" DbType="NVarChar(20)" CanBeNull="true" />
+      <Column Name="Ext" Type="System.String" DbType="NVarChar(30)" CanBeNull="true" />
+      <Column Name="CreateBy" Type="System.String" DbType="NVarChar(50)" CanBeNull="true" />
+      <Column Name="CreateDate" Type="System.DateTime" DbType="DateTime" CanBeNull="true" />
+      <Column Name="LAST_UPD_BY" Type="System.String" DbType="NVarChar(50)" CanBeNull="true" />
+      <Column Name="LAST_UPD_DATE" Type="System.DateTime" DbType="DateTime" CanBeNull="true" />
+      <Association Name="CAMPAIGN_REQUEST_MarketingManager_CAMPAIGN_Request_MarketingManager_RBU" Member="CAMPAIGN_Request_MarketingManager_RBUs" ThisKey="ID" OtherKey="MarketingManagerID" Type="CAMPAIGN_Request_MarketingManager_RBU" />
+    </Type>
+  </Table>
+  <Table Name="dbo.CAMPAIGN_REQUEST_TA_Master" Member="CAMPAIGN_REQUEST_TA_Masters">
+    <Type Name="CAMPAIGN_REQUEST_TA_Master">
+      <Column Name="ID" Type="System.Int32" DbType="Int NOT NULL IDENTITY" IsPrimaryKey="true" IsDbGenerated="true" CanBeNull="false" />
+      <Column Name="ListName" Type="System.String" DbType="NVarChar(300)" CanBeNull="true" />
+      <Column Name="Description" Type="System.String" DbType="NVarChar(100)" CanBeNull="true" />
+      <Column Name="REQUESTNO" Type="System.String" DbType="NVarChar(20)" CanBeNull="true" />
+      <Column Name="Status" Type="System.Int32" DbType="Int" CanBeNull="true" />
+      <Column Name="Create_By" Type="System.String" DbType="NVarChar(50)" CanBeNull="true" />
+      <Column Name="Create_Date" Type="System.DateTime" DbType="DateTime" CanBeNull="true" />
+      <Column Name="LAST_UPD_BY" Type="System.String" DbType="NVarChar(50)" CanBeNull="true" />
+      <Column Name="LAST_UPD_DATE" Type="System.DateTime" DbType="DateTime" CanBeNull="true" />
+      <Association Name="CAMPAIGN_REQUEST_TA_Master_CAMPAIGN_REQUEST_TA_Detail" Member="CAMPAIGN_REQUEST_TA_Details" ThisKey="ID" OtherKey="TAID" Type="CAMPAIGN_REQUEST_TA_Detail" />
+    </Type>
+  </Table>
+  <Table Name="dbo.CAMPAIGN_REQUEST_TA_Detail" Member="CAMPAIGN_REQUEST_TA_Details">
+    <Type Name="CAMPAIGN_REQUEST_TA_Detail">
+      <Column Name="ID" Type="System.Int32" DbType="Int NOT NULL IDENTITY" IsPrimaryKey="true" IsDbGenerated="true" CanBeNull="false" />
+      <Column Name="Email" Type="System.String" DbType="NVarChar(50)" CanBeNull="true" />
+      <Column Name="TAID" Type="System.Int32" DbType="Int" CanBeNull="true" />
+      <Column Name="IsExistSiebel" Type="System.Boolean" DbType="Bit" CanBeNull="true" />
+      <Association Name="CAMPAIGN_REQUEST_TA_Master_CAMPAIGN_REQUEST_TA_Detail" Member="CAMPAIGN_REQUEST_TA_Master" ThisKey="TAID" OtherKey="ID" Type="CAMPAIGN_REQUEST_TA_Master" IsForeignKey="true" />
+    </Type>
+  </Table>
+  <Table Name="dbo.CAMPAIGN_REQUEST_Expand" Member="CAMPAIGN_REQUEST_Expands">
+    <Type Name="CAMPAIGN_REQUEST_Expand">
+      <Column Name="ID" Type="System.Int32" DbType="Int NOT NULL IDENTITY" IsPrimaryKey="true" IsDbGenerated="true" CanBeNull="false" />
+      <Column Name="RequestNO" Type="System.String" DbType="NVarChar(20)" CanBeNull="true" />
+      <Column Name="Files" Type="System.Data.Linq.Binary" DbType="VarBinary(MAX)" CanBeNull="true" UpdateCheck="Never" />
+      <Column Name="File_Name" Type="System.String" DbType="NVarChar(200)" CanBeNull="true" />
+      <Column Name="File_Ext" Type="System.String" DbType="NVarChar(10)" CanBeNull="true" />
+      <Column Name="File_CreateBy" Type="System.String" DbType="NVarChar(80)" CanBeNull="true" />
+      <Column Name="File_CreateTime" Type="System.DateTime" DbType="DateTime" CanBeNull="true" />
+      <Column Name="Promotion_Plan" Type="System.String" DbType="NVarChar(MAX)" CanBeNull="true" />
+      <Column Name="PP_CreateBy" Type="System.String" DbType="NVarChar(80)" CanBeNull="true" />
+      <Column Name="PP_CreateTime" Type="System.DateTime" DbType="DateTime" CanBeNull="true" />
+      <Column Name="Request_Support" Type="System.String" DbType="NVarChar(MAX)" CanBeNull="true" />
+      <Column Name="RS_CreateBy" Type="System.String" DbType="NVarChar(80)" CanBeNull="true" />
+      <Column Name="RS_CreateTime" Type="System.DateTime" DbType="DateTime" CanBeNull="true" />
+      <Column Name="Message_Board" Type="System.String" DbType="NVarChar(MAX)" CanBeNull="true" />
+      <Column Name="MS_CreateBy" Type="System.String" DbType="NVarChar(80)" CanBeNull="true" />
+      <Column Name="MS_CreateTime" Type="System.DateTime" DbType="DateTime" CanBeNull="true" />
+      <Column Name="Message_Board_Answer" Type="System.String" DbType="NVarChar(MAX)" CanBeNull="true" />
+      <Column Name="MSA_CreateBy" Type="System.String" DbType="NVarChar(80)" CanBeNull="true" />
+      <Column Name="MSA_CreateTime" Type="System.DateTime" DbType="DateTime" CanBeNull="true" />
+    </Type>
+  </Table>
+</Database>

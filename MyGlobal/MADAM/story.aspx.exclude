@@ -1,0 +1,148 @@
+﻿<%@ Page Title="Advantech Celebrates One Million ADAM Remote I/O Modules Sold!" Language="VB" MasterPageFile="~/MADAM/MADAM_MP.master" %>
+
+<script runat="server">
+
+    Protected Sub Page_Load(ByVal sender As Object, ByVal e As System.EventArgs)
+        If Session("Browser_lan") IsNot Nothing AndAlso Session("Browser_lan").ToString() <> "" Then
+            Dim lan As String = Session("Browser_lan").ToString.ToLower
+            Select Case lan
+                Case "zh-cn"
+                    Img1.Src = "./images_cn/title_story.gif"
+                    titimg1.Src = "./images_cn/tit_1.gif" : titimg2.Src = "./images_cn/tit_2.gif"
+                    titimg3.Src = "./images_cn/tit_3.gif" : titimg4.Src = "./images_cn/tit_4.gif"                
+                    titimg5.Src = "./images_cn/tit_5.gif" : titimg6.Src = "./images_cn/year3.gif"
+                    yearnew.Src = "./images_cn/new3_1.png"
+                    Lit1.Text = "研华科技旗下的ADAM产品品牌从1992年诞生至今已历经18年的历史了。经典的蓝色，圆圆的笑脸、绿色的端子、堪称传世之作，至今几乎保持其原创风格。" & _
+                                "无论是在大型DCS系统还是在小型PLC系统中，ADAM模块——形如手掌般大小的蓝色小精灵，如今正一如既往地灵活应用于全球各个角落的过程自动化、工厂自动化、楼宇自动化等各种应用中。"
+                    Lit2.Text = "现在，ADAM模块在全球总销售量即将迎来第一百万片的历史记录！在此，特别跟大家分享研华ADAM的成长与成绩。"
+                    Lit3.Text = "从ADAM模块的初创时节，其蓝色外壳绿色端子和亲切可爱的形象，给用户清新一亮的感觉，这种传统一直保持下来，从来没有改变过，体现出品牌设计的经典之处。而在设计之初就考虑到产品的可回收性设计，蓝色外壳和绿色的端子均可再生、可回收、并且对环境污染小。"
+                    Lit4.Text = "多年来，ADAM人一直致力于模块内部的科技创新，应用技术远远领先于市场。从早期的PC-Based控制器ADAM-5510系列，到软逻辑控制器ADAM-5510KW系列，再到PAC控制器ADAM-5550KW系列，代表着ADAM品牌中的技术经典，一路探索一路走来，凭借敢为天下先的创新精神，在PC-Based工业控制领域再次开创先河，并获得不俗的业绩。"
+                    Lit5.Text = "ADAM人也最早预料到网络将给自动化行业带来巨大的发展和变化，基于Ethernet总线进行数据采集的ADAM-6000模块则首当其冲 ，引领工业以太网采集现场数据的新潮流，同时支持Modbus/TCP标准协议，如今其应用在全世界已经遍地开花。现在，新一代智能型Ethernet I/O模块ADAM-6000 系列，更增加全新的GCL（图形化逻辑控制）及Peer-to-Peer (点对点)功能，使得ADAM-6000不仅可通过ModBus/TCP协议和SCADA / HMI软件进行连接外，更具有的独立的条件和逻辑控制能力和点到点控制能力，升值不加价；籍由Ethernet的强大功能，小模块更有大舞台。现在，专为苛刻工业环境应用而设计的ADAM-4100系列，作为传统的RS-485分布式采集系统ADAM-4000系列的升级版本，为ADAM品牌再添荣耀，堪称PLC/DCS等模拟量采集的绝配。" & _
+                                "<br/><br/>如今，ADAM系列全线产品支持Modbus RTU、Modbus TCP协议，还可通过OPC协议和各种系统相连接。"
+                    Lit6.Text ="研华注重人性化设计，如对安装和维修的便利性、性价比、可靠性等的考量。为降低产品的装配和拆卸成本，在满足功能要求和使用要求的前提下，尽可能采用最简单的结构和外形，并且采用易于拆卸的设计方法，拆卸部位的紧固件数量尽量少，以便在现场应用更简单、安全和可靠。ADAM安装方式自由，可据客户的需求，采用DIN导轨安装、面板安装等。"
+                    Lit7.Text = "每个ADAM模块出货前均经过产品工程师及质量控制中心的严格测试。为保证产品质量，在生产过程中，进行全方位的测试。所有ADAM I/O模块必须经过5个阶段（至少）的测试，不同的模块有不同的检测制具，制具均通过年检。此外，模块均由防静电袋包装，避免在运输过程中造成机械损伤以及静电损坏。"
+                    Lit8.Text = "研华ADAM一直努力发展、不断满足客户的需求。未来的日子，研华ADAM 将继续努力，做的更好！<br/>" & _
+                                "感谢所有一直关心、支持研华及ADAM的客户与合作伙伴们！ 让我们一起和ADAM走的更远！"
+
+                Case Else
+                   
+            End Select
+           
+        End If
+    End Sub
+</script>
+<asp:Content ID="Content2" ContentPlaceHolderID="ContentPlaceHolder1" Runat="Server">
+<table id="Table_2" width="977"  border="0" cellpadding="0" cellspacing="0" bgcolor="#f1f2ed" align="center">
+          <tr><td align="center" >
+          
+        
+              <table  border="0" align="center" cellpadding="0" cellspacing="0">
+                <tr>
+                 <td height="27" colspan="3" align="center" ><img src="images/story_01.jpg"  height="27" alt=""/></td>
+                </tr>
+                 <tr>
+                 <td width="70" style="background-image: url(images/story_03.jpg);background-repeat: repeat-y;"></td>
+                <td width="648"  bgcolor="#FFFFFF" align="left">
+                    <p align="left" class="txt1">
+                        <img src="images/title_story2.gif"  runat="server" id="Img1" width="614" height="66"/>
+                        <img src="images/story_p12.jpg" width="640" height="250">
+                        <span class="txt3">
+                            <asp:Literal ID="Lit1" runat="server">Advantech’s ADAM Remote I/O Modules have been a consistent and reliable
+                            figure in the industrial automation field for almost 20 years. Although
+                            the core functions have remained relatively unchanged, Advantech’s research
+                            &amp; development teams have constantly been analyzing and improving the
+                            ADAM series, with applied technology more advanced than its competitors.
+                            From the early RS-485-based ADAM-4000 series to the more recent Ethernet-based
+                            ADAM-6000 I/O series, Advantech has been developing technology ahead of
+                            the curve with advanced networking technologies.</asp:Literal>
+                        </span>
+                    </p>
+                    <p align="left" class="txt3">
+                        <asp:Literal ID="Lit2" runat="server">Whether dealing with large or small systems, Advantech’s ADAM Remote I/O
+                        Modules can usually be found embedded somewhere as an integral keystone.
+                        These I/O modules support much larger interconnected systems with reliable
+                        functions and strong features. To celebrate the milestone of one million
+                        ADAM modules sold worldwide, Advantech would like to take a moment to share
+                        some background on this long-standing series of industrial products.</asp:Literal>
+                    </p>
+                    <p class="txt3">
+                        <img src="images/tit_1.gif" id ="titimg1" runat="server" width="648" height="26">
+                        <br>
+                        <asp:Literal ID="Lit3" runat="server">Advantech’s ADAM module has had its sky blue signature color ever since
+                        it originated in 1992. Complimented with a bright green terminal, the ADAM
+                        module’s appearance brings a more fresh and approachable image into the
+                        traditionally gray-and-black industrial field. The initial design concept
+                        of ADAM focused on its ability to be recycled, marking Advantech’s efforts
+                        to be environmentally conscious as far back as 20 years. All of its housing
+                        and onboard terminals can be recycled and reused in fact. And each ADAM
+                        shipping box contains more than 80% post-consumer recycled fiber to help
+                        save the earth even more.</asp:Literal>
+                    </p>
+                    <p class="txt3">
+                        <img src="images/tit_2.gif" id ="titimg2" runat="server" width="648" height="26">
+                        <br>
+                        <asp:Literal ID="Lit4" runat="server">Advantech’s Development &amp; Research team has always kept ahead of its
+                        customers’ needs, providing distinct solutions for different needs. ADAM-4100
+                        series for example, has been improving on its functionalities and usability
+                        over many years. The ADAM-4100 robust series is based on the design of
+                        ADAM-4000 with reinforced isolation protection, wide operating temperatures
+                        and input power, strict environment applicability and watchdog communication.</asp:Literal>
+                    </p>
+                    <p class="txt3">
+                        <asp:Literal ID="Lit5" runat="server">When Advantech expected that networking would bring great change to the
+                        automation industry, we introduced the ADAM-6000 series, one of the first
+                        Ethernet-based data acquisition modules. And in the last half-decade the
+                        transfer speed of remote I/O became so demanding among users that Advantech
+                        launched the ADAM-6100 real-time Ethernet I/O solutions.</asp:Literal>
+                    </p>
+                    <p class="txt3">
+                        <img src="images/tit_3.gif" id ="titimg3" runat="server" width="648" height="26">
+                        <br>
+                        <asp:Literal ID="Lit6" runat="server">Advantech also emphasizes user friendliness, such as the convenience of
+                        installation and maintenance, as well as reliability and cost effectiveness.
+                        The modular industrial design enables ADAM modules to be easily mounted
+                        on a DIN-rail, panel or piggybacked on top of each other, depending on
+                        the customers’ requirements.</asp:Literal>
+                    </p>
+                    <p class="txt3">
+                        <img src="images/tit_4.gif" id ="titimg4" runat="server" width="648" height="26">
+                        <br>
+                        <asp:Literal ID="Lit7" runat="server">Each ADAM module is strictly tested by Advantech’s Production Engineers
+                        and Product Quality Controllers before it is shipped to the customer. To
+                        ensure quality unification and stability, Advantech not only dedicates
+                        on multi-dimensional approaches to test during production, but also avoids
+                        possible issues that may led to the defects in the first place. All ADAM
+                        Remote I/O Modules must pass a least five stages of examinations and different
+                        modules have different examination jigs, which are calibrated annually.
+                        Furthermore, modules must be packaged in antistatic bags, protecting against
+                        mechanical damage as well as electrostatic damage which can easily happen
+                        during shipments.</asp:Literal>
+                    </p>
+                    <p class="txt3">
+                        <img src="images/tit_5.gif" id ="titimg5" runat="server" width="648" height="26">
+                        <br>
+                        <span class="txt3">
+                            <asp:Literal ID="Lit8" runat="server">We have also included a timeline to outline the various milestones this
+                            ubiquitous series has achieved below. As you can see from its rich history,
+                            the ADAM series has continually evolved ahead of the curve, and has always
+                            strived to meet customer demands before they are even aware they need them.
+                            This trend is not one that has stopped however, and Advantech customers
+                            can expect to see many new technologies and innovations applied to the
+                            ADAM years for many years to come. Thanks for your continued support.</asp:Literal>
+                        </span>
+                        <img src="images/year3.gif" id ="titimg6" runat="server" width="648">
+                    </p>  
+
+                </td>
+                <td width="59" style="background-image: url(images/story_05.jpg);background-repeat: repeat-y;"></td>
+            </tr>
+            </table>
+          
+
+          
+         </td>
+          </tr>
+    <tr><td valign="top"><img src="images/new3_1.png" id="yearnew" runat="server"></td></tr>       
+          </table>
+</asp:Content>
+

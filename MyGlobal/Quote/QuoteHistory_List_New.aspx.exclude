@@ -1,0 +1,161 @@
+﻿<%@ Page Language="VB" MasterPageFile="~/Includes/MyMaster.master" Title="MyAdvantech - QuoteHistory" %>
+<%@ Register Src="~/Includes/ERPIdPicker.ascx" TagPrefix="uc1" TagName="ERPIdPicker" %>
+<script runat="server">
+    
+    Function GetSql() As String
+        Dim sb As New System.Text.StringBuilder
+        With sb
+            .AppendLine(String.Format(" select distinct Quote_No, Quote_Desc , user_id, convert(varchar(11),Create_Date,111) as Create_Date , Quote_ID, quote_to_company_id "))
+            .AppendLine(String.Format(" from QUOTATION_Master_History Where quote_to_company_id = '{0}' or (user_id='{1}' and quote_to_company_id='')  ", Session("company_ID"), Session("user_id")))
+            .AppendLine(String.Format("  "))
+            .AppendLine(String.Format(" order by Create_Date Desc "))
+            Return sb.ToString()
+        End With
+    End Function
+    
+    Protected Sub Page_Load(ByVal sender As Object, ByVal e As System.EventArgs)
+        If Not Page.IsPostBack Then
+            SqlDataSource1.SelectCommand = GetSql()
+        End If
+    End Sub
+
+    Protected Sub GridView1_RowDataBound(ByVal sender As Object, ByVal e As System.Web.UI.WebControls.GridViewRowEventArgs)
+        If e.Row.RowType() = DataControlRowType.DataRow Then
+            Dim phase_tb As New DataTable
+            phase_tb = dbUtil.dbGetDataTable("b2b", "select * from quotation_detail_history where quote_id='" & DataBinder.Eval(e.Row.DataItem, "quote_id").ToString() & "'")
+            For i As Integer = 0 To phase_tb.Rows.Count - 1
+                If OrderUtilities.PhaseOutItemCheck(phase_tb.Rows(i).Item("part_no")) = 0 Then
+                    e.Row.Cells(6).Text = "<font color='Red'>Phase Out</font>"
+                End If
+                Exit For
+            Next
+            If DataBinder.Eval(e.Row.DataItem, "quote_id").ToString() <> "" Then
+                e.Row.FindControl("btnUpdate").Visible = True
+                CType(e.Row.FindControl("txtRowERPID"), TextBox).ReadOnly = False
+                e.Row.FindControl("rowERPIDPicker").Visible = True
+            Else
+                e.Row.FindControl("btnUpdate").Visible = True
+                CType(e.Row.FindControl("txtRowERPID"), TextBox).ReadOnly = False
+                e.Row.FindControl("rowERPIDPicker").Visible = True
+            End If
+        End If
+    End Sub
+
+    Protected Sub btnUpdate_Click(ByVal sender As Object, ByVal e As System.EventArgs)
+        Dim btn As Button = CType(sender, Button)
+        Dim qid As String = CType(btn.NamingContainer.FindControl("HiddenRowQuoteId"), HiddenField).Value
+        Dim strQuoteToCompanyId As String = CType(btn.NamingContainer.FindControl("txtRowERPID"), TextBox).Text.Trim.Replace("'", "")
+        If strQuoteToCompanyId <> "" Then
+            If dbUtil.dbExecuteNoQuery("RFM", String.Format("update QUOTATION_Master_History set quote_to_company_id='{0}' where quote_id='{1}'", strQuoteToCompanyId, qid)) > 0 Then
+                SqlDataSource1.SelectCommand = GetSql() : GridView1.DataBind()
+            End If
+        End If
+    End Sub
+</script>
+
+<asp:Content ID="Content1" ContentPlaceHolderID="_main" Runat="Server">
+    <table width="100%" style="height:100%" border="0" cellspacing="0" cellpadding="0" >						
+        <tr valign="top">
+            <td>					
+                <table width="100%" id="Table2" style="vertical-align:top;">
+                    <tr valign="top">
+                        <td height="2">&nbsp;</td>
+                    </tr>
+                    <tr valign="top">							
+                        <td colspan="2" height="60" valign="middle"><div class="euPageTitle">Quote History</div>
+                        </td>
+                    </tr>
+                    <tr valign="top">
+                        <td align="center">
+                            <table cellpadding="1"  width="100%">
+                                <tr>
+                                    <td style="background-color:#666666">
+                                        <table width="100%" border="0" cellspacing="0" cellpadding="0" align="center" style="vertical-align:middle" ID="Table1">
+                                            <tr>
+                                                <td style="padding-left:10px;border-bottom:#ffffff 1px solid;height:20px;background-color:#6699CC" 
+                                                    align="left" valign="middle" class="text">
+                                                    <font color="#ffffff"><b>Quote History</b></font>
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td>
+                                                    <asp:GridView runat="server" Width="100%" ID="GridView1" AutoGenerateColumns="false" 
+                                                        DataSourceID ="SqlDataSource1" onrowdatabound="GridView1_RowDataBound" 
+                                                        AllowPaging="True" PageIndex="0" PageSize="20">
+                                                        <Columns>
+                                                            <asp:TemplateField ItemStyle-Width="50px" ItemStyle-ForeColor="#636563" 
+                                                                ItemStyle-HorizontalAlign="Center" ItemStyle-VerticalAlign="Top">
+                                                                <headertemplate>
+                                                                    No.
+                                                                </headertemplate>
+                                                                <itemtemplate>
+                                                                    <%# Container.DataItemIndex + 1 %>.
+                                                                </itemtemplate>
+                                                            </asp:TemplateField>  
+                                                            <asp:BoundField HeaderText="Quote No." DataField="Quote_No" SortExpression="Quote_No" />
+                                                            <asp:BoundField HeaderText="Quote Desc." DataField="Quote_Desc" SortExpression="Quote_Desc" />
+                                                            <asp:HyperLinkField Target="_blank" HeaderText="Detail" DataNavigateUrlFields="Quote_ID" 
+                                                                DataNavigateUrlFormatString="/esales/quote/QuotationResult.aspx?flg=history&Quote_ID={0}" 
+                                                                Text="Detail" />
+                                                            <asp:BoundField HeaderText="Creator" DataField="user_id" SortExpression="user_id" />
+                                                            <asp:BoundField HeaderText="Created Date" DataField="Create_Date" SortExpression="Create_Date" />
+                                                            <asp:HyperLinkField HeaderText="Add To Cart" DataNavigateUrlFields="Quote_ID" 
+                                                                DataNavigateUrlFormatString="/quote/QuotationHistory2Cart.aspx?Quote_ID={0}" 
+                                                                Text="Click" />
+                                                            <asp:HyperLinkField HeaderText="Del." DataNavigateUrlFields="Quote_ID" 
+                                                                DataNavigateUrlFormatString="/quote/QuotationHistoryDel.aspx?quote_id={0}" Text="Delete" />
+                                                            <asp:TemplateField HeaderText="Pick ERP Id">
+                                                                <ItemTemplate>
+                                                                    <table width="100%">
+                                                                        <tr>
+                                                                            <td>
+                                                                                <asp:HiddenField runat="server" id="HiddenRowQuoteId" Value='<%#Eval("Quote_ID") %>' />
+                                                                                <asp:TextBox runat="server" ID="txtRowERPID" Text='<%#Eval("quote_to_company_id") %>' />
+                                                                            </td>
+                                                                            <td>
+                                                                                <asp:Button runat="server" ID="btnUpdate" Text="Update" Visible="false" OnClick="btnUpdate_Click" />
+                                                                            </td>
+                                                                        </tr>
+                                                                        <tr>
+                                                                            <td colspan="2">
+                                                                                <uc1:ERPIdPicker runat="server" ID="rowERPIDPicker" ClickToFillToID="txtRowERPID" Visible="false" />
+                                                                            </td>
+                                                                        </tr>
+                                                                    </table>                                                                    
+                                                                </ItemTemplate>
+                                                            </asp:TemplateField>
+                                                        </Columns>
+                                                    </asp:GridView>	
+                                                    <asp:SqlDataSource ID="SqlDataSource1" runat="server" ConnectionString="<%$ ConnectionStrings:B2B %>"/>
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td id="tdTotal" align="right" style="background-color:#ffffff" runat="server"></td>
+                                            </tr>
+                                        </table>
+                                    </td>
+                                </tr>
+                            </table>
+                        </td>
+                    </tr>						
+                    <tr valign="top"><td height="2">&nbsp;</td></tr>
+                </table>					
+            </td>
+        </tr>
+        <tr valign="top"><td height="2">&nbsp;</td></tr>						
+    </table>       
+    <script type="text/javascript" language="javascript">
+        function Del(strId)
+        {
+         //alert (strId)
+         window.location.href="../quote/QuotationHistoryDel.aspx?quote_id=" + strId
+        }
+
+        function Go(strId)
+        {
+         //alert (strId)
+         window.location.href="../quote/QuotationHistory2Cart.aspx?Quote_ID=" + strId
+        }
+    </script>
+</asp:Content>
+

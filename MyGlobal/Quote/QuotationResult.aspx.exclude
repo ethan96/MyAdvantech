@@ -1,0 +1,927 @@
+﻿<%@ Page Language="VB" MasterPageFile="~/Includes/MyMaster.master" Title="MyAdvantech - Quotation Result" %>
+
+<script runat="server">
+    Dim strSQL As String = "", xmlInput As String = "", xmlOut As String = "", xmlLog As String = ""
+    Dim dt As New DataTable, iRet As Integer = 0
+    Dim sub_total As Decimal = 0, flag As String = "", total_out As String = ""
+    
+    Protected Sub Page_Load(ByVal sender As Object, ByVal e As System.EventArgs)
+        Dim quote_language As String = "English"
+        Dim quote_address As String = ""
+        
+        
+        
+        
+ 
+        Dim quote_company_type As String = ""
+        Dim dr9 As DataTable
+        If Request("flg") = "history" Then
+            dr9 = dbUtil.dbGetDataTable("b2b", "select * from quotation_master_history where quote_id='" & Request("quote_id") & "'")
+        Else
+            dr9 = dbUtil.dbGetDataTable("b2b", "selet * from quotation_master where quote_id='" & Session("cart_id") & "' ")
+        End If
+        For Each r As DataRow In dr9.Rows
+            Me.txtQuoteTo.Text = r.Item("quote_to_company")
+            Me.txtQuoteDate.Text = Global_Inc.FormatDate(r.Item("quote_date"))
+            Me.txtDelDate.Text = Global_Inc.FormatDate(r.Item("del_date"))
+            Me.txtQuoteNo.Text = r.Item("quote_no")
+            Me.ddlShipCondition.Text = r.Item("ship_term") 'ship term
+            Me.txtExpDate.Text = Global_Inc.FormatDate(r.Item("exp_date"))
+            Me.txtPayment.Text = r.Item("paymentterm")
+            Me.txtSalesContact.Text = r.Item("sales_contact")
+            'Me.txtProduct_War.Text = dr.Item("product_warranty")
+            Me.txtPhone.Text = r.Item("sales_phone")
+            'Me.txtQuoteNote.Text = dr.Item("quote_note")
+            Me.txtQuoteNote.InnerHtml = Global_Inc.HTMLEncode(r.Item("quote_note"))
+            Try
+                Me.txtSalesEmail.Text = r.Item("sales_email")
+            Catch ex As Exception
+                Me.txtSalesEmail.Text = ""
+            End Try
+            Try
+                quote_language = r.Item("quote_language") 'language
+            Catch ex As Exception
+                quote_language = "" 'language
+            End Try
+            Try
+                quote_company_type = r.Item("quote_company_type")
+            Catch ex As Exception
+                quote_company_type = ""
+            End Try
+            If InStr(quote_company_type, "eAuto") Then
+                Me.imgLog.ImageUrl = "../images/eAutomation.jpg"
+            ElseIf InStr(quote_company_type, "ePlat") Then
+                Me.imgLog.ImageUrl = "../images/ePlatform.jpg"
+                'Me.imgLog.ImageAlign = ImageAlign.Left
+            End If
+
+            Dim dr29 As DataTable = dbUtil.dbGetDataTable("b2b", "select * from quotecompanyadd where quotecompanytype='" & quote_company_type & "'")
+            If dr29.Rows.Count > 0 Then
+                'Me.lblAdd.Text = Me.enAddress.Text & ":&nbsp" & dr2.Item("companyadd")
+                quote_address = ":&nbsp" & dr29.Rows(0).Item("companyadd")
+                'Me.lblAdd.Font.Bold = True
+                'Me.lblAdd.Font.Size = 18
+            End If
+        Next
+        
+
+        'set the language
+        Using drlan7 As DataTable = dbUtil.dbGetDataTable("b2b", _
+        "select sales_email, quote_name, customer_name, create_date,del_date, quote_no, shipping_terms, exp_date, payment_terms, sales_contact, tel_num, [Related Information], quote_note, total, [address] from quote_language where quote_language='" & quote_language & "'")
+            For Each r As DataRow In drlan7.Rows
+                If r.Item("quote_language") = "English" Then
+                    'Session("quote_language") = drlan.Item("quote_language")
+                    Me.lblAdd.Text = Me.enAddress.Text & quote_address
+                    Exit For
+                End If
+
+                'quote(Header)
+                Me.enSalesEmail.Text = r.Item("sales_email")
+                Me.quoteHeader.Text = r.Item("quote_name")
+                'product(list)
+                'Me.AdxDatagrid1.xTitleText = drlan.Item("product")
+                ''part_no
+                'Me.GridView1.Columns(2).HeaderText = drlan.Item("product")
+                'Me.GridView1.Columns(5).HeaderText = drlan.Item("discount")
+
+                Me.enQuoteTo.Text = r.Item("customer_name")
+                Me.enQuoteDate.Text = r.Item("create_date")
+                Me.enDelDate.Text = r.Item("del_date")
+                Me.enQuoteNo.Text = r.Item("quote_no")
+                Me.enShipTerms.Text = r.Item("shipping_terms")
+                Me.enExpDate.Text = r.Item("exp_date")
+                Me.enPaymentTerm.Text = r.Item("payment_terms")
+                Me.enSalesContact.Text = r.Item("sales_contact")
+                Me.enSalesPhone.Text = r.Item("tel_num")
+                Me.enProductWarranty.Text = r.Item("Related Information")
+                Me.enQuoteNote.Text = r.Item("quote_note")
+                Me.entotal.Text = r.Item("total")
+                Me.enAddress.Text = r.Item("address")
+                Me.lblAdd.Text = Me.enAddress.Text & quote_address
+            Next
+        End Using
+
+        
+        If Request("flg") = "history" Then
+            Me.trLine.Visible = False
+            Me.Label1.Visible = False
+            Me.txtQuoteHistory.Visible = False
+            Me.ImageButton_NextStep.Visible = False
+            Me.SqlDataSource1.SelectCommand = "select '' as line,q.line_no,q.part_no, p.product_desc ,q.list_price,'' as disc,q.unit_price, q.qty,isnull(q.atp_num,0) as atp_num ,convert(varchar(11),q.atp_date,111) as atp_date,'' as SUBTOTAL," & _
+                            "q.quote_Id,'' as marge,q.itp,p.status as status from quotation_detail_history q left join product p on " & _
+                            "  p.part_no = q.part_no where q.quote_Id = '" & Request("quote_id") & _
+                            "' order by q.line_no asc "
+        Else
+            Me.Label1.Visible = True
+            Me.txtQuoteHistory.Visible = True
+            Me.ImageButton_NextStep.Visible = True
+            Me.SqlDataSource1.SelectCommand = "select '' as line,q.line_no,q.part_no, p.product_desc ,q.list_price,'' as disc,q.unit_price, q.qty,isnull(q.atp_num,0) as atp_num ,convert(varchar(11),q.atp_date,111) as atp_date,'' as SUBTOTAL," & _
+                             "q.quote_Id,'' as marge,q.itp,p.status as status from quotation_detail q left join product p " & _
+                             " on p.part_no = q.part_no where q.quote_Id = '" & Session("cart_id") & _
+                             "' order by q.line_no asc "
+        End If
+       
+        'Page.Response.Write(Me.AdxDatagrid1.xSQL)
+       
+        If Not Page.IsPostBack Then
+            If Not (Session("margin_flg") Is Nothing) Then
+                Session("margin_flg") = Nothing
+                Session("disc_value") = Nothing
+            End If
+            GridView1.DataBind()
+           
+            'Dim logoadd As String = ""
+            'Me.GetLogoAdd(logoadd)
+            'Me.divLogo.InnerHtml = logoadd
+        End If
+        'Me.AdxDatagrid1.VxDataGridBinding()
+        If Request("flg") = "history" Then
+            Me.strSQL = "select * from quotation_detail_history where quote_id='" & Request("quote_id") & "' order by line_no asc"
+        Else
+            Me.strSQL = "select * from quotation_detail where quote_id='" & Session("cart_id") & "' order by line_no asc"
+        End If
+        If dbUtil.dbGetDataTable("b2b", Me.strSQL).Rows.Count > 0 Then
+            If sub_total < 0 Then
+                total_out = CStr(Session("COMPANY_CURRENCY_SIGN")) & "&nbsp;" & " TBD" & "&nbsp;&nbsp;"
+            ElseIf sub_total > 0 And flag = "TBD" Then
+                total_out = CStr(Session("COMPANY_CURRENCY_SIGN")) & "&nbsp;" & sub_total.ToString("#,##0.00") & " +TBD" & "&nbsp;&nbsp;"
+            Else
+                total_out = CStr(Session("COMPANY_CURRENCY_SIGN")) & "&nbsp;" & sub_total.ToString("#,##0.00") & "&nbsp;&nbsp;"
+            End If
+            '<nada>
+            'AdxDatagrid1.xHTMLFooter = "<table cellpadding='1' cellspacing='1' width='100%' height='20' align='right'>"
+            'AdxDatagrid1.xHTMLFooter &= "<tr>"
+            'AdxDatagrid1.xHTMLFooter &= "<td bgColor='#ffffff' align='right'><b>" & entotal.Text & ":&nbsp;&nbsp;" & total_out.ToString & "</b></td>"
+
+            'AdxDatagrid1.xHTMLFooter &= "</tr>"
+            'AdxDatagrid1.xHTMLFooter &= "</table>"
+        End If
+        'End If
+     
+    End Sub
+       
+    Protected Sub GridView1_RowDataBound(ByVal sender As Object, ByVal e As System.Web.UI.WebControls.GridViewRowEventArgs)
+        If e.Row.RowType <> DataControlRowType.Pager Then
+            e.Row.Cells(0).Visible = False
+            e.Row.Cells(8).Visible = False
+            e.Row.Cells(11).Visible = False
+            e.Row.Cells(12).Visible = False
+            e.Row.Cells(13).Visible = False
+            e.Row.Cells(14).Visible = False
+        End If
+        If e.Row.RowType = DataControlRowType.Header Then
+            e.Row.Cells(1).Text = "No"
+            e.Row.Cells(2).Text = "Part No."
+            e.Row.Cells(3).Text = "Description"
+            e.Row.Cells(4).Text = "List Price"
+            e.Row.Cells(5).Text = "Disc"
+            e.Row.Cells(6).Text = "Unit Price"
+            e.Row.Cells(7).Text = "Qty"
+            e.Row.Cells(9).Text = "Due Date"
+            e.Row.Cells(10).Text = "Sub Total"
+        End If
+        'Dim oDataGridItem As DataGridItem = e.Item
+        'Dim retVal() As String
+        'Dim idx As Integer = 0
+        'Dim oType As ListItemType = e.Item.ItemType
+        'Dim total As Decimal = 0
+        Dim unit_price As Decimal = 0, list_price As Decimal = 0, disc As String = "", total As Decimal = 0, itp As Decimal = 0, marge As Decimal = 0
+        Dim RBUMailFormat As String = "", line_no As Integer = 0, qty As Integer = 0
+        
+        
+        If (e.Row.RowType=DataControlRowType.DataRow) Then
+           
+            list_price = CDbl(e.Row.Cells(4).Text)
+            unit_price = CDbl(e.Row.Cells(6).Text)
+            total = unit_price * CInt(e.Row.Cells(7).Text)
+            itp = CDbl(e.Row.Cells(13).Text)
+            marge = unit_price - itp
+            line_no = CInt(e.Row.Cells(1).Text)
+            qty = CInt(e.Row.Cells(7).Text)
+            
+            If line_no >= 100 Then
+                'line_no
+                e.Row.Cells(0).Text = line_no.ToString()
+            End If
+            ' DEL
+            'AdxDatagrid1.VxUserFormat(oDataGridItem, 0, "<input type='checkbox' name='delete_cart_line" & retVal(2) & "' value='Yes'>")
+            'If line_no > 100 Then
+            '    AdxDatagrid1.VxUserFormat(oDataGridItem, 0, "") '"<input type='hidden' name='delete_cart_line" & retVal(2) & "' value='Yes'>")
+            'End If
+            'desc
+            If OrderUtilities.PhaseOutItemCheck(e.Row.Cells(2).Text) = 0 Then
+                e.Row.Cells(3).Text = e.Row.Cells(3).Text & "<font color='Red'>(Phase Out)</font>"
+                Me.lblSendmail.Visible = False
+                Me.txtSendemail.Visible = False
+                Me.btnSendmail.Visible = False
+                
+            End If
+           
+            'list_price
+            If list_price = -1 Then
+                If Global_Inc.IsRBU(Session("company_id"), RBUMailFormat) Then
+                    e.Row.Cells(4).Text = "N/A"
+                Else
+                    e.Row.Cells(4).Text = "TBD"
+                End If
+            Else
+                e.Row.Cells(4).Text = CStr(Session("COMPANY_CURRENCY_SIGN")) & list_price.ToString("#,##0.00")
+            End If
+            If line_no = 100 Then
+                Dim tb_lp As New DataTable
+                If Request("flg") = "history" Then
+                    tb_lp = dbUtil.dbGetDataTable("b2b", "select sum(list_price) as list_price from quotation_detail_history where quote_id='" & Request("quote_id") & "' and line_no>100")
+                Else
+                    tb_lp = dbUtil.dbGetDataTable("b2b", "select sum(list_price) as list_price from quotation_detail where quote_id='" & Session("cart_id") & "' and line_no>100")
+                End If
+                If tb_lp.Rows.Count > 0 Then
+                    list_price = CDbl(tb_lp.Rows(0).Item("list_price"))
+                    e.Row.Cells(4).Text = CStr(Session("COMPANY_CURRENCY_SIGN")) & list_price.ToString("#,##0.00")
+                End If
+                list_price = 0
+            End If
+            'marge
+            'AdxDatagrid1.VxUserFormat(oDataGridItem, 12, Session("COMPANY_CURRENCY_SIGN") & "<input type='Text' maxlength='8' size='8' id='marge" & retVal(2) & "' name='marge" & retVal(2) & "' value ='" & FormatNumber(marge, 2) & "' onchange='return CheckMarge(this," & itp & "," & marge & ")'>")
+            e.Row.Cells(12).Text = Session("COMPANY_CURRENCY_SIGN") & FormatNumber(marge, 2)
+            'itp
+            e.Row.Cells(13).Text = CStr(Session("COMPANY_CURRENCY_SIGN")) & CDbl(e.Row.Cells(13).Text).ToString("#,##0.00")
+            If line_no = 100 Then
+                Dim tb_itp As New DataTable
+                If Request("flg") = "history" Then
+                    tb_itp = dbUtil.dbGetDataTable("b2b", "select sum(itp) as itp from quotation_detail_history where quote_id='" & Request("quote_id") & "' and line_no>100")
+                Else
+                    tb_itp = dbUtil.dbGetDataTable("b2b", "select sum(itp) as itp from quotation_detail where quote_id='" & Session("cart_id") & "' and line_no>100")
+                End If
+                If tb_itp.Rows.Count > 0 Then
+                    itp = CDbl(tb_itp.Rows(0).Item("itp"))
+                    e.Row.Cells(13).Text = CStr(Session("COMPANY_CURRENCY_SIGN")) & itp.ToString("#,##0.00")
+                End If
+                itp = 0
+            End If
+            'disc
+            If list_price <= 0 Then
+                disc = "--%"
+            Else
+                If CLng((1 - (unit_price / list_price)) * 100) >= 0 And CLng((1 - (unit_price / list_price)) * 100) <= 100 Then
+                    disc = disc & CLng((1 - (unit_price / list_price)) * 100).ToString() & "%"
+                Else
+                    disc = disc & 100 & "%"
+                End If
+            End If
+            e.Row.Cells(5).Text = disc.ToString()
+            
+            'unit_price
+            'If Session("User_Role") = "Administrator" Or Session("User_Role") = "Logistics" Then
+            '    AdxDatagrid1.VxUserFormat(oDataGridItem, 7, CStr(Session("COMPANY_CURRENCY_SIGN")) & "<input type='Text' maxlength='8' size='8' id='unitprice" & retVal(2) & "' name='unitprice" & retVal(2) & "' value ='" & unit_price.ToString("#,##0.00") & "' onchange='return CheckMinus(this)'>")
+            'Else
+            If unit_price < 0 Then
+                'AdxGrid1.VxUserFormat(oDataGridItem, 7, "TBD")
+                e.Row.Cells(6).Text = "TBD"
+            Else
+                e.Row.Cells(6).Text = CStr(Session("COMPANY_CURRENCY_SIGN")) & unit_price.ToString("#,##0.00")
+            End If
+            'End If
+            If InStr(LCase(e.Row.Cells(2).Text).Trim(), "ags-ew-") > 0 Then
+                e.Row.Cells(6).Text = CStr(Session("COMPANY_CURRENCY_SIGN")) & unit_price.ToString("#,##0.00")
+                e.Row.Cells(6).BackColor = Drawing.Color.GreenYellow
+            End If
+            If line_no = 100 Then
+                If Request("flg") = "history" Then
+                    Me.strSQL = "select sum(unit_price) as unit_price from quotation_detail_history where quote_id='" & Request("quote_id") & "' and line_no>100"
+                Else
+                    Me.strSQL = "select sum(unit_price) as unit_price from quotation_detail where quote_id='" & Session("cart_id") & "' and line_no>100"
+                End If
+                'Response.Write(Me.strSQL)
+                'Response.End()
+                Dim tbl As DataTable = dbUtil.dbGetDataTable("b2b", Me.strSQL)
+                If tbl.Rows.Count > 0 Then
+                    Try
+                        unit_price = CDbl(tbl.Rows(0).Item("unit_price"))
+                    Catch ex As Exception
+                        unit_price = 0
+                    End Try
+                    e.Row.Cells(6).Text = CStr(Session("COMPANY_CURRENCY_SIGN")) & unit_price.ToString("#,##0.00")
+                End If
+                unit_price = 0
+            End If
+            
+            'qty
+            'If line_no > 100 Then
+            'e.Row.Cells(8).Text = e.Row.Cells(8).Text
+            'Else
+            ' AdxDatagrid1.VxUserFormat(oDataGridItem, 8, "<input type='Text' maxlength='4' size='4' id='qty" & retVal(2) & "' name='qty" & retVal(2) & "'  value ='" & retVal(8) & "'>")
+            'End If
+            'avalability
+            'AdxDatagrid1.VxUserFormat(oDataGridItem, 9, "<a href='../Order/queryATP.aspx?part_no=" & retVal(3) & "' target='_blank'>" & retVal(9) & "</a>")
+            If line_no = 100 Then
+                e.Row.Cells(8).Text = "<font color='red' style='BACKGROUND-COLOR: #ffcc66;WIDTH=100%'>--</font>"
+                '"<font color='red' style='BACKGROUND-COLOR: #ffcc66;WIDTH=100%'>" & CStr(Math.Abs(CInt(retVal(7)))) & "</font>")
+            End If
+            'due date
+            'If line_no > 100 Then
+            '    AdxDatagrid1.VxUserFormat(oDataGridItem, 10, retVal(10))
+            'Else
+            '    AdxDatagrid1.VxUserFormat(oDataGridItem, 10, "<input type='Text' maxlength='8' size='8' onclick=""" & "javascript:popUpCalendar(this, this, 'yyyy/mm/dd','" & retVal(10) & "')" & """  value =" & retVal(10) & " name='duedate" & retVal(2) & "' >")
+            'End If
+           
+            
+            'subtotal
+            If total >= 0 Then
+                e.Row.Cells(10).Text = CStr(Session("COMPANY_CURRENCY_SIGN")) & CDbl(total).ToString("#,##0.00")
+            Else
+                e.Row.Cells(10).Text = "TBD"
+            End If
+            If line_no = 100 Then
+                If Request("flg") = "history" Then
+                    Me.strSQL = "select sum(unit_price) as unit_price from quotation_detail_history where quote_id='" & Request("quote_id") & "' and line_no>100"
+                Else
+                    Me.strSQL = "select sum(unit_price) as unit_price from quotation_detail where quote_id='" & Session("cart_id") & "' and line_no>100"
+                End If
+                Dim tbl As New DataTable
+                If Request("flg") = "history" Then
+                    tbl = dbUtil.dbGetDataTable("b2b", "select sum(unit_price) as unit_price from quotation_detail_history where quote_id='" & Request("quote_id") & "' and line_no>100")
+                Else
+                    tbl = dbUtil.dbGetDataTable("b2b", "select sum(unit_price) as unit_price from quotation_detail where quote_id='" & Session("cart_id") & "' and line_no>100")
+                    
+                End If
+                If tbl.Rows.Count > 0 Then
+                    unit_price = CDbl(tbl.Rows(0).Item("unit_price"))
+                    total = unit_price * qty
+                    e.Row.Cells(10).Text = CStr(Session("COMPANY_CURRENCY_SIGN")) & total.ToString("#,##0.00")
+                    total = 0
+                    unit_price = 0
+                End If
+            End If
+            
+            If total < 0 Then
+                sub_total = sub_total
+                flag = "TBD"
+            Else
+                sub_total = sub_total + total
+            End If
+            
+            If line_no = 100 Then
+                For i As Integer = 0 To e.Row.Cells.Count - 1
+                    'AdxDatagrid1.VxUserFormat(oDataGridItem, i, oDataGridItem"<font color='red' style='BACKGROUND-COLOR: #99ff66;WIDTH=100%'>" & e.Item.Cells(i).Text & "</font>")
+                    e.Row.Cells(i).BackColor = Drawing.Color.GreenYellow
+                Next
+                'e.Item.BackColor = Color.GreenYellow
+            End If
+        End If
+    End Sub
+    
+    Function GetLogoAdd(ByVal flag As String, ByVal quote_id As String, ByRef strHTML As String) As Integer
+        'exeFunc = DBConn_Get(strEntity_Id, "B2B", l_adoConn)
+        'Dim strSTCompanyId, strSTCompanyName, strSTAddr, strSTTelNo, strSTFaxNo, strSTAttention
+        Dim quote_company_add As String = ""
+        Dim table As String = "quotation_master", quote_company_type As String = "" ', quote_id As String = Session("cart_id")
+        If flag = "history" Then
+            table = "quotation_master_history"
+            'Request("quote_id")
+        End If
+        
+        'Dim tb_type As New DataTable
+        'tb_type = Me.Global_inc1.dbGetDataTable("", "", "select quote_company_type,quote_language from " & table & "where quote_id='" & quote_id & "'")
+        
+        
+        
+        'Dim g_adoConn As SqlClient.SqlConnection = Nothing
+        'Me.Global_inc1.DBConn_Get("", "", g_adoConn)
+        'g_adoConn.Open()
+        quote_company_type = dbUtil.dbExecuteScalar("b2b", "select quote_company_type from " & table & " where quote_id='" & quote_id & "'")
+        strSQL = "select * from QuoteCompanyAdd where quotecompanytype='" & quote_company_type & "'"
+        'Dim g_adoConn As New SqlClient.SqlConnection
+        
+        Dim l_adoRs As DataTable = dbUtil.dbGetDataTable("b2b", Me.strSQL) '.execute(strSQL)
+        If l_adoRs.Rows.Count > 0 Then 'Not l_adoRs.EOF Then           
+            quote_company_add = l_adoRs.Rows(0).Item("companyadd")
+        End If
+        Dim l_strHTML As String = ""
+        l_strHTML = "<Br>"
+        l_strHTML = l_strHTML & "<table width=""100%"" border=""0"" cellspacing=""0"" cellpadding=""0"">"
+        If InStr(quote_company_type, "eAutomation") Then
+            l_strHTML = l_strHTML & "<tr><td valign='top'><img src='../images/eAutomation.jpg'>"
+        Else
+            l_strHTML = l_strHTML & "<tr><td valign='top'><img src='../images/ePlatform.jpg'>"
+        End If
+        'l_strHTML = l_strHTML & "<div class=""euPageTitle""><font style='font-size: 22px;line-height: 23px;font-weight: bold;'>Advantech Quotation</font></div></td>"
+        l_strHTML = l_strHTML & "</td>"
+        l_strHTML = l_strHTML & "<td width=""200"">"
+        l_strHTML = l_strHTML & "</td>"
+        l_strHTML = l_strHTML & "<td align=""right"">"
+        l_strHTML = l_strHTML & quote_company_add
+        l_strHTML = l_strHTML & "</td></tr>"
+        l_strHTML = l_strHTML & "</table>"
+    
+        strHTML = l_strHTML
+        Return 1
+    End Function
+
+    Protected Sub ImageButton_NextStep_Click(ByVal sender As Object, ByVal e As System.Web.UI.ImageClickEventArgs)
+        Dim strCurrSign = Session("COMPANY_CURRENCY_SIGN")
+        'Dim strUser_ID = Session("User_ID")
+	
+       
+        Dim strUniqueId As String = ""
+        Global_Inc.UniqueID_Get("EU", "L", 12, strUniqueId)
+	   
+        Dim strUser_ID = Session("user_id")
+        Dim strCurrency = Session("COMPANY_CURRENCY_SIGN")
+        Dim strQuote_Desc = Me.txtQuoteHistory.Text.Trim()
+        If strQuote_Desc = "" Then
+            'MsgBox("Please input the Description", MsgBoxStyle.Information, "alert")
+            Dim err As String = ""
+            err = err & "<script language='JavaScript'> alert('Please input quote description') </"
+            err = err & "script>"
+            'Me.Literal1.Visible = True
+            Me.Literal1.Text = err
+            Exit Sub
+        End If
+        'add to quote_master_history
+        
+        Dim quote_to As String = ""
+        Dim quote_date As String = ""
+        Dim del_date As String = ""
+        Dim quote_no As String = ""
+        Dim ship_terms As String = ""
+        Dim exp_date As String = ""
+        Dim payment As String = ""
+        Dim sales_contact As String = ""
+        Dim product_warranty As String = ""
+        Dim sales_phone As String = ""
+        Dim quote_note As String = ""
+        Dim quote_company_type As String = ""
+        Dim quote_language As String = ""
+        Dim sales_email As String = ""
+        
+        Using cn As New System.Data.SqlClient.SqlConnection
+            Dim dr8 As DataTable = dbUtil.dbGetDataTable("b2b", "select * from quotation_master where quote_id='" & Session("cart_id") & "'")
+            For Each r As DataRow In dr8.Rows
+                quote_to = r.Item("quote_to_company")
+                quote_date = r.Item("quote_date")
+                del_date = r.Item("del_date")
+                quote_no = r.Item("quote_no")
+                ship_terms = r.Item("ship_term")
+                exp_date = r.Item("exp_date")
+                payment = r.Item("paymentterm")
+                sales_contact = r.Item("sales_contact")
+                product_warranty = r.Item("product_warranty")
+                sales_phone = r.Item("sales_phone")
+                quote_note = r.Item("quote_note")
+                quote_company_type = r.Item("Quote_Company_Type")
+                quote_language = r.Item("quote_language")
+                sales_email = r.Item("sales_email")
+            Next
+           
+        End Using
+        strSQL = "Insert into Quotation_Master_History(quote_ID,User_ID,quote_Desc,Currency,Create_Date,Company_ID" & _
+       ",quote_to_company,quote_date,del_date,quote_no,ship_term,exp_date,paymentterm,sales_contact,product_warranty," & _
+       "sales_phone,quote_note,Quote_Company_Type,quote_language,sales_email) values('" & strUniqueId & "','" & strUser_ID & "','" & strQuote_Desc & "','" & _
+       strCurrency & "','" & Global_Inc.FormatDate(System.DateTime.Now()) & "','" & _
+       Session("company_id") & "','" & _
+       quote_to & "','" & _
+       quote_date & "','" & _
+       del_date & "','" & _
+       quote_no & "','" & _
+       ship_terms & "','" & _
+       exp_date & "','" & _
+       payment & "','" & _
+       sales_contact & "','" & _
+       product_warranty & "','" & _
+       sales_phone & "','" & _
+       quote_note & "','" & quote_company_type & "','" & quote_language & "','" & sales_email & "')"
+        
+        Response.Write(Me.strSQL)
+       
+        'Response.End()
+        'g_adoConn.Execute(strSQL)
+        dbUtil.dbExecuteNoQuery("b2b", strSQL)
+        Dim strLine_No As String, strPart_No As String, intQTY As Integer, fltList_Price As Double, fltUnit_Price As Double
+        Dim atp As String, due_date As String, request_Date As String, itp As Double
+        strSQL = "Select * from Quotation_Detail where quote_ID = '" & Session("cart_id") & "'"
+        Dim rsQuotationDetail9 As DataTable = dbUtil.dbGetDataTable("b2b", strSQL) 'g_adoConn.Execute(strSQL)
+        For Each r As DataRow In rsQuotationDetail9.Rows
+            strLine_No = r.Item("Line_No")
+            strPart_No = r.Item("Part_No")
+            intQTY = r.Item("QTY")
+            fltList_Price = r.Item("List_Price")
+            fltUnit_Price = r.Item("Unit_Price")
+            itp = r.Item("itp")
+            atp = r.Item("atp_num")
+            due_date = r.Item("atp_date")
+            request_Date = r.Item("Request_Date")
+	   	    
+            strSQL = "Insert into QUOTATION_Detail_History(Quote_ID,Line_No,Part_No,QTY,List_Price,Unit_Price,request_date,ATP_num,atp_DATE,itp)" & _
+            "values('" & strUniqueId & "','" & strLine_No & "','" & strPart_No & "'," & intQTY & "," & fltList_Price & "," & fltUnit_Price & ",'" & request_Date & "','" & atp & "','" & due_date & "'," & itp & ")"
+         
+            dbUtil.dbExecuteNoQuery("b2b", strSQL)
+        Next
+        dbUtil.dbExecuteNoQuery("b2b", "delete from quotation_detail where quote_id='" & Session("cart_id") & "'")
+        dbUtil.dbExecuteNoQuery("b2b", "delete from quotation_master where quote_id='" & Session("cart_id") & "'")
+        dbUtil.dbExecuteNoQuery("b2b", "update quotation_catalog_category set catalog_id ='" & strUniqueId & "',flg='1' where catalog_id='" & Session("G_CATALOG_ID") & "'")
+       
+        Response.Redirect("../quote/QuoteHistory_List.aspx")
+    End Sub
+      
+
+
+    Protected Sub btnSendmail_Click(ByVal sender As Object, ByVal e As System.Web.UI.ImageClickEventArgs)
+        If InStr(Me.txtSendemail.Text.Trim(), "@") <= 0 Or Left(Me.txtSendemail.Text.Trim(), 1) = "@" Or Right(Me.txtSendemail.Text.Trim(), 1) = "@" Then
+            Dim strErr As String = "<script language='JavaScript'>"
+            strErr = strErr & "alert ('Please input the correct email format!'); window.location.href=window.location.href;</"
+            strErr = strErr & "script>"
+            Response.Write(strErr)
+            'Response.End()
+            Exit Sub
+        End If
+        
+        
+        Dim from_email As String = "myadvantech@advantech.com"
+        Dim to_email As String = "", cc_email As String = "", bcc_email As String = "", subject_email As String = "", attachfile As String = "", mailbody As String = ""
+        to_email = Me.txtSendemail.Text.Trim()
+        bcc_email = "jackie.wu@advantech.com.cn"
+        subject_email = "Advantech Quote(" & Me.txtQuoteNo.Text.Trim() & ") for " & Me.txtQuoteTo.Text.Trim()
+        'Advantech Order(FU957038/FU957038) for ADVANTECH CO., LTD. (EATWAD01)
+        Dim iRet As Integer = 0, strQuoteHeader As String = "", strQuoteList As String = "", style As String = "", logo As String = ""
+        'iRet = Me.GetCustomerInfo(strCustomer)
+        style = OrderUtilities.GetB2bStyle()
+       
+        If Request("flg") = "history" Then
+            Me.iRet = GetLogoAdd("history", Request("quote_id"), logo)
+            iRet = OrderUtilities.GetQuoteHeader(Request("quote_id"), strQuoteHeader)
+            iRet = OrderUtilities.QuoteList(Request("quote_id"), strQuoteList)
+        Else
+            Me.iRet = GetLogoAdd("", Session("cart_id"), logo)
+            iRet = OrderUtilities.GetQuoteHeader(Session("cart_id"), strQuoteHeader)
+            iRet = OrderUtilities.QuoteList(Session("cart_id"), strQuoteList)
+        End If
+        
+        mailbody = style & logo & strQuoteHeader & strQuoteList
+        MailUtil.Utility_EMailPage(from_email, to_email, cc_email, bcc_email, subject_email, attachfile, mailbody)
+        If Request("flg") = "history" Then
+            Page.Response.Redirect("../quote/QuotationResult.aspx?flg=history&Quote_ID=" & request("quote_id"))
+        Else
+            Page.Response.Redirect(Request.ServerVariables("PATH_INFO")) '("../quote/QuotationResult.aspx")
+        End If
+    End Sub
+    
+
+    
+</script>
+
+<asp:Content ID="Content1" ContentPlaceHolderID="_main" Runat="Server">
+
+    <table width="100%" style="height:100%" border="0" cellspacing="0" cellpadding="0">
+       <tr>
+          <td style="width:100%" colspan="3">
+    	     <!-- include virtual='/utility/header_inc.asp' -->
+    	     
+          </td>
+       </tr>
+       <tr>
+		  <td style="height:15px" colspan="3"></td>
+	   </tr>
+	   
+	   
+	   
+       <tr>
+  	      <td style="width:20px"></td>
+          <td >
+          
+          
+          
+    	     <table cellpadding="0" cellspacing="0" width="100%" align="left">          				
+				
+				<tr><td style="width:100%">
+				<div id="divLogo" runat="server">
+				<table>
+				<tr>
+				<td style="width: 30%" align="left">
+				<asp:Image id='imgLog' runat="server" ImageAlign="left" /></td>
+				<td></td>
+				<td style="width:70%;padding-right:0px" align="right" >
+				<asp:label id="lblAdd" runat="server"  />
+				
+				</td>
+				</tr>
+				</table></div>
+		  		</td></tr>
+		  
+				
+				
+				
+                <tr>
+                    <td style="width:100%">
+                    <div id="div1" runat="server">
+                    <link rel="stylesheet" href="../utility/ebiz.aeu.style.css" />
+                        <table width="100%" border="0" cellspacing="0" cellpadding="0" align="center" style="vertical-align:middle" id="Table2">
+                        
+                        
+                            <tr>
+								<td style="padding-left:10px;border-bottom:#ffffff 1px solid;height:20px;background-color:#6699CC" align="left" valign="middle" class="text">
+										<!--font color="#ffffff"><b>Quotation Header</b></font-->
+										<asp:Label ID='quoteHeader' runat="server" Text="Advantech Quotation" Font-Bold="true" ForeColor=white></asp:Label>
+										<asp:Label ID="entotal" runat="server" Visible="false" Text="Total"></asp:Label>
+										<asp:Label ID="enAddress" runat="server" Visible="false" Text="Address"></asp:Label>
+								</td>
+							</tr>
+					    
+					
+							<!--tr>
+							  <td style="padding-left:10px;border-bottom:#ffffff 1px solid;height:24px;background-color:#d8e4f8" align="left" valign="middle">
+									  <font color="#316ac5"><b>Please fill out the information below to make this quote</b></font>
+							  </td>
+							</tr-->
+                            <tr>
+                              <td valign="top" style="background-color:#BEC4E3">
+                              
+                                <table width="100%" cellspacing="0" cellpadding="0" style="border:#CFCFCF 1px solid" class="text" ID="Table3">
+                                  <tr>
+                                    <td style="height: 210px">
+                                      <table width="100%" border="0" cellspacing="1" cellpadding="3" ID="Table4">
+                                        <tr>
+                                            <td style="background-color:#FFFFFF; height: 20px; width:12%;">
+													<div align="right">
+                                                     <asp:Label ID="enQuoteTo" Text="Quote To:" runat="server"></asp:Label><b></b></div>
+											</td>
+                                            <td style="width:40%;height:20px;background-color:#FFFFFF" colspan="" rowspan="" align="left">
+                                                &nbsp;<asp:Label ID="txtQuoteTo" runat="server"></asp:Label>&nbsp;										 
+											</td>
+											
+											 <td style="background-color:#FFFFFF; height: 20px; width:12%;">
+													<div align="right">
+                                                      <asp:Label ID="enQuoteDate" Text="Quote Date:" runat="server"></asp:Label><b></b></div>
+											</td>
+                                            <td style="width:40%;height:20px;background-color:#FFFFFF" colspan="" rowspan="" align="left">
+                                                &nbsp;
+                                                <asp:Label ID="txtQuoteDate" runat="server"></asp:Label>
+												  &nbsp;&nbsp;</td>
+                                        </tr>
+                                        <tr>
+                                            <td style="background-color:#FFFFFF; height: 20px; width:10%;">
+                                               <div align="right"><asp:Label ID="enDelDate" Text="Delivery Date:" runat="server"></asp:Label></div>
+                                            </td>
+                                            <td style="width:40%;height:20px;background-color:#FFFFFF" align="left">
+                                                &nbsp;<asp:Label ID="txtDelDate" runat="server"></asp:Label></td>
+                                               
+                                               <td style="background-color:#FFFFFF; height: 20px; width:10%;">
+                                               <div align="right"><asp:Label ID="enQuoteNo" Text="Quote Number:" runat="server"></asp:Label></div>
+                                            </td>
+                                            <td style="width:40%;height:20px;background-color:#FFFFFF" align="left">
+                                                &nbsp;<asp:Label ID="txtQuoteNo" runat="server"></asp:Label></td>
+                                        </tr>
+                                         <tr>
+                                            <td style="background-color:#FFFFFF; height: 20px; width:10%;">
+                                               <div align="right"><asp:Label ID="enShipTerms" Text="Shipping Terms:" runat="server"></asp:Label> </div>
+                                            </td>
+                                          <td style="width:40%;height:20px;background-color:#FFFFFF" align="left">
+                                                &nbsp;<asp:Label ID="ddlShipCondition" runat="server"></asp:Label></td>
+                                               
+                                               <td style="background-color:#FFFFFF; width:10%; height:20px;">
+                                               <div align="right"><asp:Label ID="enExpDate" Text="Expired Date:" runat="server"></asp:Label> </div>
+                                            </td>
+                                            <td style="width:40%;height:20px;background-color:#FFFFFF" align="left">
+                                                &nbsp;<asp:Label ID="txtExpDate" runat="server"></asp:Label></td>
+                                        </tr>
+                                        
+                                       
+                                        <tr>
+                                           <td style="background-color:#FFFFFF; height: 20px; width: 10%;">
+                                             <div align="right"><asp:Label ID="enPaymentTerm" runat="server" Text="Payment Terms:"></asp:Label></div>
+                                           </td>
+                                           <td style="width:40%;height:20px;background-color:#FFFFFF" align="left">
+                                               &nbsp;<asp:Label ID="txtPayment" runat="server" ></asp:Label>
+                                           </td>
+                                           
+                                            <td style="background-color:#FFFFFF; height: 20px; width: 10%;">
+                                             <div align="right"><asp:Label ID="enSalesContact" runat="server" Text="Sales Contact:"></asp:Label></div>
+                                           </td>
+                                           <td style="width:40%;height:20px;background-color:#FFFFFF" align="left">
+                                               &nbsp;<asp:Label ID="txtSalesContact" runat="server"></asp:Label>
+                                           </td>
+                                       </tr>
+                                      
+                                       <tr>
+                                           <td style="background-color:#FFFFFF; height: 20px; width:10%;">
+                                            <div align="right"><asp:Label ID="enSalesPhone" runat="server" Text="Direct Phone:"></asp:Label></div>
+                                           </td>
+                                           <td style="width:40%;height:20px;background-color:#FFFFFF" align="left" valign="middle">
+                                              <!-- For Logistics and Administrator -->
+                                               &nbsp;<asp:Label ID="txtPhone" runat="server"></asp:Label>
+                                           </td>
+                                           
+                                            <td style="background-color:#FFFFFF; height: 20px; width:10%;">
+                                            <div align="right"><asp:Label ID="enSalesEmail" runat="server" Text="Sales Email:"></asp:Label></div>
+                                           </td>
+                                             <td style="width:40%;height:20px;background-color:#FFFFFF" align="left" valign="middle">
+                                              <!-- For Logistics and Administrator -->
+                                               &nbsp;<asp:Label ID="txtSalesEmail" runat="server"></asp:Label>
+                                           </td>
+                                       </tr>
+                    
+                                        <tr>
+                                           <td style="background-color:#FFFFFF;height:40px; width:10%;" valign="top">
+                                              <div align="right"><asp:Label ID="enProductWarranty" runat="server" Text="Related Information:"></asp:Label></div>
+                                           </td>
+                                           <td style="background-color:#FFFFFF;height:40px; width:90%;" align="left" colspan="3" valign="top">                                            
+                                              <!--iframe style="border:0; width: 97%;" frameborder="1" scrolling="yes" name="Terms and Condition" width="73%"
+									height="100%" src="../quote/rmaPolicy/rma_english.htm"></iframe-->
+                                              <!--iframe style="border:0; width: 97%;" frameborder="1" scrolling="yes" name="Terms and Condition" width="73%"
+									height="100%" src="../quote/rmaPolicy/rma_english.htm"></iframe-->
+                                               &nbsp;<b>1.&nbsp;&nbsp;<a href="../Order/Terms.aspx">Advantech Terms and Conditions</a></b><br />
+                                               &nbsp;<b>2.&nbsp;&nbsp;<a href="../Quote/rmaPolicy/rma_english.htm">Advantech Warranty Policy</a></b>
+                                            </td>
+                                        </tr>
+                    
+                                        <tr>
+                                           <td style="background-color:#FFFFFF;height:66px; width:10%;" valign="top" >
+                                              <div align="right"><asp:Label ID="enQuoteNote" runat="server" Text="Quote Notes:" > </asp:Label></div>
+                                           </td>
+                                           <td style="background-color:#FFFFFF;height:66px; width:90%;" align="left" colspan="3" runat="server" id="txtQuoteNote" valign="top">                                            
+                                               </td>
+                                        </tr>
+                                      </table>
+                                  </td>
+                               </tr>
+                            </table>
+                         </td>
+                      </tr>
+                   </table>
+                   
+                    </div>
+                </td>
+             </tr>
+             
+             
+             
+             
+              <tr>
+				  
+					<td>
+					 <div id="div2" runat="server"> 
+					<br /> 
+					<!-- Frequency used -->
+					<table cellpadding="1"  width="100%"><tr><td style="background-color:#666666">
+			<table width="100%" border="0" cellspacing="0" cellpadding="0" align="center" style="vertical-align:middle" ID="Table1">
+                    <tr>
+                        <td style="padding-left:10px;border-bottom:#ffffff 1px solid;height:20px;background-color:#6699CC" align="left" valign="middle" class="text">
+                        <font color="#ffffff"><b>Product</b></font></td></tr>
+                        <tr><td>
+										
+														
+												<asp:GridView runat="server" Width="100%" ID="GridView1" AutoGenerateColumns = "true" 
+                                                            DataSourceID ="SqlDataSource1" onrowdatabound="GridView1_RowDataBound" 
+                                                            AllowPaging="True" PageIndex="0" PageSize="20"></asp:GridView>		
+								
+								
+								
+														
+                                            <asp:SqlDataSource ID="SqlDataSource1" runat="server" ConnectionString="<%$ ConnectionStrings:B2B %>"></asp:SqlDataSource>
+								   
+                </td></tr><tr><td id="tdTotal" align="right" style="background-color:#ffffff" runat="server"></td></tr></table>
+				</td></tr></table>
+<%--                        &nbsp;<adl:AdxDatagrid 
+				ID="AdxDatagrid1" 
+				runat="server" 
+				xNaviPage="false" 
+				xShowCount="true" 				
+				xShowFooter="true" 
+				xTitleText="Product" 				
+				xImgUrl="../Images/" 
+				xConnectionString="ADLSERVER" 
+				xPageSize="20"
+				xShowEdit = "false"
+				xEditSQL = " update quotation_detail "
+				xshowdelete="false"
+				xdeleteKey="line_no,quote_id" 		
+				xDebugSQL="false" 					
+				xdeletesql="delete from quotation_detail "
+				xAdd="false"
+				 xShowBoolean="false"
+				>
+				                <adl:AdxColumn runat="server" id="line" xDataSource="line" xHeaderText="Part No" xalign="center" xSearch="false" xSortable="false" xVisible="false"></adl:AdxColumn>
+								<adl:AdxColumn runat="server" id="line_no" xDataSource="line_no" xHeaderText="Part No" xalign="left" xSearch="false" xSortable="false" xVisible="false"></adl:AdxColumn>
+								<adl:AdxColumn runat="server" id="part_no" xDataSource="part_no" xHeaderText="Part No." xalign="left" xSearch="false" xSortable="false" ></adl:AdxColumn>
+								<adl:AdxColumn runat="server" id="product_desc" xDataSource="product_desc" xHeaderText="Description" ></adl:AdxColumn>
+								<adl:AdxColumn runat="server" id="list_price" xDataSource="list_price" xHeaderText="List Price" xReadOnly="false" xalign="right" ></adl:AdxColumn>
+								<adl:AdxColumn runat="server" id="disc" xDataSource="disc" xHeaderText="Disc" xReadOnly="false" xalign="right"></adl:AdxColumn>
+								<adl:AdxColumn runat="server" id="unit_price" xDataSource="unit_price" xHeaderText="Unit Price" xReadOnly="false" xalign="right"></adl:AdxColumn>
+								<adl:AdxColumn runat="server" id="qty" xDataSource="qty" xHeaderText="QTY" xReadOnly="false" xalign="right"></adl:AdxColumn>
+								<adl:AdxColumn runat="server" id="atp_num" xDataSource="atp_num" xHeaderText="Availability" xVisible="false"></adl:AdxColumn>
+								<adl:AdxColumn runat="server" id="atp_date" xDataSource="atp_date" xHeaderText="Due Date" xAlign="center"></adl:AdxColumn>
+								<adl:AdxColumn runat="server" id="subtotal" xDataSource="subtotal" xHeaderText="Sub Total" xalign="right"></adl:AdxColumn>
+								<adl:AdxColumn runat="server" id="marge" xDataSource="marge" xHeaderText="Marge" xVisible="false"></adl:AdxColumn>
+								<adl:AdxColumn runat="server" id="itp" xDataSource="itp" xHeaderText="ITP" xReadOnly="false" xVisible="false"></adl:AdxColumn>
+								<adl:AdxColumn runat="server" id="status" xDataSource="status" xHeaderText="Status" xVisible="false"></adl:AdxColumn>
+								
+								</adl:AdxDatagrid> --%>
+								
+								<br />
+								</div>
+					</td>
+					
+				</tr>
+				
+			<tr align="center" valign="middle"><!--Quote Description-->
+			    <td>
+			    <asp:Label ID="Label1" runat="server" Text="Quote Description:" Font-Bold="True"></asp:Label>
+                            &nbsp;
+                            <asp:TextBox ID="txtQuoteHistory" runat="server" Width="150px" BorderStyle="NotSet"></asp:TextBox>&nbsp; &nbsp;
+                            <asp:ImageButton
+                                ID="ImageButton_NextStep" runat="server" ImageUrl="../images/ebiz.aeu.face/btn_savequo.gif" OnClick="ImageButton_NextStep_Click" />
+			    </td>
+			    
+			</tr>
+			<tr height="6px" id="trLine" runat="server">
+				<td background="../images/b2bh_mc_bk.gif">
+				</td>
+				</tr>
+			<tr align="center" valign="middle"><!--Print-->
+			    <td>
+			        <b>Print(To PDF File):&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &nbsp;&nbsp; &nbsp;&nbsp;&nbsp; &nbsp; &nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; &nbsp; &nbsp;&nbsp;&nbsp; &nbsp; &nbsp;&nbsp;&nbsp; &nbsp; &nbsp;&nbsp;&nbsp;&nbsp; &nbsp; &nbsp;&nbsp;&nbsp; &nbsp;</b><!--a href="javascript:void DoPrint();">[Print]</a--><img alt="" src="../images/print.gif" onclick="javascript:void DoPrint();" width="73" height="20" /> 
+			         &nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &nbsp;
+			    </td>
+			    
+			</tr>
+			
+			<tr align="center" valign="bottom"><!--Send Mail-->
+			    <td>
+			    <asp:Label ID="lblSendmail" runat="server" Font-Bold="True"
+                                Text="Send Mail To:"></asp:Label>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp;
+                            <asp:TextBox ID="txtSendemail" runat="server" Width="150px" BorderStyle="NotSet"></asp:TextBox>
+                           &nbsp;&nbsp;
+                                <asp:ImageButton runat="server" OnClick="btnSendmail_Click" ID="btnSendmail" ImageUrl="../images/send.gif" />&nbsp; &nbsp; &nbsp;&nbsp;&nbsp;
+                                <asp:Literal ID="Literal1" runat="server" Visible="False"></asp:Literal>
+			    </td>
+			    
+			</tr>
+				
+             <!--tr>  
+                <td style="height:2px" valign="top" align="center">
+				   
+						<br/>
+						<p>
+                            <a href="javascript:void DoPrint();">Print</a>
+                            &nbsp; &nbsp; &nbsp;&nbsp;
+                            &nbsp; &nbsp;
+                            <br/>
+                            &nbsp;</p>
+				   
+			    </td>
+             </tr-->
+        
+          </table>      
+          
+       </td>
+          <td style="width:20px">
+          </td>
+       </tr>
+   
+       <tr>
+		  <td style="height:15px" colspan="3">
+		  </td>
+	   </tr>
+       <tr>
+		  <td style="width:100%" colspan="3">
+		      <!-- include virtual="/utility/footer_inc.asp" -->
+		      
+		  </td>
+	   </tr>
+    </table>
+    <input type="hidden" id="logo" runat="server" />
+    <script language='JavaScript'>
+	function DoPrint()
+	{
+		var text;
+		txt = divLogo.innerHTML
+		text = div1.innerHTML;	
+		text2=div2.innerHTML;
+				document.open();
+				document.write("");
+				document.write(txt + text +text2);
+				//document.write(text2);
+				document.close();
+				print();
+				window.setTimeout("window.location.href = window.location.href",2000);
+				//window.location.href = window.location.href;
+	}
+	
+	function SaveValue()
+	{
+		var text;
+		txt = divLogo.innerHTML
+		text = div1.innerHTML;	
+		text2=div2.innerHTML;
+//				document.open();
+//				document.write("");
+//				document.write(txt + text +text2);
+				//document.write(text2);
+//				document.close();
+//				print();
+				window.setTimeout("window.location.href = window.location.href",2000);
+				//window.location.href = window.location.href;
+				document.form1.logo.value = txt
+	}
+</script>
+</asp:Content>
+

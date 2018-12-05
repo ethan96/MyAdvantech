@@ -1,0 +1,257 @@
+﻿<%@ Page Title="MyAdvantech - Upload Training Files" Language="VB" MasterPageFile="~/Includes/MyMaster.master" ValidateRequest="false" %>
+<%@ Register TagPrefix="fup" Namespace="OboutInc.FileUpload" Assembly="obout_FileUpload" %>
+
+<script runat="server">
+
+    Protected Sub Page_Load(sender As Object, e As System.EventArgs)
+        If Not Page.IsPostBack Then
+            If Request("upid") IsNot Nothing Then
+                hd_UPID.Value = Request("upid")
+            Else
+                hd_UPID.Value = System.Guid.NewGuid().ToString().Replace("-", "").Substring(0, 10)
+            End If
+            hyToFileAdmin.NavigateUrl = "FileAdmin.aspx?upid=" + hd_UPID.Value
+        End If
+        If Page.IsPostBack Then
+            Dim files As HttpFileCollection = Page.Request.Files, total As Integer = 0, i As Integer
+            For i = 0 To files.Count - 1
+                Dim file As HttpPostedFile = files(i)
+                If file.FileName.Length > 0 Then
+                    total = total + 1
+                End If
+            Next
+            If total > 0 Then
+                UploadFiles() 
+                gvRowFiles.DataBind()
+                uploadedFilesNumber.Text = "Uploaded files number: " + total.ToString()
+                uploadedFilesNumber.Visible = True
+            Else
+                uploadedFilesNumber.Visible = False
+            End If
+           
+        End If
+    End Sub
+    
+    Sub UploadFiles()
+        Dim dt As New DataTable ', upId As String = System.Guid.NewGuid().ToString().Replace("-", "").Substring(0, 10)
+        Dim upDate As DateTime = Now, expDate As DateTime = DateAdd(DateInterval.Month, 1, upDate)
+        With dt.Columns
+            .Add("UPLOAD_ID") : .Add("FILE_ID") : .Add("FILE_NAME") : .Add("FILE_TYPE") : .Add("FILE_DESC")
+            .Add("FILE_BIN", GetType(Byte())) : .Add("UPLOADED_BY") : .Add("UPLOADED_DATE", GetType(DateTime))
+            .Add("EXPIRE_DATE", GetType(DateTime)) : .Add("NEVER_EXPIRE", GetType(Boolean)) : .Add("DOWNLOAD_TIMES", GetType(Integer))
+            .Add("TO_ALL", GetType(Boolean))
+        End With
+        Dim files As HttpFileCollection = Page.Request.Files, i As Integer
+        For i = 0 To files.Count - 1
+            Dim file As HttpPostedFile = files(i)
+            If file.FileName.Length > 0 Then
+                Dim r As DataRow = dt.NewRow()
+                With r
+                    .Item("UPLOAD_ID") = hd_UPID.Value
+                    .Item("FILE_ID") = System.Guid.NewGuid().ToString().Replace("-", "").Substring(0, 10)
+                    .Item("FILE_NAME") = file.FileName
+                    .Item("FILE_TYPE") = System.IO.Path.GetExtension(file.FileName)
+                    .Item("FILE_DESC") = ""
+                    .Item("FILE_BIN") = GetStreamAsByteArray(file.InputStream)
+                    .Item("UPLOADED_BY") = Session("user_id")
+                    .Item("UPLOADED_DATE") = upDate : .Item("EXPIRE_DATE") = expDate : .Item("NEVER_EXPIRE") = False
+                    .Item("DOWNLOAD_TIMES") = 0 : .Item("TO_ALL") = False
+                End With
+                dt.Rows.Add(r)
+            End If
+        Next
+        If dt.Rows.Count > 0 Then
+            Dim bk As New SqlClient.SqlBulkCopy(ConfigurationManager.ConnectionStrings("BigFiles").ConnectionString)
+            bk.DestinationTableName = "TRAINING_FILES"
+            bk.WriteToServer(dt)
+        End If
+    End Sub
+    
+    Private Function GetStreamAsByteArray(ByVal stream As System.IO.Stream) As Byte()
+        Dim streamLength As Integer = Convert.ToInt32(stream.Length)
+        Dim fileData As Byte() = New Byte(streamLength) {}
+        ' Read the file into a byte array
+        stream.Read(fileData, 0, streamLength)
+        stream.Close()
+        Return fileData
+    End Function
+    
+    Protected Sub lnkDeleteRowFile_Click(sender As Object, e As System.EventArgs)
+        Dim lnkBtn As LinkButton = sender
+        Dim upid As String = CType(lnkBtn.NamingContainer.FindControl("hd_FILEROWUPID"), HiddenField).Value
+        Dim fid As String = CType(lnkBtn.NamingContainer.FindControl("hd_FILEID"), HiddenField).Value
+        dbUtil.dbExecuteNoQuery("BigFiles", "delete from TRAINING_FILES where UPLOAD_ID='" + upid + "' and FILE_ID='" + fid + "' ")
+        gvRowFiles.DataBind()
+    End Sub
+
+    Protected Sub btnRowFDescUpdate_Click(sender As Object, e As System.EventArgs)
+        Dim btn As Button = sender
+        Dim txtNewDesc As String = CType(btn.NamingContainer.FindControl("txtRowFileDesc"), TextBox).Text
+        Dim upid As String = Me.hd_UPID.Value
+        Dim fid As String = CType(btn.NamingContainer.FindControl("hd_ROWFID"), HiddenField).Value
+        dbUtil.dbExecuteNoQuery("BigFiles", "update TRAINING_FILES set FILE_DESC=N'" + Replace(txtNewDesc, "'", "''") + "' where UPLOAD_ID='" + upid + "' and FILE_ID='" + fid + "'")
+    End Sub
+
+    Protected Sub gvRowFiles_DataBound(sender As Object, e As System.EventArgs)
+        If gvRowFiles.Rows.Count > 0 Then
+            hyToFileAdmin.Visible = True
+        Else
+            hyToFileAdmin.Visible = False
+        End If
+    End Sub
+</script>
+
+<asp:Content ID="Content1" ContentPlaceHolderID="_main" Runat="Server">
+    <asp:HiddenField runat="server" ID="hd_UPID" />
+    <script type="text/JavaScript">
+        function Clear() {
+            document.getElementById("<%= uploadedFilesNumber.ClientID %>").innerHTML = "";
+            ShowHideCancelUploadBtn();
+        }
+        function ShowHideCancelUploadBtn(){
+            if(document.getElementById('lnkCancelUpload').style.display=='block'){
+                document.getElementById('lnkCancelUpload').style.display='none';
+            }
+            else{
+                document.getElementById('lnkCancelUpload').style.display='block';
+            }
+        }
+        function Refresh(info) {
+            document.getElementById("<%= uploadedFilesNumber.ClientID %>").innerHTML =
+                 'uploaded ' + info.Bytes + ' bytes from ' + info.RequestSize + ' ...';
+            //ShowHideCancelUploadBtn();
+        }
+        function Cancel(){
+            <%= FileUploadProgress1.ClientID %>_obj.CancelRequest();
+            document.getElementById('lnkCancelUpload').style.display='none';
+            ShowHideCancelUploadBtn();
+        }
+        function Rejected(fileName, size, maxSize)
+        {
+            alert("File "+fileName+" is rejected \nIts size ("+size+" bytes) exceeds "+maxSize+" bytes");
+        }
+        function deleteClicked()
+        {
+          var container = document .getElementById("inputsPlace");
+          var inputElls = container.getElementsByTagName("input");
+          var inputs    = [];
+
+          for(var i=0; i < inputElls.length; i++)
+          {
+            inputs.push(inputElls[i]);
+          }
+
+          for(var i=0; i < inputs.length; i++)
+          {
+            var inputElement = inputs[i];
+            if(inputElement.type=="checkbox" && inputElement.checked)
+            {
+              var number = inputElement.id.replace(/^check(\d+)/,"$1");
+              var div    = document .getElementById("div"+number);
+
+              div.parentNode.removeChild(div);
+            }
+          }
+        }
+
+        function addClicked()
+        {
+          var container = document .getElementById("inputsPlace");
+          var inputs    = container.getElementsByTagName("input");
+          var number    = "1";
+
+          for(var i=0; i < inputs.length; i++)
+          {
+            var inputElement = inputs[i];
+            if(inputElement.type=="checkbox")
+            {
+              number = (parseInt(inputElement.id.replace(/^check(\d+)/,"$1"))+1).toString();
+            }
+          }
+
+          var newDiv = document.createElement("DIV");
+          newDiv.id  = "div"+number;
+          container.appendChild(newDiv);
+
+          var newCheck  = document.createElement("INPUT");
+          newCheck.id   = "check"+number;
+          newCheck.type = "checkbox";
+          newDiv.appendChild(newCheck);
+
+          var newInput  = document.createElement("INPUT");
+          newInput.name = "myFile"+number;
+          newInput.type = "file";
+          newInput.style.marginLeft = "20px";
+          newDiv.appendChild(newInput);
+    }
+    </script>
+    <a href="MyUpload.aspx">Go back to My Uploaded Files</a>&nbsp;|&nbsp;
+    <asp:HyperLink runat="server" Visible="false" ID="hyToFileAdmin" Text="Go to File Permission Admin" /><br/>
+    <h2>Upload Files</h2><br />
+    <asp:Button runat="server" ID="add" Text="Add new file input" OnClientClick="addClicked(); return false;" />&nbsp;
+    <asp:Button runat="server" ID="del" Text="Delete checked inputs" OnClientClick="deleteClicked(); return false;" /><br />
+    <div id="inputsPlace">
+        <div id="div1">
+            <input type="checkbox" id="check1" /><input type="file" name="myFile1" style="margin-left: 20px;" /></div>
+    </div>
+    <b>Accepted file formats: pdf, ppt, doc, pptx, docx, xls, xlsx, rar, and zip</b><br />
+    <input type="submit" value="Upload" name="mySubmit" /><br />
+    <br />
+    <fup:FileUploadProgress ID="FileUploadProgress1" OnClientProgressStopped="function(){}"
+        OnClientProgressStarted="Clear" OnClientProgressRefreshed="Refresh" OnClientSubmitting="function(){}"
+        OnClientFileRejected="Rejected" ShowUploadedFiles="true" runat="server">
+        <AllowedFileFormats>
+            <fup:Format Ext="pdf" MaxByteSize="30000000" />
+            <fup:Format Ext="ppt" MaxByteSize="30000000" />
+            <fup:Format Ext="doc" MaxByteSize="30000000" />
+            <fup:Format Ext="pptx" MaxByteSize="30000000" />
+            <fup:Format Ext="docx" MaxByteSize="30000000" />
+            <fup:Format Ext="xls" MaxByteSize="30000000" />
+            <fup:Format Ext="xlsx" MaxByteSize="30000000" />
+            <fup:Format Ext="rar" MaxByteSize="30000000" />
+            <fup:Format Ext="zip" MaxByteSize="30000000" />
+            <fup:Format Ext="apk" MaxByteSize="30000000" />
+            <fup:Format Ext="flv" MaxByteSize="30000000" />
+        </AllowedFileFormats>
+    </fup:FileUploadProgress>
+    <a href="javascript:void(0);" onclick="Cancel(); return false;" id="lnkCancelUpload"
+        style="display: none;">Cancel Upload</a><br />
+    <asp:Label runat="server" ID="uploadedFilesNumber" Text="" />
+    Uploaded Files:
+    <asp:GridView runat="server" ID="gvRowFiles" Width="100%" DataSourceID="srcRowFiles"
+        DataKeyNames="FILE_ID" AutoGenerateColumns="false" ShowHeader="false" OnDataBound="gvRowFiles_DataBound">
+        <Columns>
+            <asp:TemplateField HeaderText="File Name">
+                <ItemTemplate>
+                    <a href='../../Includes/TrainingFiles/DlTrainingFile.ashx?upid=<%#Eval("UPLOAD_ID") %>&fid=<%#Eval("FILE_ID") %>'>
+                        <%#Eval("FILE_NAME")%></a>
+                </ItemTemplate>
+            </asp:TemplateField>
+            <asp:TemplateField HeaderText="File Description">
+                <ItemTemplate>
+                    <asp:UpdatePanel runat="server" ID="upRowFDesc" UpdateMode="Conditional">
+                        <ContentTemplate>                            
+                            <asp:HiddenField runat="server" ID="hd_ROWFID" Value='<%#Eval("FILE_ID") %>' />
+                            <asp:TextBox runat="server" ID="txtRowFileDesc" Text='<%#Eval("FILE_DESC") %>' />&nbsp;<asp:Button runat="server" ID="btnRowFDescUpdate" Text="Update" OnClick="btnRowFDescUpdate_Click" />
+                        </ContentTemplate>
+                    </asp:UpdatePanel>                    
+                </ItemTemplate>
+            </asp:TemplateField>
+            <asp:BoundField HeaderText="Uploaded Date" DataField="UPLOADED_DATE" SortExpression="UPLOADED_DATE" />
+            <asp:TemplateField>
+                <ItemTemplate>
+                    <asp:HiddenField runat="server" ID="hd_FILEROWUPID" Value='<%#Eval("UPLOAD_ID") %>' />
+                    <asp:HiddenField runat="server" ID="hd_FILEID" Value='<%#Eval("FILE_ID") %>' />
+                    <asp:LinkButton runat="server" ID="lnkDeleteRowFile" Text="Delete" OnClick="lnkDeleteRowFile_Click" />
+                </ItemTemplate>
+            </asp:TemplateField>
+        </Columns>
+    </asp:GridView>
+    <asp:SqlDataSource runat="server" ID="srcRowFiles" ConnectionString="<%$ConnectionStrings:BigFiles %>"
+        SelectCommand="select UPLOAD_ID, FILE_NAME, FILE_ID, FILE_TYPE, UPLOADED_DATE, FILE_DESC from TRAINING_FILES where UPLOAD_ID=@UPID order by FILE_ID ">
+        <SelectParameters>
+            <asp:ControlParameter ControlID="hd_UPID" ConvertEmptyStringToNull="false" PropertyName="Value"
+                Name="UPID" />
+        </SelectParameters>
+    </asp:SqlDataSource>
+</asp:Content>

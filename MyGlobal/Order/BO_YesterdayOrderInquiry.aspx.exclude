@@ -1,0 +1,483 @@
+<%@ Page Language="VB" MasterPageFile="~/Includes/MyMaster.master" Title="Yesterday Order Inquiry" %>
+<%@ Register TagPrefix="NaviOrderTracking" TagName="Inc" Src="~/Includes/OrderTrackingNavi_Inc.ascx" %>
+<%@ Import Namespace="System.Data.SqlClient" %>
+
+<script runat="server">
+    Dim dtorderdateFrom As String = ""
+    Dim dtorderdateTo As String = ""
+    
+    Private Property GridViewSortDirection() As String
+        Get
+            Return IIf(ViewState("SortDirection") = Nothing, "ASC", ViewState("SortDirection"))
+        End Get
+        Set(ByVal value As String)
+            ViewState("SortDirection") = value
+        End Set
+    End Property
+
+    Private Property GridViewSortExpression() As String
+        Get
+            Return IIf(ViewState("SortExpression") = Nothing, String.Empty, ViewState("SortExpression"))
+        End Get
+        Set(ByVal value As String)
+            ViewState("SortExpression") = value
+        End Set
+    End Property
+    
+    Private Function GetSortDirection() As String
+        Select Case GridViewSortDirection
+            Case "ASC"
+                GridViewSortDirection = "DESC"
+            Case "DESC"
+                GridViewSortDirection = "ASC"
+        End Select
+        Return GridViewSortDirection
+    End Function
+    
+    Private Sub page_load(ByVal sender As Object, ByVal e As System.EventArgs)
+        If Trim(Request("txtOrderDateFrom") = "") Then
+            Me.txtOrderDateFrom.Text = FormatDate_SAP(Date.Now.AddDays(-1))
+        Else
+            Me.txtOrderDateFrom.Text = FormatDate_SAP(Request.Form("txtOrderDateFrom"))
+        End If
+        If Trim(Request("txtOrderDateTo") = "") Then
+            Me.txtOrderDateTo.Text = FormatDate_SAP(Date.Now())
+        Else
+            Me.txtOrderDateTo.Text = FormatDate_SAP(Request.Form("txtOrderDateTo"))
+        End If
+        'Initialize page control (END)
+        '----------------------------------------------------------------------------
+        Call initSearch()
+        
+    End Sub
+    
+    Protected Sub gv1_Sorting(ByVal sender As Object, ByVal e As System.Web.UI.WebControls.GridViewSortEventArgs) Handles gv1.Sorting
+        GridViewSortExpression = e.SortExpression
+        Dim pageIndex As Integer = gv1.PageIndex
+        gv1.DataSource = SortDataTable(ViewState("dt"), False)
+        gv1.DataBind()
+        gv1.PageIndex = pageIndex
+    End Sub
+    
+    Protected Function SortDataTable(ByVal dataTable As DataTable, ByVal isPageIndexChanging As Boolean) As DataView
+        If Not dataTable Is Nothing Then
+            Dim dataView As New DataView(dataTable)
+            If GridViewSortExpression <> String.Empty Then
+                If isPageIndexChanging Then
+                    dataView.Sort = String.Format("{0} {1}", GridViewSortExpression, GridViewSortDirection)
+                Else
+                    dataView.Sort = String.Format("{0} {1}", GridViewSortExpression, GetSortDirection())
+                End If
+            End If
+            Return dataView
+        Else
+            Response.Write("no gv source!")
+            Return New DataView()
+        End If
+    End Function
+    
+    Private Sub initSearch()
+        
+        
+        'Get Data for DataGrid (START)
+        '----------------------------------------------------------------------------
+        
+        Dim strSQLBackOrder As String = ""
+        Dim BackOrder_DT As New DataTable
+        '--1. SO,PO,PartNo all Empty
+        '--2. Query By PO 
+        '--3. Query By ProductID
+        '======Maybe contain both Component Order and BTOS Order
+        '--4. Query By SO
+        
+        Dim strConn As String = ConfigurationManager.ConnectionStrings("B2B").ToString
+        Dim oAdp As New SqlDataAdapter
+        oAdp.SelectCommand = New SqlCommand
+        oAdp.SelectCommand.Connection = New SqlConnection(strConn)
+        oAdp.SelectCommand.CommandType = CommandType.StoredProcedure
+        oAdp.SelectCommand.CommandText = "[dbo].[SP_PAGE_GETYESTERDAYORDER]"
+        Dim oPara1 As SqlParameter = New SqlParameter("@DateFrom", SqlDbType.DateTime)
+        oPara1.Value = CDate(Me.txtOrderDateFrom.Text.Trim)
+        oAdp.SelectCommand.Parameters.Add(oPara1)
+        Dim oPara2 As SqlParameter = New SqlParameter("@DateTo", SqlDbType.DateTime)
+        oPara2.Value = CDate(Me.txtOrderDateTo.Text.Trim)
+        oAdp.SelectCommand.Parameters.Add(oPara2)
+        oAdp.Fill(BackOrder_DT)
+        oAdp.Dispose()
+        
+        
+        If BackOrder_DT.Rows.Count < 1 Then
+                          
+            strSQLBackOrder = "Select OrderNo, " & _
+                      " PONo, " & _
+                      " ShipToId, " & _
+                      " BillToId, " & _
+                      " SalesID, " & _
+                      " OrderDate, " & _
+                      " Currency, " & _
+                      " OrderLine, " & _
+                      " SchdLineNo, " & _
+                      " ProductId, " & _
+                      " SchdLineConfirmQty, " & _
+                      " (SchdLineConfirmQty - SchdLineOpenQty) as SchedLineShipedQty , " & _
+                      " UnitPrice, " & _
+                      " (SchdLineConfirmQty * UnitPrice) as TotalPrice, " & _
+                      " RequiredDate, " & _
+                      " DueDate, " & _
+                      " SchdLineOpenQty, " & _
+                      " IsNull(ExWarranty,'00') as ExWarranty " & _
+                      " From factOrder " & _
+                      " Where 1<>1 "
+            oAdp = New SqlDataAdapter(strSQLBackOrder, strConn)
+            BackOrder_DT.Clear()
+            oAdp.Fill(BackOrder_DT)
+            oAdp.Dispose()
+        End If
+        
+        gv1.DataSource = BackOrder_DT
+        ViewState("dt") = BackOrder_DT
+        If Not Page.IsPostBack Or Me.SearchFlag.Text = "YES" Then
+            Me.SearchFlag.Text = "NO"
+            gv1.DataBind()
+        End If
+    End Sub
+    
+    Function FormatDate(ByVal xDate As String) As String
+        Dim xYear As String = "0000"
+        Dim xMonth As String = "00"
+        Dim xDay As String = "00"
+        
+        If IsDate(xDate) = True Then
+            xYear = Year(xDate).ToString
+            xMonth = Month(xDate).ToString
+            xDay = Day(xDate).ToString
+        Else
+            Dim ArrDate() As String = xDate.Split("/")
+        
+            If ArrDate(0).Length = 4 Then
+                xYear = ArrDate(0)
+                xMonth = ArrDate(1)
+                xDay = ArrDate(2)
+            Else
+                xYear = ArrDate(2)
+                xMonth = ArrDate(0)
+                xDay = ArrDate(1)
+            End If
+        End If
+        
+        If xMonth.Length = 1 Then
+            xMonth = "0" & xMonth
+        End If
+        If xDay.Length = 1 Then
+            xDay = "0" & xDay
+        End If
+        FormatDate = xMonth & "/" & xDay & "/" & xYear
+    End Function
+    Function FormatDate_SAP(ByVal xDate As String) As String
+        Dim xYear As String = "0000"
+        Dim xMonth As String = "00"
+        Dim xDay As String = "00"
+        'Response.Write(xDate)
+        'Response.End()
+        If IsDate(xDate) = True Then
+            xYear = Year(xDate).ToString
+            xMonth = Month(xDate).ToString
+            xDay = Day(xDate).ToString
+        Else
+            Dim ArrDate() As String = xDate.Split("/")
+        
+            If ArrDate(0).Length = 4 Then
+                xYear = ArrDate(0)
+                xMonth = ArrDate(1)
+                xDay = ArrDate(2)
+            Else
+                xYear = ArrDate(2)
+                xMonth = ArrDate(0)
+                xDay = ArrDate(1)
+            End If
+        End If
+        
+        If xMonth.Length = 1 Then
+            xMonth = "0" & xMonth
+        End If
+        If xDay.Length = 1 Then
+            xDay = "0" & xDay
+        End If
+        FormatDate_SAP = xYear & "/" & xMonth & "/" & xDay
+    End Function
+    
+    Function FormatDate_Daive(ByVal xDate As String) As String
+        Dim xYear As String = "0000"
+        Dim xMonth As String = "00"
+        Dim xDay As String = "00"
+        
+        xYear = Left(xDate, 4)
+        xMonth = Mid(xDate, 5, 2)
+        xDay = Right(xDate, 2)
+        
+        If xMonth.Length = 1 Then
+            xMonth = "0" & xMonth
+        End If
+        If xDay.Length = 1 Then
+            xDay = "0" & xDay
+        End If
+        FormatDate_Daive = xYear & "/" & xMonth & "/" & xDay
+    End Function
+    
+    Protected Sub submit_Click(ByVal sender As Object, ByVal e As System.Web.UI.ImageClickEventArgs)
+        Me.SearchFlag.Text = "YES"
+        Call initSearch()
+    End Sub
+    
+    Protected Sub gv1_RowDataBound(ByVal sender As Object, ByVal e As System.Web.UI.WebControls.GridViewRowEventArgs)
+        If e.Row.RowType = DataControlRowType.DataRow Then
+            e.Row.Attributes.Add("onmouseover", "currentcolor=this.style.backgroundColor;this.style.backgroundColor='#FFEEAA'")
+            e.Row.Attributes.Add("onmouseout", "this.style.backgroundColor=currentcolor")
+            e.Row.Cells(1).Text = "<a href='/Order/BO_OrderTracking.aspx?SO_NO=" & e.Row.Cells(1).Text & "&PO_No=" & e.Row.Cells(2).Text & "'>" & e.Row.Cells(1).Text & "</a>"
+            e.Row.Cells(6).Text = Replace(CDate(e.Row.Cells(6).Text).ToString("yyyy/MM/dd"), "-", "/")
+            e.Row.Cells(8).Text = CInt(e.Row.Cells(8).Text)
+            Select Case e.Row.Cells(7).Text.ToUpper
+                Case "US", "USD"
+                    e.Row.Cells(13).Text = "$" & FormatNumber(e.Row.Cells(13).Text, 2)
+                    e.Row.Cells(14).Text = "$" & FormatNumber(e.Row.Cells(14).Text, 2)
+                Case "EUR"
+                    e.Row.Cells(13).Text = "&euro;" & FormatNumber(e.Row.Cells(13).Text, 2)
+                    e.Row.Cells(14).Text = "&euro;" & FormatNumber(e.Row.Cells(14).Text, 2)
+                Case "YEN"
+                    e.Row.Cells(13).Text = "&yen;" & FormatNumber(e.Row.Cells(13).Text, 2)
+                    e.Row.Cells(14).Text = "&yen;" & FormatNumber(e.Row.Cells(14).Text, 2)
+                Case "GBP"
+                    e.Row.Cells(13).Text = "&pound;" & FormatNumber(e.Row.Cells(13).Text, 2)
+                    e.Row.Cells(14).Text = "&pound;" & FormatNumber(e.Row.Cells(14).Text, 2)
+                Case Else
+                    e.Row.Cells(13).Text = "&euro;" & FormatNumber(e.Row.Cells(13).Text, 2)
+                    e.Row.Cells(14).Text = "&euro;" & FormatNumber(e.Row.Cells(14).Text, 2)
+            End Select
+            e.Row.Cells(15).Text = Replace(CDate(e.Row.Cells(15).Text).ToString("yyyy/MM/dd"), "-", "/")
+            e.Row.Cells(16).Text = Replace(CDate(e.Row.Cells(16).Text).ToString("yyyy/MM/dd"), "-", "/")
+            If e.Row.Cells(18).Text.Trim = "&nbsp;" Or e.Row.Cells(18).Text.Trim = "" Or e.Row.Cells(18).Text.Trim = "0" Or e.Row.Cells(18).Text.Trim = "00" Then
+                e.Row.Cells(18).Text = ""
+            Else
+                e.Row.Cells(18).Text = e.Row.Cells(18).Text.Trim & "&nbsp;" & "M(s)"
+            End If
+        End If
+    End Sub
+</script>
+
+<asp:Content ID="Content1" ContentPlaceHolderID="_main" Runat="Server">
+    <table width="100%" border="0" cellspacing="0" cellpadding="0">
+			<tr>
+				<td style="height:15px">
+				</td>
+			</tr>
+			<tr>
+				<td>
+					<table align="center" width="100%" border="0" cellspacing="0" cellpadding="0">
+						<tr>
+							<td style="width:10px">
+							</td>
+							<td style="width: 684px">
+								<!--Page Navi Bar-->
+								<table border="0" cellspacing="0" cellpadding="0">
+									<tr>
+										<td><asp:HyperLink runat="server" ID="hlHome" NavigateUrl="~/home.aspx" Text="Home" /></td>
+										<td width="15" align="center">></td>
+										<td><asp:HyperLink runat="server" ID="hlHere" NavigateUrl="~/Order/BO_OrderTracking.aspx" Text="Order Tracking" /></td>
+										<td width="15" align="center">></td>
+										<td><div class="euPageNaviBar">Yesterday Order Inquiry</div></td>
+									</tr>
+								</table>
+							</td>
+							<td style="width:20px">
+							</td>
+						</tr>
+						<tr>
+							<td colspan="3" style="height:15px">
+							</td>
+						</tr>
+						<tr>
+							<td style="width:10px">
+							</td>
+							<td style="width: 684px">
+								<!--Page Title-->
+								<div class="euPageTitle">Yesterday Order Inquiry</div>
+							</td>
+							<td style="width:20px">
+							</td>
+						</tr>
+						<tr>
+							<td colspan="3" style="height:15px">
+							</td>
+						</tr>
+						<tr>
+							<td style="width:10px">
+							</td>
+							<td valign="top">
+								<table border="0" cellpadding="0" cellspacing="0">
+									<tr valign="top">
+										<td>
+											<!--New Table Start-->
+											<table width="445" border="0" cellpadding="0" cellspacing="0" id="Table1">
+												<tr>
+													<td>
+														<table width="100%" border="0" cellpadding="0" cellspacing="0" class="text" id="Table2">
+															<tr>
+																<td style="width:2%" rowspan="2"><img alt="" src="../images/ebiz.aeu.face/bluefolder_left.jpg" width="7" height="23"/></td>
+																<td style="width:15%;background-color:#A3BFD4" valign="top"><img alt="" src="../images/ebiz.aeu.face/bluefolder_top.jpg" width="138" height="3"/></td>
+																<td style="width:2%" rowspan="2"><img alt="" src="../images/ebiz.aeu.face/bluefolder_right.jpg" width="7" height="23"/></td>
+																<td style="width:2%" rowspan="2"><img alt="" src="../images/ebiz.aeu.face/clear.gif" width="5" height="8"/></td>
+																<td style="width:2%" rowspan="2"><img alt="" src="../images/ebiz.aeu.face/skyfolder_left.jpg" width="6" height="23"/></td>
+																<td style="width:17%;background-color:#E7EFF1"><img alt="" src="../images/ebiz.aeu.face/skyfolder_top.jpg" width="140" height="3"/></td>
+																<td style="width:2%" rowspan="2"><img alt="" src="../images/ebiz.aeu.face/skyfolder_right.jpg" width="7" height="23"/></td>
+																<td style="width:2%" rowspan="2"><img alt="" src="../images/ebiz.aeu.face/clear.gif" width="5" height="8"/></td>
+																<td style="width:2%" rowspan="2"><img alt="" src="../images/ebiz.aeu.face/skyfolder_left.jpg" width="6" height="23"/></td>
+																<td style="width:31%;background-color:#E7EFF1"><img alt="" src="../images/ebiz.aeu.face/skyfolder_top.jpg" width="140" height="3"/></td>
+																<td style="width:2%" rowspan="2"><img alt="" src="../images/ebiz.aeu.face/skyfolder_right.jpg" width="7" height="23"/></td>
+															</tr>
+															<tr>
+																<td style="height:13" class="euFormCaption">
+																	Query Criteria
+																</td>
+																<td style="width:17%" class="euFormCaptionInactive">
+																	&nbsp;
+																</td>
+																<td style="width:31%" class="euFormCaptionInactive">
+																	&nbsp;
+																</td>
+															</tr>
+														</table>
+													</td>
+												</tr>
+												<tr>
+													<td style="width:100%;height:5;background-color:#A0BFD3" ></td>
+												</tr>
+												<tr>
+													<td style="height:65px;width:50%;background-color:#A4B5BD">
+														<table width="100%" border="0" cellpadding="0" cellspacing="1" id="Table3">
+															<tr valign="top">
+																<td style="height:100%;background-color:#F1F2F4">
+																    <asp:Panel runat="server" ID="searchPanel" DefaultButton="submit">
+																        <table width="100%" border="0" cellpadding="0" cellspacing="0">
+																		    <!--form id="bofrm" name="bofrm" action="BackOrderInquiry.asp" method="post"-->
+																			    <tr>
+																				    <td colspan="4" style="height:4px">
+																				    </td>
+																			    </tr>
+																			    <tr valign="middle">
+																				    <td style="width:5%;height:30px" align="right">
+																					    <img alt="" src="../images/ebiz.aeu.face/square_gray.gif" width="7" height="7"/>&nbsp;&nbsp;
+																				    </td>
+																				    <td style="width:20%">
+																					    <div class="euFormFieldCaption">Order Date&nbsp;:</div>
+																				    </td>
+																				    <td style="width:40%">
+                                                                                        &nbsp;<asp:TextBox ID="txtOrderDateFrom" runat="server" Width="76px" />&nbsp;~&nbsp;
+                                                                                        <asp:TextBox ID="txtOrderDateTo" runat="server" Width="76px" /></td>
+                                                                                        <ajaxToolkit:CalendarExtender runat="server" ID="ce1" TargetControlID="txtOrderDateFrom" />
+                                                                                        <ajaxToolkit:CalendarExtender runat="server" ID="ce2" TargetControlID="txtOrderDateTo" />
+																				    <td align="left">
+																					    <div class="euFormFieldDesc">yyyy/mm/dd</div>
+																				    </td>
+																			    </tr>
+																			    <tr>
+																				    <td colspan="4" style="height:3px">
+																				    </td>
+																			    </tr>
+																			    <tr valign="middle">
+																				    <td style="width:5%;height:30px"  align="right">
+																				    </td>
+																				    <td style="width:20%">
+																				    </td>
+																				    <td style="width:40%">
+																					    <asp:Label runat="server" ID="SearchFlag" Text="NO" Visible="false"></asp:Label>
+																					    <asp:ImageButton runat="server" ID="submit" ImageUrl="../Images/ebiz.aeu.face/btn_search2.gif" OnClick="submit_Click" />
+																				    </td>
+																				    <td align="left">
+                                                                                        </td>
+																			    </tr>
+																			    <tr>
+																				    <td colspan="4" style="height:4px">
+																				    </td>
+																			    </tr>
+																		    <!--/form-->
+																	    </table>
+																    </asp:Panel>
+																</td>
+															</tr>
+														</table>
+													</td>
+												</tr>
+											</table>
+    
+											<!--New Table End--></td>
+										<td style="width:150px">&nbsp;
+										</td>
+										<td>
+										    <NaviOrderTracking:Inc runat="server" ID="NaviOrderTrackingInc1" />
+										</td>
+									</tr>
+								</table>
+							</td>
+							<td style="width:20px">
+							</td>
+						</tr>
+						<tr>
+							<td colspan="3" style="height:15px">
+							</td>
+						</tr>
+						<tr>
+							<td style="width:10px">
+							</td>
+							<td valign="top">
+								<sgv:SmartGridView ShowWhenEmpty="true" runat="server" ID="gv1" AutoGenerateColumns="false" HeaderStyle-HorizontalAlign="Center" 
+								    AllowSorting="true" Width="100%" OnRowDataBound="gv1_RowDataBound">
+					                <Columns>
+					                    <asp:TemplateField ItemStyle-Width="50px" ItemStyle-HorizontalAlign="Center">
+                                            <headertemplate>
+                                                No.
+                                            </headertemplate>
+                                            <itemtemplate>
+                                                <%# Container.DataItemIndex + 1 %>
+                                            </itemtemplate>
+                                        </asp:TemplateField>
+                                        <asp:BoundField HeaderText="Order NO." DataField="OrderNo" SortExpression="OrderNo" ItemStyle-HorizontalAlign="Center" />
+                                        <asp:BoundField HeaderText="PO NO." DataField="PONO" />
+                                        <asp:BoundField HeaderText="Ship To" DataField="SHIPTOID" SortExpression="SHIPTOID" />
+                                        <asp:BoundField HeaderText="Bill To" DataField="BILLTOID" SortExpression="BILLTOID" />
+                                        <asp:BoundField HeaderText="Sales ID" DataField="SalesID" SortExpression="SalesID" />
+                                        <asp:BoundField HeaderText="Order Date" DataField="ORDERDATE" SortExpression="ORDERDATE" ItemStyle-HorizontalAlign="Right" />
+                                        <asp:BoundField HeaderText="Currency" DataField="CURRENCY" />
+                                        <asp:BoundField HeaderText="Order Line" DataField="OrderLine" />
+                                        <asp:BoundField HeaderText="Ln_Partial" DataField="SchdLineNo" Visible="false" />
+                                        <asp:BoundField HeaderText="Part NO" DataField="ProductId" SortExpression="ProductId" />
+                                        <asp:BoundField HeaderText="Order QTY" DataField="SchdLineConfirmQty" ItemStyle-HorizontalAlign="Right" />
+                                        <asp:BoundField HeaderText="Shipped QTY" DataField="SchedLineShipedQty" Visible="false" />
+                                        <asp:BoundField HeaderText="Unit Price" DataField="UNITPRICE" ItemStyle-HorizontalAlign="Right" />
+                                        <asp:BoundField HeaderText="Total Price" DataField="TOTALPRICE" ItemStyle-HorizontalAlign="Right" />
+                                        <asp:BoundField HeaderText="Required Date" DataField="RequiredDATE" SortExpression="RequiredDATE" ItemStyle-HorizontalAlign="Right" />
+                                        <asp:BoundField HeaderText="Due Date" DataField="DUEDATE" SortExpression="DUEDATE" ItemStyle-HorizontalAlign="Right" />
+                                        <asp:BoundField HeaderText="Open QTY" DataField="SchdLineOpenQty" ItemStyle-HorizontalAlign="Right" />
+                                        <asp:BoundField HeaderText="Extended Warranty Months" DataField="ExWarranty" ItemStyle-HorizontalAlign="Right" />
+					                </Columns>
+					                <FooterStyle BackColor="#A4B5BD" ForeColor="White" Font-Bold="True" />
+                                    <RowStyle BackColor="#F7F6F3" ForeColor="#333333" />
+                                    <SelectedRowStyle BackColor="#E2DED6" Font-Bold="True" ForeColor="#333333" />
+                                    <PagerStyle BackColor="#284775" ForeColor="White" HorizontalAlign="Justify"  />
+                                    <HeaderStyle BackColor="#A4B5BD" Font-Bold="True" ForeColor="White" />
+                                    <AlternatingRowStyle BackColor="White" ForeColor="#284775" />
+                                    <PagerSettings PageButtonCount="10" Position="TopAndBottom" />
+					            </sgv:SmartGridView>
+					        </td>
+							<td style="width:20px">
+							</td>
+						</tr>
+					</table>
+				</td>
+			</tr>
+			<tr>
+				<td style="height:150px">
+					<!--Buffer--> &nbsp;
+				</td>
+			</tr>
+		</table>
+</asp:Content>

@@ -1,0 +1,143 @@
+﻿<%@ Page Language="VB" ValidateRequest="false"%>
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<script runat="server">
+
+    Protected Sub Button1_Click(sender As Object, e As System.EventArgs)
+        Dim _text As String = Me.Textbox_literary.Text
+        Dim _keyword() As String = Me.TextBox_Keyword.Text.Split(",")
+        
+        Dim _searchresult As String = Me.GetSentenceByKeyword(_text, _keyword, 70, 35)
+        
+        Me.Textbox1.Text = _searchresult
+        
+    End Sub
+    
+    ''' <summary>
+    ''' Get Sentences By Keyword
+    ''' </summary>
+    ''' <param name="_text">Text</param>
+    ''' <param name="_keyword">Key words</param>
+    ''' <param name="_MaxLength">Sentence maxlength</param>
+    ''' <param name="_CutLength">cut length of sentence, if sentence is more then _MaxLength</param>
+    ''' <returns></returns>
+    ''' <remarks></remarks>
+    Public Function GetSentenceByKeyword(ByVal _text As String, ByVal _keyword() As String, ByVal _MaxLength As Integer, ByVal _CutLength As Integer) As String
+        
+        If _keyword Is Nothing OrElse _keyword.Length = 0 Then Return _text
+        
+        Dim _allkeyword As String = String.Empty
+        
+        For Each _item As String In _keyword
+            _allkeyword &= _item & "|"
+        Next
+        _allkeyword = _allkeyword.TrimEnd("|")
+        
+        Dim _oritext As String = _text
+        'Cut text into several sentences.
+        Dim expression As String = "(\S.+?[.!?;。])(?=\s+|$)"
+
+        'Dim _text As String = Me.TextBox_RegexExpressionInput.Text
+        'replace <br> and newline to . 
+        _text = Regex.Replace(_text, "<br.*?>", " . ", RegexOptions.IgnoreCase Or RegexOptions.Singleline)
+        _text = Regex.Replace(_text, vbNewLine, " . ", RegexOptions.IgnoreCase Or RegexOptions.Singleline)
+
+
+        Dim wordMatch As Regex = New Regex(expression, RegexOptions.IgnoreCase Or RegexOptions.Singleline)
+        Dim subwordMatch As Regex = Nothing
+        Dim _ReturnStr As String = String.Empty
+        Dim _linesplitstring As String = "..."
+        
+        'cut sentence by _cutlength regular expression
+        'Dim _maxlengthexpression As String = "((^.{0,30}|\w*.{30})\b(" + _allkeyword + ")\b(.{30}\w*|.{0,30}$))"
+        Dim _maxlengthexpression As String = "((^.{0," & _CutLength & "}|\w*.{" & _CutLength & "})(" + _allkeyword + ")(.{" & _CutLength & "}\w*|.{0," & _CutLength & "}$))"
+ 
+        
+        For Each m As Match In wordMatch.Matches(_text)
+            
+            Dim b = Regex.Match(m.Value, _allkeyword, RegexOptions.IgnoreCase).Index
+            
+            If Regex.Match(m.Value, _allkeyword, RegexOptions.IgnoreCase).Success Then
+                
+                'If Sentence length is bigger the _maxlength then cut the sentence by _cutlength
+                If m.Value.Length > _MaxLength Then
+                    
+                    'subwordMatch = New Regex(_maxlengthexpression, RegexOptions.IgnoreCase Or RegexOptions.Singleline)
+                    subwordMatch = New Regex(_maxlengthexpression, RegexOptions.IgnoreCase)
+                    
+                    'A sentence may have more than 2 keywords therefore cut those sub sentence     
+                    For Each mm As Match In subwordMatch.Matches(m.Value)
+                        _ReturnStr &= mm.Value & _linesplitstring
+                    Next
+                    
+                Else
+                    _ReturnStr &= m.Value & _linesplitstring
+                End If
+                
+            End If
+            
+        Next
+        
+        If Not String.IsNullOrEmpty(_ReturnStr) Then
+            Return _ReturnStr
+        Else
+            Return _oritext
+        End If
+            
+        
+    End Function
+    
+</script>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head runat="server">
+    <title></title>
+</head>
+
+<body>
+    <form id="form1" runat="server">
+    <div>
+        &nbsp;
+        <br />
+        文章：
+        <br />
+        <asp:textbox ID="Textbox_literary" runat="server" TextMode="MultiLine" Height="408px" 
+            Width="661px" Text="How to flash MAC on Lan 1 and Lan2 of AIMB-212 - Software - iPlanet Forum
+ Welcome Guest! To enable  all features  please  Login  or  Register . Forum Active Topics Help Login Register Notification Error OK iPlanet Forum  »  Embedded Computing  »  Software  »  How to flash MAC on Lan 1 and Lan2 of AIMB-212 How to flash MAC on Lan 1 and Lan2 of AIMB-212 Options Previous Topic Next Topic jack.sue 
+                #1 
+                Posted
+                : Thursday, December 15, 2011 10:07:23 AM(UTC) Rank: Advanced Member Groups: Registered, ECG Joined: 8/11/2011(UTC) Posts: 65 Points: 228 Was thanked: 1 time(s) in 1 post(s) Please refer to attachment. File Attachment(s):  How to flash  MAC on Lan 1 and Lan2 of AIMB-212.doc  (122kb) downloaded  1  time(s). You  cannot  view/download attachments. Try to login or register. 
+            Back to top
+         User Profile View All Posts by User View Thanks Users browsing this topic Guest  (8) iPlanet Forum  »  Embedded Computing  »  Software  »  How to flash MAC on Lan 1 and Lan2 of AIMB-212 
+        Forum Jump
+          Embedded Computing  - Hardware  - Software  - Firmware/BIOS  - Peripheral  - Embedded Communication Intellignet Service & Vertical  - eHealthcare  - Signage  - Surveillance  - KIOSK/POI  - eHome  - Gaming  - Mobile  - Warehouse Logistic General Discussion  - Miscellaneous 嵌入式電腦  - 硬體  - 軟體  - 韌體/BIOS  - 外接裝置  - 嵌入式通訊 智能服務與垂直產業  - 醫療照護  - 數位電子看板  - 數位影像監控  - KIOSK導覽機 / POI  - 智慧住宅  - 博奕  - 行動裝置  - 倉儲物流 一般討論  - 其他主題 嵌入式计算机  - 硬件  - 软件  - 固件/BIOS  - 外设装置  - 嵌入式通讯 智能服务与垂直产业  - 电子医疗  - 广告播放机  - 监控系统  - 信息服务亭 / 程序接口  - 智能家居  - 游戏与博彩  - 移动通讯  - 仓储物流 常规讨论  - 其他 
+    You  cannot  post new topics in this forum.
+ 
+You  cannot  reply to topics in this forum.
+ 
+You  cannot  delete your posts in this forum.
+ 
+You  cannot  edit your posts in this forum.
+ 
+You  cannot  create polls in this forum.
+ 
+You  cannot  vote in polls in this forum.
+ Watch this topic Email this topic Print this topic » Normal Threaded Powered by YAF  |  YAF © 2003-2011, Yet Another Forum.NET This page was generated in 0.088 seconds."></asp:textbox>    
+        <br />
+        &nbsp;
+        <br />
+        關鍵字：<asp:TextBox ID="TextBox_Keyword" runat="server" Width="387px" Text="AIMB,POI"></asp:TextBox>
+        多關鍵字請用逗號分開，例如  AIMB,IPC
+        <asp:Button ID="Button1" runat="server" Text="Search" onclick="Button1_Click" />
+        <br />
+        &nbsp;
+        <br />
+        結果：
+        <br />
+        <asp:textbox ID="Textbox1" runat="server" TextMode="MultiLine" Height="200px" 
+            Width="661px"></asp:textbox>    
+    </div>
+    </form>
+</body>
+</html>

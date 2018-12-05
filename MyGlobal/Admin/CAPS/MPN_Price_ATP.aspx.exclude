@@ -1,0 +1,303 @@
+﻿<%@ Page Title="MyAdvantech - CAPS Item Price & Inventory Inquiry" Language="VB"
+    MasterPageFile="~/Includes/MyMaster.master" %>
+
+<script runat="server">
+    <Services.WebMethod()> _
+    <Web.Script.Services.ScriptMethod()> _
+    Public Shared Function SearchMPN(ByVal prefixText As String, ByVal count As Integer) As String()
+        Dim dt As DataTable = OraDbUtil.dbGetDataTable("SAP_PRD", _
+            " select a.ematn from saprdp.ztmm_46 a " + _
+            " where a.mandt='168' and a.activ='X' and a.werks='ADK1' " + _
+            " and a.ematn like '%" + Trim(prefixText).ToUpper().Replace("'", "''").Replace("*", "%") + "%' and rownum<=10 " + _
+            " order by a.ematn ")
+        If dt.Rows.Count = 0 Then
+            dt = OraDbUtil.dbGetDataTable("SAP_PRD", _
+            " select a.ematn from saprdp.ztmm_45 a " + _
+            " where a.mandt='168' " + _
+            " and a.ematn like '%" + Trim(prefixText).ToUpper().Replace("'", "''").Replace("*", "%") + "%' and rownum<=10 " + _
+            " order by a.ematn ")
+        End If
+        If dt.Rows.Count > 0 Then
+            Dim str(dt.Rows.Count - 1) As String
+            For i As Integer = 0 To dt.Rows.Count - 1
+                str(i) = dt.Rows(i).Item(0)
+            Next
+            Return str
+        End If
+        Return Nothing
+    End Function
+
+    <Services.WebMethod()> _
+    <Web.Script.Services.ScriptMethod()> _
+    Public Shared Function SearchAdvPN(ByVal prefixText As String, ByVal count As Integer) As String()
+        Dim dt As DataTable = OraDbUtil.dbGetDataTable("SAP_PRD", _
+            " select a.bmatn from saprdp.ztmm_46 a " + _
+            " where a.mandt='168' and a.activ='X' and a.werks='ADK1' " + _
+            " and a.bmatn like '%" + Trim(prefixText).ToUpper().Replace("'", "''").Replace("*", "%") + "%' and rownum<=10 " + _
+            " order by a.bmatn ")
+        If dt.Rows.Count = 0 Then
+            dt = OraDbUtil.dbGetDataTable("SAP_PRD", _
+            " select a.bmatn from saprdp.ztmm_45 a " + _
+            " where a.mandt='168' " + _
+            " and a.bmatn like '%" + Trim(prefixText).ToUpper().Replace("'", "''").Replace("*", "%") + "%' and rownum<=10 " + _
+            " order by a.bmatn ")
+        End If
+        
+        If dt.Rows.Count > 0 Then
+            Dim str(dt.Rows.Count - 1) As String
+            For i As Integer = 0 To dt.Rows.Count - 1
+                str(i) = Util.RemovePrecedingZeros(dt.Rows(i).Item(0))
+            Next
+            Return str
+        End If
+        Return Nothing
+    End Function
+    
+    Protected Sub rblPNOption_SelectedIndexChanged(sender As Object, e As System.EventArgs)
+        autoExt1.ServiceMethod = IIf(rblPNOption.SelectedIndex = 0, "SearchMPN", "SearchAdvPN")
+        txtPN.Text = ""
+    End Sub
+
+    Protected Sub btnCheck_Click(sender As Object, e As System.EventArgs)
+        lbErrMsg.Text = "" : tbResult.Visible = False
+        'ScriptManager.RegisterStartupScript(Me.Page, Me.Page.GetType(), "EnableQueryButton", "$('#" + Me.btnCheck.ClientID + "').disabled=false;", True)
+        
+        If String.IsNullOrEmpty(Trim(txtPN.Text)) Then
+            lbErrMsg.Text = "PN is empty" : Exit Sub
+        End If
+        Dim PNValue As String = Trim(txtPN.Text).ToUpper()
+        If rblPNOption.SelectedIndex = 1 Then
+            PNValue = Util.FormatToSAPPartNo(Util.RemovePrecedingZeros(PNValue))
+        End If
+        Dim AdvPN As String = String.Empty, Mpn As String = String.Empty, CompanyId As String = dlERPID.SelectedValue, SalesOrgs As New List(Of String), Plants As New List(Of String)
+        With Plants
+            .Add("ADK1") : .Add("ACH2")
+        End With
+        With SalesOrgs
+            .Add("TW07")
+        End With
+        Dim dt As DataTable = OraDbUtil.dbGetDataTable("SAP_PRD", _
+            " select a.bmatn, a.ematn from saprdp.ztmm_46 a " + _
+            " where a.mandt='168' and a.activ='X' and a.werks='ADK1' " + _
+            " and a." + IIf(rblPNOption.SelectedIndex = 0, "ematn", "bmatn") + " ='" + PNValue.Replace("'", "''") + "' and rownum=1 ")
+        If dt.Rows.Count = 0 Then
+            dt = OraDbUtil.dbGetDataTable("SAP_PRD", _
+            " select a.bmatn, a.ematn from saprdp.ztmm_45 a " + _
+            " where a.mandt='168' " + _
+            " and a." + IIf(rblPNOption.SelectedIndex = 0, "ematn", "bmatn") + "='" + PNValue.Replace("'", "''") + "' and rownum=1 " + _
+            " order by a.ematn ")
+        End If
+        If dt.Rows.Count > 0 Then
+            AdvPN = dt.Rows(0).Item("bmatn") : Mpn = dt.Rows(0).Item("ematn")
+        End If
+      
+        If AdvPN = String.Empty Then
+            lbErrMsg.Text = "Cannot find PN" : Exit Sub
+        Else
+            tbResult.Visible = True
+            lbAdvPN.Text = Util.RemovePrecedingZeros(AdvPN) : lbMPN.Text = Mpn
+            
+            Dim atpDt As New DataTable
+            With atpDt.Columns
+                .Add("Available Date", GetType(Date)) : .Add("Qty", GetType(Decimal)) : .Add("Plant")
+            End With
+            'AdvPN = "ADAM-4520-D2E"
+            Dim p1 As New GET_MATERIAL_ATP.GET_MATERIAL_ATP
+            p1.Connection = New SAP.Connector.SAPConnection(ConfigurationManager.AppSettings("SAP_PRD"))
+            p1.Connection.Open()
+            For Each plant As String In Plants
+                Dim Inventory As Integer = 0
+                Dim retTb As New GET_MATERIAL_ATP.BAPIWMDVSTable, atpTb As New GET_MATERIAL_ATP.BAPIWMDVETable, rOfretTb As New GET_MATERIAL_ATP.BAPIWMDVS
+                rOfretTb.Req_Qty = 9999 : rOfretTb.Req_Date = Now.ToString("yyyyMMdd") : retTb.Add(rOfretTb)
+                p1.Bapi_Material_Availability("", "A", "", New Short, "", "", "", AdvPN, plant, _
+                                              "", "", "", "", "PC", "", Inventory, "", "", New GET_MATERIAL_ATP.BAPIRETURN, atpTb, retTb)
+                For Each atpRecord As GET_MATERIAL_ATP.BAPIWMDVE In atpTb
+                    If atpRecord.Com_Qty > 0 Then
+                        Dim atpRow As DataRow = atpDt.NewRow
+                        atpRow.Item("Available Date") = Date.ParseExact(atpRecord.Com_Date, "yyyyMMdd", New Globalization.CultureInfo("en-US"))
+                        atpRow.Item("Qty") = atpRecord.Com_Qty : atpRow.Item("Plant") = plant
+                        atpDt.Rows.Add(atpRow)
+                    End If
+                Next
+            Next
+            p1.Connection.Close()
+            gvATP.DataSource = atpDt : gvATP.DataBind()
+            
+            Dim eup As New Z_SD_EUPRICEINQUERY.Z_SD_EUPRICEINQUERY(ConfigurationManager.AppSettings("SAP_PRD"))
+            Dim pin As New Z_SD_EUPRICEINQUERY.ZSSD_01_EUTable, pout As New Z_SD_EUPRICEINQUERY.ZSSD_02_EUTable
+            For Each SalesOrg As String In SalesOrgs
+                Dim prec As New Z_SD_EUPRICEINQUERY.ZSSD_01_EU
+                With prec
+                    .Kunnr = CompanyId : .Mandt = "168" : .Matnr = AdvPN : .Mglme = 1 : .Prsdt = Now.ToString("yyyyMMdd") : .Vkorg = SalesOrg
+                End With
+                pin.Add(prec)
+            Next
+            eup.Connection.Open()
+            eup.Z_Sd_Eupriceinquery("1", pin, pout)
+            eup.Connection.Close()
+            If pout.Count > 0 Then
+                lbListPrice.Text = Util.FormatMoney(pout(0).Kzwi1, pout(0).Waerk)
+                lbUnitPrice.Text = Util.FormatMoney(pout(0).Netwr, pout(0).Waerk)
+            End If
+        End If
+    End Sub
+
+    Protected Sub Page_Load(sender As Object, e As System.EventArgs)
+        If Not Page.IsPostBack Then
+            If Not MailUtil.IsInRole("MyAdvantech") And Not MailUtil.IsInRole("ITD.ERP") _
+                And Not MailUtil.IsInRole("WW Peripheral Group") And Not MailUtil.IsInRole("CAPS.member") And Not MailUtil.IsInRole("PM.ADVANSUS.ACL") Then
+                Response.Redirect("../../home.aspx")
+            End If
+        End If
+    End Sub
+</script>
+<asp:Content ID="Content1" ContentPlaceHolderID="_main" runat="Server">
+    <script type="text/javascript">
+        var prm = Sys.WebForms.PageRequestManager.getInstance();
+        if (prm != null) {
+            prm.add_endRequest(enableQueryButton);
+        }
+
+        function enableQueryButton() {
+            document.getElementById('<%=btnCheck.ClientId %>').disabled = false;            
+        }
+    </script>
+    <asp:Panel runat="server" ID="panel1" DefaultButton="btnCheck">
+        <table>
+            <tr>
+                <th align="left">
+                    Customer:
+                </th>
+                <td>
+                    <asp:DropDownList runat="server" ID="dlERPID">
+                        <asp:ListItem Text="鈞發科技股份有限公司 (T27957723)" Value="T27957723" />
+                        <asp:ListItem Text="艾訊股份有限公司 (T23718011)" Value="T23718011" />
+                        <asp:ListItem Text="安勤科技股份有限公司 (T70604376)" Value="T70604376" />
+                        <asp:ListItem Text="磐儀科技股份有限公司 (T84469443)" Value="T84469443" />
+                        <asp:ListItem Text="超恩股份有限公司 (T27998246)" Value="T27998246" />
+                    </asp:DropDownList>
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    <asp:RadioButtonList runat="server" ID="rblPNOption" AutoPostBack="true" OnSelectedIndexChanged="rblPNOption_SelectedIndexChanged"
+                        Font-Bold="true">
+                        <asp:ListItem Text="MPN" Selected="True" />
+                        <asp:ListItem Text="Advantech PN" />
+                    </asp:RadioButtonList>
+                </td>
+                <td>
+                    <asp:UpdatePanel runat="server" ID="up2" UpdateMode="Conditional">
+                        <ContentTemplate>
+                            <ajaxToolkit:AutoCompleteExtender runat="server" ID="autoExt1" TargetControlID="txtPN"
+                                ServiceMethod="SearchMPN" CompletionInterval="350" MinimumPrefixLength="1" />
+                            <asp:TextBox runat="server" ID="txtPN" Width="200px" />
+                        </ContentTemplate>
+                        <Triggers>
+                            <asp:AsyncPostBackTrigger ControlID="rblPNOption" EventName="SelectedIndexChanged" />
+                        </Triggers>
+                    </asp:UpdatePanel>
+                </td>
+            </tr>
+            <tr style="height: 20px">
+                <td>
+                    <asp:Button runat="server" ID="btnCheck" Text="Query" OnClick="btnCheck_Click" UseSubmitBehavior="false"
+                        OnClientClick="this.disabled = true;" />
+                </td>
+                <td>
+                    <asp:UpdatePanel runat="server" ID="up3" UpdateMode="Conditional">
+                        <ContentTemplate>
+                            <asp:Label runat="server" ID="lbErrMsg" ForeColor="Tomato" Font-Bold="true" /></ContentTemplate>
+                        <Triggers>
+                            <asp:AsyncPostBackTrigger ControlID="btnCheck" EventName="Click" />
+                        </Triggers>
+                    </asp:UpdatePanel>
+                </td>
+            </tr>
+        </table>
+    </asp:Panel>
+    <asp:UpdatePanel runat="server" ID="up1" UpdateMode="Conditional">
+        <ContentTemplate>
+            <table width="100%" id="tbResult" runat="server" visible="false" cellspacing="0" rules="all" border="1" style="border-color: #D7D0D0;
+                border-width: 1px; border-style: Solid; border-collapse: collapse;">
+                <tr style="background-color:#DCDCDC">
+                    <th align="left">
+                        &nbsp;Product Info
+                    </th>
+                </tr>
+                <tr>
+                    <td>
+                        <table width="400px">
+                            <tr>
+                                <th align="left">
+                                    Advantech PN:
+                                </th>
+                                <td>
+                                    <asp:Label runat="server" ID="lbAdvPN" />
+                                </td>
+                                <th align="left">
+                                    MPN:
+                                </th>
+                                <td>
+                                    <asp:Label runat="server" ID="lbMPN" />
+                                </td>
+                            </tr>
+                        </table>
+                    </td>
+                </tr>
+                <tr style="background-color:#DCDCDC">
+                    <th align="left">
+                        &nbsp;Inventory
+                    </th>
+                </tr>
+                <tr>
+                    <td>
+                        <asp:GridView runat="server" ID="gvATP" AutoGenerateColumns="false" Width="400px" EmptyDataText="No Data">
+                            <Columns>
+                                <asp:TemplateField HeaderText="Available Date" ItemStyle-HorizontalAlign="Center">
+                                    <ItemTemplate>
+                                        <%#CDate(Eval("available date")).ToString("yyyy/MM/dd")%>
+                                    </ItemTemplate>
+                                </asp:TemplateField>
+                                <asp:TemplateField HeaderText="Qty." ItemStyle-HorizontalAlign="Center">
+                                    <ItemTemplate>
+                                        <%#FormatNumber(Eval("Qty"), 0)%>
+                                    </ItemTemplate>
+                                </asp:TemplateField>
+                                <asp:BoundField HeaderText="Plant" DataField="Plant" ItemStyle-HorizontalAlign="Center" />
+                            </Columns>
+                        </asp:GridView>
+                    </td>
+                </tr>
+                <tr style="background-color:#DCDCDC">
+                    <th align="left">
+                        &nbsp;Price
+                    </th>
+                </tr>
+                <tr>
+                    <td>
+                        <table>
+                            <tr>
+                                <th align="left">
+                                    List Price:
+                                </th>
+                                <td>
+                                    <asp:Label runat="server" ID="lbListPrice" />
+                                </td>
+                                <th align="left">
+                                    Unit Price:
+                                </th>
+                                <td
+                                    <asp:Label runat="server" ID="lbUnitPrice" />
+                                </td>
+                            </tr>
+                        </table>
+                    </td>
+                </tr>
+            </table>
+        </ContentTemplate>
+        <Triggers>
+            <asp:AsyncPostBackTrigger ControlID="btnCheck" EventName="Click" />
+        </Triggers>
+    </asp:UpdatePanel>
+</asp:Content>

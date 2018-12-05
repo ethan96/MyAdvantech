@@ -1,0 +1,458 @@
+﻿<%@ Page Title="MyAdvantech DataMining -Hottest Keywords Customers are using" Language="VB" MasterPageFile="~/Includes/MyMaster.master" EnableEventValidation="false" ValidateRequest="false" %>
+<%@ MasterType VirtualPath="~/Includes/MyMaster.master" %>
+<script runat="server">
+    Function GetSql() As String
+        Dim sb As New System.Text.StringBuilder
+        With sb
+            .AppendLine(String.Format(" select top {0} b.KEYWORD, COUNT(b.ResponseUrl) as counts ", dlTop.SelectedValue))
+            .AppendLine(String.Format(" from SIEBEL_ACCOUNT a inner join DM_WEB_KEYWORDS b on a.URL=b.URL  "))
+            .AppendLine(String.Format(" where 1=1  "))
+            If Util.GetCheckedCountFromCheckBoxList(cblAccOrg) > 0 And Util.GetCheckedCountFromCheckBoxList(cblAccOrg) < cblAccOrg.Items.Count Then
+                .AppendLine(String.Format(" and a.RBU in {0} ", Util.GetInStrinFromCheckBoxList(cblAccOrg)))
+            End If
+            If Util.GetCheckedCountFromCheckBoxList(cblAccStatus) > 0 And Util.GetCheckedCountFromCheckBoxList(cblAccStatus) < cblAccStatus.Items.Count Then
+                .AppendLine(String.Format(" and a.account_status in {0} ", Util.GetInStrinFromCheckBoxList(cblAccStatus)))
+            End If
+            If Util.GetCheckedCountFromCheckBoxList(cblAccBAA) > 0 And Util.GetCheckedCountFromCheckBoxList(cblAccBAA) < cblAccBAA.Items.Count Then
+                .AppendLine(String.Format(" and a.ROW_ID in (select z.account_row_id from siebel_account_baa z where z.BAA in {0} and z.account_row_id is not null ) ", Util.GetInStrinFromCheckBoxList(cblAccBAA)))
+            End If
+            If Util.GetCheckedCountFromCheckBoxList(cblAccVM) > 0 And Util.GetCheckedCountFromCheckBoxList(cblAccVM) < cblAccVM.Items.Count Then
+                .AppendLine(String.Format(" and a.ERP_ID in (select z.company_id from sap_dimcompany z where z.cust_ind in {0} and z.company_id is not null ) ", Util.GetInStrinFromCheckBoxList(cblAccVM)))
+            End If
+            .AppendLine(String.Format(" group by b.KEYWORD  "))
+            .AppendLine(String.Format(" order by COUNT(b.ResponseUrl) desc "))
+        End With
+        Return sb.ToString()
+    End Function
+
+    Protected Sub btnGo_Click(ByVal sender As Object, ByVal e As System.EventArgs)
+        'lbSql.Text = GetSql()
+        'Exit Sub
+        src1.SelectCommand = GetSql()
+    End Sub
+
+    Protected Sub Page_Init(ByVal sender As Object, ByVal e As System.EventArgs)
+        If Not Page.IsPostBack Then
+            src1.SelectCommand = GetSql()
+        End If
+    End Sub
+
+    Protected Sub dlTop_SelectedIndexChanged(ByVal sender As Object, ByVal e As System.EventArgs)
+        src1.SelectCommand = GetSql()
+    End Sub
+
+    Protected Sub Page_Load(ByVal sender As Object, ByVal e As System.EventArgs)
+        If Not Page.IsPostBack Then
+            Me.Master.LogoImgPath = "~/Images/dm_logo.JPG"
+        End If
+    End Sub
+
+    Protected Sub src1_Selecting(ByVal sender As Object, ByVal e As System.Web.UI.WebControls.SqlDataSourceSelectingEventArgs)
+        e.Command.CommandTimeout = 600
+    End Sub
+</script>
+
+<asp:Content ID="Content1" ContentPlaceHolderID="_main" Runat="Server">
+    <table width="100%">
+        <tr><th align="left" style="color:Navy"><h2>Customer Websites' Keywords Analysis</h2><br /></th></tr>
+        <tr>
+            <td>
+                <table width="100%">
+                    <tr style="background-color:Navy">
+                        <th align="left" style="color:White; font-size:larger;">
+                            Org.:&nbsp;<a href="javascript:void(0);" onclick="ShowHide('expOrg','tr_Org');"><img src="../Images/minus.gif" id="expOrg" width="20" height="20" /></a>
+                        </th>
+                    </tr>
+                    <tr id="tr_Org" style="display:block">
+                        <td>
+                            <table>
+                                <tr valign="top">
+                                    <td valign="top">
+                                        <input id="cbAllOrg" type="checkbox" value="value" checked="checked" onclick='checkAllCb("cbAllOrg","<%=cblAccOrg.ClientID %>");' style="font-weight:bold"><b>All</b></input>
+                                    </td>
+                                    <td>
+                                        <asp:CheckBoxList runat="server" ID="cblAccOrg" RepeatColumns="12" RepeatDirection="Horizontal">
+                                            <asp:ListItem Value="AAC" Selected="True" />
+                                            <asp:ListItem Value="AAU" Selected="True" />
+                                            <asp:ListItem Value="ABJ" Selected="True" />
+                                            <asp:ListItem Value="ABN" Selected="True" />
+                                            <asp:ListItem Value="ABR" Selected="True" />
+                                            <asp:ListItem Value="ACD" Selected="True" />
+                                            <asp:ListItem Value="ACL" Selected="True" />
+                                            <asp:ListItem Value="ACN" Selected="True" />
+                                            <asp:ListItem Value="ACN-N" Selected="True" />
+                                            <asp:ListItem Value="ACN-S" Selected="True" />
+                                            <asp:ListItem Value="ADL" Selected="True" />
+                                            <asp:ListItem Value="AEE" Selected="True" />
+                                            <asp:ListItem Value="AENC" Selected="True" />
+                                            <asp:ListItem Value="AEU" Selected="True" />
+                                            <asp:ListItem Value="AFR" Selected="True" />
+                                            <asp:ListItem Value="AFZ" Selected="True" />
+                                            <asp:ListItem Value="AGZ" Selected="True" />
+                                            <asp:ListItem Value="AHK" Selected="True" />
+                                            <asp:ListItem Value="AIN" Selected="True" />
+                                            <asp:ListItem Value="AIT" Selected="True" />
+                                            <asp:ListItem Value="AJP" Selected="True" />
+                                            <asp:ListItem Value="AKR" Selected="True" />
+                                            <asp:ListItem Value="AMY" Selected="True" />
+                                            <asp:ListItem Value="ANA" Selected="True" />
+                                            <asp:ListItem Value="ANADMF" Selected="True" />
+                                            <asp:ListItem Value="ANC" Selected="True" />
+                                            <asp:ListItem Value="ARU" Selected="True" />
+                                            <asp:ListItem Value="ASG" Selected="True" />
+                                            <asp:ListItem Value="ASH" Selected="True" />
+                                            <asp:ListItem Value="ASY" Selected="True" />
+                                            <asp:ListItem Value="ASZ" Selected="True" />
+                                            <asp:ListItem Value="ATW" Selected="True" />
+                                            <asp:ListItem Value="AUK" Selected="True" />
+                                            <asp:ListItem Value="AWH" Selected="True" />
+                                            <asp:ListItem Value="AXA" Selected="True" />
+                                            <asp:ListItem Value="HQDC" Selected="True" />
+                                            <asp:ListItem Value="SAP" Selected="True" />
+                                        </asp:CheckBoxList>
+                                    </td>
+                                </tr>
+                            </table>                            
+                        </td>
+                    </tr>   
+                    <tr style="background-color:Navy">
+                        <th align="left" style="color:White; font-size:larger;">
+                            Account Status:&nbsp;<a href="javascript:void(0);" onclick="ShowHide('expAcc','tr_Acc');"><img src="../../Images/plus.gif" id="expAcc" width="20" height="20" /></a>
+                        </th>
+                    </tr>
+                    <tr id="tr_Acc" style="display:none">
+                        <td>
+                            <table>
+                                <tr valign="top">
+                                    <td valign="top">
+                                        <input id="cbAllAstatus" type="checkbox" value="value" checked="checked" onclick='checkAllCb("cbAllAstatus","<%=cblAccStatus.ClientID %>");' style="font-weight:bold"><b>All</b></input>
+                                    </td>
+                                    <td>
+                                        <asp:CheckBoxList runat="server" ID="cblAccStatus" RepeatColumns="4" RepeatDirection="Horizontal">
+                                            <asp:ListItem Value="01-Premier Channel Partner" Selected="True" />
+                                            <asp:ListItem Value="03-Certified Channel Partner" Selected="True" />
+                                            <asp:ListItem Value="04-Premier Key Account" Selected="True" />
+                                            <asp:ListItem Value="05-D&Ms PKA" Selected="True" />
+                                            <asp:ListItem Value="06-Key Account" Selected="True" />
+                                            <asp:ListItem Value="06P-Potential Key Account" Selected="True" />
+                                            <asp:ListItem Value="07-General Account" Selected="True" />
+                                            <asp:ListItem Value="08-Partner's Existing Customer" Selected="True" />
+                                            <asp:ListItem Value="09-Assigned to Partner" Selected="True" />
+                                            <asp:ListItem Value="09-Partner's Existing Customer" Selected="True" />
+                                            <asp:ListItem Value="10-Sales Contact" Selected="True" />
+                                            <asp:ListItem Value="11-Prospect" Selected="True" />
+                                            <asp:ListItem Value="12-Leads" Selected="True" />
+                                        </asp:CheckBoxList>
+                                    </td>
+                                </tr>
+                            </table>                            
+                        </td>
+                    </tr>  
+                    <tr style="background-color:Navy">
+                        <th align="left" style="color:White; font-size:larger;">
+                            BAA:&nbsp;<a href="javascript:void(0);" onclick="ShowHide('expBAA','tr_BAA');"><img src="../../Images/plus.gif" id="expBAA" width="20" height="20" /></a>
+                        </th>
+                    </tr>
+                    <tr id="tr_BAA" style="display:none">
+                        <td>
+                            <table>
+                                <tr valign="top">
+                                    <td valign="top">
+                                        <input id="cbAllBAA" type="checkbox" value="value" onclick='checkAllCb("cbAllBAA","<%=cblAccBAA.ClientID %>");' style="font-weight:bold"><b>All</b></input>
+                                    </td>
+                                    <td>
+                                        <asp:CheckBoxList runat="server" ID="cblAccBAA" RepeatColumns="3" RepeatDirection="Horizontal">
+                                            <asp:ListItem Value="*FA/MA" />
+                                            <asp:ListItem Value="Aircraft/aerospace" />
+                                            <asp:ListItem Value="Automated Optical Inspection(AOI)" />
+                                            <asp:ListItem Value="Automotive" />
+                                            <asp:ListItem Value="Building / Facility Automation" />
+                                            <asp:ListItem Value="Building Automation" />
+                                            <asp:ListItem Value="Chemical" />
+                                            <asp:ListItem Value="Commercial physical research" />
+                                            <asp:ListItem Value="Computer integrated systems design" />
+                                            <asp:ListItem Value="Computer peripheral equipment, nec" />
+                                            <asp:ListItem Value="Computers, peripherals, and software" />
+                                            <asp:ListItem Value="Consulting engineer" />
+                                            <asp:ListItem Value="Consulting/Engineering/System Integrator" />
+                                            <asp:ListItem Value="Custom computer programming services" />
+                                            <asp:ListItem Value="Data Processing/Ent eBusiness/ERP Integration" />
+                                            <asp:ListItem Value="Digi Signage/Info Display/Narrow Casting/Streaming" />
+                                            <asp:ListItem Value="ECG/US Account" />
+                                            <asp:ListItem Value="Education/eLearning" />
+                                            <asp:ListItem Value="Electrical apparatus and equipment" />
+                                            <asp:ListItem Value="Electronic parts and equipment, nec" />
+                                            <asp:ListItem Value="Embedded Computing." />
+                                            <asp:ListItem Value="Engineering services" />
+                                            <asp:ListItem Value="Entertainment/Gaming" />
+                                            <asp:ListItem Value="ePlatforms" />
+                                            <asp:ListItem Value="FA" />
+                                            <asp:ListItem Value="Factory Automation" />
+                                            <asp:ListItem Value="Factory/ Machine Automation" />
+                                            <asp:ListItem Value="Food/Beverage" />
+                                            <asp:ListItem Value="Government/Military" />
+                                            <asp:ListItem Value="Home Automation" />
+                                            <asp:ListItem Value="IAG/TW Account" />
+                                            <asp:ListItem Value="IAG/US Account" />
+                                            <asp:ListItem Value="Industrial Equipment Manufacturing" />
+                                            <asp:ListItem Value="Industrial machinery and equipment" />
+                                            <asp:ListItem Value="Instruments to measure electricity" />
+                                            <asp:ListItem Value="Internet Security" />
+                                            <asp:ListItem Value="Internet Service Provider" />
+                                            <asp:ListItem Value="In-vehicle Computing" />
+                                            <asp:ListItem Value="KIOSK/Point of Sale Terminals" />
+                                            <asp:ListItem Value="Logistics/Warehouse Management" />
+                                            <asp:ListItem Value="M2M" />
+                                            <asp:ListItem Value="Machine Automation" />
+                                            <asp:ListItem Value="Major Account" />
+                                            <asp:ListItem Value="Marine" />
+                                            <asp:ListItem Value="Measuring and controlling devices, nec" />
+                                            <asp:ListItem Value="Metals/Mining" />
+                                            <asp:ListItem Value="Network Appliances" />
+                                            <asp:ListItem Value="Others" />
+                                            <asp:ListItem Value="Packaging" />
+                                            <asp:ListItem Value="Petroleum" />
+                                            <asp:ListItem Value="Pharmaceutical/Medical/Healthcare" />
+                                            <asp:ListItem Value="Plastics/Textiles/Fibers" />
+                                            <asp:ListItem Value="Power & Energy" />
+                                            <asp:ListItem Value="Process Automation & Control" />
+                                            <asp:ListItem Value="Process control instruments" />
+                                            <asp:ListItem Value="Public Services: ATM/POI/KIOSK/Vending Machine" />
+                                            <asp:ListItem Value="Pulp/Paper" />
+                                            <asp:ListItem Value="Relays and industrial controls" />
+                                            <asp:ListItem Value="Remote Monitoring & Control" />
+                                            <asp:ListItem Value="Research" />
+                                            <asp:ListItem Value="Security & Video Surveillance" />
+                                            <asp:ListItem Value="Semiconductor" />
+                                            <asp:ListItem Value="Semiconductors and related devices" />
+                                            <asp:ListItem Value="Telecommunications" />
+                                            <asp:ListItem Value="Test/Measurement/Instrumentation" />
+                                            <asp:ListItem Value="Transporation" />
+                                            <asp:ListItem Value="Transportation" />
+                                            <asp:ListItem Value="Utilities" />
+                                            <asp:ListItem Value="Water/Emission/Air Quality Monitoring" />
+                                            <asp:ListItem Value="Water/Wastewater" />
+                                            <asp:ListItem Value="交通运输自动化: 公路/铁路/航空/船运/ITS" />
+                                            <asp:ListItem Value="其他" />
+                                            <asp:ListItem Value="其它" />
+                                            <asp:ListItem Value="军工" />
+                                            <asp:ListItem Value="化工系统集成" />
+                                            <asp:ListItem Value="医疗/保健: 医疗设备" />
+                                            <asp:ListItem Value="大眾資訊: CED电子看板/360度LCD看板/KIOSK" />
+                                            <asp:ListItem Value="嵌入式应用" />
+                                            <asp:ListItem Value="工厂/机台自动化" />
+                                            <asp:ListItem Value="數位影像监控: DVR" />
+                                            <asp:ListItem Value="机械设备" />
+                                            <asp:ListItem Value="楼宇/设备自动化: 楼宇安全/消防/半导体生产/包装" />
+                                            <asp:ListItem Value="物流/仓储: 机场物流/物料仓储,码头/自动仓储设备" />
+                                            <asp:ListItem Value="电力" />
+                                            <asp:ListItem Value="网络专用设备: NAS/E-SERVER设备" />
+                                            <asp:ListItem Value="网络安全: 防火墙" />
+                                            <asp:ListItem Value="通讯/计算机电话: 交换机设备/CTI设备" />
+                                            <asp:ListItem Value="遥测与监控系统: 远程监控,分布式监控" />
+<asp:ListItem Value="量测系统: 实验室量测/生产设备量测/汽车检测与诊断" />
+                                        </asp:CheckBoxList>
+                                    </td>
+                                </tr>
+                            </table>                            
+                        </td>
+                    </tr> 
+                    <tr style="background-color:Navy">
+                        <th align="left" style="color:White; font-size:larger;">
+                            Vertical Market:&nbsp;<a href="javascript:void(0);" onclick="ShowHide('expVM','tr_VM');"><img src="../../Images/plus.gif" id="expVM" width="20" height="20" /></a>
+                        </th>
+                    </tr>
+                    <tr id="tr_VM" style="display:none">
+                        <td>
+                            <table>
+                                <tr valign="top">
+                                    <td valign="top">
+                                        <input id="cbAllVM" type="checkbox" value="value" onclick='checkAllCb("cbAllVM","<%=cblAccVM.ClientID %>");' style="font-weight:bold"><b>All</b></input>
+                                    </td>
+                                    <td>
+                                        <asp:CheckBoxList runat="server" ID="cblAccVM" RepeatColumns="4" RepeatDirection="Horizontal">
+                                            <asp:ListItem Text='(BA) Building Automation' Value='080' />
+                                            <asp:ListItem Text='Building Energy management system' Value='081' />
+                                            <asp:ListItem Text='Facility Monitoring and Control System' Value='082' />
+                                            <asp:ListItem Text='Video Surveillance & Security' Value='083' />
+                                            <asp:ListItem Text='Access Control Solutions' Value='084' />
+                                            <asp:ListItem Text='(MA) Machine Automation' Value='100' />
+                                            <asp:ListItem Text='Automatic Optical Inspection System' Value='101' />
+                                            <asp:ListItem Text='Electronic Products Manufacturing' Value='103' />
+                                            <asp:ListItem Text='Plastic Injection' Value='104' />
+                                            <asp:ListItem Text='Pipe Bending' Value='105' />
+                                            <asp:ListItem Text='Machine Tool' Value='106' />
+                                            <asp:ListItem Text='CIM' Value='107' />
+                                            <asp:ListItem Text='Semicon/LED/optoelectronics' Value='108' />
+                                            <asp:ListItem Text='Sun tracker system' Value='109' />
+                                            <asp:ListItem Text='(FA) Factory Automation' Value='130' />
+                                            <asp:ListItem Text='LED' Value='131' />
+                                            <asp:ListItem Text='LCD' Value='132' />
+                                            <asp:ListItem Text='Semicon' Value='133' />
+                                            <asp:ListItem Text='(EFMS) Environmental and Facility Management' Value='140' />
+                                            <asp:ListItem Text='Telecom Station Facility Management' Value='141' />
+                                            <asp:ListItem Text='Water Treatment Management' Value='142' />
+                                            <asp:ListItem Text='Pollution Monitoring' Value='143' />
+                                            <asp:ListItem Text='Hazard Monitoring' Value='144' />
+                                            <asp:ListItem Text='APC (Advanced Process Control) Monitoring' Value='145' />
+                                            <asp:ListItem Text='Factory Facility Management' Value='146' />
+                                            <asp:ListItem Text='(P&E) Power & Energy' Value='150' />
+                                            <asp:ListItem Text='Energy Saving' Value='151' />
+                                            <asp:ListItem Text='Power Backup' Value='153' />
+                                            <asp:ListItem Text='Power Substation & Power Distribution' Value='154' />
+                                            <asp:ListItem Text='Power Generation' Value='155' />
+                                            <asp:ListItem Text='Power Management' Value='156' />
+                                            <asp:ListItem Text='Smart Grid' Value='157' />
+                                            <asp:ListItem Text='Solar Power' Value='158' />
+                                            <asp:ListItem Text='Education' Value='170' />
+                                            <asp:ListItem Text='Transportation' Value='200' />
+                                            <asp:ListItem Text='Fleet Management' Value='201' />
+                                            <asp:ListItem Text='In-vehicle Surveillance   ' Value='202' />
+                                            <asp:ListItem Text='Warehouse & Logistics  ' Value='203' />
+                                            <asp:ListItem Text='Field Service and Automation  ' Value='204' />
+                                            <asp:ListItem Text='Railway Supervision Systems' Value='221' />
+                                            <asp:ListItem Text='Marine ECDIS Navigation Systems' Value='222' />
+                                            <asp:ListItem Text='Electronic Payment' Value='224' />
+                                            <asp:ListItem Text='Traffic Signal Control' Value='227' />
+                                            <asp:ListItem Text='Networks & Telecom' Value='260' />
+                                            <asp:ListItem Text='Network Security' Value='261' />
+                                            <asp:ListItem Text='Network Applications & Solutions' Value='262' />
+                                            <asp:ListItem Text='VoIP, Unified Communications, Media Gateway' Value='263' />
+                                            <asp:ListItem Text='Data Center' Value='265' />
+                                            <asp:ListItem Text='Wireless' Value='266' />
+                                            <asp:ListItem Text='Military' Value='270' />
+                                            <asp:ListItem Text='Gaming/ POS' Value='400' />
+                                            <asp:ListItem Text='Medical' Value='590' />
+                                            <asp:ListItem Text='Nursing Care (Mobile Healthcare)' Value='591' />
+                                            <asp:ListItem Text='Patient Monitoring (OR/ICU)' Value='592' />
+                                            <asp:ListItem Text='Patient Infotainment' Value='593' />
+                                            <asp:ListItem Text='Medical Display' Value='594' />
+                                            <asp:ListItem Text='Self Service' Value='610' />
+                                            <asp:ListItem Text='Information Kiosk' Value='611' />
+                                            <asp:ListItem Text='Parking Kiosk' Value='612' />
+                                            <asp:ListItem Text='ATM' Value='614' />
+                                            <asp:ListItem Text='Vending Kiosk' Value='615' />
+                                            <asp:ListItem Text='Brand Store' Value='700' />
+                                            <asp:ListItem Text='eHome' Value='710' />
+                                            <asp:ListItem Text='Enterprise' Value='720' />
+                                            <asp:ListItem Text='Exhibition' Value='730' />
+                                            <asp:ListItem Text='Hospitality' Value='740' />
+                                            <asp:ListItem Text='Hotel' Value='750' />
+                                            <asp:ListItem Text='Lifestyle Service' Value='760' />
+                                            <asp:ListItem Text='Museum' Value='770' />
+                                            <asp:ListItem Text='Public Space' Value='780' />
+                                            <asp:ListItem Text='Retail' Value='800' />
+                                            <asp:ListItem Text='School Campus' Value='810' />
+                                            <asp:ListItem Text='Others' Value='999' />
+                                        </asp:CheckBoxList>
+                                    </td>
+                                </tr>
+                            </table>                            
+                        </td>
+                    </tr>     
+                    <tr>
+                        <td colspan="2" align="center"><asp:Button runat="server" ID="btnGo" Text="Search" OnClick="btnGo_Click" /></td>
+                    </tr>                       
+                </table>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <asp:UpdatePanel runat="server" ID="up1" UpdateMode="Conditional">
+                    <ContentTemplate>
+                        <asp:Label runat="server" ID="lbSql" />
+                        <table width="100%">
+                            <tr>
+                                <th align="left">
+                                    Top:
+                                    <asp:DropDownList runat="server" ID="dlTop" AutoPostBack="true" OnSelectedIndexChanged="dlTop_SelectedIndexChanged">
+                                        <asp:ListItem Text="10" Value="10" />
+                                        <asp:ListItem Text="100" Value="100" />
+                                        <asp:ListItem Text="All" Value="9999" />
+                                    </asp:DropDownList>
+                                </th>
+                            </tr>
+                            <tr>
+                                <td colspan="1">
+                                    <asp:GridView runat="server" ID="gv1" DataSourceID="src1" Width="99%" AutoGenerateColumns="false" ShowHeader="false">
+                                        <Columns>
+                                            <asp:TemplateField>
+                                                <ItemTemplate>
+                                                    <table width="100%">
+                                                        <tr valign="top">
+                                                            <td>
+                                                                <%# Eval("keyword")%>&nbsp;&nbsp;<%# Eval("counts")%>&nbsp;
+                                                                <a href="javascript:void(0);" onclick='ShowHide("expKeySite_<%# Container.DataItemIndex + 1 %>","tr_sites_<%# Container.DataItemIndex + 1 %>");'><img src="../../Images/plus.gif" id='expKeySite_<%# Container.DataItemIndex + 1 %>' width="20" height="20" /></a>
+                                                            </td>
+                                                        </tr>
+                                                        <tr id='tr_sites_<%# Container.DataItemIndex + 1 %>' style="display:none">
+                                                            <td>
+                                                                <asp:UpdatePanel runat="server" ID="upRow" UpdateMode="Conditional">
+                                                                    <ContentTemplate>
+                                                                        <asp:HiddenField runat="server" ID="ROWKW" Value='<%#Eval("keyword") %>' />
+                                                                        <asp:GridView Width="99%" runat="server" ID="gvRowKeySites" AutoGenerateColumns="false" DataSourceID="srcRow" AllowPaging="true" PageSize="10">
+                                                                            <Columns>
+                                                                                <asp:HyperLinkField HeaderText="Account Name" DataNavigateUrlFields="ROW_ID" 
+                                                                                    DataNavigateUrlFormatString="~/DM/CustomerDashboard.aspx?ROWID={0}" 
+                                                                                    DataTextField="ACCOUNT_NAME" Target="_blank" SortExpression="ACCOUNT_NAME" />
+                                                                                <asp:BoundField HeaderText="Org." DataField="RBU" SortExpression="RBU" />
+                                                                                <asp:BoundField HeaderText="Primary BAA" DataField="BAA" SortExpression="BAA" />
+                                                                                <asp:BoundField HeaderText="Account Status" DataField="ACCOUNT_STATUS" SortExpression="ACCOUNT_STATUS" />
+                                                                                <asp:HyperLinkField HeaderText="Url" DataNavigateUrlFields="ResponseUrl" 
+                                                                                    DataNavigateUrlFormatString="{0}" DataTextField="ResponseUrl" 
+                                                                                    SortExpression="ResponseUrl" Target="_blank" />
+                                                                            </Columns>
+                                                                        </asp:GridView>
+                                                                        <asp:SqlDataSource runat="server" ID="srcRow" ConnectionString="<%$ConnectionStrings:MY %>" 
+                                                                            SelectCommand="select distinct top 100 a.ROW_ID, a.ACCOUNT_NAME, a.RBU, a.ACCOUNT_STATUS, a.BAA, b.URL, b.ResponseUrl 
+                                                                                           from SIEBEL_ACCOUNT a inner join DM_WEB_KEYWORDS b on a.URL=b.URL 
+                                                                                           where b.KEYWORD=@KW order by a.ACCOUNT_NAME">
+                                                                            <SelectParameters>
+                                                                                <asp:ControlParameter Name="KW" ControlID="ROWKW" PropertyName="Value" ConvertEmptyStringToNull="false" />
+                                                                            </SelectParameters>
+                                                                        </asp:SqlDataSource>
+                                                                    </ContentTemplate>
+                                                                </asp:UpdatePanel>                                                                
+                                                            </td>
+                                                        </tr>
+                                                    </table>
+                                                </ItemTemplate>
+                                            </asp:TemplateField>
+                                        </Columns>
+                                    </asp:GridView>
+                                    <asp:SqlDataSource runat="server" ID="src1" ConnectionString="<%$ConnectionStrings:MY %>" OnSelecting="src1_Selecting" />
+                                </td>
+                            </tr>
+                        </table>   
+                    </ContentTemplate>
+                    <Triggers>
+                        <asp:AsyncPostBackTrigger ControlID="btnGo" EventName="Click" />
+                    </Triggers>
+                </asp:UpdatePanel>
+            </td>
+        </tr>
+    </table>
+    <script type="text/javascript">
+        function checkAllCb(cbAllId, cbOptId) {
+            var ck = document.getElementById(cbAllId).checked;
+            var cbs = document.getElementById(cbOptId).getElementsByTagName("input");
+            for (i = 0; i < cbs.length; i++) {
+                cbs[i].checked = ck;
+            }
+        }
+        function ShowHide(eid, eid2) {
+            var e1 = document.getElementById(eid);
+            var e2 = document.getElementById(eid2);
+            if (e1 && e2) {
+                if (e2.style.display == 'none') {
+                    e2.style.display = 'block';
+                    e1.src = '../../Images/minus.gif';
+                }
+                else {
+                    e2.style.display = 'none';
+                    e1.src = '../../Images/plus.gif';
+                }
+            }
+        }
+    </script>
+</asp:Content>

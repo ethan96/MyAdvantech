@@ -1,0 +1,2324 @@
+<%@ Page Language="VB" MasterPageFile="~/Includes/MyMaster.master" Title="MyAdvantech KPI" %>
+
+<%@ Import Namespace="System.Drawing" %>
+<%@ Import Namespace="System.Data" %>
+<%@ Import Namespace="System.Data.SQLClient" %>
+<%@ Import Namespace="System.IO" %>
+<%@ Import Namespace="System.Text" %>
+<%@ Import Namespace="AdxInheritsDataGrid" %>
+<%@ Import Namespace="ChartDirector" %>
+<%@ Register TagPrefix="chart" Namespace="ChartDirector" Assembly="netchartdir" %>
+
+<script runat="server">
+    Public Function executeSql(ByVal vxDBId As String, _
+                                ByVal vxSql As String) As Integer
+        Dim oConn As New System.Data.SqlClient.SqlConnection
+        oConn.ConnectionString = "server=ACLSQL6\sql2008r2;database=MyAdvantechGlobal;pwd=@dvantech!;uid=b2bsa"
+        oConn.Open()
+
+        Dim oSqlCom As System.Data.SqlClient.SqlCommand = New System.Data.SqlClient.SqlCommand(vxSql, oConn)
+        oSqlCom.ExecuteNonQuery()
+        oSqlCom = Nothing
+        oConn.Close()
+        oConn = Nothing
+        Return 1
+        
+    End Function
+
+    Public Function getDataReader(ByVal vxDBId As String, _
+                                  ByVal vxSql As String) As System.Data.SqlClient.SqlDataReader
+        Dim oConn As New System.Data.SqlClient.SqlConnection
+        oConn.ConnectionString = "server=ACLSQL6\sql2008r2;database=MyAdvantechGlobal;pwd=@dvantech!;uid=b2bsa"
+        oConn.Open()
+
+        Dim oSqlCom As System.Data.SqlClient.SqlCommand = New Data.SqlClient.SqlCommand(vxSql, oConn)
+        Dim oDR As System.Data.SqlClient.SqlDataReader = Nothing
+        Try
+            oDR = oSqlCom.ExecuteReader
+        Catch ex As Exception
+            Response.Write(ex.Message & "<br/>")
+            Response.End()
+        End Try
+        
+        Return oDR
+        
+        oSqlCom = Nothing
+        oConn.Close()
+        oConn = Nothing
+
+    End Function
+
+    
+    Protected Sub Page_Load(ByVal sender As Object, ByVal e As System.EventArgs)
+        
+        If Not Page.IsPostBack Then
+            drpYear.Items.Add(System.DateTime.Today.Year.ToString())
+            drpYear.Items.Add((Convert.ToInt32((System.DateTime.Today.Year.ToString())) - 1).ToString())
+     
+        End If
+        
+        GetAccountStatusBarChart()
+        
+        
+        Dim odt As DataTable
+        Dim xConnString As String = "server=ACLSQL6\sql2008r2;database=MyAdvantechGlobal;pwd=@dvantech!;uid=b2bsa"
+        Dim oConn As SqlConnection = New SqlConnection(xConnString)
+        oConn.Open()
+        Dim oDr As System.Data.SqlClient.SqlDataReader
+        Dim xSql As String
+        Dim nSum0 As Double = 0
+        Dim nSum1 As Double = 0
+        Dim nSum2 As Double = 0
+        Dim nSum3 As Double = 0
+        Dim nSum4 As Double = 0
+        Dim nSum5 As Double = 0
+        Dim nSum6 As Double = 0
+        
+        Dim data0() As Double = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}
+        Dim data1() As Double = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}
+        Dim data2() As Double = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}
+        
+        Dim xYear As String = drpYear.Text
+        If Request("KPIYear") <> "" Then
+            xYear = Request("KPIYear")
+        End If
+        Dim xFirstDate As DateTime = CDate(xYear & "-01-01")
+
+        xSql = "select month(a.order_date), count(a.order_no) from order_master a " & _
+               "where(Year(a.order_date) = " & xYear & ") and a.order_no != '' " & _
+               "group by month(a.order_date) " & _
+               "order by month(a.order_date) "
+
+        oDr = getDataReader("B2B-AEU-LAB", xSql)
+        nSum0 = 0
+        Do While oDr.Read
+            data0(CInt(oDr.Item(0)) - 1) = CDbl(oDr.Item(1))
+            nSum0 += CDbl(oDr.Item(1))
+        Loop
+
+        xSql = "select month(a.order_date), count(a.order_no) from order_master a " & _
+               "where(Year(a.order_date) = " & xYear & ") and a.order_no != '' " & _
+               "and a.order_id in (select order_id from order_detail where line_no = 100 and part_no like '%-BTO') " & _
+               "group by month(a.order_date) " & _
+               "order by month(a.order_date) "
+        
+        oDr = getDataReader("B2B-AEU-LAB", xSql)
+        nSum1 = 0
+        Do While oDr.Read
+            data1(CInt(oDr.Item(0)) - 1) = CDbl(oDr.Item(1))
+            nSum1 += CDbl(oDr.Item(1))
+        Loop
+
+        xSql = "select month(a.order_date), count(a.order_no) from order_master a " & _
+               "where(Year(a.order_date) = " & xYear & ") and a.order_no != '' " & _
+               "and a.order_id in (select order_id from order_detail where line_no = 100 and (part_no like '%-BTO' and part_no like 'C-CTOS%')) " & _
+               "group by month(a.order_date) " & _
+               "order by month(a.order_date) "
+        oDr = getDataReader("B2B-AEU-LAB", xSql)
+        nSum2 = 0
+        Do While oDr.Read
+            data2(CInt(oDr.Item(0)) - 1) = CDbl(oDr.Item(1))
+            nSum2 += CDbl(oDr.Item(1))
+        Loop
+        
+        For i As Integer = 0 To data0.Length - 1
+            data0(i) = data0(i) - data1(i) - data2(i)
+        Next
+        '\ming add
+        Dim data() As Double
+        If nSum0 = 0 AndAlso nSum1 = 0 AndAlso nSum2 = 0 Then
+            data = New Double() {0, 0, 0}
+            WebChartViewerPie.Visible = False
+        Else
+            data = New Double() {CInt((nSum0 - nSum1 - nSum2) * 100 / (nSum0)), CInt(nSum1 * 100 / (nSum0)), CInt(nSum2 * 100 / (nSum0))}
+            WebChartViewerPie.Visible = True
+        End If
+
+        '/ming end
+        'Dim data() As Double = {CInt(nSum0 * 100 / (nSum0 + nSum1 + nSum2)), CInt(nSum1 * 100 / (nSum0 + nSum1 + nSum2)), CInt(nSum2 * 100 / (nSum0 + nSum1 + nSum2))}
+
+        Dim labels() As String = {"Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"}
+        Dim c As XYChart = New XYChart(675, 320)
+        With c
+            .setPlotArea(55, 40, 500, 240, &HEEEEEE, &HFFFFFF) : .addLegend(575, 100)
+            .addTitle(Chart.Top, "B2B Order Entry  # by Order Type #                   ", "Arial Bold Italic", 12, &H66)
+            .yAxis().setTitle("Y" & xYear, "Arial Bold", 11, &H66) : .yAxis().setLabelStyle("Arial", 9, &H0)
+            .yAxis().setLabelFormat("{value}") : .xAxis().setLabels(labels) : .xAxis().setLabelStyle("Arial", 10, &H0).setFontAngle(0)
+        End With
+        
+        Dim layer As BarLayer = c.addBarLayer2(Chart.Stack, 8)
+        With Layer
+            .addDataSet(data0, &HFF8080, "Standard") : .addDataSet(data1, &H80FF80, "BTOS") : .addDataSet(data2, &H8080FF, "CTOS")
+            .setAggregateLabelStyle("Arial Bold Italic", 10).setBackground(&HFFCC66, Chart.Transparent, 1)
+            .setBarShape(Chart.CircleShape) : .setDataLabelStyle()
+        End With
+        WebChartViewerBar.Image = c.makeWebImage(Chart.PNG)
+        WebChartViewerBar.ImageMap = c.getHTMLImageMap("", "", "title='{dataSetName} on {xLabel}: {value} MBytes/hour'")
+        
+        '### PIE CHART ###
+        Dim labelsPie() As String = {"Standard", "BTOS", "CTOS"}
+        Dim cPie As PieChart = New PieChart(272, 186, &HEEEEEE, 0, 1)
+        With cPie
+            .setPieSize(128, 104, 65) : .addTitle(Chart.TopCenter, "Year-To-Date", "Arial Bold Italic", 11, &H66).setBackground(&HCCCCCC, 0)
+            .set3D(-1, 30)
+            layer.addDataSet(data0, &HFF8080, "Standard")
+            layer.addDataSet(data1, &H80FF80, "BTOS")
+            layer.addDataSet(data2, &H8080FF, "CTOS")
+            Dim colorsPie() As Integer = {&HFF8080, &H80FF80, &H8080FF}
+            
+            .setLabelFormat("{label} <*br*>({percent|0}%)")
+            .setLabelPos(-1, &H8080FF)
+            .setColors2(Chart.DataColor, colorsPie)
+            .setData(data, labelsPie)
+            .setLabelLayout(Chart.SideLayout)
+            '.setLabelLayout(0, 20)
+            '.setLabelLayout(Chart.CircleLayout, -1)
+
+            'Set the label box the same color as the sector with a 1 pixel 3D border
+            .setLabelStyle().setBackground(Chart.SameAsMainColor, Chart.Transparent, 1)
+
+        End With
+        
+        WebChartViewerPie.Image = cPie.makeWebImage(Chart.PNG)
+        WebChartViewerPie.ImageMap = cPie.getHTMLImageMap("", "", "title='{label}: US${value}K ({percent}%)'")
+
+        '### Chart: Order entry by user type (Start)
+        'The data for the bar chart
+        Dim data0XY2() As Double = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}
+        Dim data1XY2() As Double = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}
+        xSql = "select month(a.order_date) , count(a.order_no) from order_master a " & _
+                 "where(Year(a.order_date) = " & xYear & ") and a.order_no != '' " & _
+                 "and created_by not like '%@advantech%' " & _
+                 "group by month(a.order_date) " & _
+                 "order by month(a.order_date) "
+        oDr = getDataReader("B2B-AEU-LAB", xSql)
+        nSum0 = 0
+        Do While oDr.Read
+            data0XY2(CInt(oDr.Item(0)) - 1) = CDbl(oDr.Item(1))
+            nSum0 += CDbl(oDr.Item(1))
+        Loop
+
+        xSql = "select month(a.order_date), count(a.order_no) from order_master a " & _
+               "where(Year(a.order_date) = " & xYear & ") and a.order_no != '' " & _
+               "and created_by like '%@advantech%' " & _
+               "group by month(a.order_date) " & _
+               "order by month(a.order_date) "
+        oDr = getDataReader("MY", xSql)
+        nSum1 = 0
+        Do While oDr.Read
+            data1XY2(CInt(oDr.Item(0)) - 1) = CDbl(oDr.Item(1))
+            nSum1 += CDbl(oDr.Item(1))
+        Loop
+
+        '\ming add
+        Dim dataPie2() As Double
+        If nSum0 = 0 AndAlso nSum1 = 0 Then
+            dataPie2 = New Double() {0, 0}
+            WebChartViewerPie2.Visible = False
+        Else
+            dataPie2 = New Double() {CInt(nSum0 * 100 / (nSum0 + nSum1)), CInt(nSum1 * 100 / (nSum0 + nSum1))}
+            WebChartViewerPie2.Visible = True
+        End If
+
+        '/ming end
+        
+        'Dim dataPie2() As Double = {CInt(nSum0 * 100 / (nSum0 + nSum1)), CInt(nSum1 * 100 / (nSum0 + nSum1))}
+        
+        'Dim data0XY2() As Double = {502, 500, 754, 0, 0, 0, 0, 0, 0, 0, 0, 0}
+        'Dim data1XY2() As Double = {231, 324, 239, 0, 0, 0, 0, 0, 0, 0, 0, 0}
+
+        'The labels for the bar chart
+        Dim labelsXY2() As String = {"Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"}
+
+        'Create a XYChart object of size 500 x 320 pixels
+        Dim cXY2 As XYChart = New XYChart(675, 320)
+
+        'Set the plotarea at (100, 40) and of size 280 x 240 pixels
+        'c.setPlotArea(100, 40, 280, 240)
+        'background colors (EEEEEE and FFFFFF)
+        cXY2.setPlotArea(55, 40, 500, 240, &HEEEEEE, &HFFFFFF)
+
+        'Add a legend box at (400, 100)
+        cXY2.addLegend(575, 100)
+
+        'Add a title to the chart using 14 points Times Bold Itatic font
+        cXY2.addTitle(Chart.Top, "B2B Order Entry  # by User Type #                   ", _
+        "Arial Bold Italic", 12, &H66)
+
+        'Add a title to the y axis. Draw the title upright (font angle = 0)
+        'c.yAxis().setTitle("Average<*br*>Workload<*br*>(MBytes<*br*>Per Hour)" _
+        '    ).setFontAngle(0)
+        'c.yAxis().setTitle("Year<*br*>2006", "Arial Bold", 11, &H66).setFontAngle(0)
+        cXY2.yAxis().setTitle("Y" & xYear, "Arial Bold", 11, &H66)
+
+        'Use 10 pts Arial Bold/orange (0xcc6600) font for the y axis labels
+        cXY2.yAxis().setLabelStyle("Arial", 9, &H0)
+
+        'Set the axis label format to "nnn MBytes"
+        'c.yAxis().setLabelFormat("{value} euro")
+        cXY2.yAxis().setLabelFormat("{value}")
+
+        
+        'Set the labels on the x axis
+        cXY2.xAxis().setLabels(labels)
+
+        'Use 10 pts Arial Bold/green (0x008000) font for the x axis labels. Set the label
+        'angle to 45 degrees.
+        'c.xAxis().setLabelStyle("Arial Bold", 10, &H0).setFontAngle(0)
+        cXY2.xAxis().setLabelStyle("Arial", 10, &H0).setFontAngle(0)
+        
+        'Add a stacked bar layer and set the layer 3D depth to 8 pixels
+        Dim layerXY2 As BarLayer = cXY2.addBarLayer2(Chart.Stack, 8)
+
+        'Add the three data sets to the bar layer
+        layerXY2.addDataSet(data0XY2, &HFF8080, "Customer")
+        layerXY2.addDataSet(data1XY2, &H80FF80, "SA")
+        'layer.addDataSet(data0, &HFF6666, "Standard")
+        'layer.addDataSet(data1, &H32CD32, "BTOS")
+        'layer.addDataSet(data2, &H66FF, "CTOS")
+
+        'Enable bar label for the whole bar
+        'layer.setAggregateLabelStyle()
+        'Use 10 pts Times Bold Italic (timesbi.ttf) as the aggregate label font. Set the
+        'background to flesh (0xffcc66) color with a 1 pixel 3D border.
+        layerXY2.setAggregateLabelStyle("Arial Bold Italic", 10).setBackground( _
+            &HFFCC66, Chart.Transparent, 1)
+
+        'Set bar shape to circular (cylinder)
+        layerXY2.setBarShape(Chart.CircleShape)
+        
+        'Enable bar label for each segment of the stacked bar
+        layerXY2.setDataLabelStyle()
+
+        'output the chart
+        WebChartViewerXY2.Image = cXY2.makeWebImage(Chart.PNG)
+
+        'include tool tip for the chart
+        WebChartViewerXY2.ImageMap = cXY2.getHTMLImageMap("", "", _
+            "title='{dataSetName} on {xLabel}: {value} MBytes/hour'")
+
+        '### PIE : Order entry by user type ###
+        'The data for the pie chart
+        'Dim dataPie2() As Double = {55, 45}
+
+        'The labels for the pie chart
+        Dim labelsPie2() As String = {"Customer", "SA"}
+
+        'Create a PieChart object of size 450 x 240 pixels
+        Dim cPie2 As PieChart = New PieChart(200, 160, &HEEEEEE, 0, 1)
+
+        'Set the center of the pie at (150, 100) and the radius to 80 pixels
+        cPie2.setPieSize(95, 85, 65)
+
+        'Add a title at the bottom of the chart using Arial Bold Italic font
+        cPie2.addTitle(Chart.TopCenter, "Year-To-Date", "Arial Bold Italic", 11, &H66).setBackground(&HCCCCCC, 0)
+
+        'Draw the pie in 3D
+        cPie2.set3D(-1, 30)
+
+        'Colors of the sectors if custom coloring is used
+        'layer.addDataSet(data0, &HFF8080, "Standard")
+        'layer.addDataSet(data1, &H80FF80, "BTOS")
+        'layer.addDataSet(data2, &H8080FF, "CTOS")
+
+        Dim colorsPie2() As Integer = {&HFF8080, &H80FF80, &H8080FF}
+        cPie2.setColors2(Chart.DataColor, colorsPie2)
+
+        'add a legend box where the top left corner is at (330, 40)
+        'cPie.addLegend(330, 40)
+
+        'modify the label format for the sectors to $nnnK (pp.pp%)
+        'cPie.setLabelFormat("{label} ${value}K<*br*>({percent}%)")
+        cPie2.setLabelFormat("{label} <*br*>({percent|0}%)")
+        
+        'Set the background color of the sector label to pale yellow (ffffc0) with a
+        'black border (000000)
+        'cPie.setLabelStyle().setBackground(&HFFFFC0, &H0)
+        
+        'Set the label position to -40 pixels from the perimeter of the pie (-ve
+        'means label is inside the pie)
+        cPie2.setLabelPos(-30)
+
+        'Set the pie data and the pie labels
+        cPie2.setData(dataPie2, labelsPie2)
+
+        'Explode the 1st sector (index = 0)
+        'cPie.setExplode(0)
+
+        'output the chart
+        WebChartViewerPie2.Image = cPie2.makeWebImage(Chart.PNG)
+
+        'include tool tip for the chart
+        WebChartViewerPie2.ImageMap = cPie2.getHTMLImageMap("", "", _
+            "title='{label}: US${value}K ({percent}%)'")
+        
+        '### Chart: Order entry by customer distribution
+        'The labels for the bar chart
+        Try
+            Dim labelsXY3() As String = {"Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"}
+
+            Dim cXY3 As XYChart = New XYChart(675, 320)
+            Dim layerXY3 As BarLayer = cXY3.addBarLayer2(Chart.Stack, 8)
+            Dim colorsPie3() As Integer = {&HFF8080, &H80FF80, &H8080FF, &HFFFF33, &HFF66FF, &H66CCFF, &H808080, &H80FFFF, &HFF3380, &HFFCC}
+            'layerXY3.addDataSet(data0XY3, &HFF8080, "AAC")
+            'layerXY3.addDataSet(data1XY3, &H80FF80, "AENC")
+            'layerXY3.addDataSet(data2XY3, &H8080FF, "ANADMF")
+            'layerXY3.addDataSet(data3XY3, &HFFFF33, "ATW")
+            'layerXY3.addDataSet(data4XY3, &HFF66FF, "OTH")
+            Dim data0XY3() As Double = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}
+        
+            xSql = "select month(t.order_date) as [month], t.rbu, COUNT(t.ORDER_NO) as [count] from (select a.order_date, isnull((select top 1 b.rbu from SIEBEL_ACCOUNT b where b.ERP_ID=a.BILLTO_ID and b.account_status is not null),'') as rbu, a.ORDER_NO from ORDER_MASTER a where year(a.order_date)='" + xYear + "' and a.ORDER_NO != '') as t " + _
+                    "group by month(t.order_date), rbu " + _
+                    "order by month(t.order_date) "
+        
+            Dim dt As DataTable = dbUtil.dbGetDataTable("MY", xSql)
+            Dim arrRBU As New ArrayList
+            For Each row As DataRow In dt.Rows
+                If Not arrRBU.Contains(row.Item(1).ToString) Then arrRBU.Add(row.Item(1).ToString)
+            Next
+        
+            Dim number(arrRBU.Count) As Double
+            Dim nSumTotal As Double
+            Dim icolor As New ArrayList
+            For i As Integer = 0 To arrRBU.Count - 1
+                data0XY3 = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}
+                Dim item() As DataRow = dt.Select("rbu='" + arrRBU.Item(i).ToString + "'")
+                For k As Integer = 0 To item.Length - 1
+                    data0XY3(CInt(item(k).Item(0)) - 1) = CDbl(item(k).Item(2))
+                    number(i) += CDbl(item(k).Item(2))
+                Next
+                Dim rand As New Random(New Random(i).Next(0, 10000))
+                Dim ranColor As Integer = rand.Next(0, 1777776)
+                icolor.Add(ranColor)
+                layerXY3.addDataSet(data0XY3, colorsPie3(i), arrRBU.Item(i))
+                nSumTotal += number(i)
+            Next
+
+            xSql = "select month(a.order_date),count(order_no) from order_master a " & _
+                   " where year(a.order_date)=" & xYear & " and order_no != '' " & _
+                   " group by month(a.order_date) " & _
+                   " order by month(a.order_date) "
+        
+            oDr = getDataReader("B2B-AEU-LAB", xSql)
+            Do While oDr.Read
+                nSum4 += CDbl(oDr.Item(1))
+            Loop
+            nSumTotal += nSum4
+       
+            Dim dataPie3(arrRBU.Count) As Double
+            If nSumTotal = 0 Then
+                For i As Integer = 0 To arrRBU.Count - 1
+                    dataPie3(i) = 0.0
+                Next
+                WebChartViewerPie3.Visible = False
+            Else
+                For i As Integer = 0 To arrRBU.Count - 1
+                    dataPie3(i) = CDbl(CDbl(number(i)) * 100 / CDbl(nSumTotal))
+                Next
+                WebChartViewerPie3.Visible = True
+            End If
+
+            cXY3.setPlotArea(55, 40, 500, 240, &HEEEEEE, &HFFFFFF)
+            cXY3.addLegend(575, 100)
+            cXY3.addTitle(Chart.Top, "B2B Order Entry  # by RBU #  ", "Arial Bold Italic", 12, &H66)
+            cXY3.yAxis().setTitle("Y" & xYear, "Arial Bold", 11, &H66)
+            cXY3.yAxis().setLabelStyle("Arial", 9, &H0)
+            cXY3.yAxis().setLabelFormat("{value}")
+            cXY3.xAxis().setLabels(labelsXY3)
+            cXY3.xAxis().setLabelStyle("Arial", 10, &H0).setFontAngle(0)
+            layerXY3.setAggregateLabelStyle("Arial Bold Italic", 10).setBackground(&HFFCC66, Chart.Transparent, 1)
+            layerXY3.setBarShape(Chart.CircleShape)
+            layerXY3.setDataLabelStyle()
+            WebChartViewerXY3.Image = cXY3.makeWebImage(Chart.PNG)
+            WebChartViewerXY3.ImageMap = cXY3.getHTMLImageMap("", "", _
+                "title='{dataSetName} on {xLabel}: {value} orders'")
+
+            'Create a PieChart object of size 450 x 240 pixels
+            Dim cPie3 As PieChart = New PieChart(200, 160, &HEEEEEE, 0, 1)
+            cPie3.setPieSize(95, 85, 65)
+            cPie3.addTitle(Chart.TopCenter, "Year-To-Date", "Arial Bold Italic", 11, &H66).setBackground(&HCCCCCC, 0)
+            cPie3.set3D(-1, 30)
+
+            cPie3.setColors2(Chart.DataColor, colorsPie3)
+            cPie3.setLabelFormat("{label} <*br*>({percent|0}%)")
+            cPie3.setLabelPos(-30)
+            cPie3.setData(dataPie3, arrRBU.ToArray(GetType(String)))
+            WebChartViewerPie3.Image = cPie3.makeWebImage(Chart.PNG)
+            WebChartViewerPie3.ImageMap = cPie3.getHTMLImageMap("", "", _
+                "title='{label}: US${value}K ({percent}%)'")
+        Catch ex As Exception
+            Throw New Exception("B2B-KPI error:" + ex.ToString())
+        End Try
+        
+
+        '### Chart: Order entry by BU (Start)
+        'The data for the bar chart
+        Dim data0XY4() As Double = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}
+        Dim data1XY4() As Double = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}
+
+        'The labels for the bar chart
+        Dim labelsXY4() As String = {"Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"}
+
+        'Create a XYChart object of size 500 x 320 pixels
+        Dim cXY4 As XYChart = New XYChart(675, 320)
+
+        'Set the plotarea at (100, 40) and of size 280 x 240 pixels
+        'c.setPlotArea(100, 40, 280, 240)
+        'background colors (EEEEEE and FFFFFF)
+        cXY4.setPlotArea(55, 40, 500, 240, &HEEEEEE, &HFFFFFF)
+
+        'Add a legend box at (400, 100)
+        cXY4.addLegend(575, 100)
+
+        'Add a title to the chart using 14 points Times Bold Itatic font
+        cXY4.addTitle(Chart.Top, "*B2B Order Entry  # by Product Group #                   ", _
+        "Arial Bold Italic", 12, &H66)
+
+        'Add a title to the y axis. Draw the title upright (font angle = 0)
+        'c.yAxis().setTitle("Average<*br*>Workload<*br*>(MBytes<*br*>Per Hour)" _
+        '    ).setFontAngle(0)
+        'c.yAxis().setTitle("Year<*br*>2006", "Arial Bold", 11, &H66).setFontAngle(0)
+        cXY4.yAxis().setTitle("Y" & xYear, "Arial Bold", 11, &H66)
+
+        'Use 10 pts Arial Bold/orange (0xcc6600) font for the y axis labels
+        cXY4.yAxis().setLabelStyle("Arial", 9, &H0)
+
+        'Set the axis label format to "nnn MBytes"
+        'c.yAxis().setLabelFormat("{value} euro")
+        cXY4.yAxis().setLabelFormat("{value}")
+
+        
+        'Set the labels on the x axis
+        cXY4.xAxis().setLabels(labels)
+
+        'Use 10 pts Arial Bold/green (0x008000) font for the x axis labels. Set the label
+        'angle to 45 degrees.
+        'c.xAxis().setLabelStyle("Arial Bold", 10, &H0).setFontAngle(0)
+        cXY4.xAxis().setLabelStyle("Arial", 10, &H0).setFontAngle(0)
+        
+        'Add a stacked bar layer and set the layer 3D depth to 8 pixels
+        Dim layerXY4 As BarLayer = cXY4.addBarLayer2(Chart.Stack, 8)
+
+        'Add the three data sets to the bar layer
+        layerXY4.addDataSet(data0XY4, &HFF8080, "eP")
+        layerXY4.addDataSet(data1XY4, &H80FF80, "eA")
+        'layer.addDataSet(data0, &HFF6666, "Standard")
+        'layer.addDataSet(data1, &H32CD32, "BTOS")
+        'layer.addDataSet(data2, &H66FF, "CTOS")
+
+        'Enable bar label for the whole bar
+        'layer.setAggregateLabelStyle()
+        'Use 10 pts Times Bold Italic (timesbi.ttf) as the aggregate label font. Set the
+        'background to flesh (0xffcc66) color with a 1 pixel 3D border.
+        layerXY4.setAggregateLabelStyle("Arial Bold Italic", 10).setBackground( _
+            &HFFCC66, Chart.Transparent, 1)
+
+        'Set bar shape to circular (cylinder)
+        layerXY4.setBarShape(Chart.CircleShape)
+        
+        'Enable bar label for each segment of the stacked bar
+        layerXY4.setDataLabelStyle()
+
+        'output the chart
+        WebChartViewerXY4.Image = cXY4.makeWebImage(Chart.PNG)
+
+        'include tool tip for the chart
+        WebChartViewerXY4.ImageMap = cXY4.getHTMLImageMap("", "", _
+            "title='{dataSetName} on {xLabel}: {value} MBytes/hour'")
+
+        '### PIE : Order entry by customer distribution ###
+        'The data for the pie chart
+        Dim dataPie4() As Double = {55, 45}
+
+        'The labels for the pie chart
+        Dim labelsPie4() As String = {"eP", "eA"}
+
+        'Create a PieChart object of size 450 x 240 pixels
+        Dim cPie4 As PieChart = New PieChart(200, 160, &HEEEEEE, 0, 1)
+
+        'Set the center of the pie at (150, 100) and the radius to 80 pixels
+        cPie4.setPieSize(95, 85, 65)
+
+        'Add a title at the bottom of the chart using Arial Bold Italic font
+        cPie4.addTitle(Chart.TopCenter, "Year-To-Date", "Arial Bold Italic", 11, &H66).setBackground(&HCCCCCC, 0)
+
+        'Draw the pie in 3D
+        cPie4.set3D(-1, 30)
+
+        'Colors of the sectors if custom coloring is used
+        'layer.addDataSet(data0, &HFF8080, "Standard")
+        'layer.addDataSet(data1, &H80FF80, "BTOS")
+        'layer.addDataSet(data2, &H8080FF, "CTOS")
+
+        Dim colorsPie4() As Integer = {&HFF8080, &H80FF80, &H8080FF}
+        cPie4.setColors2(Chart.DataColor, colorsPie4)
+
+        'add a legend box where the top left corner is at (330, 40)
+        'cPie.addLegend(330, 40)
+
+        'modify the label format for the sectors to $nnnK (pp.pp%)
+        'cPie.setLabelFormat("{label} ${value}K<*br*>({percent}%)")
+        cPie4.setLabelFormat("{label} <*br*>({percent|0}%)")
+        
+        'Set the background color of the sector label to pale yellow (ffffc0) with a
+        'black border (000000)
+        'cPie.setLabelStyle().setBackground(&HFFFFC0, &H0)
+        
+        'Set the label position to -40 pixels from the perimeter of the pie (-ve
+        'means label is inside the pie)
+        cPie4.setLabelPos(-30)
+
+        'Set the pie data and the pie labels
+        cPie4.setData(dataPie4, labelsPie4)
+
+        'Explode the 1st sector (index = 0)
+        'cPie.setExplode(0)
+
+        'output the chart
+        WebChartViewerPie4.Image = cPie4.makeWebImage(Chart.PNG)
+
+        'include tool tip for the chart
+        WebChartViewerPie4.ImageMap = cPie4.getHTMLImageMap("", "", _
+            "title='{label}: US${value}K ({percent}%)'")
+        
+        '### Chart: User reach
+        'The data for the bar chart
+        Dim data0XY5() As Double = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}
+        Dim data1XY5() As Double = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}
+        xSql = "select COUNT(t.sessionid),t.month from (select distinct sessionid, month(timestamp) as month from DIM_USER_LOG where SERVER in ('my-global.advantech.eu:80','my.advantech.com:80') and year(timestamp)=" & xYear & _
+               " and userid like '%@advantech%') as t group by t.month"
+        odt = dbUtil.dbGetDataTable("my", xSql)
+        nSum0 = 0
+        For I As Integer = 0 To odt.Rows.Count - 1
+            data0XY5(CInt(odt.Rows(I).Item(1)) - 1) = CDbl(odt.Rows(I).Item(0))
+            nSum0 = nSum0 + CDbl(odt.Rows(I).Item(0))
+        Next
+
+        xSql = "select COUNT(t.sessionid),t.month from (select distinct sessionid, month(timestamp) as month from DIM_USER_LOG where SERVER in ('my-global.advantech.eu:80','my.advantech.com:80') and year(timestamp)=" & xYear & _
+               " and userid not like '%@advantech%' and userid != '') as t group by t.month"
+        odt = dbUtil.dbGetDataTable("my", xSql)
+        nSum1 = 0
+        For I As Integer = 0 To odt.Rows.Count - 1
+            data1XY5(CInt(odt.Rows(I).Item(1)) - 1) = CDbl(odt.Rows(I).Item(0))
+            nSum1 = nSum1 + CDbl(odt.Rows(I).Item(0))
+        Next
+
+        '\ming add
+        Dim dataPie5() As Double
+        If nSum0 = 0 AndAlso nSum1 = 0 Then
+            dataPie5 = New Double() {0, 0}
+            WebChartViewerPie5.Visible = False
+        Else
+            dataPie5 = New Double() {CInt(nSum0 * 100 / (nSum0 + nSum1)), CInt(nSum1 * 100 / (nSum0 + nSum1))}
+            WebChartViewerPie5.Visible = True
+        End If
+
+        '/ming end
+      
+      
+        'Dim dataPie5() As Double = {CInt(nSum0 * 100 / (nSum0 + nSum1)), CInt(nSum1 * 100 / (nSum0 + nSum1))}
+
+        
+        'Dim data0XY5() As Double = {502, 500, 754, 0, 0, 0, 0, 0, 0, 0, 0, 0}
+        'Dim data1XY5() As Double = {231, 324, 239, 0, 0, 0, 0, 0, 0, 0, 0, 0}
+
+        'The labels for the bar chart
+        Dim labelsXY5() As String = {"Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"}
+
+        'Create a XYChart object of size 500 x 320 pixels
+        Dim cXY5 As XYChart = New XYChart(700, 320)
+
+        'Set the plotarea at (100, 40) and of size 280 x 240 pixels
+        'c.setPlotArea(100, 40, 280, 240)
+        'background colors (EEEEEE and FFFFFF)
+        cXY5.setPlotArea(65, 40, 500, 240, &HEEEEEE, &HFFFFFF)
+
+        'Add a legend box at (400, 100)
+        cXY5.addLegend(580, 100)
+
+        'Add a title to the chart using 14 points Times Bold Itatic font
+        cXY5.addTitle(Chart.Top, "User Reach  # by User Type #                   ", _
+        "Arial Bold Italic", 12, &H66)
+
+        'Add a title to the y axis. Draw the title upright (font angle = 0)
+        'c.yAxis().setTitle("Average<*br*>Workload<*br*>(MBytes<*br*>Per Hour)" _
+        '    ).setFontAngle(0)
+        'c.yAxis().setTitle("Year<*br*>2006", "Arial Bold", 11, &H66).setFontAngle(0)
+        cXY5.yAxis().setTitle("Y" & xYear, "Arial Bold", 11, &H66)
+
+        'Use 10 pts Arial Bold/orange (0xcc6600) font for the y axis labels
+        cXY5.yAxis().setLabelStyle("Arial", 9, &H0)
+
+        'Set the axis label format to "nnn MBytes"
+        'c.yAxis().setLabelFormat("{value} euro")
+        cXY5.yAxis().setLabelFormat("{value}")
+
+        
+        'Set the labels on the x axis
+        cXY5.xAxis().setLabels(labelsXY5)
+
+        'Use 10 pts Arial Bold/green (0x008000) font for the x axis labels. Set the label
+        'angle to 45 degrees.
+        'c.xAxis().setLabelStyle("Arial Bold", 10, &H0).setFontAngle(0)
+        cXY5.xAxis().setLabelStyle("Arial", 10, &H0).setFontAngle(0)
+        
+        'Add a stacked bar layer and set the layer 3D depth to 8 pixels
+        Dim layerXY5 As BarLayer = cXY5.addBarLayer2(Chart.Stack, 8)
+
+        'Add the three data sets to the bar layer
+        layerXY5.addDataSet(data0XY5, &HFF8080, "Advantecher")
+        layerXY5.addDataSet(data1XY5, &H80FF80, "Customer")
+        'layer.addDataSet(data0, &HFF6666, "Standard")
+        'layer.addDataSet(data1, &H32CD32, "BTOS")
+        'layer.addDataSet(data2, &H66FF, "CTOS")
+
+        'Enable bar label for the whole bar
+        'layer.setAggregateLabelStyle()
+        'Use 10 pts Times Bold Italic (timesbi.ttf) as the aggregate label font. Set the
+        'background to flesh (0xffcc66) color with a 1 pixel 3D border.
+        layerXY5.setAggregateLabelStyle("Arial Bold Italic", 10).setBackground( _
+            &HFFCC66, Chart.Transparent, 1)
+
+        'Set bar shape to circular (cylinder)
+        layerXY5.setBarShape(Chart.CircleShape)
+        
+        'Enable bar label for each segment of the stacked bar
+        layerXY5.setDataLabelStyle()
+
+        'output the chart
+        WebChartViewerXY5.Image = cXY5.makeWebImage(Chart.PNG)
+
+        'include tool tip for the chart
+        WebChartViewerXY5.ImageMap = cXY5.getHTMLImageMap("", "", _
+            "title='{dataSetName} on {xLabel}: {value} MBytes/hour'")
+
+        '### PIE : User reach ###
+        'The data for the pie chart
+        'Dim dataPie5() As Double = {55, 45}
+
+        'The labels for the pie chart
+        Dim labelsPie5() As String = {"Advantecher", "Customer"}
+
+        'Create a PieChart object of size 450 x 240 pixels
+        Dim cPie5 As PieChart = New PieChart(200, 160, &HEEEEEE, 0, 1)
+
+        'Set the center of the pie at (150, 100) and the radius to 80 pixels
+        cPie5.setPieSize(95, 85, 65)
+
+        'Add a title at the bottom of the chart using Arial Bold Italic font
+        cPie5.addTitle(Chart.TopCenter, "Year-To-Date", "Arial Bold Italic", 11, &H66).setBackground(&HCCCCCC, 0)
+
+        'Draw the pie in 3D
+        cPie5.set3D(-1, 30)
+
+        'Colors of the sectors if custom coloring is used
+        'layer.addDataSet(data0, &HFF8080, "Standard")
+        'layer.addDataSet(data1, &H80FF80, "BTOS")
+        'layer.addDataSet(data2, &H8080FF, "CTOS")
+
+        Dim colorsPie5() As Integer = {&HFF8080, &H80FF80, &H8080FF}
+        cPie5.setColors2(Chart.DataColor, colorsPie5)
+
+        'add a legend box where the top left corner is at (330, 40)
+        'cPie.addLegend(330, 40)
+
+        'modify the label format for the sectors to $nnnK (pp.pp%)
+        'cPie.setLabelFormat("{label} ${value}K<*br*>({percent}%)")
+        cPie5.setLabelFormat("{label} <*br*>({percent|0}%)")
+        
+        'Set the background color of the sector label to pale yellow (ffffc0) with a
+        'black border (000000)
+        'cPie.setLabelStyle().setBackground(&HFFFFC0, &H0)
+        
+        'Set the label position to -40 pixels from the perimeter of the pie (-ve
+        'means label is inside the pie)
+        cPie5.setLabelPos(-30)
+
+        'Set the pie data and the pie labels
+        cPie5.setData(dataPie5, labelsPie5)
+
+        'Explode the 1st sector (index = 0)
+        'cPie.setExplode(0)
+
+        'output the chart
+        WebChartViewerPie5.Image = cPie5.makeWebImage(Chart.PNG)
+
+        'include tool tip for the chart
+        WebChartViewerPie5.ImageMap = cPie5.getHTMLImageMap("", "", _
+            "title='{label}: US${value}K ({percent}%)'")
+
+
+        '### PIE : Member Distribution ###
+        'The data for the pie chart
+        'xSql = "select user_type, count(userid) from user_info " & _
+        '       "group by user_type "
+
+        'oDr = getDataReader("B2B-AEU-LAB", xSql)
+        'nSum0 = 0
+        'nSum1 = 0
+        'nSum2 = 0
+        'Do While oDr.Read
+        '    Select Case Trim(UCase(CStr(oDr.Item(0))))
+        '        Case "CONTACT"
+        '            nSum0 = CDbl(oDr.Item(1))
+        '        Case "EMPLOYEE"
+        '            nSum1 = CDbl(oDr.Item(1))
+        '        Case "PZ"
+        '            nSum2 = CDbl(oDr.Item(1))
+        '    End Select
+        'Loop
+
+        'nSumTotal = nSum0 + nSum1 + nSum2
+
+        'Dim dataPie91() As Double = {CInt(nSum0 * 100 / nSumTotal), CInt(nSum1 * 100 / nSumTotal), CInt(nSum2 * 100 / nSumTotal)}
+
+        ''The labels for the pie chart
+        'Dim labelsPie91() As String = {"Customer", "Advantecher", "Customer(PZ)"}
+
+        ''Create a PieChart object of size 450 x 240 pixels
+        'Dim cPie91 As PieChart = New PieChart(200, 160, &HEEEEEE, 0, 1)
+
+        ''Set the center of the pie at (150, 100) and the radius to 80 pixels
+        'cPie91.setPieSize(95, 85, 65)
+
+        ''Add a title at the bottom of the chart using Arial Bold Italic font
+        'cPie91.addTitle(Chart.TopCenter, "Member Distribution", "Arial Bold Italic", 11, &H66).setBackground(&HCCCCCC, 0)
+
+        ''Draw the pie in 3D
+        'cPie91.set3D(-1, 30)
+
+        ''Colors of the sectors if custom coloring is used
+        ''layer.addDataSet(data0, &HFF8080, "Standard")
+        ''layer.addDataSet(data1, &H80FF80, "BTOS")
+        ''layer.addDataSet(data2, &H8080FF, "CTOS")
+
+        'Dim colorsPie91() As Integer = {&HFF8080, &H80FF80, &H8080FF}
+        'cPie91.setColors2(Chart.DataColor, colorsPie91)
+
+        ''add a legend box where the top left corner is at (330, 40)
+        ''cPie.addLegend(330, 40)
+
+        ''modify the label format for the sectors to $nnnK (pp.pp%)
+        ''cPie.setLabelFormat("{label} ${value}K<*br*>({percent}%)")
+        'cPie91.setLabelFormat("{label} <*br*>({percent|0}%)")
+
+        ''Set the background color of the sector label to pale yellow (ffffc0) with a
+        ''black border (000000)
+        ''cPie.setLabelStyle().setBackground(&HFFFFC0, &H0)
+
+        ''Set the label position to -40 pixels from the perimeter of the pie (-ve
+        ''means label is inside the pie)
+        'cPie91.setLabelPos(-30)
+
+        ''Set the pie data and the pie labels
+        'cPie91.setData(dataPie91, labelsPie91)
+
+        ''Explode the 1st sector (index = 0)
+        ''cPie.setExplode(0)
+
+        ''output the chart
+        'WebChartViewerPie91.Image = cPie91.makeWebImage(Chart.PNG)
+
+        ''include tool tip for the chart
+        'WebChartViewerPie91.ImageMap = cPie91.getHTMLImageMap("", "", _
+        '    "title='{label}: US${value}K ({percent}%)'")
+
+        
+        
+        '### Meter Chart: B2B Order Entry ### 
+        'The value to display on the meter
+        Dim value As Double = 85
+
+        'Create an LinearMeter object of size 210 x 45 pixels, using silver background
+        'with a 2 pixel black 3D depressed border.
+        Dim m As LinearMeter = New LinearMeter(210, 45, Chart.silverColor(), 0, -2)
+
+        'Set the scale region top-left corner at (5, 5), with size of 200 x 20 pixels.
+        'The scale labels are located on the bottom (implies horizontal meter)
+        m.setMeter(5, 5, 200, 20, Chart.Bottom)
+
+        'Set meter scale from 0 - 100
+        m.setScale(0, 100)
+
+        'Add a title at the bottom of the meter with a 1 pixel raised 3D border
+        m.addTitle2(Chart.Bottom, "B2B Order Fulfillment", "Arial Bold", 8).setBackground( _
+            Chart.Transparent, -1, 1)
+
+        'Set 3 zones of different colors to represent Good/Weak/Bad data ranges
+        m.addZone(80, 100, &H99FF99, "Good")
+        m.addZone(50, 80, &HFFFF66, "Weak")
+        m.addZone(0, 50, &HFFCCCC, "Bad")
+
+        'Add empty labels (just need the ticks) at 0/20/50/80 as separators for zones
+        m.addLabel(0, " ")
+        m.addLabel(50, " ")
+        m.addLabel(80, " ")
+        m.addLabel(100, " ")
+
+        'Add a semi-transparent blue (800000ff) pointer at the specified value, using
+        'triangular pointer shape
+        m.addPointer(value, &H800000FF).setShape(Chart.TriangularPointer)
+
+        'output the chart
+        WebChartViewerMeter.Image = m.makeWebImage(Chart.PNG)
+        WebChartViewerMeter.Visible = False
+        '### Meter Chart: Site Usages ### 
+        'The value to display on the meter
+        Dim valueM2 As Double = 80
+
+        'Create an LinearMeter object of size 210 x 45 pixels, using silver background
+        'with a 2 pixel black 3D depressed border.
+        Dim m2 As LinearMeter = New LinearMeter(210, 45, Chart.silverColor(), 0, -2)
+
+        'Set the scale region top-left corner at (5, 5), with size of 200 x 20 pixels.
+        'The scale labels are located on the bottom (implies horizontal meter)
+        m2.setMeter(5, 5, 200, 20, Chart.Bottom)
+
+        'Set meter scale from 0 - 100
+        m2.setScale(0, 100)
+
+        'Add a title at the bottom of the meter with a 1 pixel raised 3D border
+        m2.addTitle2(Chart.Bottom, "B2B Site Usage", "Arial Bold", 8).setBackground( _
+            Chart.Transparent, -1, 1)
+
+        'Set 3 zones of different colors to represent Good/Weak/Bad data ranges
+        m2.addZone(80, 100, &H99FF99, "Good")
+        m2.addZone(50, 80, &HFFFF66, "Weak")
+        m2.addZone(0, 50, &HFFCCCC, "Bad")
+
+        'Add empty labels (just need the ticks) at 0/20/50/80 as separators for zones
+        m2.addLabel(0, " ")
+        m2.addLabel(50, " ")
+        m2.addLabel(80, " ")
+        m2.addLabel(100, " ")
+
+        'Add a semi-transparent blue (800000ff) pointer at the specified value, using
+        'triangular pointer shape
+        m2.addPointer(valueM2, &H800000FF).setShape(Chart.TriangularPointer)
+
+        'output the chart
+        WebChartViewerMeter2.Image = m2.makeWebImage(Chart.PNG)
+        WebChartViewerMeter2.Visible = False
+        '#### BAR CHART: Top 10 B2B Order Enrty by Customer ####'
+        'The data for the bar chart
+        'The age groups
+        'The data for the bar chart
+        Dim data0Bar1() As Double = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0}
+        Dim labelsBar1() As String = {"", "", "", "", "", "", "", "", "", ""}
+        xSql = "select top 10 company_name, billto_id, count(order_no) from order_master a " & _
+               "inner join SAP_DIMCOMPANY b " & _
+               "on a.billto_id = b.company_id " & _
+               "where  year(a.order_date)=" & xYear & " and a.created_by not like '%advantech%' and a.order_no != '' " & _
+               "group by a.billto_id, b.company_name " & _
+               "order by count(a.order_no) desc "
+        'Response.Write(xSql)
+        oDr = getDataReader("B2B-AEU-LAB", xSql)
+        Dim j As Integer = 0
+        Do While oDr.Read
+            labelsBar1(j) = CStr(oDr.Item(0)) & "(" & CStr(oDr.Item(1)) & ")"
+            data0Bar1(9 - j) = CDbl(oDr.Item(2))
+            j = j + 1
+        Loop
+        
+        'Dim data0Bar1() As Double = {44, 55, 100, 44, 55, 100, 44, 55, 100, 320}
+        'Dim data1Bar1() As Double = {44, 55, 100, 44, 55, 100, 44, 55, 100, 0}
+
+        'The labels for the bar chart. The labels contains embedded images as icons.
+        'Dim labelsBar1() As String = {"<*img=service.png*><*br*>Service", _
+        '    "<*img=software.png*><*br*>Software", "<*img=computer.png*><*br*>Hardware"}
+        'Dim labelsBar1() As String = {"Customer1", _
+        '                              "Customer2", _
+        '                              "Customer2", _
+        '                              "Customer2", _
+        '                              "Customer2", _
+        '                              "Customer2", _
+        '                              "Customer2", _
+        '                              "Customer2", _
+        '                              "Customer2", _
+        '                              "Customer2"}
+
+        'Create a XYChart object of size 600 x 350 pixels, using 0xe0e0ff as the
+        'background color, 0xccccff as the border color, with 1 pixel 3D border effect.
+        Dim cBar1 As XYChart = New XYChart(800, 410, &HE0E0FF, &HCCCCFF, 1)
+
+        'Set default directory for loading images from current script directory
+        Call cBar1.setSearchPath(Server.MapPath("."))
+
+        'Add a title to the chart using 14 points Times Bold Itatic font and light blue
+        '(0x9999ff) as the background color
+        cBar1.addTitle("Top 10 Customer Order Entry", "Arial Bold Italic", 12 _
+            ).setBackground(&H9999FF)
+
+        'Set the plotarea at (60, 45) and of size 500 x 210 pixels, using white
+        '(0xffffff) as the background
+        cBar1.setPlotArea(250, 45, 500, 320, &HFFFFFF)
+
+        'Swap the x and y axes to create a horizontal bar chart
+        cBar1.swapXY()
+
+        'Add a title to the y axis using 11 pt Times Bold Italic as font
+        'cBar1.yAxis().setTitle("Order #", "Arial Bold Italic", 11)
+        'Use 10 pts Arial Bold/orange (0xcc6600) font for the y axis labels
+        cBar1.yAxis().setLabelStyle("Arial", 9, &H0)
+
+        'Set the axis label format to "nnn MBytes"
+        'c.yAxis().setLabelFormat("{value} euro")
+        cBar1.yAxis().setLabelFormat("{value}")
+
+        'Set the labels on the x axis
+        cBar1.xAxis().setLabels(labelsBar1)
+
+        'Disable x-axis ticks by setting the tick length to 0
+        cBar1.xAxis().setTickLength(0)
+
+        'Add a stacked bar layer to the chart
+        Dim layerBar1 As BarLayer = cBar1.addBarLayer2(Chart.Stack)
+
+        'Add the first two data sets to the chart as a stacked bar group
+        'layerBar1.addDataGroup("Order #")
+        'layerBar1.addDataSet(data0Bar1, &HAAAAFF, "SA")
+        layerBar1.addDataSet(data0Bar1, &H6666FF, "Customer")
+
+        'Set the sub-bar gap to 0, so there is no gap between stacked bars with a group
+        layerBar1.setBarGap(0.2, 0)
+
+        'Set the bar border to transparent
+        layerBar1.setBorderColor(Chart.Transparent)
+
+        'Set the aggregate label format
+        'layerBar1.setAggregateLabelFormat("Year {dataGroupName}<*br*>{value} millions")
+
+        'Set the aggregate label font to 8 point Arial Bold Italic
+        'layerBar1.setAggregateLabelStyle("Arial Bold Italic", 8)
+        layerBar1.setAggregateLabelStyle("Arial Bold Italic", 10).setBackground( _
+            &HFFCC66, Chart.Transparent, 1)
+
+        'Reverse 20% space at the right during auto-scaling to allow space for the
+        'aggregate bar labels
+        cBar1.yAxis().setAutoScale(0.2)
+
+        'Enable bar label for each segment of the stacked bar
+        layerBar1.setDataLabelStyle()
+        
+        'Add a legend box at (310, 300) using TopCenter alignment, with 2 column grid
+        'layout, and use 8 pts Arial Bold Italic as font
+        'Dim legendBoxBar1 As LegendBox = cBar1.addLegend2(310, 390, 2, "Arial Bold Italic", 10)
+        'legendBoxBar1.setAlignment(Chart.TopCenter)
+
+        'Set the format of the text displayed in the legend box
+        ''legendBoxBar1.setText("{dataSetName} Entry")
+
+        'Set the background and border of the legend box to transparent
+        'legendBoxBar1.setBackground(Chart.Transparent, Chart.Transparent)
+
+        'output the chart
+        WebChartViewerBar1.Image = cBar1.makeWebImage(Chart.PNG)
+
+        'include tool tip for the chart
+        WebChartViewerBar1.ImageMap = c.getHTMLImageMap("", "", _
+            "title='Year {dataGroupName} {dataSetName} {xLabel} Revenue: {value} " & _
+            "millions'")
+
+        '#### BAR CHART: Top 10 Customer Reach ####'
+        'The data for the bar chart
+        'The age groups
+        'The data for the bar chart
+        Dim data0Bar2() As Double = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0}
+        Dim labelsBar2() As String = {"", "", "", "", "", "", "", "", "", ""}
+        xSql = "select top 10 t.account_name, t.erp_id, sum(t.counts) as t_counts from (select USERID, (select top 1 z.erp_id from siebel_account z left join SIEBEL_CONTACT z1 on z.ROW_ID=z1.ACCOUNT_ROW_ID where z1.email_address=userid and z.ERP_ID != '') as erp_id, (select top 1 z.account_name from siebel_account z left join SIEBEL_CONTACT z1 on z.ROW_ID=z1.ACCOUNT_ROW_ID where z1.email_address=userid and z.ERP_ID != '') as account_name, COUNT(distinct SESSIONID) as counts from dim_user_log where SERVER  in ('my-global.advantech.eu:80','my.advantech.com:80') and year(timestamp)='" + xYear + "' and userid not like '%advantech%' and USERID<>'' group by USERID) as t where t.erp_id is not null or t.erp_id != '' group by t.erp_id,t.account_name order by t_counts desc"
+        'Response.Write(xSql)
+        odt = dbUtil.dbGetDataTable("MY", xSql)
+        'ming add for removing DBNull
+        For Each dr As DataRow In odt.Rows
+            For Each col As DataColumn In odt.Columns
+                If Convert.IsDBNull(dr.Item(col.ColumnName)) Then
+                    dr.Item(col.ColumnName) = ""
+                End If
+            Next
+        Next
+        'ming end
+        For I As Integer = 0 To oDt.Rows.Count - 1
+            labelsBar2(9 - I) = CStr(oDt.Rows(I).Item(0)) & " (" & CStr(oDt.Rows(I).Item(1)) & ")"
+            data0Bar2(9 - I) = CDbl(oDt.Rows(I).Item(2))
+        Next
+
+        'Dim data0Bar2() As Double = {44, 55, 100, 44, 55, 100, 44, 55, 100, 320}
+        'Dim data1Bar2() As Double = {44, 55, 100, 44, 55, 100, 44, 55, 100, 0}
+
+        'The labels for the bar chart. The labels contains embedded images as icons.
+        'Dim labelsBar2() As String = {"<*img=service.png*><*br*>Service", _
+        '    "<*img=software.png*><*br*>Software", "<*img=computer.png*><*br*>Hardware"}
+        'Dim labelsBar2() As String = {"Customer1", _
+        '                              "Customer2", _
+        '                              "Customer2", _
+        '                              "Customer2", _
+        '                              "Customer2", _
+        '                              "Customer2", _
+        '                              "Customer2", _
+        '                              "Customer2", _
+        '                              "Customer2", _
+        '                              "Customer2"}
+
+        'Create a XYChart object of size 600 x 350 pixels, using 0xe0e0ff as the
+        'background color, 0xccccff as the border color, with 1 pixel 3D border effect.
+        Dim cBar2 As XYChart = New XYChart(800, 410, &HE0E0FF, &HCCCCFF, 1)
+
+        'Set default directory for loading images from current script directory
+        Call cBar2.setSearchPath(Server.MapPath("."))
+
+        'Add a title to the chart using 14 points Times Bold Itatic font and light blue
+        '(0x9999ff) as the background color
+        cBar2.addTitle("Top 10 Customer Reach", "Arial Bold Italic", 12 _
+            ).setBackground(&H9999FF)
+
+        'Set the plotarea at (60, 45) and of size 500 x 210 pixels, using white
+        '(0xffffff) as the background
+        cBar2.setPlotArea(250, 45, 500, 320, &HFFFFFF)
+
+        'Swap the x and y axes to create a horizontal bar chart
+        cBar2.swapXY()
+
+        'Add a title to the y axis using 11 pt Times Bold Italic as font
+        'cBar2.yAxis().setTitle("Order #", "Arial Bold Italic", 11)
+        'Use 10 pts Arial Bold/orange (0xcc6600) font for the y axis labels
+        cBar2.yAxis().setLabelStyle("Arial", 9, &H0)
+
+        'Set the axis label format to "nnn MBytes"
+        'c.yAxis().setLabelFormat("{value} euro")
+        cBar2.yAxis().setLabelFormat("{value}")
+
+        'Set the labels on the x axis
+        cBar2.xAxis().setLabels(labelsBar2)
+
+        'Disable x-axis ticks by setting the tick length to 0
+        cBar2.xAxis().setTickLength(0)
+
+        'Add a stacked bar layer to the chart
+        Dim layerBar2 As BarLayer = cBar2.addBarLayer2(Chart.Stack)
+
+        'Add the first two data sets to the chart as a stacked bar group
+        'layerBar2.addDataGroup("Order #")
+        layerBar2.addDataSet(data0Bar2, &HAAAAFF, "Customer")
+        'layerBar2.addDataSet(data1Bar2, &H6666FF, "SA")
+
+        'Set the sub-bar gap to 0, so there is no gap between stacked bars with a group
+        layerBar2.setBarGap(0.2, 0)
+
+        'Set the bar border to transparent
+        layerBar2.setBorderColor(Chart.Transparent)
+
+        'Set the aggregate label format
+        'layerBar2.setAggregateLabelFormat("Year {dataGroupName}<*br*>{value} millions")
+
+        'Set the aggregate label font to 8 point Arial Bold Italic
+        'layerBar2.setAggregateLabelStyle("Arial Bold Italic", 8)
+        layerBar2.setAggregateLabelStyle("Arial Bold Italic", 10).setBackground( _
+            &HFFCC66, Chart.Transparent, 1)
+
+        'Reverse 20% space at the right during auto-scaling to allow space for the
+        'aggregate bar labels
+        cBar2.yAxis().setAutoScale(0.2)
+
+        'Enable bar label for each segment of the stacked bar
+        layerBar2.setDataLabelStyle()
+        
+        'Add a legend box at (310, 300) using TopCenter alignment, with 2 column grid
+        'layout, and use 8 pts Arial Bold Italic as font
+        'Dim legendBoxBar2 As LegendBox = cBar2.addLegend2(310, 390, 2, "Arial Bold Italic", 10)
+        'legendBoxBar2.setAlignment(Chart.TopCenter)
+
+        'Set the format of the text displayed in the legend box
+        'legendBoxBar2.setText("{dataSetName} Entry")
+
+        'Set the background and border of the legend box to transparent
+        'legendBoxBar2.setBackground(Chart.Transparent, Chart.Transparent)
+
+        'output the chart
+        WebChartViewerBar2.Image = cBar2.makeWebImage(Chart.PNG)
+
+        'include tool tip for the chart
+        WebChartViewerBar2.ImageMap = c.getHTMLImageMap("", "", _
+            "title='Year {dataGroupName} {dataSetName} {xLabel} Revenue: {value} " & _
+            "millions'")
+        
+        
+        '#  ---Jackie add 2006/11/15 being here # EZ BTOS Log
+        Dim dataEZ1() As Double = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}
+        Dim dataEZ2() As Double = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}
+        
+
+     
+        xSql = "select month(a.order_date), count(a.order_no) from order_master a " & _
+               "where(Year(a.order_date) = " & xYear & " ) and a.order_no != '' " & _
+               "and a.order_id in (select order_id from order_detail where line_no = 100 and part_no like '%-BTO' and part_no not like 'SYS-%') " & _
+               "group by month(a.order_date) " & _
+               "order by month(a.order_date) "
+        oDr = getDataReader("B2B-AEU-LAB", xSql)
+        nSum1 = 0
+        Do While oDr.Read
+            dataEZ1(CInt(oDr.Item(0)) - 1) = CDbl(oDr.Item(1))
+            nSum1 += CDbl(oDr.Item(1))
+        Loop
+
+        xSql = "select month(a.order_date), count(a.order_no) from order_master a " & _
+               "where(Year(a.order_date) = " & xYear & _
+               ") and a.order_no != '' and a.order_id in (select order_id from order_detail where line_no = 100 and part_no like '%-BTO' and part_no like 'SYS-%') and created_by<>'jackie.wu@advantech.com.cn' " & _
+               "group by month(a.order_date) " & _
+               "order by month(a.order_date) "
+        oDr = getDataReader("B2B-AEU-LAB", xSql)
+        nSum2 = 0
+        Do While oDr.Read
+            dataEZ2(CInt(oDr.Item(0)) - 1) = CDbl(oDr.Item(1))
+            nSum2 += CDbl(oDr.Item(1))
+        Loop
+
+        '\ming add
+        Dim dataEZ() As Double
+        If nSum1 = 0 AndAlso nSum2 = 0 Then
+            dataEZ = New Double() {0, 0}
+            WebPieViewerEZConig.Visible = False
+        Else
+            dataEZ = New Double() {CInt(nSum1 * 100 / (nSum1 + nSum2)), CInt(nSum2 * 100 / (nSum1 + nSum2))}
+            WebPieViewerEZConig.Visible = True
+        End If
+
+        '/ming end
+        'Dim dataEZ() As Double = {CInt(nSum1 * 100 / (nSum1 + nSum2)), CInt(nSum2 * 100 / (nSum1 + nSum2))}
+
+        
+        'Response.Write(oTable.getCol(0).ToString)
+        '### Chart:Order Entry by Order Type
+        'The data for the bar chart
+        'Dim data0() As Double = {4, 87, 56, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}
+        'Dim data1() As Double = {4, 87, 56, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}
+        'Dim data2() As Double = {4, 87, 56, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}
+
+        'The labels for the bar chart
+        Dim labelsEZ() As String = {"Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"}
+
+        'Create a XYChart object of size 500 x 320 pixels
+        Dim cEZ As XYChart = New XYChart(700, 320)
+
+        'Set the plotarea at (100, 40) and of size 280 x 240 pixels
+        'c.setPlotArea(100, 40, 280, 240)
+        'background colors (EEEEEE and FFFFFF)
+        cEZ.setPlotArea(55, 40, 500, 240, &HEEEEEE, &HFFFFFF)
+
+        'Add a legend box at (400, 100)
+        cEZ.addLegend(575, 100)
+
+        'Add a title to the chart using 14 points Times Bold Itatic font
+        cEZ.addTitle(Chart.Top, "Normal BTOS Order Entry  Vs   EZ BTOS Order Entry                  ", _
+        "Arial Bold Italic", 12, &H66)
+
+        'Add a title to the y axis. Draw the title upright (font angle = 0)
+        'c.yAxis().setTitle("Average<*br*>Workload<*br*>(MBytes<*br*>Per Hour)" _
+        '    ).setFontAngle(0)
+        'c.yAxis().setTitle("Year<*br*>2006", "Arial Bold", 11, &H66).setFontAngle(0)
+        cEZ.yAxis().setTitle(xYear, "Arial Bold", 11, &H66)
+
+        'Use 10 pts Arial Bold/orange (0xcc6600) font for the y axis labels
+        cEZ.yAxis().setLabelStyle("Arial", 9, &H0)
+
+        'Set the axis label format to "nnn MBytes"
+        'c.yAxis().setLabelFormat("{value} euro")
+        cEZ.yAxis().setLabelFormat("{value}")
+
+        
+        'Set the labels on the x axis
+        cEZ.xAxis().setLabels(labelsEZ)
+
+        'Use 10 pts Arial Bold/green (0x008000) font for the x axis labels. Set the label
+        'angle to 45 degrees.
+        'c.xAxis().setLabelStyle("Arial Bold", 10, &H0).setFontAngle(0)
+        cEZ.xAxis().setLabelStyle("Arial", 10, &H0).setFontAngle(0)
+        
+        'Add a stacked bar layer and set the layer 3D depth to 8 pixels
+        Dim layerEZ As BarLayer = cEZ.addBarLayer2(Chart.Stack, 8)
+
+        'Add the three data sets to the bar layer
+        layerEZ.addDataSet(dataEZ1, &H80FF80, "Normal BTOS")
+        layerEZ.addDataSet(dataEZ2, &H8080FF, "EZ BTOS")
+        'layer.addDataSet(data0, &HFF6666, "Standard")
+        'layer.addDataSet(data1, &H32CD32, "BTOS")
+        'layer.addDataSet(data2, &H66FF, "CTOS")
+
+        'Enable bar label for the whole bar
+        'layer.setAggregateLabelStyle()
+        'Use 10 pts Times Bold Italic (timesbi.ttf) as the aggregate label font. Set the
+        'background to flesh (0xffcc66) color with a 1 pixel 3D border.
+        layerEZ.setAggregateLabelStyle("Arial Bold Italic", 10).setBackground( _
+            &HFFCC66, Chart.Transparent, 1)
+
+        'Set bar shape to circular (cylinder)
+        layerEZ.setBarShape(Chart.CircleShape)
+        
+        'Enable bar label for each segment of the stacked bar
+        layerEZ.setDataLabelStyle()
+        'layerEZ.setBarGap(10, 10)
+
+        'output the chart
+        WebChartViewerEZConig.Image = cEZ.makeWebImage(Chart.PNG)
+
+        'include tool tip for the chart
+        WebChartViewerEZConig.ImageMap = cEZ.getHTMLImageMap("", "", _
+           "title='{dataSetName} on {xLabel}: {value} orders/month'")
+
+        '### PIE CHART ###
+        'The data for the pie chart
+        'Dim data() As Double = {55, 15, 30}
+
+        'The labels for the pie chart
+        Dim labelsPieEZ() As String = {"Normal BTOS", "EZ BTOS"}
+
+        'Create a PieChart object of size 450 x 240 pixels
+        Dim cPieEZ As PieChart = New PieChart(200, 160, &HEEEEEE, 0, 1)
+
+        'Set the center of the pie at (150, 100) and the radius to 80 pixels
+        cPieEZ.setPieSize(95, 85, 65)
+
+        'Add a title at the bottom of the chart using Arial Bold Italic font
+        cPieEZ.addTitle(Chart.TopCenter, "Year-To-Date", "Arial Bold Italic", 11, &H66).setBackground(&HCCCCCC, 0)
+
+        'Draw the pie in 3D
+        cPieEZ.set3D(-1, 30)
+
+        'Colors of the sectors if custom coloring is used
+        'layer.addDataSet(data0, &HFF8080, "Standard")
+        layerEZ.addDataSet(dataEZ1, &H80FF80, "Normal BTOS")
+        layerEZ.addDataSet(dataEZ2, &H8080FF, "EZ BTOS")
+        layerEZ.setBarWidth(200)
+
+        Dim colorsPieEZ() As Integer = {&H80FF80, &H8080FF}
+        cPieEZ.setColors2(Chart.DataColor, colorsPieEZ)
+
+        'add a legend box where the top left corner is at (330, 40)
+        'cPie.addLegend(330, 40)
+
+        'modify the label format for the sectors to $nnnK (pp.pp%)
+        'cPie.setLabelFormat("{label} ${value}K<*br*>({percent}%)")
+        cPieEZ.setLabelFormat("{label} <*br*>({percent|0}%)") '("{label} <*br*>({percent|0}%)")
+        
+        'Set the background color of the sector label to pale yellow (ffffc0) with a
+        'black border (000000)
+        'cPie.setLabelStyle().setBackground(&HFFFFC0, &H0)
+        
+        'Set the label position to -40 pixels from the perimeter of the pie (-ve
+        'means label is inside the pie)
+        cPieEZ.setLabelPos(-33)
+
+        'Set the pie data and the pie labels
+        cPieEZ.setData(dataEZ, labelsPieEZ)
+
+        'Explode the 1st sector (index = 0)
+        'cPie.setExplode(0)
+
+        '### Chart : Order entry by user type  ###
+        'output the chart
+        WebPieViewerEZConig.Image = cPieEZ.makeWebImage(Chart.PNG)
+
+        'include tool tip for the chart
+        WebPieViewerEZConig.ImageMap = cPieEZ.getHTMLImageMap("", "", _
+            "title='{label}: {value} ({percent}%)'")
+        
+        
+
+        createMeterChart(WebChartViewerMeter3, "Order Entry Flow", 96)
+        createMeterChart(WebChartViewerMeter4, "eQuotation", 20.5)
+        createMeterChart(WebChartViewerMeter5, "Search Product", 89.2)
+        createMeterChart(WebChartViewerMeter6, "Order Upload", 23.3)
+        createMeterChart(WebChartViewerMeter7, "Download Price List", 70.3)
+        createMeterChart(WebChartViewerMeter8, "Inquiry Backorder", 90.2)
+        createMeterChart(WebChartViewerMeter9, "Inquiry Price", 90.4)
+        createMeterChart(WebChartViewerMeter10, "Inquiry Availability", 88.8)
+        createMeterChart(WebChartViewerMeter11, "ePromotion", 0)
+        createMeterChart(WebChartViewerMeter12, "Due Date Calculation", 95)
+        createMeterChart(WebChartViewerMeter13, "eConfiguration", 63.5)
+        createMeterChart(WebChartViewerMeter14, "Cart History", 63.5)
+        createMeterChart(WebChartViewerMeter15, "Configuration History", 55.5)
+        createMeterChart(WebChartViewerMeter16, "eCTOS", 99.9)
+        createMeterChart(WebChartViewerMeter17, "Extended Warranty", 11.1)
+        createMeterChart(WebChartViewerMeter18, "Inquiry Invoice", 25.3)
+        createMeterChart(WebChartViewerMeter19, "Inquiry Serial Number", 10.2)
+        createMeterChart(WebChartViewerMeter20, "Inquiry Forwarder", 34.2)
+        oConn.Close()
+        add_PTD_Chart(xYear)
+        
+        
+        
+        
+        Dim data0Bar99() As Double = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0}
+        Dim data1Bar99() As Double = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0}
+        Dim labelsBar99() As String = {"", "", "", "", "", "", "", "", "", ""}
+        xSql = "select top 10 COUNT(url) as times,url from DIM_USER_LOG " & _
+               "where SERVER  in ('my-global.advantech.eu:80','my.advantech.com:80') and year(timestamp)='" & xYear & "' and userid like '%advantech%'" & _
+               "group by URL order by times desc"
+        'Response.Write(xSql)
+        odt = dbUtil.dbGetDataTable("MY", xSql)
+        For I As Integer = 0 To odt.Rows.Count - 1
+            labelsBar99(9 - I) = CStr(odt.Rows(I).Item(1))
+            data0Bar99(9 - I) = CDbl(odt.Rows(I).Item(0))
+        Next
+
+        xSql = "select top 10 COUNT(url) as times,url from DIM_USER_LOG " & _
+               "where SERVER  in ('my-global.advantech.eu:80','my.advantech.com:80') and year(timestamp)='" & xYear & "'" & _
+               " group by URL order by times desc"
+        odt = dbUtil.dbGetDataTable("MY", xSql)
+        For I As Integer = 0 To odt.Rows.Count - 1
+            labelsBar99(9 - I) = CStr(odt.Rows(I).Item(1))
+            data1Bar99(9 - I) = CDbl(odt.Rows(I).Item(0)) - data0Bar99(9 - I)
+        Next
+        
+        Dim cBar99 As XYChart = New XYChart(900, 410, &HE0E0FF, &HCCCCFF, 1)
+        Call cBar99.setSearchPath(Server.MapPath("."))
+        cBar99.addTitle("Top 10 Hot Links", "Arial Bold Italic", 12 _
+            ).setBackground(&H9999FF)
+        cBar99.setPlotArea(260, 45, 500, 320, &HFFFFFF)
+        cBar99.addLegend(780, 100)
+        cBar99.swapXY()
+        cBar99.yAxis().setLabelStyle("Arial", 9, &H0)
+        cBar99.yAxis().setLabelFormat("{value}")
+        cBar99.xAxis().setLabels(labelsBar99)
+        cBar99.xAxis().setTickLength(0)
+        Dim layerBar99 As BarLayer = cBar99.addBarLayer2(Chart.Stack)
+        layerBar99 = cBar99.addBarLayer2(Chart.Stack)
+        layerBar99.addDataSet(data0Bar99, &HFF8080, "advantech")
+        layerBar99.addDataSet(data1Bar99, &H80FF80, "customer")
+        layerBar99.setBarGap(0.2, 0)
+        layerBar99.setBorderColor(Chart.Transparent)
+        layerBar99.setAggregateLabelStyle("Arial Bold Italic", 10).setBackground( _
+            &HFFCC66, Chart.Transparent, 1)
+        cBar99.yAxis().setAutoScale(0.2)
+        layerBar99.setDataLabelStyle()
+        WebChartViewerBar99.Image = cBar99.makeWebImage(Chart.PNG)
+        WebChartViewerBar99.ImageMap = c.getHTMLImageMap("", "", _
+            "title='Year {dataGroupName} {dataSetName} {xLabel} Revenue: {value} " & _
+            "millions'")
+        
+        
+    End Sub
+    
+    Private Sub GetAccountStatusBarChart()
+        Dim xYear As String = drpYear.Text
+        If Request("KPIYear") <> "" Then
+            xYear = Request("KPIYear")
+        End If
+        
+        Dim data0XY3() As Double = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}
+        Dim data1XY3() As Double = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}
+        Dim data2XY3() As Double = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}
+        Dim data3XY3() As Double = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}
+        
+        Dim sb As New StringBuilder
+        With sb
+            .AppendFormat(" select t.account_status, t.months, COUNT(t.account_status) as counts from ")
+            .AppendFormat(" (select distinct sessionid, month(TIMESTAMP) as months, isnull((select top 1 z.account_status from siebel_account z left join SIEBEL_CONTACT z1 on z.ROW_ID=z1.ACCOUNT_ROW_ID where z1.email_address=userid and z.ERP_ID != ''),'10-Sales Contact') as account_status from dim_user_log where SERVER  in ('my-global.advantech.eu:80','my.advantech.com:80') and year(timestamp)='{0}' and userid not like '%@advantech%' and USERID<>'') t ", xYear)
+            .AppendFormat(" group by t.account_status,t.months")
+        End With
+        
+        Dim dt As DataTable = dbUtil.dbGetDataTable("MY", sb.ToString)
+        
+        Dim nSum0 As Integer = 0
+        Dim nSum1 As Integer = 0
+        Dim nSum2 As Integer = 0
+        Dim nSum3 As Integer = 0
+        For Each row As DataRow In dt.Rows
+            Dim tmpAc As String = row.Item("account_status")
+            Select Case tmpAc
+                Case "01-Platinum Channel Partner", "01-Premier Channel Partner", "02-Gold Channel Partner", "03-Certified Channel Partner"
+                    data0XY3(CInt(row.Item(1)) - 1) += CDbl(row.Item(2))
+                    nSum0 += CDbl(row.Item(2))
+                Case "03-Premier Key Account", "04-Premier Key Account", "06G-Golden Key Account(ACN)", "06-Key Account"
+                    data1XY3(CInt(row.Item(1)) - 1) += CDbl(row.Item(2))
+                    nSum1 += CDbl(row.Item(2))
+                Case Else
+                    data2XY3(CInt(row.Item(1)) - 1) += CDbl(row.Item(2))
+                    nSum2 += CDbl(row.Item(2))
+            End Select
+        Next
+
+        dt = dbUtil.dbGetDataTable("MY", String.Format("select t.months, count(t.sessionid) as counts from (select distinct month(timestamp) as months, sessionid from DIM_USER_LOG where SERVER  in ('my-global.advantech.eu:80','my.advantech.com:80') and year(timestamp)='{0}' and USERID like '%@advantech%') as t group by t.months", xYear))
+        For Each row As DataRow In dt.Rows
+            data3XY3(CInt(row.Item(0)) - 1) = CDbl(row.Item(1))
+            nSum3 += CDbl(row.Item(1))
+        Next
+        Dim nSumTotal As Double = nSum0 + nSum1 + nSum2 + nSum3
+       
+        '\ming add
+        Dim dataPie() As Double
+        If nSumTotal = 0 Then
+            dataPie = New Double() {0, 0, 0, 0}
+            wcvUserReachAccStatus1.Visible = False
+        Else
+            dataPie = New Double() {CInt(nSum0 * 100 / nSumTotal), CInt(nSum1 * 100 / nSumTotal), CInt(nSum2 * 100 / nSumTotal), CInt(nSum3 * 100 / nSumTotal)}
+            wcvUserReachAccStatus1.Visible = True
+        End If
+
+        'The labels for the bar chart
+        Dim labelsXY3() As String = {"Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"}
+
+        Dim cXY3 As XYChart = New XYChart(675, 320)
+
+        cXY3.setPlotArea(55, 40, 500, 240, &HEEEEEE, &HFFFFFF)
+
+        cXY3.addLegend(575, 100)
+
+        cXY3.addTitle(Chart.Top, "User Login  # by Account Status #                   ", _
+        "Arial Bold Italic", 12, &H66)
+
+        cXY3.yAxis().setTitle("Y" & xYear, "Arial Bold", 11, &H66)
+
+        cXY3.yAxis().setLabelStyle("Arial", 9, &H0)
+
+        cXY3.yAxis().setLabelFormat("{value}")
+        
+        cXY3.xAxis().setLabels(labelsXY3)
+
+        cXY3.xAxis().setLabelStyle("Arial", 10, &H0).setFontAngle(0)
+        
+        Dim layerXY3 As BarLayer = cXY3.addBarLayer2(Chart.Stack, 8)
+
+        'Add the three data sets to the bar layer
+        layerXY3.addDataSet(data0XY3, &HFF8080, "CP")
+        layerXY3.addDataSet(data1XY3, &H80FF80, "KA")
+        layerXY3.addDataSet(data2XY3, &H8080FF, "GA")
+        layerXY3.addDataSet(data3XY3, &HFFFF33, "EZ")
+
+        layerXY3.setAggregateLabelStyle("Arial Bold Italic", 10).setBackground( _
+            &HFFCC66, Chart.Transparent, 1)
+
+        layerXY3.setBarShape(Chart.CircleShape)
+        
+        layerXY3.setDataLabelStyle()
+
+        wcvUserReachAccStatus.Image = cXY3.makeWebImage(Chart.PNG)
+
+        wcvUserReachAccStatus.ImageMap = cXY3.getHTMLImageMap("", "", _
+            "title='{dataSetName} on {xLabel}: {value} times'")
+        
+        
+        Dim labelsPie3() As String = {"CP", "KA", "GA", "EZ"}
+
+        Dim cPie3 As PieChart = New PieChart(200, 160, &HEEEEEE, 0, 1)
+
+        cPie3.setPieSize(95, 85, 65)
+
+        cPie3.addTitle(Chart.TopCenter, "Year-To-Date", "Arial Bold Italic", 11, &H66).setBackground(&HCCCCCC, 0)
+
+        cPie3.set3D(-1, 30)
+
+        Dim colorsPie3() As Integer = {&HFF8080, &H80FF80, &H8080FF, &HFFFF33, &HFF66FF, &H66CCFF}
+        cPie3.setColors2(Chart.DataColor, colorsPie3)
+
+        cPie3.setLabelFormat("{label} <*br*>({percent|0}%)")
+        
+        cPie3.setLabelPos(-30)
+
+        'Set the pie data and the pie labels
+        cPie3.setData(dataPie, labelsPie3)
+
+        wcvUserReachAccStatus1.Image = cPie3.makeWebImage(Chart.PNG)
+
+        'include tool tip for the chart
+        wcvUserReachAccStatus1.ImageMap = cPie3.getHTMLImageMap("", "", _
+            "title='{label}: US${value}K ({percent}%)'")
+    End Sub
+    
+    Private Sub createMeterChart(ByVal voViewer As WebChartViewer, _
+                                 ByVal pxTitle As String, _
+                                 ByVal pdValue As Double)
+
+        'Create an AugularMeter object of size 200 x 200 pixels, using silver background
+        'color with a black 2 pixel 3D depressed border.
+        Dim oMeterChart As AngularMeter = New AngularMeter(150, 165, Chart.silverColor(), &H0, 1)
+
+        'Set the meter center at (100, 100), with radius 85 pixels, and span from -135 to
+        '+135 degress
+        oMeterChart.setMeter(75, 90, 65, -135, 135)
+        oMeterChart.addTitle(Chart.TopCenter, pxTitle, "Arial Bold Italic", 10, &H66).setBackground(&HCCCCCC, &H0)
+        
+        'Meter scale is 0 - 100, with major tick every 10 units, minor tick every 5
+        'units, and micro tick every 1 units
+        oMeterChart.setScale(0, 100, 10, 5, 1)
+
+        'Disable default angular arc by setting its width to 0. Set 2 pixels line width
+        'for major tick, and 1 pixel line width for minor ticks.
+        oMeterChart.setLineWidth(0, 2, 1)
+
+        'Set the circular meter surface as metallic blue (9999DD)
+        oMeterChart.addRing(0, 70, Chart.metalColor(&H9999DD))
+
+        'Add a blue (6666FF) ring between radii 88 - 90 as decoration
+        oMeterChart.addRing(68, 70, &H6666FF)
+
+        'Set 0 - 60 as green (99FF99) zone, 60 - 80 as yellow (FFFF00) zone, and 80 - 100
+        'as red (FF3333) zone
+        oMeterChart.addZone(0, 60, &HFF3333)
+        oMeterChart.addZone(60, 80, &HFFFF00)
+        oMeterChart.addZone(80, 100, &H99FF99)
+
+        'Add a text label centered at (100, 135) with 15 pts Arial Bold font
+        oMeterChart.addText(75, 110, "KPI Ach.", "Arial Bold", 8, &H0, Chart.Center)
+
+        'Add a text box centered at (100, 165) showing the value formatted to 2 decimal
+        'places, using white text on a black background, and with 1 pixel 3D depressed
+        'border
+        oMeterChart.addText(75, 130, oMeterChart.formatValue(pdValue, "0") & "%", "Arial", 8, &HFFFFFF, _
+            Chart.Center).setBackground(&H0, &H0, -1)
+
+        'Add a semi-transparent blue (40333399) pointer at the specified value
+        oMeterChart.addPointer(pdValue, &H40333399)
+
+        'output the chart
+        voViewer.Image = oMeterChart.makeWebImage(Chart.PNG)
+
+        
+    End Sub
+    
+    
+    Private Sub add_PTD_Chart(ByVal xYear As String)
+        
+        
+        Dim data0() As Double = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}
+        Dim data1() As Double = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}
+        
+        Dim pt() As String = Util.GetPTList().ToArray(GetType(String))
+        For i As Integer = 0 To pt.Length - 1
+            pt(i) = " part_no like '" + pt(i) + "%' "
+        Next
+        
+        Dim xSql = "select month(a.order_date), count(a.order_no) from order_master a " & _
+                  "where(Year(a.order_date) ='" & xYear & "') and a.order_no != '' " & _
+                  "and a.order_id in (select order_id from order_detail where (" + String.Join("or", pt) + ") and Required_Date>='" & xYear & "-01" & "-01" & "') " & _
+                                    "AND a.CREATED_BY <> 'Jackie.wu@advantech.com.cn' and a.CREATED_BY <> 'tc.chen@advantech.com.tw'" & _
+                  "group by month(a.order_date)" & _
+                  "order by month(a.order_date)"
+        
+        Dim xSql1 = "select month(a.order_date), count(a.order_no) from order_master a " & _
+                  "where(Year(a.order_date) ='" & xYear & "') and a.order_no != '' " & _
+                  "group by month(a.order_date)" & _
+                  "order by month(a.order_date)"
+        
+        Dim oDr As SqlDataReader = getDataReader("B2B-AEU-LAB", xSql)
+        Dim nSum As Double = 0
+        Do While oDr.Read
+            data0(CInt(oDr.Item(0)) - 1) = CDbl(oDr.Item(1))
+            nSum += CDbl(oDr.Item(1))
+        Loop
+        
+        oDr = getDataReader("B2B-AEU-LAB", xSql1)
+        Dim nSum1 As Double = 0
+        Do While oDr.Read
+            data1(CInt(oDr.Item(0)) - 1) = CDbl(oDr.Item(1)) - data0(CInt(oDr.Item(0)) - 1)
+            nSum1 += CDbl(oDr.Item(1))
+        Loop
+        
+        Dim labels() As String = {"Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"}
+        
+        Dim c As XYChart = New XYChart(675, 320) '-----------------CHART COORDINATE
+        
+        c.setPlotArea(55, 40, 500, 240, &HEEEEEE, &HFFFFFF) '--------------DROW & PLOT AREA
+        
+        c.addLegend(575, 100) '---------------------LEGEND COORDINATE
+        
+        c.addTitle(Chart.Top, "B2B Order Entry with PTD # by Order Type #                   ", "Arial Bold Italic", 12, &H66)
+        c.yAxis().setTitle("Y" & xYear, "Arial Bold", 11, &H66)
+        c.yAxis().setLabelStyle("Arial", 9, &H0)
+        c.yAxis().setLabelFormat("{value}")
+        
+        
+        c.xAxis().setLabels(labels)
+        c.xAxis().setLabelStyle("Arial", 10, &H0).setFontAngle(0)
+        Dim layer As BarLayer = c.addBarLayer2(Chart.Stack, 8)
+        
+        
+        layer.addDataSet(data0, &HFF8080, "PTD")
+        layer.addDataSet(data1, &H80FF80, "Others")
+        'layer.addDataSet(data2, &H8080FF, "CTOS")
+        '\ming add
+        Dim data() As Double
+        If nSum = 0 AndAlso nSum1 = 0 Then
+            data = New Double() {0, 0}
+            WebChartViewer_PTD1.Visible = False
+           
+        Else
+            data = New Double() {nSum / (nSum + nSum1), nSum1 / (nSum + nSum1)}
+            WebChartViewer_PTD1.Visible = True
+        End If
+
+        '/ming end
+        ' Dim data() As Double = {nSum / (nSum + nSum1), nSum1 / (nSum + nSum1)}
+        layer.setAggregateLabelStyle("Arial Bold Italic", 10).setBackground(&HFFCC66, Chart.Transparent, 1)
+        layer.setBarShape(Chart.CircleShape)
+        layer.setDataLabelStyle()
+        WebChartViewer_PTD.Image = c.makeWebImage(Chart.PNG)
+        WebChartViewer_PTD.ImageMap = c.getHTMLImageMap("", "", "title='{dataSetName} on {xLabel}: {value} MBytes/hour'")
+        Dim labelsPie() As String = {"PTD", "Others"}
+        Dim cPie As PieChart = New PieChart(200, 160, &HEEEEEE, 0, 1)
+        cPie.setPieSize(95, 85, 65)
+        cPie.addTitle(Chart.TopCenter, "Year-To-Date", "Arial Bold Italic", 11, &H66).setBackground(&HCCCCCC, 0)
+        cPie.set3D(-1, 30)
+        layer.addDataSet(data0, &HFF8080, "PTD")
+        layer.addDataSet(data1, &H80FF80, "Others")
+        'layer.addDataSet(data2, &H8080FF, "CTOS")
+        Dim colorsPie() As Integer = {&HFF8080, &H80FF80}
+        cPie.setColors2(Chart.DataColor, colorsPie)
+        cPie.setLabelFormat("{label} <*br*>({percent|0}%)")
+        cPie.setLabelPos(-33)
+        cPie.setData(data, labelsPie)
+        WebChartViewer_PTD1.Image = cPie.makeWebImage(Chart.PNG)
+        WebChartViewer_PTD1.ImageMap = cPie.getHTMLImageMap("", "", "title='{label}: US${value}K ({percent}%)'")
+        
+        
+        
+    End Sub
+
+ 
+</script>
+
+<asp:Content ID="Content1" ContentPlaceHolderID="_main" Runat="Server">
+        <table cellpadding="0" cellspacing="0" width="100%">
+            <tr>
+                <td style="height: 15px">
+                </td>
+            </tr>
+            <tr>
+                <!--### Ebiz.AEU:Page Title ###-->
+                <td style="padding-left: 15px;" class="euPageTitle">
+                    Global MyAdvantech Dashboard</td>
+            </tr>
+            <tr>
+                <td style="height: 25px">
+                </td>
+            </tr>
+            <tr>
+                <td style="padding-left: 10px;">
+                    <table cellpadding="0" cellspacing="0" width="100%">
+                        <tr>
+                            <td>
+                                <chart:WebChartViewer ID="WebChartViewerMeter" runat="server" />
+                            </td>
+                            <td style="width: 3px">
+                            </td>
+                            <td>
+                                <chart:WebChartViewer ID="WebChartViewerMeter2" runat="server" />
+                            </td>
+                            <td style="width: 500px">
+                               <b>Switch Year:</b>
+                                <asp:DropDownList ID="drpYear" runat="server" AutoPostBack="true">
+
+                                </asp:DropDownList>
+                           
+                                </td>
+                        </tr>
+                    </table>
+                </td>
+            </tr>
+            <tr>
+                <td style="height: 20px">
+                </td>
+            </tr>
+            <tr>
+                <td height="12px">
+                </td>
+            </tr>
+            <tr>
+                <td style="padding-left: 10px;">
+                    <table cellpadding="0" cellspacing="0" width="100%">
+                        <tr valign="top">
+                            <td style="width: 600px">
+                                <chart:WebChartViewer ID="WebChartViewerBar" runat="server" />
+                            </td>
+                            <td style="width: 3px">
+                            </td>
+                            <td>
+                                <br />
+                                <br />
+                                <br />
+                                <chart:WebChartViewer ID="WebChartViewerPie" runat="server" />
+                            </td>
+                        </tr>
+                    </table>
+                </td>
+            </tr>
+            <tr>
+                <td style="height: 6px">
+                </td>
+            </tr>
+            <tr>
+                <!--### Ebiz.AEU:Folder Line ###-->
+                <td background="../images/folder_line.gif" height="26">
+                </td>
+            </tr>
+            <tr>
+                <td style="height: 20px">
+                </td>
+            </tr>
+            <tr>
+                <!--### Order entry by order type###-->
+                <td style="padding-left: 10px;">
+                    <table cellpadding="0" cellspacing="0" width="100%">
+                        <tr valign="top">
+                            <td style="width: 600px">
+                                <chart:WebChartViewer ID="WebChartViewerXY2" runat="server" />
+                            </td>
+                            <td style="width: 3px">
+                            </td>
+                            <td>
+                                <br />
+                                <br />
+                                <br />
+                                <chart:WebChartViewer ID="WebChartViewerPie2" runat="server" />
+                            </td>
+                        </tr>
+                    </table>
+                </td>
+            </tr>
+            <tr>
+                <td style="height: 6px">
+                </td>
+            </tr>
+            <tr>
+                <!--### Ebiz.AEU:Folder Line ###-->
+                <td background="../images/folder_line.gif" height="26">
+                </td>
+            </tr>
+            
+             <tr>
+                <td style="height: 20px">
+                </td>
+            </tr>
+            <tr>
+                <!--### Order entry by order type###-->
+                <td style="padding-left: 10px;">
+                    <table cellpadding="0" cellspacing="0" width="100%">
+                        <tr valign="top">
+                            <td style="width: 600px">
+                                <chart:WebChartViewer ID="WebChartViewer_PTD" runat="server" />
+                            </td>
+                            <td style="width: 3px">
+                            </td>
+                            <td>
+                                <br />
+                                <br />
+                                <br />
+                                <chart:WebChartViewer ID="WebChartViewer_PTD1" runat="server" />
+                            </td>
+                        </tr>
+                    </table>
+                </td>
+            </tr>
+            <tr>
+                <td style="height: 6px">
+                </td>
+            </tr>
+            
+            
+            <tr>
+                <td style="height: 20px">
+                </td>
+            </tr>
+            <tr>
+                <!--### Order entry by customer dist###-->
+                <td style="padding-left: 10px;">
+                    <table cellpadding="0" cellspacing="0" width="100%">
+                        <tr valign="top">
+                            <td style="width: 600px">
+                                <chart:WebChartViewer ID="WebChartViewerXY3" runat="server" />
+                            </td>
+                            <td style="width: 3px">
+                            </td>
+                            <td>
+                                <br />
+                                <br />
+                                <br />
+                                <chart:WebChartViewer ID="WebChartViewerPie3" runat="server" />
+                            </td>
+                        </tr>
+                    </table>
+                </td>
+            </tr>
+            <tr>
+                <td style="height: 6px">
+                </td>
+            </tr>
+            <tr>
+                <!--### Ebiz.AEU:Folder Line ###-->
+                <td background="../images/folder_line.gif" height="26">
+                </td>
+            </tr>
+            <tr>
+                <td style="height: 20px">
+                </td>
+            </tr>
+            <tr>
+                <!--### Order entry by bu###-->
+                <td style="padding-left: 10px;">
+                    <table cellpadding="0" cellspacing="0" width="100%">
+                        <tr valign="top">
+                            <td style="width: 600px">
+                                <chart:WebChartViewer ID="WebChartViewerXY4" runat="server" Visible="false" />
+                            </td>
+                            <td style="width: 3px">
+                            </td>
+                            <td>
+                                <br />
+                                <br />
+                                <br />
+                                <chart:WebChartViewer ID="WebChartViewerPie4" runat="server" Visible="false" />
+                            </td>
+                        </tr>
+                    </table>
+                </td>
+            </tr>
+            <!--User Reach by Account Status-->
+            <tr>
+                <td style="padding-left: 10px;">
+                    <table cellpadding="0" cellspacing="0" width="100%">
+                        <tr valign="top">
+                            <td style="width: 600px">
+                                <chart:WebChartViewer ID="wcvUserReachAccStatus" runat="server" />
+                            </td>
+                            <td style="width: 1px">
+                            </td>
+                            <td >
+                                <br />
+                                <br />
+                                <br />
+                                <chart:WebChartViewer ID="wcvUserReachAccStatus1" runat="server" />
+                            </td>
+                        </tr>
+                    </table>
+                </td>
+            </tr>
+            <tr>
+                <td style="height: 6px">
+                </td>
+            </tr>
+            <tr>
+                <td  style="font-family: Arial; font-size: 14px; color: #0000cd; font-weight: bold">&nbsp;&nbsp;&nbsp;&nbsp; ..... to be constructed ><u>*Order-line Entry</u>, <u>*Order Amount</u>, <u>*Long Due Date Report</u>, and <u>Order Entry RFM</u>.
+                </td>
+            </tr>
+            <tr>
+                <td style="height: 6px">
+                </td>
+            </tr>
+            <tr>
+                <!--### Ebiz.AEU:Folder Line ###-->
+                <td background="../images/folder_line.gif" height="26">
+                </td>
+            </tr>
+            <tr>
+                <td style="height: 20px">
+                </td>
+            </tr>
+            <tr>
+                <!--### Top 10 Order Entry ###-->
+                <td style="padding-left: 10px;">
+                    <table cellpadding="0" cellspacing="0" width="100%">
+                        <tr valign="top">
+                            <td style="width: 20px">
+                            </td>
+                            <td style="width: 600px">
+                                <chart:WebChartViewer ID="WebChartViewerBar1" runat="server" />
+                            </td>
+                        </tr>
+                    </table>
+                </td>
+            </tr>
+            <tr>
+                <td style="height: 20px">
+                </td>
+            </tr>
+            <tr>
+                <!--### Ebiz.AEU:Folder Title ###-->
+                <td>
+                    <table width="100%" border="0" cellpadding="0" cellspacing="0" id="Table2">
+                        <tr>
+                            <td width="28">
+                                </td>
+                            <td width="142" background="../images/titlefolder_middle.gif" class="text">
+                                <div align="center">
+                                    <font color="000066"><b>B2B Site Usage</b></font></div>
+                            </td>
+                            <td width="21">
+                                </td>
+                            <td background="../images/folder_line.gif">
+                                &nbsp;</td>
+                        </tr>
+                    </table>
+                </td>
+            </tr>
+            <tr>
+                <td height="20px">
+                </td>
+            </tr>
+            <tr>
+                <!--### Member Distribution ###-->
+                <td style="padding-left: 10px;">
+                    <table cellpadding="0" cellspacing="0" width="100%">
+                        <tr valign="top">
+                            <td style="width: 25px">
+                            </td>
+                            <td>
+                                <%--<chart:WebChartViewer ID="WebChartViewerPie91" runat="server" />--%>
+                            </td>
+                        </tr>
+                    </table>
+                </td>
+            </tr>
+            <tr>
+                <td style="height: 6px">
+                </td>
+            </tr>
+            <tr>
+                <!--### Ebiz.AEU:Folder Line ###-->
+                <td background="../images/folder_line.gif" height="26">
+                </td>
+            </tr>
+            <tr>
+                <td style="height: 20px">
+                </td>
+            </tr>
+            <tr>
+                <!--### User reach ###-->
+                <td style="padding-left: 10px;">
+                    <table cellpadding="0" cellspacing="0" width="100%">
+                        <tr valign="top">
+                            <td style="width: 600px">
+                                <chart:WebChartViewer ID="WebChartViewerXY5" runat="server" />
+                            </td>
+                            <td style="width: 3px">
+                            </td>
+                            <td>
+                                <br />
+                                <br />
+                                <br />
+                                <chart:WebChartViewer ID="WebChartViewerPie5" runat="server" />
+                            </td>
+                        </tr>
+                    </table>
+                </td>
+            </tr>
+            <tr>
+                <td style="height: 6px">
+                </td>
+            </tr>
+            <tr>
+                <!--### Ebiz.AEU:Folder Line ###-->
+                <td background="../images/folder_line.gif" height="26">
+                </td>
+            </tr>
+            <tr>
+                <td style="height: 20px">
+                </td>
+            </tr>
+            <tr>
+                <!--### Top 10 User reach ###-->
+                <td style="padding-left: 10px;">
+                    <table cellpadding="0" cellspacing="0" width="100%">
+                        <tr valign="top">
+                            <td style="width: 20px">
+                            </td>
+                            <td style="width: 600px">
+                                <chart:WebChartViewer ID="WebChartViewerBar2" runat="server" />
+                                <chart:WebChartViewer ID="WebChartViewerBar99" runat="server" />
+                            </td>
+                        </tr>
+                    </table>
+                </td>
+            </tr>
+            <tr>
+                <td style="height: 6px">
+                </td>
+            </tr>
+            <tr>
+                <!--### Ebiz.AEU:Folder Line ###-->
+                <td background="../images/folder_line.gif" height="26">
+                </td>
+            </tr>
+            <tr>
+                <td style="height: 20px">
+                </td>
+            </tr>
+            
+            
+            
+            <!--EZ Config Log begin here--Jackie Add 2006/11/15-->
+            <tr>
+                <td style="padding-left: 10px;">
+                    <table cellpadding="0" cellspacing="0" width="100%">
+                        <tr valign="top">
+                            <td style="width: 600px">
+                                <chart:WebChartViewer ID="WebChartViewerEZConig" runat="server" />
+                            </td>
+                            <td style="width: 1px">
+                            </td>
+                            <td >
+                                <br />
+                                <br />
+                                <br />
+                                <chart:WebChartViewer ID="WebPieViewerEZConig" runat="server" />
+                            </td>
+                        </tr>
+                    </table>
+                </td>
+            </tr>
+            <tr>
+                <td style="height: 6px">
+                </td>
+            </tr>
+            <tr>
+                <!--### Ebiz.AEU:Folder Line ###-->
+                <td background="../images/folder_line.gif" height="26">
+                </td>
+            </tr>
+            <tr>
+                <td style="height: 20px">
+                </td>
+            </tr>
+
+            
+
+            <!--EZ Config Log end here--Jackie Add 2006/11/15-->
+            
+            
+            <tr >
+                <!--### Function Usage ###-->
+                <td style="padding-left: 10px;" runat="server" visible="false" id="tablekpi">
+                    <table cellpadding="0" cellspacing="0" width="100%" height="100%"  >
+                        <tr valign="top" style="height: 16">
+                            <td style="width: 3px">
+                            </td>
+                            <td colspan="10" style="font-family: Arial; font-size: 16px; color: #000066; font-weight: bold">
+                                <i>*B2B Functions Usage : { KPI Achievement Based on Pageviews and Clickstreams }</i>
+                            </td>
+                        </tr>
+                        <tr valign="top" style="width: 8">
+                            <td colspan="11">
+                                &nbsp;
+                            </td>
+                        </tr>
+                        <tr valign="top">
+                            <td style="width: 50px">
+                            </td>
+                            <td style="width: 100">
+                                <chart:WebChartViewer ID="WebChartViewerMeter3" runat="server" />
+                            </td>
+                            <td style="width: 3px">
+                            </td>
+                            <td style="width: 100">
+                                <chart:WebChartViewer ID="WebChartViewerMeter4" runat="server" />
+                            </td>
+                            <td style="width: 3px">
+                            </td>
+                            <td style="width: 100">
+                                <chart:WebChartViewer ID="WebChartViewerMeter5" runat="server" />
+                            </td>
+                            <td style="width: 3px">
+                            </td>
+                            <td style="width: 100">
+                                <chart:WebChartViewer ID="WebChartViewerMeter6" runat="server" />
+                            </td>
+                            <td style="width: 3px">
+                            </td>
+                            <td style="width: 100">
+                                <chart:WebChartViewer ID="WebChartViewerMeter7" runat="server" />
+                            </td>
+                            <td style="width: 130px">
+                            </td>
+                        </tr>
+                        <tr valign="top" style="width: 8">
+                            <td colspan="11">
+                                &nbsp;
+                            </td>
+                        </tr>
+                        <tr valign="top">
+                            <td style="width: 3px">
+                            </td>
+                            <td style="width: 100">
+                                <chart:WebChartViewer ID="WebChartViewerMeter8" runat="server" />
+                            </td>
+                            <td style="width: 3px">
+                            </td>
+                            <td style="width: 100">
+                                <chart:WebChartViewer ID="WebChartViewerMeter9" runat="server" />
+                            </td>
+                            <td style="width: 3px">
+                            </td>
+                            <td style="width: 100">
+                                <chart:WebChartViewer ID="WebChartViewerMeter10" runat="server" />
+                            </td>
+                            <td style="width: 3px">
+                            </td>
+                            <td style="width: 100">
+                                <chart:WebChartViewer ID="WebChartViewerMeter11" runat="server" />
+                            </td>
+                            <td style="width: 3px">
+                            </td>
+                            <td style="width: 100">
+                                <chart:WebChartViewer ID="WebChartViewerMeter12" runat="server" />
+                            </td>
+                            <td style="width: 100px">
+                            </td>
+                        </tr>
+                        <tr valign="top" style="width: 8">
+                            <td colspan="11">
+                                &nbsp;
+                            </td>
+                        </tr>
+                        <tr valign="top">
+                            <td style="width: 50px">
+                            </td>
+                            <td style="width: 100">
+                                <chart:WebChartViewer ID="WebChartViewerMeter13" runat="server" />
+                            </td>
+                            <td style="width: 3px">
+                            </td>
+                            <td style="width: 100">
+                                <chart:WebChartViewer ID="WebChartViewerMeter14" runat="server" />
+                            </td>
+                            <td style="width: 3px">
+                            </td>
+                            <td style="width: 100">
+                                <chart:WebChartViewer ID="WebChartViewerMeter15" runat="server" />
+                            </td>
+                            <td style="width: 3px">
+                            </td>
+                            <td style="width: 100">
+                                <chart:WebChartViewer ID="WebChartViewerMeter16" runat="server" />
+                            </td>
+                            <td style="width: 3px">
+                            </td>
+                            <td style="width: 100">
+                                <chart:WebChartViewer ID="WebChartViewerMeter17" runat="server" />
+                            </td>
+                            <td style="width: 100px">
+                            </td>
+                        </tr>
+                        <tr valign="top" style="width: 8">
+                            <td colspan="11">
+                                &nbsp;
+                            </td>
+                        </tr>
+                        <tr valign="top">
+                            <td style="width: 5px">
+                            </td>
+                            <td style="width: 100">
+                                <chart:WebChartViewer ID="WebChartViewerMeter18" runat="server" />
+                            </td>
+                            <td style="width: 3px">
+                            </td>
+                            <td style="width: 100">
+                                <chart:WebChartViewer ID="WebChartViewerMeter19" runat="server"  />
+                            </td>
+                            <td style="width: 3px">
+                            </td>
+                            <td style="width: 100">
+                                <chart:WebChartViewer ID="WebChartViewerMeter20" runat="server" />
+                            </td>
+                            <td style="width: 3px">
+                            </td>
+                            <td style="width: 100">
+                            </td>
+                            <td style="width: 3px">
+                            </td>
+                            <td style="width: 100">
+                            </td>
+                            <td style="width: 100px">
+                            </td>
+                        </tr>
+                    </table>
+                </td>
+            </tr>
+            <tr>
+                <td style="height: 6px">
+                </td>
+            </tr>
+            <tr>
+                <!--### Ebiz.AEU:Folder Line ###-->
+                <td background="../images/folder_line.gif" height="26">
+                </td>
+            </tr>
+            <tr>
+                <td style="height: 20px">
+                </td>
+            </tr>
+            <tr>
+                <td style="padding-left: 10px;" align="center">
+                    <table cellpadding="0" cellspacing="0" width="800"">
+                        <tr>
+                            <td align="left" colspan="8"  style="font-family: Arial; font-size: 16px; color: #000066; font-weight: bold">
+                                <i>Please e-mail <a href="mailto:myadvantech@advantech.com">MyAdvantech</a> for service requests regarding B2B, Siebel.</i>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td align="left" colspan="8">&nbsp;
+                            </td>
+                        </tr>
+                        <!--tr>
+                            <td align="center" style="width: 1px">
+                            </td>
+                            <td align="center">
+                                <img src="../Images/Emil.JPG" width="140" height="105" />
+                            </td>
+                            <td align="center">
+                                <img src="../Images/TC.JPG" width="140" height="105" />
+                            </td>
+                            <td align="center">
+                                <img src="../Images/Spiros.JPG" width="140" height="105" />
+                            </td>
+                            <td align="center">
+                                <img src="../Images/Pri.JPG" width="140" height="105" />
+                            </td>
+                            <td align="center">
+                                <img src="../Images/Daive.JPG" width="140" height="105" />
+                            </td>
+                            <td align="center">
+                                <img src="../Images/Jackie.JPG" width="140" height="105" />
+                            </td>
+                            <td align="center">
+                                <img src="../Images/Thomas.JPG" width="140" height="105" />
+                            </td>
+                        </tr>
+                        <tr>
+                            <td align="center" style="width: 1px">
+                            </td>
+                            <td align="center">
+                                Emil Hsu<br>
+                                VOIP:534 ext.346
+                            </td>
+                            <td align="center">
+                                TC Chen<br>
+                                VOIP:511 ext.7694
+                            </td>
+                            <td align="center">
+                                Spiros Chatzitzanos <br>
+                                VOIP:531 ext.7022
+                            </td>
+                            <td align="center">
+                                Supriyanto<br>
+                                VOIP:534 ext.131
+                            </td>
+                            <td align="center">
+                                Daive Wang<br>
+                                VOIP:523 ext.8172
+                            </td>
+                            <td align="center">
+                                Jackie Wu<br>
+                                VOIP:523 ext.8171
+                            </td>
+                            <td align="center">
+                               Thomas.Schulenberg<br>
+                                VOIP:534 ext.131
+                            </td>
+                        </tr-->
+                    </table>
+                </td>
+            </tr>
+        </table>
+            <tr>
+                <td style="height: 12px">
+                </td>
+            </tr>
+</asp:Content>

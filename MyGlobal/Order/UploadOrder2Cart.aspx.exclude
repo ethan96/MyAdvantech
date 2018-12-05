@@ -1,0 +1,826 @@
+﻿<%@ Page Language="VB" MasterPageFile="~/Includes/MyMaster.master" Title="MyAdvantech - Upload Order to Cart" %>
+
+<%@ Import Namespace="Microsoft.Office.Interop" %>
+
+
+<script runat="server">
+    '--{2006-08-09}--Daive: Add a server control 'lblLineNo' instead of using the property 'Add2Cart.AccessKey' of Add2Cart buttion to save the total line number
+    '---------------------: Cause the length of property 'Add2Cart.AccessKey' is only 1. when the line number is larger than 10, it will over the limit. The error occurs.
+    Dim strCartID As String = ""
+    Protected Sub page_load(ByVal sender As Object, ByVal e As System.EventArgs)
+        'Me.Global_inc1.ValidationStateCheck()
+        
+        '--{2006-04-19}--Daive: avoid add component to btos order
+        If OrderUtilities.BtosOrderCheck() = 1 Then
+            Response.Redirect("../Order/Cart_List.aspx")
+        End If
+        
+        strCartID = Session("CART_ID")
+        If Not Page.IsPostBack Then
+            InitTable()
+        End If
+        If File1.PostedFile Is Nothing Then
+            Me.dtFormatImg.Visible = True : Me.dtOrderInfo.Visible = False : Me.ViewCart.Visible = False : Me.Add2Cart.Visible = False
+        Else
+            Me.dtFormatImg.Visible = False : Me.dtOrderInfo.Visible = True : Me.ViewCart.Visible = True : Me.Add2Cart.Visible = True
+        End If
+    End Sub
+    
+    Protected Sub ImageButton1_Click(ByVal sender As Object, ByVal e As System.Web.UI.ImageClickEventArgs)
+        If Not (File1.PostedFile Is Nothing) Then
+            Dim FileType As String
+            FileType = Right(File1.PostedFile.FileName, 3)
+            If Right(UCase(Me.FileFormat.SelectedValue), 3) <> UCase(FileType) Then Response.Redirect("../Order/UploadOrder2Cart.aspx")
+            Dim Length As Integer,FileNamePath As String, FileName As String
+            FileNamePath = File1.PostedFile.FileName
+            Length = InStr(1, StrReverse(FileNamePath), "\")
+            FileName = Mid(FileNamePath, (Len(FileNamePath) - Length) + 2)
+            Session("tempFileName") = "C:\MYADVANTECH\Files\TempFiles\" & Session("CART_ID") & FileName
+            File1.PostedFile.SaveAs(Session("tempFileName"))
+            InitTable()
+            Me.LblMsg.Visible = False
+            DisplayOrderItem()
+        End If
+    End Sub
+    
+    Protected Sub Add2Cart_Click(ByVal sender As Object, ByVal e As System.Web.UI.ImageClickEventArgs)
+        Dim TotalItem As Integer
+        TotalItem = CInt(Me.lblLineNo.Text)
+        
+        Dim xCartID As String = Session("CART_ID"),xPartNO As String = "", xQTY As Integer = 0, xListPrice As Decimal = -1, xUnitPrice As Decimal = -1
+        
+        Dim xPromotionFlag As Boolean = False
+        Dim j As Integer = 0
+        While TotalItem >= 0 And j <= TotalItem And xCartID <> ""
+            If CStr(Trim(Request("txtPartNO$$$" & j))) <> "" And flgIsValidatedProduct_I(Trim(Request("txtPartNO$$$" & j))) = True Then
+                If Request("txtSelect$$$" & j) Is Nothing Then
+                
+                Else
+                    xPartNO = Request("txtPartNO$$$" & j)
+                    xPromotionFlag = False
+                    xPromotionFlag = PromotionCheck(xPartNO, Session("company_id"))
+                    If xPromotionFlag = False And OrderUtilities.Add2CartCheck(xPartNO, "") Then
+                        If Trim(Request("txtPartNO$$$" & j)) = "" Then
+                            xQTY = 1
+                        Else
+                            xQTY = CInt(Trim(Request("txtQTY$$$" & j)))
+                        End If
+                        OrderUtilities.GetPrice(xPartNO, Session("Company_Id"), "EU10", xQTY, xListPrice, xUnitPrice)
+                        CartLine_Check(xCartID, xPartNO, xQTY, xListPrice, xUnitPrice)
+                    End If
+                End If
+            End If
+            j = j + 1
+        End While
+        
+        Dim Length As Integer
+        Dim FileNamePath As String
+        Dim FileName As String
+        FileNamePath = File1.PostedFile.FileName
+        Length = InStr(1, StrReverse(FileNamePath), "\")
+        FileName = Mid(FileNamePath, (Len(FileNamePath) - Length) + 2)
+        Dim Fso As System.IO.FileInfo = New System.IO.FileInfo(Session("tempFileName"))
+        If Fso.Exists = True Then
+            Fso.Delete()
+        End If
+        Session("tempFileName") = ""
+        Response.Redirect("../order/cart_list.aspx")
+    End Sub
+
+    Protected Sub ViewCart_Click(ByVal sender As Object, ByVal e As System.Web.UI.ImageClickEventArgs)
+        Response.Redirect("../order/cart_list.aspx")
+    End Sub
+    
+    Protected Sub InitTable()
+        Dim xRow As New TableRow
+        Dim xCell As New TableCell
+        xRow = New TableRow
+        '--11 Add2Cart
+        xCell = New TableCell
+        xCell.Style.Value = "background-color:#f0f0f0;width:80px;"
+        xCell.HorizontalAlign = HorizontalAlign.Center
+        xCell.Text = "<font color=#00008b>Add2Cart</font>"
+        xRow.Cells.Add(xCell)
+        '--12 Index
+        xCell = New TableCell
+        xCell.Style.Value = "background-color:#f0f0f0;width:50px;"
+        xCell.HorizontalAlign = HorizontalAlign.Center
+        xCell.Text = "<font color=#00008b>Index</font>"
+        xRow.Cells.Add(xCell)
+        '--13 Item No
+        xCell = New TableCell
+        xCell.Style.Value = "background-color:#f0f0f0;width:150px;"
+        xCell.HorizontalAlign = HorizontalAlign.Center
+        xCell.Text = "<font color=#00008b>Item No</font>"
+        xRow.Cells.Add(xCell)
+        '--14 QTY
+        xCell = New TableCell
+        xCell.Style.Value = "background-color:#f0f0f0;width:50px;"
+        xCell.HorizontalAlign = HorizontalAlign.Center
+        xCell.Text = "<font color=#00008b>QTY</font>"
+        xRow.Cells.Add(xCell)
+        '--15 Search
+        xCell = New TableCell
+        xCell.Style.Value = "background-color:#f0f0f0;width:80px;"
+        xCell.HorizontalAlign = HorizontalAlign.Center
+        xCell.Text = "<font color=#00008b>Search</font>"
+        xRow.Cells.Add(xCell)
+        
+        '--16 Message
+        xCell = New TableCell
+        xCell.Style.Value = "background-color:#f0f0f0;width:200px;"
+        xCell.HorizontalAlign = HorizontalAlign.Left
+        xCell.Text = "<font color=#00008b><font color='red'>&nbsp;&nbsp;Message</font> : Smart Suggestions&nbsp;&nbsp;</b></font>"
+        xRow.Cells.Add(xCell)
+        Me.dtOrderInfo.Rows.Add(xRow)
+    End Sub
+    
+    Protected Sub DisplayOrderItem()
+        Select Case Me.FileFormat.SelectedValue
+            Case "XLS/XLS"
+                Call ParseXLS()
+            Case "CSV/TXT"
+                Call ParseTextCSV()
+            Case "TAB/TXT"
+                Call ParseTextTAB()
+            Case "XML/XML"
+                Call ParseXML()
+        End Select
+    End Sub
+    
+    Protected Sub ParseXLS()
+        Dim strUploadExcelOrderFolder As String = ""
+        Dim Length As Integer
+        Dim FileNamePath As String
+        Dim tempFileName As String
+        FileNamePath = File1.PostedFile.FileName
+        Length = InStr(1, StrReverse(FileNamePath), "\")
+        tempFileName = Mid(FileNamePath, (Len(FileNamePath) - Length) + 2)
+        Global_Inc.SiteDefinition_Get("UploadExcelOrderFolder", strUploadExcelOrderFolder)
+        FileNamePath = "C:\MyAdvantech\Files\TempFiles\" & Session("CART_ID") & tempFileName
+        
+        Dim excelApp As New Excel.Application
+        Dim WorkSheet As Excel.Worksheet
+        Dim workBook As Excel.Workbook
+       
+        Try
+            workBook = excelApp.Workbooks.Open(FileNamePath)
+            WorkSheet = workBook.Worksheets.Item("CartList")
+            Dim j As Integer = 2
+            Dim xPartNO As String = ""
+            Dim xQTY As Integer = 0
+                        
+            Dim Item_NOIndex As Integer = 0
+            Dim QTYIndex As Integer = 0
+            Dim m As Integer
+            For m = 1 To WorkSheet.Columns.Count Step 1
+                If CStr(WorkSheet.Cells(1, m).value) = "" Then Exit For
+                If UCase(CStr(WorkSheet.Cells(1, m).value)) = "ITEM_NO" Then
+                    Item_NOIndex = m
+                End If
+                If UCase(CStr(WorkSheet.Cells(1, m).value)) = "QTY" Then
+                    QTYIndex = m
+                End If
+            Next m
+            
+            Dim xColumn1Name, xColumn2Name As String
+            If CStr(WorkSheet.Cells(1, Item_NOIndex).value) <> "" And _
+            CStr(WorkSheet.Cells(1, QTYIndex).value) <> "" Then
+                xColumn1Name = CStr(WorkSheet.Cells(1, Item_NOIndex).value)
+                xColumn2Name = CStr(WorkSheet.Cells(1, QTYIndex).value)
+            End If
+
+            Dim xRow As New TableRow
+            Dim xCell As New TableCell
+            Dim xBlnFlag As Boolean = False
+            Dim xPromotionFlag As Boolean = False
+            Dim xCorrectItemFlag As Boolean = True
+            'Dim ColumnIndex As Integer = 0
+            While j <= WorkSheet.Rows.Count - 1
+                'For ColumnIndex = 0 To UBound(xColumnInfo)
+
+                'Next
+                If CStr(WorkSheet.Cells(j, 1).value) <> "" Then
+                    xPartNO = WorkSheet.Cells(j, Item_NOIndex).value
+                    xQTY = WorkSheet.Cells(j, QTYIndex).value
+                    If xQTY <= 0 Then
+                        xQTY = 1
+                    End If
+                    '--{2006-04-3}--Daive: Avoid Promotion Item to be Added to cart in here
+                    xPromotionFlag = False
+                    xPromotionFlag = PromotionCheck(xPartNO, Session("company_id"))
+                    
+                    xBlnFlag = flgIsValidatedProduct_I(xPartNO)
+                    xCorrectItemFlag = OrderUtilities.Add2CartCheck(xPartNO, "")
+                    xRow = New TableRow
+                    '--21 Add2Cart
+                    xCell = New TableCell
+                    xCell.Style.Value = "background-color:#ffffff;width:80px;"
+                    xCell.HorizontalAlign = HorizontalAlign.Center
+                    If xBlnFlag = True Then
+                        If xPromotionFlag = True Or xCorrectItemFlag = False Then
+                            xCell.Text = "<input type=""checkbox"" name=""txtSelect$$$" & j - 2 & """ value=""Yes"" onpropertychange='if(this.checked)this.checked=false;'/>"
+                        Else
+                            xCell.Text = "<input type=""checkbox"" name=""txtSelect$$$" & j - 2 & """ checked value=""Yes""/>"
+                        End If
+                    Else
+                        xCell.Text = "<input type=""checkbox"" name=""txtSelect$$$" & j - 2 & """ value=""Yes""/>"
+                    End If
+                    xRow.Cells.Add(xCell)
+                    '--22 Index
+                    xCell = New TableCell
+                    xCell.Style.Value = "background-color:#ffffff;width:50px;"
+                    xCell.HorizontalAlign = HorizontalAlign.Center
+                    xCell.Text = j - 1
+                    xRow.Cells.Add(xCell)
+                    '--23 Part NO
+                    xCell = New TableCell
+                    xCell.Style.Value = "background-color:#ffffff;width:150px;"
+                    xCell.HorizontalAlign = HorizontalAlign.Center
+                    If xPromotionFlag = True Then
+                        xCell.Text = xPartNO
+                    Else
+                        xCell.Text = "<input type=""text"" name=""txtPartNO$$$" & j - 2 & """ value=""" & xPartNO & """ size=""20""/>"
+                    End If
+                    xRow.Cells.Add(xCell)
+                    '--24 QTY
+                    xCell = New TableCell
+                    xCell.Style.Value = "background-color:#ffffff;width:50px;"
+                    xCell.HorizontalAlign = HorizontalAlign.Right
+                    If xPromotionFlag = True Then
+                        xCell.Text = xQTY
+                    Else
+                        xCell.Text = "<input type=""text"" name=""txtQTY$$$" & j - 2 & """ value=""" & xQTY & """ maxlength=""10"" size=""10"" style=""text-align: right""/>"
+                    End If
+                    xRow.Cells.Add(xCell)
+                    '--25 Search
+                    xCell = New TableCell
+                    xCell.Style.Value = "background-color:#ffffff;width:80px;"
+                    xCell.HorizontalAlign = HorizontalAlign.Center
+                    If xPromotionFlag = True Or xCorrectItemFlag = False Then
+                        xCell.Text = ""
+                    Else
+                        xCell.Text = "<IMG src=""../Images/Search.gif"" style=""cursor:hand"" onclick=" & Chr(34) & "PickPartNO('txtPartNO$$$" & j - 2 & "','" & j - 2 & "')" & Chr(34) & "/>"
+                    End If
+                    xRow.Cells.Add(xCell)
+                    '--26 Message
+                    xCell = New TableCell
+                    xCell.Style.Value = "background-color:#ffffff;width:200px;"
+                    xCell.HorizontalAlign = HorizontalAlign.Left
+                    If xBlnFlag = False Then
+                        xCell.Text = "<font color=""red""><b>Please Search the correct item</b></font>"
+                    ElseIf xPromotionFlag = True Then
+                        xCell.Text = "<font color=""#32CD32""><b>Please buy promotion item in promotion center</b></font>"
+                    ElseIf xCorrectItemFlag = False Then
+                        xCell.Text = "<font color=""#32CD32""><b>No this item or forbid it on this page. Sorry for the inconvenience.</b></font>"
+                    Else
+                        xCell.Text = "Item will be Added To Cart"
+                    End If
+                    xRow.Cells.Add(xCell)
+                    Me.dtOrderInfo.Rows.Add(xRow)
+                Else
+                    Exit While
+                End If
+                j = j + 1
+            End While
+            '--{2006-08-09}--Daive: Add a server control 'lblLineNo' instead of using the property 'Add2Cart.AccessKey' of Add2Cart buttion to save the total line number
+            Me.lblLineNo.Text = j - 3
+            excelApp.Quit()
+            excelApp = Nothing
+        Catch ex As Exception
+            Me.Page.ClientScript.RegisterStartupScript(GetType(String), "alert", "<script>alert('Excel file format incorrect!')</" & "script>")
+            Util.SendEmail("tc.chen@advantech.com.tw,nada.liu@advantech.com.cn", "ebiz.aeu@advantech.eu", "error in upload cart", ex.ToString(), False, "", "")
+            Me.dtFormatImg.Visible = True
+            Me.dtOrderInfo.Visible = False
+            Me.ViewCart.Visible = False
+            Me.Add2Cart.Visible = False
+            Dim proc2 As System.Diagnostics.Process
+            For Each proc2 In System.Diagnostics.Process.GetProcesses
+                If proc2.ProcessName = "EXCEL" Then proc2.Kill()
+            Next
+            Me.pic.Src = "../images/ULOrd_XLS.jpg"
+            'Response.Write(ex.ToString())
+            'Response.End()
+        
+        End Try
+        
+       
+        
+        Dim proc As System.Diagnostics.Process
+        For Each proc In System.Diagnostics.Process.GetProcesses
+            If proc.ProcessName = "EXCEL" Then proc.Kill()
+        Next
+    End Sub
+    
+    Protected Sub ParseTextCSV()
+        Dim strUploadExcelOrderFolder As String = ""
+        Dim Length As Integer
+        Dim FileNamePath As String
+        Dim tempFileName As String
+        FileNamePath = File1.PostedFile.FileName
+        Length = InStr(1, StrReverse(FileNamePath), "\")
+        tempFileName = Mid(FileNamePath, (Len(FileNamePath) - Length) + 2)
+        Global_Inc.SiteDefinition_Get("UploadExcelOrderFolder", strUploadExcelOrderFolder)
+        FileNamePath = strUploadExcelOrderFolder & Session("CART_ID") & tempFileName
+        Dim Fso As System.IO.FileInfo = New System.IO.FileInfo(FileNamePath)
+        Dim strmReader As System.IO.StreamReader
+        strmReader = Fso.OpenText
+        
+        Dim xRow As New TableRow
+        Dim xCell As New TableCell
+        Dim j As Integer = 0
+        Dim xBlnFlag As Boolean
+        Dim xPartNO As String = ""
+        Dim xQTY As Integer = 0
+        
+        Dim strLine As String
+        Dim LineColumn() As String
+        strLine = strmReader.ReadLine
+        Dim xColumnName() As String
+        Dim Item_NOIndex As Integer = 0
+        Dim QTYIndex As Integer = 0
+        Try
+            If strLine <> "" Then
+                xColumnName = Split(strLine, ",")
+                If UBound(xColumnName) < 1 Or xColumnName(0) = "" Or xColumnName(1) = "" Then
+                    Response.Redirect("../Order/UploadOrder2Cart.aspx")
+                End If
+                Dim m As Integer
+                For m = 0 To UBound(xColumnName) Step 1
+                    
+                    If CStr(xColumnName(m)) = "" Then Exit For
+                    If UCase(CStr(xColumnName(m))) = "ITEM_NO" Then
+                        Item_NOIndex = m
+                    End If
+                    If UCase(CStr(xColumnName(m))) = "QTY" Then
+                        QTYIndex = m
+                    End If
+                Next m
+            End If
+            strLine = strmReader.ReadLine
+        Catch ex As Exception
+            Me.LblMsg.Text = "Please make sure the file format is right. Sorry for the inconvenience."
+            Response.Redirect("../Order/UploadOrder2Cart.aspx")
+        End Try
+        Dim xPromotionFlag As Boolean = False
+        Do While strLine <> ""
+            LineColumn = Split(strLine, ",")
+            xPartNO = LineColumn(Item_NOIndex)
+            '--{2006-04-3}--Daive: Avoid Promotion Item to be Added to cart in here
+            xPromotionFlag = False
+            xPromotionFlag = PromotionCheck(xPartNO, Session("company_id"))
+            
+            If UBound(LineColumn) >= 1 Then
+                xQTY = CInt(LineColumn(QTYIndex))
+            Else
+                xQTY = 1
+            End If
+            xBlnFlag = flgIsValidatedProduct_I(xPartNO)
+            xRow = New TableRow
+            '--21 Add2Cart
+            xCell = New TableCell
+            xCell.Style.Value = "background-color:#ffffff;width:80px;"
+            xCell.HorizontalAlign = HorizontalAlign.Center
+            If xBlnFlag = True Then
+                If xPromotionFlag = True Then
+                    xCell.Text = "<input type=""checkbox"" name=""txtSelect$$$" & j & """ value=""Yes"" onpropertychange='if(this.checked)this.checked=false;'/>"
+                Else
+                    xCell.Text = "<input type=""checkbox"" name=""txtSelect$$$" & j & """ checked value=""Yes""/>"
+                End If
+            Else
+                xCell.Text = "<input type=""checkbox"" name=""txtSelect$$$" & j & """ value=""Yes""/>"
+            End If
+            xRow.Cells.Add(xCell)
+            '--22 Index
+            xCell = New TableCell
+            xCell.Style.Value = "background-color:#ffffff;width:50px;"
+            xCell.HorizontalAlign = HorizontalAlign.Center
+            xCell.Text = j + 1
+            xRow.Cells.Add(xCell)
+            '--23 Part NO
+            xCell = New TableCell
+            xCell.Style.Value = "background-color:#ffffff;width:150px;"
+            xCell.HorizontalAlign = HorizontalAlign.Center
+            If xPromotionFlag = True Then
+                xCell.Text = xPartNO
+            Else
+                xCell.Text = "<input type=""text"" name=""txtPartNO$$$" & j & """ value=""" & xPartNO & """ size=""20""/>"
+            End If
+            xRow.Cells.Add(xCell)
+            '--24 QTY
+            xCell = New TableCell
+            xCell.Style.Value = "background-color:#ffffff;width:50px;"
+            xCell.HorizontalAlign = HorizontalAlign.Right
+            If xPromotionFlag = True Then
+                xCell.Text = xQTY
+            Else
+                xCell.Text = "<input type=""text"" name=""txtQTY$$$" & j & """ value=""" & xQTY & """ maxlength=""10"" size=""10"" style=""text-align: right""/>"
+            End If
+            xRow.Cells.Add(xCell)
+            '--25 Search
+            xCell = New TableCell
+            xCell.Style.Value = "background-color:#ffffff;width:80px;"
+            xCell.HorizontalAlign = HorizontalAlign.Center
+            If xPromotionFlag = True Then
+                xCell.Text = ""
+            Else
+                xCell.Text = "<IMG src=""../Images/Search.gif"" style=""cursor:hand"" onclick=" & Chr(34) & "PickPartNO('txtPartNO$$$" & j & "','" & j & "')" & Chr(34) & "/>"
+            End If
+            xRow.Cells.Add(xCell)
+            '--26 Message
+            xCell = New TableCell
+            xCell.Style.Value = "background-color:#ffffff;width:200px;"
+            xCell.HorizontalAlign = HorizontalAlign.Left
+            If xBlnFlag = False Then
+                xCell.Text = "<font color=""red""><b>Please Search the correct item</b></font>"
+            Else
+                If xPromotionFlag = True Then
+                    xCell.Text = "<font color=""#32CD32""><b>Please buy promotion item in promotion center</b></font>"
+                Else
+                    xCell.Text = "Item will be Added To Cart"
+                End If
+            End If
+            xRow.Cells.Add(xCell)
+            Me.dtOrderInfo.Rows.Add(xRow)
+            j = j + 1
+            strLine = strmReader.ReadLine
+        Loop
+        '--{2006-08-09}--Daive: Add a server control 'lblLineNo' instead of using the property 'Add2Cart.AccessKey' of Add2Cart buttion to save the total line number
+        Me.lblLineNo.Text = j - 1
+        strmReader.Close()
+        Fso.Delete()
+        Fso = Nothing
+    End Sub
+    
+    Protected Sub ParseTextTAB()
+        Dim strUploadExcelOrderFolder As String = ""
+        Dim Length As Integer
+        Dim FileNamePath As String
+        Dim tempFileName As String
+        FileNamePath = File1.PostedFile.FileName
+        Length = InStr(1, StrReverse(FileNamePath), "\")
+        tempFileName = Mid(FileNamePath, (Len(FileNamePath) - Length) + 2)
+        Global_Inc.SiteDefinition_Get("UploadExcelOrderFolder", strUploadExcelOrderFolder)
+        FileNamePath = strUploadExcelOrderFolder & Session("CART_ID") & tempFileName
+        Dim Fso As System.IO.FileInfo = New System.IO.FileInfo(FileNamePath)
+        Dim strmReader As System.IO.StreamReader
+        strmReader = Fso.OpenText
+        
+        Dim xRow As New TableRow
+        Dim xCell As New TableCell
+        Dim j As Integer = 0
+        Dim xBlnFlag As Boolean
+        Dim xPartNO As String = ""
+        Dim xQTY As Integer = 0
+        
+        Dim strLine As String = ""
+        Dim LineColumn() As String
+        strLine = strmReader.ReadLine
+        Dim xColumnName() As String
+        Dim Item_NOIndex As Integer = 0
+        Dim QTYIndex As Integer = 0
+        Try
+            If strLine <> "" Then
+                xColumnName = strLine.Split(Chr(9))
+                If UBound(xColumnName) < 1 Or CStr(xColumnName(0)) = "" Or CStr(xColumnName(1)) = "" Then
+                    Response.Redirect("../Order/UploadOrder2Cart.aspx")
+                End If
+                Dim m As Integer
+                For m = 0 To UBound(xColumnName) Step 1
+                    
+                    If CStr(xColumnName(m)) = "" Then Exit For
+                    If UCase(CStr(xColumnName(m))) = "ITEM_NO" Then
+                        Item_NOIndex = m
+                    End If
+                    If UCase(CStr(xColumnName(m))) = "QTY" Then
+                        QTYIndex = m
+                    End If
+                Next m
+            End If
+            strLine = strmReader.ReadLine
+        Catch ex As Exception
+            Me.LblMsg.Text = "Please make sure the file format is right. Sorry for the inconvenience."
+            Response.Redirect("../Order/UploadOrder2Cart.aspx")
+        End Try
+        Dim xPromotionFlag As Boolean = False
+        Do While strLine <> ""
+            LineColumn = strLine.Split(Chr(9))
+            xPartNO = LineColumn(Item_NOIndex)
+            '--{2006-04-3}--Daive: Avoid Promotion Item to be Added to cart in here
+            xPromotionFlag = False
+            xPromotionFlag = PromotionCheck(xPartNO, Session("company_id"))
+            
+            If UBound(LineColumn) >= 1 Then
+                xQTY = CInt(LineColumn(QTYIndex))
+            Else
+                xQTY = 1
+            End If
+            xBlnFlag = flgIsValidatedProduct_I(xPartNO)
+            xRow = New TableRow
+            '--21 QTY
+            xCell = New TableCell
+            xCell.Style.Value = "background-color:#ffffff;width:80px;"
+            xCell.HorizontalAlign = HorizontalAlign.Center
+            If xBlnFlag = True Then
+                If xPromotionFlag = True Then
+                    xCell.Text = "<input type=""checkbox"" name=""txtSelect$$$" & j & """ value=""Yes"" onpropertychange='if(this.checked)this.checked=false;'/>"
+                Else
+                    xCell.Text = "<input type=""checkbox"" name=""txtSelect$$$" & j & """ checked value=""Yes""/>"
+                End If
+            Else
+                xCell.Text = "<input type=""checkbox"" name=""txtSelect$$$" & j & """ value=""Yes""/>"
+            End If
+            xRow.Cells.Add(xCell)
+            '--22 Index
+            xCell = New TableCell
+            xCell.Style.Value = "background-color:#ffffff;width:50px;"
+            xCell.HorizontalAlign = HorizontalAlign.Center
+            xCell.Text = j + 1
+            xRow.Cells.Add(xCell)
+            '--23 Part NO
+            xCell = New TableCell
+            xCell.Style.Value = "background-color:#ffffff;width:150px;"
+            xCell.HorizontalAlign = HorizontalAlign.Center
+            If xPromotionFlag = True Then
+                xCell.Text = xPartNO
+            Else
+                xCell.Text = "<input type=""text"" name=""txtPartNO$$$" & j & """ value=""" & xPartNO & """ size=""20""/>"
+            End If
+            xRow.Cells.Add(xCell)
+            '--24 QTY
+            xCell = New TableCell
+            xCell.Style.Value = "background-color:#ffffff;width:50px;"
+            xCell.HorizontalAlign = HorizontalAlign.Right
+            If xPromotionFlag = True Then
+                xCell.Text = xQTY
+            Else
+                xCell.Text = "<input type=""text"" name=""txtQTY$$$" & j & """ value=""" & xQTY & """ maxlength=""10"" size=""10"" style=""text-align: right""/>"
+            End If
+            xRow.Cells.Add(xCell)
+            '--25 Search
+            xCell = New TableCell
+            xCell.Style.Value = "background-color:#ffffff;width:80px;"
+            xCell.HorizontalAlign = HorizontalAlign.Center
+            If xPromotionFlag = True Then
+                xCell.Text = ""
+            Else
+                xCell.Text = "<IMG src=""../Images/Search.gif"" style=""cursor:hand"" onclick=" & Chr(34) & "PickPartNO('txtPartNO$$$" & j & "','" & j & "')" & Chr(34) & "/>"
+            End If
+            xRow.Cells.Add(xCell)
+            '--26 Message
+            xCell = New TableCell
+            xCell.Style.Value = "background-color:#ffffff;width:200px;"
+            xCell.HorizontalAlign = HorizontalAlign.Left
+            If xBlnFlag = False Then
+                xCell.Text = "<font color=""red""><b>Please Search the correct item</b></font>"
+            Else
+                If xPromotionFlag = True Then
+                    xCell.Text = "<font color=""#32CD32""><b>Please buy promotion item in promotion center</b></font>"
+                Else
+                    xCell.Text = "Item will be Added To Cart"
+                End If
+            End If
+            xRow.Cells.Add(xCell)
+            Me.dtOrderInfo.Rows.Add(xRow)
+            j = j + 1
+            strLine = strmReader.ReadLine
+        Loop
+        '--{2006-08-09}--Daive: Add a server control 'lblLineNo' instead of using the property 'Add2Cart.AccessKey' of Add2Cart buttion to save the total line number
+        Me.lblLineNo.Text = j - 1
+        strmReader.Close()
+        Fso.Delete()
+        Fso = Nothing
+    End Sub
+    
+    Protected Sub ParseXML()
+        
+    End Sub
+    
+    Private Function BTOSItemCheck(ByVal xPartNO As String) As Boolean
+        Dim strSQL As String = ""
+        'Dim l_adoConn As New SqlClient.SqlConnection
+        Dim dr As DataTable
+        strSQL = "select * from sap_product where part_no='" & CStr(xPartNO) & "' and MATERIAL_GROUP='BTOS'"
+        dr = dbUtil.dbGetDataTable("B2B", strSQL)
+        If dr.Rows.Count > 0 Then
+            BTOSItemCheck = True
+        Else
+            BTOSItemCheck = False
+        End If
+        'l_adoConn.Close()
+        'l_adoConn.Dispose()
+    End Function
+    
+    Private Function PromotionCheck(ByVal xPartNO As String, ByVal xCompanyID As String) As Boolean
+        Return False
+        'If Global_Inc.PromotionRelease() = False Then
+        '    PromotionCheck = False
+        '    Exit Function
+        'End If
+        
+        'If xCompanyID = "" Then xCompanyID = Session("COMPANY_ID")
+        'Dim xProDT As DataTable
+        'xProDT = dbUtil.dbGetDataTable("B2B", "select part_no,SPECIAL_FLAG from PROMOTION_PRODUCT_INFO where part_no='" & xPartNO & "' and ONHAND_QTY > 0 and START_DATE <= '" & Date.Today.Date() & "' and EXPIRE_DATE >= '" & Date.Today.Date() & "'")
+        'If xProDT.Rows.Count > 0 Then
+        '    If xProDT.Rows(0).Item("SPECIAL_FLAG") = 2 Then
+        '        Dim xProSpecDT As DataTable = dbUtil.dbGetDataTable("B2B", "select * from PROMOTION_CUSTOMER_PRICE where part_no='" & xProDT.Rows(0).Item("part_no") & "' and COMPANY_ID='" & xCompanyID & "'")
+        '        If xProSpecDT.Rows.Count > 0 Then
+        '            PromotionCheck = True
+        '            Exit Function
+        '        End If
+        '    Else
+        '        PromotionCheck = True
+        '        Exit Function
+        '    End If
+        'End If
+        'PromotionCheck = False
+    End Function
+    
+    Private Function flgIsValidatedProduct_I(ByVal xPartNO As String) As Boolean
+        Dim strSQL As String = ""
+        'Dim l_adoConn As New SqlClient.SqlConnection
+        Dim dr As DataTable
+        strSQL = "select part_no from sap_product where part_no  = '" & CStr(xPartNO) & "' "
+        dr = dbUtil.dbGetDataTable("B2B", strSQL)
+        If dr.Rows.Count > 0 Then
+            flgIsValidatedProduct_I = True
+        Else
+            flgIsValidatedProduct_I = False
+        End If
+        'l_adoConn.Close()
+        'l_adoConn.Dispose()
+    End Function
+    
+    Private Function CartLine_Check(ByVal xCartID As String, ByVal xPartNO As String, ByVal xQTY As Integer, ByVal xListPrice As Decimal, ByVal xUnitPrice As Decimal) As Integer
+        Dim blnFlag As Boolean = False
+        blnFlag = BTOSItemCheck(xPartNO)
+        If blnFlag = True Then
+            CartLine_Check = -1
+            Exit Function
+        End If
+        
+        Dim intMaxLineNo As Integer = 0
+        Dim strSQL As String = ""
+        'Dim l_adoConn As New SqlClient.SqlConnection
+        Dim dr As DataTable
+        Try
+            strSQL = "select IsNull(max(line_no),0) as maxline from cart_detail " & _
+                     "where cart_id = '" & xCartID & "'" & " and line_no <100"
+            dr = dbUtil.dbGetDataTable("B2B", strSQL)
+            If dr.Rows.Count > 0 Then
+                intMaxLineNo = dr.Rows(0).Item("maxline")
+            End If
+            'l_adoConn.Close()
+            
+            intMaxLineNo = intMaxLineNo + 1
+            
+            OrderUtilities.CartLine_Add(xCartID, intMaxLineNo, xPartNO, xQTY, xListPrice, xUnitPrice, "EUH1", "0")
+        Catch ex As Exception
+            ' l_adoConn.Close()
+            'l_adoConn.Dispose()
+            CartLine_Check = -1
+            Exit Function
+        End Try
+        'l_adoConn.Close()
+        'l_adoConn.Dispose()
+        CartLine_Check = 1
+    End Function
+</script>
+
+<asp:Content runat="server" ID="_main" ContentPlaceHolderID="_main"> 
+<script type="text/javascript" language="javascript">
+function changePic(){
+	var F_format = document.aspnetForm.ctl00__main_FileFormat.value.toUpperCase();
+	if (F_format == "CSV/TXT")
+		document.pic.src="../images/ULOrd_CSV.jpg";
+	if (F_format == "TAB/TXT")
+		document.pic.src="../images/ULOrd_TAB.jpg";
+	if (F_format == "XML/XML")
+		document.pic.src="../images/ULOrd_XML.jpg";
+	if (F_format == "XLS/XLS")
+		document.pic.src="../images/ULOrd_XLS.jpg";
+}
+function PickPartNO(xElement,xIndex){
+    var Url;
+    //alert(document.form1.elements("txtPartNO$$$" + xIndex).value);
+    Url="../Order/PickPartNo.aspx?Element=" + xElement + "&Type=partno&PartNO=" + document.aspnetForm.elements("txtPartNO$$$" + xIndex).value + "";
+    window.open(Url, "pop","height=570,width=480,scrollbars=yes");
+}
+</script>
+ <div>
+       
+        <br />
+        <table id="Table2" width="100%">
+            <tr valign="top">
+                <td>
+                    <div class="euPageTitle">Upload Order File to Cart</div> &nbsp; &nbsp;<span class="PageMessageBar"></span>
+                </td>
+            </tr>
+            <!-- ******* page title (end) ********-->
+            <tr valign="top">
+                <td height="2">
+                    &nbsp;
+                </td>
+            </tr>
+            <!-- ******* record list1 (start) ********-->
+            <tr valign="top">
+                <td>
+                    <table id="Table3" border="0" cellpadding="0" cellspacing="0" height="20" width="100">
+                        <tr>
+                            <td rowspan="2" width="3">
+                                <img height="23" src="../images/ebiz.aeu.face/bluefolder_left.jpg" width="7" /></td>
+                            <td bgcolor="#a3bfd4" valign="top">
+                                <img height="3" src="../images/ebiz.aeu.face/bluefolder_top.jpg" width="138" /></td>
+                            <td rowspan="2" width="3">
+                                <img height="23" src="../images/ebiz.aeu.face/bluefolder_right.jpg" width="7" /></td>
+                        </tr>
+                        <tr>
+                            <td bgcolor="#a2bed6" width="434">
+                                <div class="euFormCaption">
+                                    Upload&nbsp;Order</div>
+                            </td>
+                        </tr>
+                    </table>
+                    <table id="Table6" bgcolor="#f1f2f4" border="0" bordercolor="#a2bed6" cellpadding="0"
+                        cellspacing="0" class="euFormTable" width="600">
+                        <tr>
+                            <td height="4">
+                            </td>
+                        </tr>
+                        <tr>
+                            <td align="right" height="30" valign="center" width="40">
+                                <img src="../images/ebiz.aeu.face/square_gray.gif" width="7" height="7" />&nbsp;
+                            </td>
+                            <td>
+                                <div class="euFormFieldCaption">
+                                    File&nbsp;Format</div>
+                            </td>
+                            
+                            <td>&nbsp;
+                                <asp:DropDownList runat="server" ID="FileFormat" onchange="changePic();">
+                                <asp:ListItem Value="XLS/XLS" Text="Excel File Format" Selected="true"></asp:ListItem>   
+                                <asp:ListItem Value="CSV/TXT" Text="Text/CSV(in comma format)"></asp:ListItem>    
+                                <asp:ListItem Value="TAB/TXT" Text="Text(in tab format)"></asp:ListItem>                         
+                                </asp:DropDownList>
+                                
+                                
+                                <!--asp:ListItem Value="XML" Text="XML File Format"></asp:ListItem-->
+                            </td>
+                        </tr>
+                        <tr>
+                            <td align="right" height="30" valign="center" width="40">
+                                <img src="../images/ebiz.aeu.face/square_gray.gif" width="7" height="7" />&nbsp;
+                            </td>
+                            <td>
+                                <div class="euFormFieldCaption">
+                                    File&nbsp;Name</div>
+                            </td>
+                            
+                            <td valign="bottom">
+                                    &nbsp;
+                                <input id="File1" name="File1" runat="server" style="width: 365px" type="file" />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                                <asp:ImageButton style="cursor:hand" ID="ImageButton1" runat="server" ImageUrl="~/Images/ebiz.aeu.face/btn_upload.gif" OnClick="ImageButton1_Click" /></td>
+                            <td>                                
+                            &nbsp;</td>
+                        </tr>
+                        <tr>
+                            <td align="right" height="30" valign="center" width="40">&nbsp;
+                            </td>
+                            <td colspan="2" height="4">&nbsp;&nbsp;<asp:Label runat="server" ID="LblMsg" Font-Size="12" Visible="false" ForeColor="red" Text="Please&nbsp;make&nbsp;sure&nbsp;the&nbsp;file&nbsp;format&nbsp;is&nbsp;right.&nbsp;Thank&nbsp;you."></asp:Label>
+                            </td>
+                        </tr>
+                    </table>
+                    <br />
+                    <br />
+                    <table runat="server" id="dtFormatImg" border="0" cellpadding="0" cellspacing="0" valign="top" width="100%">
+                        <tr>
+                            <td>
+                                <a href="../FileS/Upload_Sample.xls">Download Upload Order Sample Excel File</a><img src="../images/new2.gif" width="28" height="11" /><br />
+                                <br />
+                                <img runat="server" id="pic" alt="Usage of Excel Format" name="pic" src="../images/ULOrd_XLS.jpg" width="555" height="398" />
+                            </td>
+                        </tr>
+                    </table>
+                    <asp:Table runat="server" ID="dtOrderInfo" border="0" cellpadding="1" cellspacing="1" BackColor="#bec4e3"></asp:Table>
+                    <asp:Label Runat = "Server" ID = "lblLineNo" Text = "" Visible = "false"></asp:Label>
+                    <table runat="server" id="dtAdd2Cart" border="0" cellpadding="0" cellspacing="0" valign="top" width="100%">
+                        <tr>
+                        <td style="height:5px">&nbsp;</td>
+                        </tr>
+                        <tr>
+                            <td>
+                                &nbsp;<asp:ImageButton ID="ViewCart" runat="server" ImageUrl="~/Images/ebiz.aeu.face/btn_viewcart.gif" OnClick="ViewCart_Click" />&nbsp;&nbsp;&nbsp;
+                                <asp:ImageButton runat="server" ID="Add2Cart" AccessKey="" ImageUrl="~/Images/ebiz.aeu.face/btn_add2cart1.gif" OnClick="Add2Cart_Click" /></td>
+                        </tr>
+                        <tr>
+                        <td style="height:5px">&nbsp;</td>
+                        </tr>
+                    </table>
+                </td>
+            </tr>
+        </table>
+        
+        
+        
+    </div>
+</asp:Content>

@@ -1,0 +1,323 @@
+﻿<%@ Page Language="VB" MasterPageFile="~/Includes/MyMaster.master" Title="MyAdvantech - Order Confirm" %>
+
+<script runat="server">
+    Dim m_strHTML As String
+    Dim x_strHTML As String
+    Private Sub page_load(ByVal sender As Object, ByVal e As System.EventArgs)
+        
+        'Session("CART_ID") = "D3C679E1E1FE421ABBE9474F2D2FAAA8"
+        'Session("LOGISTICS_ID") = "D3C679E1E1FE421ABBE9474F2D2FAAA8"
+        'Session("ORDER_ID") = "D3C679E1E1FE421ABBE9474F2D2FAAA8"
+        'Session("COMPANY_ID") = "EFFRFA01"
+        'Session("USER_ROLE") = "Administrator"
+        If Not Page.IsPostBack Then
+            If Util.IsInternalUser2() Or Util.IsAEUIT() Then
+                Me.Query_Header.Visible = True
+                Me.Query_Content.Visible = True
+                Me.User_Group.SelectedIndex = 0
+            Else
+                Me.Query_Header.Visible = False
+                Me.Query_Content.Visible = False
+                Me.User_Group.SelectedIndex = 1
+            End If
+            Me.PI_Type.SelectedIndex = 0
+            If Request("Order_NO") = "" Then
+                Me.Order_NO.Text = ""
+            Else
+                Me.Order_NO.Text = Request("Order_NO")
+            End If
+            Dim strOrderNo As String = Me.Order_NO.Text
+            Dim execFunc As Integer = 0
+            Dim exefunc As Integer = 0
+            
+            If strOrderNo <> "" Then
+            
+                exefunc = OrderUtilities.Show_ChangedMsgOfOrder("", strOrderNo, m_strHTML)
+            
+                If UCase(Me.User_Group.SelectedValue) = "INTERNAL" Then
+                    Session("xInternalFlag") = "internal"
+                    execFunc = OrderUtilities.GetPI(strOrderNo, "PI", x_strHTML)
+                    Session("xInternalFlag") = ""
+                Else
+                    Session("xInternalFlag") = "external"
+                    execFunc = OrderUtilities.GetPI(strOrderNo, "PI", x_strHTML)
+                    Session("xInternalFlag") = ""
+                End If
+            End If
+        End If
+    End Sub
+
+    Protected Sub Query_Click(ByVal sender As Object, ByVal e As System.EventArgs)
+        Dim strOrderNo As String = Me.Order_NO.Text
+        Dim execFunc As Integer = 0
+        Dim exefunc As Integer = 0
+                
+        Me.PI_Type.SelectedIndex = 0
+        If Request("Order_NO") = "" Then
+            Me.Order_NO.Text = ""
+        Else
+            Me.Order_NO.Text = Request("Order_NO")
+        End If
+        
+        If strOrderNo <> "" Then
+            m_strHTML = ""
+            exefunc = OrderUtilities.Show_ChangedMsgOfOrder("", strOrderNo, m_strHTML)
+            x_strHTML = ""
+            If UCase(Me.User_Group.SelectedValue) = "INTERNAL" Then
+                Session("xInternalFlag") = "internal"
+                execFunc = OrderUtilities.GetPI(strOrderNo, "PI", x_strHTML)
+                Session("xInternalFlag") = ""
+            Else
+                Session("xInternalFlag") = "external"
+                execFunc = OrderUtilities.GetPI(strOrderNo, "PI", x_strHTML)
+                Session("xInternalFlag") = ""
+            End If
+        End If
+    End Sub
+
+    Protected Sub Send_Click(ByVal sender As Object, ByVal e As System.EventArgs)
+        Dim strPIId As String = Me.Order_NO.Text
+        Dim strSendTo As String = Trim(Me.send_to.Text)
+        Dim strCC As String = ""
+        Dim strRemark As String = Me.remark.Text
+        Dim t_strHTML As String = ""
+        
+        Dim strOrderNo As String = Me.Order_NO.Text
+        Dim execFunc As Integer = 0
+        Dim exefunc As Integer = 0
+        If strOrderNo <> "" Then
+            m_strHTML = ""
+            exefunc = OrderUtilities.Show_ChangedMsgOfOrder("", strOrderNo, m_strHTML)
+            x_strHTML = ""
+            If UCase(Me.User_Group.SelectedValue) = "INTERNAL" Then
+                Session("xInternalFlag") = "internal"
+                execFunc = OrderUtilities.GetPI(strOrderNo, "PI", x_strHTML)
+                Session("xInternalFlag") = ""
+            Else
+                Session("xInternalFlag") = "external"
+                execFunc = OrderUtilities.GetPI(strOrderNo, "PI", x_strHTML)
+                Session("xInternalFlag") = ""
+            End If
+            
+        Else
+            t_strHTML = "<b>Please give the Order NO!</b>"
+            Exit Sub
+        End If
+        
+        Dim l_strSQLCmd As String = ""
+       
+        Dim l_adoRs9 As DataTable
+        l_strSQLCmd = "select " & _
+             "a.order_id, " & _
+             "a.order_no, " & _
+             "a.po_no, " & _
+             "b.company_id, " & _
+             "b.company_name " & _
+             "from order_master a " & _
+             "inner join company b " & _
+             "on a.soldto_id = b.company_id and b.company_type='Partner' " & _
+             "where a.order_no = '" & strPIId & "'"
+
+        l_adoRs9 = dbUtil.dbGetDataTable("B2B", l_strSQLCmd)
+        Dim strSOID As String = ""
+        Dim strSONo As String = ""
+        Dim strPONo As String = ""
+        Dim strCompanyId As String = ""
+        Dim strCompanyName As String = ""
+        If l_adoRs9.Rows.Count > 0 Then
+            strSOID = l_adoRs9.Rows(0).Item("order_id")
+            strSONo = l_adoRs9.Rows(0).Item("order_no")
+            strPONo = l_adoRs9.Rows(0).Item("po_no")
+            strCompanyId = l_adoRs9.Rows(0).Item("company_id")
+            strCompanyName = l_adoRs9.Rows(0).Item("company_name")
+        End If
+        Dim strStyle As String = ""
+        strStyle = "<style>"
+        strStyle = strStyle & "BODY,TD,INPUT,SELECT,TEXTAREA {FONT-SIZE: 8pt;FONT-FAMILY: Arial,Helvetica,Sans-Serif} "
+        strStyle = strStyle & "A, A:visited {COLOR: #6666cc;TEXT-DECORATION: none} "
+        strStyle = strStyle & "A:active  {TEXT-DECORATION: none} "
+        strStyle = strStyle & "A:hover   {TEXT-DECORATION: underline} "
+        strStyle = strStyle & "</style>"
+        
+        t_strHTML = Replace(x_strHTML, "<body>", "<body>" & strStyle)
+        't_strHTML = Replace(t_strHTML, "../images/", "")
+		
+        
+        Dim FROM_Email As String = ""
+        Dim TO_Email As String = ""
+        Dim CC_Email As String = ""
+        Dim BCC_Email As String = ""
+        Dim Subject_Email As String = ""
+        Dim AttachFile As String = ""
+        Dim MailBody As String = ""
+        
+        FROM_Email = "eBusiness.AEU@advantech.eu"
+        TO_Email = strSendTo
+        CC_Email = strCC
+        BCC_Email = "emil.hsu@advantech.com.tw;TC.Chen@advantech.com.tw;"
+        ''----------------------------------------------
+        ''---- { 14-01-05 } Extended Warranty (Start)
+        ''----------------------------------------------
+        If UCase(Left(strSONo, 2)) <> "EW" Then
+            Subject_Email = "RE-SENT: Advantech Order(" & strPONo & "/" & strSONo & ") for " & strCompanyName & " (" & strCompanyId & ")"
+        Else
+            Subject_Email = "RE-SENT: Advantech Warranty(" & strSONo & ") for " & strCompanyName & " (" & strCompanyId & ")"
+        End If
+        ''----------------------------------------------
+        ''---- { 14-01-05 } Extended Warranty (End)
+        ''----------------------------------------------
+        'AttachFile = Server.MapPath("../images/") & "\header_advantech_logo.gif"
+        MailBody = "<b>" & strRemark & "</b><br/><br/><hr/><br/>" & m_strHTML & "<br/>" & t_strHTML
+                        
+        'Call Me.GlobalInc.Utility_EMailPage(FROM_Email, TO_Email, CC_Email, BCC_Email, Subject_Email, AttachFile, MailBody)
+        Call MailUtil.Utility_EMailPage(FROM_Email, TO_Email, CC_Email, BCC_Email, Subject_Email, AttachFile, MailBody)
+                
+    End Sub
+</script>
+<asp:Content runat="server" ID="_main" ContentPlaceHolderID="_main">
+    <table width="100%" border="0" cellspacing="0" cellpadding="0">
+        <tr valign="top">
+            <td height="4">
+                &nbsp;
+            </td>
+        </tr>
+        <tr>
+            <td width="15px">
+            </td>
+            <td>
+                <table cellpadding="0" cellspacing="0" width="100%">
+                    <tr valign="top">
+                        <td>
+                            <table width="100%" id="Table1">
+                                <!--form action="pi_present.asp" method="post" ID="Form2"-->
+                                <tr valign="top">
+                                    <td width="70">
+                                        &nbsp;
+                                    </td>
+                                    <td colspan="2">
+                                        <table cellpadding="0" cellspacing="1" width="100%" style="background-color: #6699CC;
+                                            vertical-align: bottom;" align="center">
+                                            <tr valign="top" runat="server" id="Query_Header">
+                                                <td width="100" align="left" style="background-color: #d8e4f8; width: 25%;">
+                                                    <b>&nbsp;Order&nbsp;NO.:&nbsp;</b>
+                                                </td>
+                                                <td width="33" align="left" style="background-color: #d8e4f8; width: 25%;">
+                                                    <b>&nbsp;PI&nbsp;Type:&nbsp;</b>
+                                                </td>
+                                                <td width="33" align="left" style="background-color: #d8e4f8; width: 25%;">
+                                                    <b>&nbsp;User&nbsp;Group:&nbsp;</b>
+                                                </td>
+                                                <td style="background-color: #d8e4f8; width: 25%;">
+                                                    &nbsp;
+                                                </td>
+                                            </tr>
+                                            <tr valign="top" runat="server" id="Query_Content">
+                                                <td width="33" align="left" style="background-color: #FFFFE0; width: 25%;">
+                                                    <asp:TextBox runat="server" ID="Order_NO" Width="100px"></asp:TextBox>
+                                                </td>
+                                                <td width="33" align="left" style="background-color: #FFFFE0; width: 25%;">
+                                                    <asp:DropDownList runat="server" ID="PI_Type">
+                                                        <asp:ListItem Text="Email" Value="Email"></asp:ListItem>
+                                                    </asp:DropDownList>
+                                                </td>
+                                                <td width="33" align="left" style="background-color: #FFFFE0; width: 25%;">
+                                                    <asp:DropDownList runat="server" ID="User_Group">
+                                                        <asp:ListItem Text="Internal" Value="Internal"></asp:ListItem>
+                                                        <asp:ListItem Text="External" Value="External"></asp:ListItem>
+                                                    </asp:DropDownList>
+                                                </td>
+                                                <td style="background-color: #FFFFE0; width: 25%;" align="center">
+                                                    <asp:Button runat="server" ID="Query" Text="Query" OnClick="Query_Click" />
+                                                </td>
+                                            </tr>
+                                        </table>
+                                    </td>
+                                    <td>
+                                        &nbsp;
+                                    </td>
+                                </tr>
+                                <tr valign="top">
+                                    <td width="70">
+                                        &nbsp;
+                                    </td>
+                                    <td width="100" align="right" style="background-color: #d8e4f8;">
+                                        <b>Send To:</b>&nbsp;
+                                    </td>
+                                    <td style="width: 362px; background-color: #FFFFE0;">
+                                        <asp:TextBox runat="server" ID="send_to" Width="300px"></asp:TextBox>
+                                    </td>
+                                    <td>
+                                        &nbsp;
+                                    </td>
+                                </tr>
+                                <tr valign="top">
+                                    <td width="70">
+                                        &nbsp;
+                                    </td>
+                                    <td width="100" align="right" style="background-color: #d8e4f8;">
+                                        <b>Remark:</b>&nbsp;
+                                    </td>
+                                    <td style="width: 362px; background-color: #FFFFE0;">
+                                        <asp:TextBox runat="server" ID="remark" Width="300px" Wrap="False"></asp:TextBox>
+                                        <asp:Button runat="server" ID="Send" Text="Send" OnClick="Send_Click" />
+                                    </td>
+                                    <td align="left">
+                                        &nbsp;
+                                    </td>
+                                </tr>
+                                <!--/form-->
+                            </table>
+                        </td>
+                    </tr>
+                    <tr valign="top">
+                        <td height="4">
+                            &nbsp;
+                        </td>
+                    </tr>
+                    <tr valign="top">
+                        <td height="3">
+                            <hr>
+                        </td>
+                    </tr>
+                    <tr valign="top">
+                        <td height="4">
+                            &nbsp;
+                        </td>
+                    </tr>
+                    <tr valign="top">
+                        <td align="center" valign="center">
+                            <div name="PrintArea2" id="PrintArea2">
+                                <%
+                                    m_strHTML = "<link href=""http://b2b.advantech-nl.nl/utility/ebiz.aeu.style.css"" rel=""stylesheet"">" & m_strHTML
+                                    Response.Write(m_strHTML)
+                                %>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr valign="top">
+                        <td>
+                            <table width="100%" id="Table2">
+                                <tr valign="top">
+                                    <td height="2">
+                                        &nbsp;
+                                    </td>
+                                </tr>
+                                <tr valign="top">
+                                    <td align="center" valign="center" style="height: 21px">
+                                        <%=x_strHTML%>
+                                    </td>
+                                </tr>
+                                <tr valign="top">
+                                    <td height="2">
+                                    </td>
+                                </tr>
+                            </table>
+                        </td>
+                    </tr>
+                </table>
+            </td>
+            <td width="15px">
+            </td>
+        </tr>
+    </table>
+</asp:Content>

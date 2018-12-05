@@ -1,0 +1,142 @@
+﻿<%@ Page Language="VB" %>
+
+<%@ Import Namespace="quote" %>
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<script runat="server">
+    Dim mycart As New CartList("b2b", "CART_DETAIL_V2")
+    Protected Sub Page_Load(ByVal sender As Object, ByVal e As System.EventArgs)
+       Dim quoteId As String = Request("UID")， _cartid As String = Session("cart_id").ToString
+        Dim MyQuoteMaster As QuotationMaster = eQuotationUtil.GetQuoteMasterByQuoteid(quoteId)
+        Dim MyQuoteDetail As List(Of QuotationDetail) = eQuotationUtil.GetQuoteDetailByQuoteid(quoteId)
+        If MyQuoteMaster IsNot Nothing AndAlso MyQuoteDetail IsNot Nothing Then
+            If MyQuoteMaster.X_isExpired() Then
+                Response.Write("Quotation '" & quoteId & "' is expired.") : Response.End()
+            End If
+            Dim _IsQuote2_0 As Boolean = MyQuoteMaster.Is2_0X
+            Dim _ISautoaddEX As Boolean = False
+            Dim CurrentCartList As New List(Of CartItem)
+            If MyQuoteDetail.Count > 0 Then
+                Dim _EWlist As List(Of EWPartNo) = MyCartX.GetExtendedWarranty()
+                Dim currentItemType As Integer = 0, EW_Flag2_0Btos As Integer = 0
+                Dim localtime As DateTime = SAPDOC.GetLocalTime(Session("org_id").ToString.Substring(0, 2))
+                For Each x As QuotationDetail In MyQuoteDetail
+                    Dim isUpdatePrice As Integer = 0, _higherLevel As Integer = 0
+                    If Util.IsFranchiser(MyQuoteMaster.createdBy, "") Then
+                        isUpdatePrice = 1
+                    End If
+                    If _IsQuote2_0 Then
+                        _ISautoaddEX = True
+                        If x.oType = -1 Then
+                            currentItemType = CartItemType.BtosParent
+                            _ISautoaddEX = False
+                        ElseIf x.oType = 1 Then
+                            currentItemType = CartItemType.BtosPart
+                            _ISautoaddEX = False
+                        Else
+                            currentItemType = CartItemType.Part
+                        End If
+                    Else
+                        If x.ItemType = 1 Then
+                            currentItemType = CartItemType.BtosParent
+                        ElseIf x.line_No > 100 AndAlso x.line_No Mod 100 > 0 Then
+                            currentItemType = CartItemType.BtosPart
+                        Else
+                            currentItemType = CartItemType.Part
+                        End If
+                    End If
+                    If x.HigherLevel IsNot Nothing AndAlso IsNumeric(x.HigherLevel) Then
+                        _higherLevel = x.HigherLevel
+                    End If
+                    If currentItemType = CartItemType.BtosPart Then
+                        Dim ParentItem As CartItem = CurrentCartList.Where(Function(p) p.otype = CartItemType.BtosParent).OrderByDescending(Function(p) p.Line_No).FirstOrDefault()
+                        If ParentItem IsNot Nothing Then _higherLevel = ParentItem.Line_No
+                    End If
+                    Dim EW_Flag As Integer = 0
+                    If x.ewFlag > 0 Then
+                        For Each _ew As EWPartNo In _EWlist
+                            If _ew.EW_Month = x.ewFlag Then
+                                EW_Flag = _ew.ID
+                                If currentItemType = CartItemType.BtosParent Then
+                                    EW_Flag2_0Btos = EW_Flag
+                                End If
+                                Exit For
+                            End If
+                        Next
+                    End If
+         
+                    'Dim line_no As Integer = mycart.ADD2CART_V2(_cartid, x.partNo, x.qty, EW_Flag, currentItemType, IIf(IsDBNull(x.category), "", x.category), isUpdatePrice, 1, localtime, x.description, x.deliveryPlant, _higherLevel, _ISautoaddEX)
+                    Dim line_no As Integer = mycart.ADD2CART_V3(_cartid, x.partNo, x.qty, EW_Flag, currentItemType, IIf(IsDBNull(x.category), "", x.category), isUpdatePrice, 0, localtime, x.description, x.deliveryPlant, _higherLevel, _ISautoaddEX, MyQuoteMaster.quoteId, CurrentCartList)
+                    If isUpdatePrice = 0 Then
+                        Dim _cartitem As CartItem = CurrentCartList.Where(Function(p) p.Cart_Id = _cartid AndAlso p.Line_No = line_no).FirstOrDefault
+                        If _cartitem IsNot Nothing Then
+                            _cartitem.List_Price = x.listPrice
+                            _cartitem.Unit_Price = x.newUnitPrice
+                            _cartitem.oUnit_Price = x.newUnitPrice
+                        End If
+                        'mycart.Update(String.Format("cart_id='{0}' and line_no='{1}'", _cartid, line_no), String.Format("list_price='{0}',unit_price='{1}',ounit_price='{1}'", x.listPrice, x.newUnitPrice))
+                    End If
+                Next
+                MyCartX.DeleteCartAllItem(_cartid)
+                MyUtil.Current.MyAContext.CartItems.InsertAllOnSubmit(CurrentCartList)
+                MyUtil.Current.MyAContext.SubmitChanges()
+                If _IsQuote2_0 AndAlso EW_Flag2_0Btos > 0 Then
+                    Dim _btos100 As CartItem = MyCartX.GetCartItem(_cartid, 100)
+                    If _btos100 IsNot Nothing Then
+                        _btos100.Ew_Flag = EW_Flag2_0Btos
+                        MyCartX.addExtendedWarrantyV2(_btos100, EW_Flag2_0Btos)
+                    End If
+                End If
+                'Dim _cartlist As List(Of CartItem) = MyCartX.GetCartList(_cartid)
+                'For Each _cartitem As CartItem In _cartlist
+                '    _cartitem.QUOTE_ID = MyQuoteMaster.quoteId
+                'Next
+                'MyUtil.Current.CurrentDataContext.SubmitChanges()
+                ' mycart.Update(String.Format("cart_id='{0}'", Session("cart_id")), String.Format("Quote_id='{0}'", MyQuoteMaster.quoteId))
+                'dbUtil.dbExecuteNoQuery("b2b", String.Format("delete from quotation2cart_Log where QUOTE_ID ='{0}';insert into quotation2cart_Log values('{0}','{1}')", quoteId, Session("cart_id")))
+                'Ming 20120114 CartMaster
+                Dim _CartMaster As New CartMaster
+                _CartMaster.CartID = _cartid
+                _CartMaster.ErpID = MyQuoteMaster.quoteToErpId
+                _CartMaster.CreatedDate = Now
+                _CartMaster.QuoteID = MyQuoteMaster.quoteId
+                _CartMaster.CreatedBy = Session("user_id")
+                If MyQuoteMaster.currency IsNot Nothing AndAlso Not String.IsNullOrEmpty(MyQuoteMaster.currency) Then
+                    _CartMaster.Currency = MyQuoteMaster.currency
+                End If
+                _CartMaster.LastUpdatedDate = Now
+                _CartMaster.LastUpdatedBy = Session("user_id")
+                _CartMaster.OpportunityID = eQuotationUtil.GetOptyidQuoteByQuoteid(MyQuoteMaster.quoteId)
+                MyCartX.LogCartMaster(_CartMaster)
+                'Frank 2012/10/4:If quote id start with AUSQ or AMXQ then redirect page to /Order/Cart_list.aspx
+                'Response.Redirect("~/Order/OrderInfo.aspx")
+                If MyQuoteMaster.quoteNo IsNot Nothing AndAlso (MyQuoteMaster.quoteNo.StartsWith("AUSQ", StringComparison.InvariantCultureIgnoreCase) OrElse _
+                   MyQuoteMaster.quoteNo.StartsWith("AMXQ", StringComparison.InvariantCultureIgnoreCase)) Then
+                    Response.Redirect("~/Order/Cart_list.aspx")
+                End If
+                If MyQuoteMaster.quoteId IsNot Nothing AndAlso (MyQuoteMaster.quoteId.StartsWith("AUSQ", StringComparison.InvariantCultureIgnoreCase) OrElse _
+                    MyQuoteMaster.quoteId.StartsWith("AMXQ", StringComparison.InvariantCultureIgnoreCase)) Then
+                    Response.Redirect("~/Order/Cart_list.aspx")
+                End If
+                Response.Redirect("~/Order/OrderInfo.aspx")
+            End If
+
+        End If
+        
+    End Sub
+
+</script>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head id="Head1" runat="server">
+    <title></title>
+</head>
+<body>
+    <form id="form1" runat="server">
+    <div>
+    
+    </div>
+    </form>
+</body>
+</html>

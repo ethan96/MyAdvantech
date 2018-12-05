@@ -1,0 +1,413 @@
+﻿<%@ Page Title="MyAdvantech - Customer Analysis for ATW eSales" Language="VB" MasterPageFile="~/Includes/MyMaster.master" %>
+<%@ MasterType VirtualPath="~/Includes/MyMaster.master" %>
+<script runat="server">
+
+    Protected Sub btnAddPN_Click(ByVal sender As Object, ByVal e As System.EventArgs)
+        Dim l As New ListItem(Me.dlPType.SelectedItem.Text + ":" + Me.txtPN.Text.Trim(), _
+                              Me.dlPType.SelectedValue + "|" + Me.txtPN.Text.Trim().Replace("*", "%").Replace("'", "''"))
+        lbPN.Items.Add(l)
+        txtPN.Text = "" : txtPN.Focus()
+    End Sub
+    
+    <Services.WebMethod(enablesession:=True)> _
+    <Web.Script.Services.ScriptMethod()> _
+    Public Shared Function AutoSuggestPN(ByVal prefixText As String, ByVal count As Integer) As String()
+        Dim dt As DataTable = dbUtil.dbGetDataTable("MY", _
+        "select top 10 part_no from sap_product where part_no not like '#%' and part_no like '" + prefixText.Trim().Replace("'", "").Replace("*", "%") + "%' order by part_no")
+        If dt.Rows.Count > 0 Then
+            Dim str(dt.Rows.Count - 1) As String
+            For i As Integer = 0 To dt.Rows.Count - 1
+                str(i) = dt.Rows(i).Item(0)
+            Next
+            Return str
+        End If
+        Return Nothing
+    End Function
+    
+    <Services.WebMethod(enablesession:=True)> _
+    <Web.Script.Services.ScriptMethod()> _
+    Public Shared Function AutoSuggestPL(ByVal prefixText As String, ByVal count As Integer) As String()
+        Dim dt As DataTable = dbUtil.dbGetDataTable("MY", _
+        "select distinct top 20 PRODUCT_LINE from SAP_PRODUCT where PRODUCT_LINE like '" + prefixText.Trim().Replace("'", "").Replace("*", "%") + "%' order by PRODUCT_LINE ")
+        If dt.Rows.Count > 0 Then
+            Dim str(dt.Rows.Count - 1) As String
+            For i As Integer = 0 To dt.Rows.Count - 1
+                str(i) = dt.Rows(i).Item(0)
+            Next
+            Return str
+        End If
+        Return Nothing
+    End Function
+    
+    <Services.WebMethod(enablesession:=True)> _
+    <Web.Script.Services.ScriptMethod()> _
+    Public Shared Function AutoSuggestPD(ByVal prefixText As String, ByVal count As Integer) As String()
+        Dim dt As DataTable = dbUtil.dbGetDataTable("MY", _
+        "select distinct top 20 PRODUCT_DIVISION from EAI_PRODUCT_HIERARCHY where PRODUCT_DIVISION<>'' and PRODUCT_DIVISION like '" + prefixText.Trim().Replace("'", "").Replace("*", "%") + "%' order by PRODUCT_DIVISION ")
+        If dt.Rows.Count > 0 Then
+            Dim str(dt.Rows.Count - 1) As String
+            For i As Integer = 0 To dt.Rows.Count - 1
+                str(i) = dt.Rows(i).Item(0)
+            Next
+            Return str
+        End If
+        Return Nothing
+    End Function
+    
+    Protected Sub dlPType_SelectedIndexChanged(ByVal sender As Object, ByVal e As System.EventArgs)
+        Select Case dlPType.SelectedIndex
+            Case 0
+                aext1.ServiceMethod = "AutoSuggestPD"
+            Case 1
+                aext1.ServiceMethod = "AutoSuggestPL"
+            Case 2
+                aext1.ServiceMethod = "AutoSuggestPN"
+        End Select
+    End Sub
+
+    Protected Sub btnDelPN_Click(ByVal sender As Object, ByVal e As System.EventArgs)
+        Dim larr As New ArrayList
+        For Each l As ListItem In lbPN.Items
+            If l.Selected = False Then larr.Add(l)
+        Next
+        lbPN.Items.Clear()
+        For Each l As ListItem In larr
+            lbPN.Items.Add(l)
+        Next
+    End Sub
+    
+    Protected Sub btnQuery_Click(ByVal sender As Object, ByVal e As System.EventArgs)
+        Me.gv1.PageIndex = 0
+        src1.SelectCommand = GetSql()
+        Util.SendEmail("tc.chen@advantech.com.tw", "ebiz.aeu@advantech.eu", "Query SAP Order Act Opty log by " + HttpContext.Current.User.Identity.Name, src1.SelectCommand, False, "", "")
+    End Sub
+    
+    Public Function GetPModelSql() As String
+        Dim al As New ArrayList
+        For Each l As ListItem In lbPN.Items
+            Dim s() As String = Split(l.Value, "|")
+            Select Case s(0)
+                Case 0
+                    If s(1).Contains("%") Then
+                        al.Add(String.Format(" z.edivision like '{0}'", s(1)))
+                    Else
+                        al.Add(String.Format(" z.edivision = '{0}'", s(1)))
+                    End If
+                    
+                Case 1
+                    If s(1).Contains("%") Then
+                        al.Add(String.Format(" z.product_line like '{0}'", s(1)))
+                    Else
+                        al.Add(String.Format(" z.product_line = '{0}'", s(1)))
+                    End If
+                  
+                Case 2
+                    If s(1).Contains("%") Then
+                        al.Add(String.Format(" z.item_no like '{0}'", s(1)))
+                    Else
+                        al.Add(String.Format(" z.item_no like '{0}%'", s(1)))
+                    End If
+            End Select
+           
+        Next
+        If al.Count > 0 Then
+            Return " ( " + String.Join(" or ", al.ToArray()) + " ) "
+        Else
+            Return ""
+        End If
+    End Function
+    
+    Function GetSql() As String
+        Dim actFrom As Date = DateAdd(DateInterval.Year, -1, Now), actTo As Date = Now(), optyFrom = DateAdd(DateInterval.Year, -1, Now), optyTo As Date = Now
+        If Date.TryParse(txtActFrom.Text, Now) Then actFrom = CDate(txtActFrom.Text)
+        If Date.TryParse(txtActTo.Text, Now) Then actFrom = CDate(txtActTo.Text)
+        If Date.TryParse(txtOptyFrom.Text, Now) Then actFrom = CDate(txtOptyFrom.Text)
+        If Date.TryParse(txtOptyTo.Text, Now) Then actFrom = CDate(txtOptyTo.Text)
+        Dim sb As New System.Text.StringBuilder
+        With sb
+            .AppendLine(String.Format(" SELECT top 5000 a.COMPANY_ID, a.ORG_ID, a.PARENTCOMPANYID, a.COMPANY_NAME, a.ACCOUNT_NAME,  "))
+            .AppendLine(String.Format(" a.PRIMARY_BAA, a.account_row_id, a.ACCOUNT_STATUS, a.RBU, a.PRIMARY_SALES_EMAIL,  a.PRIMARY_OWNER_DIVISION, a.BUSINESS_GROUP, a.ACCOUNT_TYPE, "))
+            .AppendLine(String.Format("  IsNull( "))
+            .AppendLine(String.Format(" 		( "))
+            .AppendLine(String.Format(" 			select COUNT(z.row_id)  "))
+            .AppendLine(String.Format(" 			from SIEBEL_ACTIVITY z  "))
+            .AppendLine(String.Format(" 			where z.TARGET_OU_ID=a.ACCOUNT_ROW_ID or z.ERP_ID=a.COMPANY_ID and z.TARGET_OU_ID is not null  "))
+            .AppendLine(String.Format(" 			and z.CREATE_YEAR>={0} and z.CREATED between '{1}' and {2} ),0 ", actFrom.Year.ToString(), actFrom.ToString("yyyy-MM-dd"), actTo.ToString("yyyy-MM-dd")))
+            .AppendLine(String.Format(" 		) as Siebel_Activities, "))
+            .AppendLine(String.Format("  ISNULL( "))
+            .AppendLine(String.Format(" 		( "))
+            .AppendLine(String.Format(" 			select count(z.row_id)  "))
+            .AppendLine(String.Format(" 			from SIEBEL_OPPORTUNITY z  "))
+            .AppendLine(String.Format(" 			where z.account_row_id=a.account_row_id and z.account_row_id is not null  "))
+            If txtOptyDesc.Text.Trim() <> "" Then
+                .AppendLine(String.Format(" and (z.NAME like N'%{0}%' or z.DESC_TEXT like N'%{0}%') ", txtOptyDesc.Text.Trim().Replace("'", "''").Replace("*", "%")))
+            End If
+            .AppendLine(String.Format(" 			and z.CREATE_YEAR>={0} and z.created between '{1}' and '{2}' ", optyFrom.Year.ToString(), optyFrom.ToString("yyyy-MM-dd"), optyTo.ToString("yyyy-MM-dd")))
+            .AppendLine(String.Format(" 		),0) as Siebel_Opportunities,   "))
+            .AppendLine(String.Format("  a.ADDRESS, a.FAX_NO, a.TEL_NO, a.PRICE_CLASS,  a.CURRENCY,  "))
+            .AppendLine(String.Format("  a.COUNTRY, a.ZIP_CODE, a.CITY, a.ATTENTION, a.CREDIT_TERM,  "))
+            .AppendLine(String.Format("  dbo.DateOnly(cast(a.CREATEDDATE as datetime)) as CREATEDDATE, a.CREATED_BY,   "))
+            .AppendLine(String.Format("  a.SALESOFFICE,   "))
+            .AppendLine(String.Format("  a.SALESGROUP, a.DELETION_FLAG,  "))
+            .AppendLine(String.Format("  a.COUNTRY_NAME, a.SALESOFFICENAME,  a.SAP_SALESCODE, a.SAP_SALESNAME,  "))
+            .AppendLine(String.Format("  a.SECTOR, "))
+            .AppendLine(String.Format("  dbo.DateOnly(a.LAST_BUY_DATE) as LAST_BUY_DATE,  a.ORDERS_IN_PAST_YEAR,  "))
+            .AppendLine(String.Format("  cast(a.AMOUNT_IN_PAST_YEAR as numeric(10,2)) as AMOUNT_IN_PAST_YEAR "))
+            .AppendLine(String.Format("  FROM SAP_DIMCOMPANY AS a "))
+            .AppendLine(String.Format("  WHERE a.COMPANY_NAME not like '%invalid%' and left(a.ORG_ID,2)='{0}'  ", dlOrg.SelectedValue))
+            If dlOrg.SelectedValue = "TW" Then .AppendFormat(" and a.company_id like 'T%' ")
+            '.AppendLine(String.Format("  and a.company_id in (    "))
+            '.AppendLine(String.Format(" 	select distinct z.customer_id from eai_sale_fact z    "))
+            '.AppendLine(String.Format(" 	where  (  z.edivision like 'ADAM%' )  and z.customer_id is not null )   "))
+            '.AppendLine(String.Format(" order by a.company_name, a.COMPANY_ID  "))
+
+            
+            Dim models As String = GetPModelSql()
+            If models <> "" Then
+                .AppendFormat(" and a.company_id in (  ")
+                .AppendFormat(String.Format(" select distinct z.customer_id from eai_sale_fact z  "))
+                If models <> "" Then
+                    .AppendFormat(String.Format(" where {0} and z.customer_id is not null ", models))
+                End If
+                If Date.TryParse(txtOrdFrom.Text, Now) And Date.TryParse(txtOrdTo.Text, Now) Then
+                    .AppendFormat(String.Format(" and z.order_date between '{0}' and '{1}' ", _
+                    CDate(Me.txtOrdFrom.Text).ToString("yyyy-MM-dd"), CDate(Me.txtOrdTo.Text).ToString("yyyy-MM-dd")))
+                Else
+                    If Date.TryParse(txtOrdFrom.Text, Now) Then
+                        .AppendFormat(String.Format(" and z.order_date>='{0}' ", CDate(Me.txtOrdFrom.Text).ToString("yyyy-MM-dd")))
+                    End If
+                    If Date.TryParse(txtOrdTo.Text, Now) Then
+                        .AppendFormat(String.Format(" and z.order_date<='{0}' ", CDate(Me.txtOrdTo.Text).ToString("yyyy-MM-dd")))
+                    End If
+                End If
+                .AppendFormat(") ")
+            End If
+            .AppendFormat(" order by a.company_name, a.COMPANY_ID ")
+        End With
+        txtSql.Text = sb.ToString()
+        'Response.End()
+        
+        Return sb.ToString()
+    End Function
+    
+    Protected Sub gv1_PageIndexChanging(ByVal sender As Object, ByVal e As System.Web.UI.WebControls.GridViewPageEventArgs)
+        src1.SelectCommand = GetSql()
+    End Sub
+
+    Protected Sub gv1_Sorted(ByVal sender As Object, ByVal e As System.EventArgs)
+        src1.SelectCommand = GetSql()
+    End Sub
+    
+    Protected Sub Page_Load(ByVal sender As Object, ByVal e As System.EventArgs)
+        If Not Page.IsPostBack Then
+            If Util.IsInternalUser(Session("user_id")) = False Then Server.Transfer("~/Home.aspx")
+            Dim actFrom As Date = DateAdd(DateInterval.Year, -1, Now), actTo As Date = Now(), optyFrom = DateAdd(DateInterval.Year, -1, Now), optyTo As Date = Now
+            Me.txtActFrom.Text = actFrom.ToString("yyyy/MM/dd")
+            Me.txtActTo.Text = actTo.ToString("yyyy/MM/dd")
+            Me.txtOptyFrom.Text = optyFrom.ToString("yyyy/MM/dd")
+            Me.txtOptyTo.Text = optyTo.ToString("yyyy/MM/dd")
+            Me.Master.LogoImgPath = "~/Images/dm_logo.JPG"
+        End If
+    End Sub
+
+    Protected Sub btnXls_Click(ByVal sender As Object, ByVal e As System.Web.UI.ImageClickEventArgs)
+        Dim sql As String = GetSql()
+        If sql <> "" Then
+            Dim dt As DataTable = dbUtil.dbGetDataTable("MY", sql)
+            Util.DataTable2ExcelDownload(dt, "AccountList.xls")
+        End If
+    End Sub
+    
+    Protected Sub src1_Selecting(ByVal sender As Object, ByVal e As System.Web.UI.WebControls.SqlDataSourceSelectingEventArgs)
+        e.Command.CommandTimeout = 600
+    End Sub
+
+</script>
+
+<asp:Content ID="Content1" ContentPlaceHolderID="_main" Runat="Server">
+    <table width="90%"> 
+        <tr>
+            <th align="left" colspan="2" style="color:Navy; font-size:larger;">Search Customer who purchased product(s):</th>
+        </tr>
+        <tr>
+            <th align="left">Region:</th>
+            <td>
+                <asp:DropDownList runat="server" ID="dlOrg">
+                    <asp:ListItem Text="Taiwan" Value="TW" />
+                    <asp:ListItem Text="China" Value="CN" />
+                    <asp:ListItem Text="Europe" Value="EU" />
+                    <asp:ListItem Text="US" Value="US" />
+                </asp:DropDownList>
+            </td>
+        </tr>
+        <tr valign="top">            
+            <td colspan="2">
+                <table width="100%">
+                    <tr valign="top">
+                        <td>
+                            <table width="100%">
+                                <tr valign="top">                                    
+                                    <td valign="top">
+                                        <table width="100%">
+                                            <tr>
+                                                <td>
+                                                    <b>Product Division, Line or Part Number?</b>
+                                                    <asp:DropDownList runat="server" ID="dlPType" AutoPostBack="true" 
+                                                        OnSelectedIndexChanged="dlPType_SelectedIndexChanged">
+                                                        <asp:ListItem Text="Product Division" Value="0" />
+                                                        <asp:ListItem Text="Product Line" Value="1" Selected="True" />
+                                                        <asp:ListItem Text="Part Number" Value="2" />
+                                                    </asp:DropDownList>
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td>
+                                                    <asp:Panel runat="server" ID="PanelPN" DefaultButton="btnAddPN">
+                                                        <asp:UpdatePanel runat="server" ID="upAutoPN" UpdateMode="Conditional">
+                                                            <ContentTemplate>
+                                                                <ajaxToolkit:AutoCompleteExtender runat="server" ID="aext1" TargetControlID="txtPN" 
+                                                                    MinimumPrefixLength="0" CompletionInterval="100" ServiceMethod="AutoSuggestPL" />
+                                                                <asp:TextBox runat="server" ID="txtPN" Width="90%" />
+                                                            </ContentTemplate>
+                                                            <Triggers>
+                                                                <asp:AsyncPostBackTrigger ControlID="dlPType" EventName="SelectedIndexChanged" />
+                                                                <asp:AsyncPostBackTrigger ControlID="btnAddPN" EventName="Click" />
+                                                            </Triggers>
+                                                        </asp:UpdatePanel> 
+                                                    </asp:Panel>                                                      
+                                                </td>
+                                                <td align="left"><asp:Button runat="server" ID="btnAddPN" Text="Add" OnClick="btnAddPN_Click" /></td>
+                                            </tr>
+                                        </table>                                                                             
+                                    </td>
+                                    <td></td>
+                                    <td valign="top">
+                                        <table width="100%">
+                                            <tr><td><asp:Button runat="server" ID="btnDelPN" Text="Delete" OnClick="btnDelPN_Click" /></td></tr>
+                                            <tr>
+                                                <td valign="top">
+                                                    <asp:UpdatePanel runat="server" ID="upPNBLb" UpdateMode="Conditional">
+                                                        <ContentTemplate>
+                                                            <asp:ListBox runat="server" ID="lbPN" Width="250px" Height="100px" SelectionMode="Multiple" />
+                                                        </ContentTemplate>
+                                                        <Triggers>
+                                                            <asp:AsyncPostBackTrigger ControlID="btnAddPN" EventName="Click" />
+                                                            <asp:AsyncPostBackTrigger ControlID="btnDelPN" EventName="Click" />
+                                                        </Triggers>
+                                                    </asp:UpdatePanel>                                        
+                                                </td>
+                                            </tr>
+                                        </table>                            
+                                    </td>
+                                    <th align="left">Purchased Period:</th>
+                                    <td>
+                                        <ajaxToolkit:CalendarExtender runat="server" ID="calext1" TargetControlID="txtOrdFrom" format="yyyy/MM/dd" />
+                                        <ajaxToolkit:CalendarExtender runat="server" ID="calext2" TargetControlID="txtOrdTo" format="yyyy/MM/dd" />
+                                        <asp:TextBox runat="server" ID="txtOrdFrom" />~<asp:TextBox runat="server" ID="txtOrdTo" />
+                                    </td>
+                                </tr>
+                            </table>
+                        </td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+        <tr>
+            <td colspan="2"><hr /></td>
+        </tr>
+        <tr>
+            <th align="left">Activity:</th>
+            <td>
+                <table width="100%">
+                    <tr>                        
+                        <th align="left">Between:</th>
+                        <td>
+                            <ajaxToolkit:CalendarExtender runat="server" ID="CalendarExtender1" TargetControlID="txtActFrom" format="yyyy/MM/dd" />
+                            <ajaxToolkit:CalendarExtender runat="server" ID="CalendarExtender2" TargetControlID="txtActTo" format="yyyy/MM/dd" />
+                            <asp:TextBox runat="server" ID="txtActFrom" />~<asp:TextBox runat="server" ID="txtActTo" />
+                        </td>
+                    </tr>
+                </table>                
+            </td>            
+        </tr>
+        <tr>
+            <th align="left">Opportunity:</th>
+            <td>
+                <table width="100%">
+                    <tr>  
+                        <th align="left">Name or Description:</th>
+                        <td><asp:TextBox runat="server" ID="txtOptyDesc" Width="150px" /></td>
+                        <th align="left">Between:</th>
+                        <td>
+                            <ajaxToolkit:CalendarExtender runat="server" ID="CalendarExtender3" TargetControlID="txtOptyFrom" format="yyyy/MM/dd" />
+                            <ajaxToolkit:CalendarExtender runat="server" ID="CalendarExtender4" TargetControlID="txtOptyTo" format="yyyy/MM/dd" />
+                            <asp:TextBox runat="server" ID="txtOptyFrom" />~<asp:TextBox runat="server" ID="txtOptyTo" />
+                        </td>
+                    </tr>
+                </table>                
+            </td>            
+        </tr>
+        <tr>
+            <td colspan="2">
+                &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                <asp:Button runat="server" ID="btnQuery" Text="Query" OnClick="btnQuery_Click" Font-Bold="true" Font-Size="Medium" />&nbsp;<br />
+                <asp:UpdatePanel runat="server" ID="upSql" UpdateMode="Conditional">
+                    <ContentTemplate>
+                        <asp:TextBox runat="server" Visible="false" ID="txtSql" TextMode="MultiLine" Width="800px" Height="100px" />
+                    </ContentTemplate>
+                    <Triggers>
+                        <asp:AsyncPostBackTrigger ControlID="btnQuery" EventName="Click" />
+                    </Triggers>
+                </asp:UpdatePanel>                
+            </td>
+        </tr>
+        <tr>
+            <td colspan="2"><hr /></td>
+        </tr>
+        <tr>
+            <td colspan="2">
+                <asp:ImageButton runat="server" ID="btnXls" ImageUrl="~/Images/excel.gif" AlternateText="Download Excel" OnClick="btnXls_Click" />
+                <asp:UpdatePanel runat="server" ID="up1" UpdateMode="Conditional">
+                    <ContentTemplate>
+                        <asp:GridView runat="server" ID="gv1" Width="95%" AutoGenerateColumns="false" DataSourceID="src1" 
+                            AllowPaging="true" AllowSorting="true" PageSize="50" PagerSettings-Position="TopAndBottom" 
+                            OnPageIndexChanging="gv1_PageIndexChanging" OnSorted="gv1_Sorted">
+                            <Columns>
+                                <asp:TemplateField ItemStyle-Width="50px" ItemStyle-HorizontalAlign="Center">
+                                    <headertemplate>
+                                        No.
+                                    </headertemplate>
+                                    <itemtemplate>
+                                        <%# Container.DataItemIndex + 1 %>
+                                    </itemtemplate>
+                                </asp:TemplateField>
+                                <asp:HyperLinkField HeaderText="Account Name" DataTextField="company_name" 
+                                    DataNavigateUrlFields="company_id" 
+                                    DataNavigateUrlFormatString="~/DM/CustomerOrderHistory.aspx?ERPID={0}" 
+                                    Target="_blank" SortExpression="company_name" />                           
+                                <asp:BoundField HeaderText="ERP ID" DataField="company_id" SortExpression="company_id" />
+                                <asp:BoundField HeaderText="Account Row Id" DataField="account_row_id" SortExpression="account_row_id" />
+                                <asp:BoundField HeaderText="RBU" DataField="RBU" SortExpression="RBU" ItemStyle-HorizontalAlign="Center" />
+                                <asp:BoundField HeaderText="Account Status" DataField="account_status" SortExpression="account_status" />
+                                <asp:BoundField HeaderText="Primary Owner" DataField="SAP_SALESNAME" SortExpression="SAP_SALESNAME" />
+                                <asp:BoundField HeaderText="# of Activity" DataField="Siebel_Activities" SortExpression="Siebel_Activities" ItemStyle-HorizontalAlign="Center" />
+                                <asp:BoundField HeaderText="# of Opportunity" DataField="Siebel_Opportunities" SortExpression="Siebel_Opportunities" ItemStyle-HorizontalAlign="Center" />
+                            </Columns>    
+                        </asp:GridView>
+                        <asp:SqlDataSource runat="server" ID="src1" ConnectionString="<%$ConnectionStrings:MY %>" OnSelecting="src1_Selecting" />
+                    </ContentTemplate>
+                    <Triggers>
+                        <asp:AsyncPostBackTrigger ControlID="btnQuery" EventName="Click" />
+                    </Triggers>
+                </asp:UpdatePanel>
+            </td>
+        </tr>
+    </table>
+</asp:Content>

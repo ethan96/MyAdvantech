@@ -1,0 +1,10 @@
+﻿<%@ Page Language="VB" MasterPageFile="~/Includes/MyMaster.master" Title="My Outlook" %>
+
+<script runat="server">
+
+</script>
+<asp:Content runat="server" ID="_main" ContentPlaceHolderID="_main">
+    <h3>My Outlook</h3>
+    <iframe src="http://7.gmodules.com/ig/ifr?url=http://andyast.googlepages.com/MSOutlookWidget.xml&nocache=0&up_DefaultView=Inbox&upt_DefaultView=enum&lang=zh-TW&country=tw&.lang=zh-TW&.country=tw&synd=ig&mid=7&ifpctok=-5127121936294431743&parent=http://my.advantech.eu" 
+        width="100%" height="600px" style="border:0px;" scrolling="auto"></iframe>
+</asp:Content>

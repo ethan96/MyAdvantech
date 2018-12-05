@@ -1,0 +1,728 @@
+﻿<%@ Page Language="VB" ValidateRequest="false" %>
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<script runat="server">
+
+    Protected Sub btnReset_Click(ByVal sender As Object, ByVal e As System.Web.UI.ImageClickEventArgs)
+        ResetAll()
+    End Sub
+    
+    Sub ResetAll()
+        txtName.Text = "" : txtEmail.Text = "" : txtAddress.Text = "" : txtPhone.Text = "" : txtCompany.Text = "" : txtComment1.Text = "" : txtComment2.Text = ""
+        For i As Integer = 1 To 8
+            CType(Me.up1.FindControl("cb" + i.ToString), CheckBox).Checked = False
+        Next
+        rbl1.SelectedIndex = -1
+    End Sub
+    
+    Function Validation() As Boolean
+        lbMsg.Text = ""
+        If txtName.Text.Trim() = "" Then
+            lbMsg.Text = "請輸入姓名" : Return False
+        End If
+        If txtCompany.Text.Trim() = "" Then
+            lbMsg.Text = "請輸入公司" : Return False
+        End If
+        If txtPhone.Text.Trim() = "" Then
+            lbMsg.Text = "請輸入電話" : Return False
+        End If
+        If txtEmail.Text.Trim() = "" Then
+            lbMsg.Text = "請輸入Email" : Return False
+        End If
+        If txtAddress.Text.Trim = "" Then
+            lbMsg.Text = "請輸入地址" : Return False
+        End If
+        If Util.IsValidEmailFormat(txtEmail.Text.Trim()) = False Then
+            lbMsg.Text = "請輸入正確Email格式" : Return False
+        End If
+        Dim TickAny As Boolean = False
+        For Each item As ListItem In rbl1.Items
+            If item.Selected = True Then TickAny = True
+        Next
+        If Not TickAny Then
+            lbMsg.Text = "請選擇至少一項產品" : Return False
+        End If
+        Return True
+    End Function
+
+    Protected Sub btnSend_Click(ByVal sender As Object, ByVal e As System.Web.UI.ImageClickEventArgs)
+        If Validation() Then
+            Dim name As String = Replace(txtName.Text.Trim(), "'", "''")
+            Dim company As String = Replace(txtCompany.Text.Trim(), "'", "''")
+            Dim phone As String = Replace(txtPhone.Text.Trim(), "'", "''")
+            Dim email As String = Replace(txtEmail.Text.Trim(), "'", "''")
+            Dim address As String = Replace(txtAddress.Text.Trim, "'", "''")
+            Dim arrGroup As New ArrayList
+            For i As Integer = 1 To 8
+                Dim cb As CheckBox = CType(Me.up1.FindControl("cb" + i.ToString), CheckBox)
+                If cb.Checked Then arrGroup.Add(cb.Text)
+            Next
+            If txtComment1.Text.Trim.Replace("'", "") <> "" Then arrGroup.Add("其他:" + txtComment1.Text.Trim.Replace("'", "''"))
+            Dim arrProduct As New ArrayList
+            For Each item As ListItem In rbl1.Items
+                If item.Selected = True Then arrProduct.Add(item.Value)
+            Next
+            If txtComment2.Text.Trim.Replace("'", "") <> "" Then arrProduct.Add("將用於:" + txtComment2.Text.Trim.Replace("'", "''"))
+            Dim sb As New System.Text.StringBuilder
+            With sb
+                .AppendLine(String.Format(" INSERT INTO CAMPAIGN_SURVEYS "))
+                .AppendLine(String.Format(" (CAMP_ID, CONTACT_NAME, CONTACT_COMPANY, CONTACT_TEL, CONTACT_EMAIL,  "))
+                .AppendLine(String.Format(" INTERESTED_COURSES, REQ_BROCHURE, SUBMIT_TIME, CLIENT_ADDR, CONTACT_ADDRESS, PRODUCT) "))
+                .AppendLine(String.Format(" VALUES ('UNO Campaign', N'" + name + "', N'" + company + "', N'" + phone + "', " + _
+                                          " N'" + email + "', N'" + String.Join("|", arrGroup.ToArray()) + "', '0', GETDATE(), '" + Util.GetClientIP() + "', N'" + address + "', N'" + String.Join("|", arrProduct.ToArray()) + "') "))
+
+            End With
+            If dbUtil.dbExecuteNoQuery("MYLOCAL", sb.ToString()) = 1 Then
+                lbMsg.Text = "謝謝您，我們已收到您的資料"
+                Dim body As String = "<html><table>" + _
+                    "<tr><th align='right'>姓名: </th><td>" + name + "</td></tr>" + _
+                    "<tr><th align='right'>公司: </th><td>" + company + "</td></tr>" + _
+                    "<tr><th align='right'>電話: </th><td>" + phone + "</td></tr>" + _
+                    "<tr><th align='right'>Email: </th><td>" + email + "</td></tr>" + _
+                    "<tr><th align='right'>地址: </th><td>" + address + "</td></tr>" + _
+                    "<tr><th align='right'>應用領域: </th><td>" + String.Join(", ", arrGroup.ToArray()) + "</td></tr>" + _
+                    "<tr><th align='right'>申請鑑賞: </th><td><font color='red'>" + String.Join(", ", arrProduct.ToArray()) + "</font></td></tr>" + _
+                    "</table></html>"
+                Util.SendEmail("Barbara.Sun@advantech.com.tw", "ebiz.aeu@advantech.eu", "UNO申請免費體驗(" + email + ")", body, True, "", "")
+                ResetAll()
+            End If
+        End If
+    End Sub
+
+    Protected Sub Page_Load(ByVal sender As Object, ByVal e As System.EventArgs)
+        Dim title As String = HttpUtility.UrlEncode("UNO免費體驗 先睹為快 好禮不斷")
+        hl1.NavigateUrl = "http://www.advantech.com/util/emailpage.aspx?title=" + title + "&PageURL=http://my.advantech.com/EC/Surveys/index_3.aspx"
+    End Sub
+</script>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head runat="server">
+    <title>UNO免費體驗 先睹為快 好禮不斷</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <link href="http://www.advantech.com.tw/ia/newsletter/tw/sales/2011UNO/css/edm.css" type="text/css" rel="stylesheet">
+</head>
+<body bgColor="#b4d2eb" leftMargin="0" topMargin="0" marginheight="0" marginwidth="0">
+    <form id="form1" runat="server">
+    <asp:ScriptManager runat="server" ID="sm1" />
+    <TABLE cellSpacing=0 cellPadding=0 width=750 align=center border=0>
+      <TBODY>
+      <TR>
+        <TD class=topmsg align=middle height=40>您若無法閱讀以下內容，請按此 <A 
+          href="http://my.advantech.com/EC/Surveys/index_3.aspx">連結</A> 
+          於線上進行瀏覽</TD></TR>
+      <TR>
+        <TD>
+          <TABLE cellSpacing=0 cellPadding=0 width=750 align=center bgColor=#ffffff 
+          border=0>
+            <TBODY>
+            <TR>
+              <TD vAlign=bottom align=middle width=750 height=56>
+                <TABLE cellSpacing=0 cellPadding=0 width="100%">
+                  <TBODY>
+                  <TR>
+                    <TD width=11>&nbsp;</TD>
+                    <TD align=left width=285><A href="http://www.advantech.tw/" 
+                      target=_blank><IMG height=40 alt="" 
+                      src="index_3.files/new_logo.gif" width=150 border=0></A></TD>
+                    <TD vAlign=bottom width=45><IMG height=31 alt="" 
+                      src="index_3.files/icn_hotline.gif" width=34></TD>
+                    <TD class=top vAlign=bottom align=left 
+                      width=145><STRONG>客服熱線</STRONG>: 0800-777-111</TD>
+                    <TD class=top vAlign=bottom align=right width=45><IMG 
+                      height=25 alt="" hspace=3 src="index_3.files/icn_email.gif" 
+                      width=39></TD>
+                    <TD class=top vAlign=bottom align=left><FONT color=#0082d1><A 
+                      class=top href="mailto:emarketing.aatw@advantech.com.tw" 
+                      target=_blank>emarketing.aatw@advantech.com.tw</A></FONT></TD></TR></TBODY></TABLE></TD></TR>
+            <TR>
+              <TD height=39><IMG height=2 src="index_3.files/line01.gif" 
+              width=750></TD></TR>
+            <TR>
+              <TD><IMG height=225 src="index_3.files/topbanner-b-1.jpg" width=750 
+                border=0></TD></TR>
+            <TR>
+              <TD vAlign=top height=25><IMG height=16 
+                src="index_3.files/shadow01.gif" width=750></TD></TR>
+            <TR>
+              <TD>
+                <TABLE cellSpacing=0 cellPadding=0 width=750 border=0>
+                  <TBODY>
+                  <TR>
+                    <TD>
+                      <TABLE cellSpacing=0 cellPadding=0 width="97%" border=0>
+                        <TBODY>
+                        <TR>
+                          <TD width=19 height=115></TD>
+                          <td align="left" valign="top" class="content"><p class="content">正當自動化邁向智慧化的此時，向來訴求高精度、高可靠度、高耐用度的設備被視為提高效能與創造品質的基礎關鍵要素。而越能提供整合性和高擴充性的產品，則會在自動化轉型智慧化扮演關鍵的整合角色。</p>
+                  研華推出全新產業自動化電腦<a href="http://www.advantech.com/products/UNO-2174A/mod_E743A107-266F-49D2-9F5D-C4BDF0A7B64D.aspx" target="_blank">UNO-2174A</a>和<a href="http://www.advantech.com/products/UNO-2178A/mod_5CA4AB53-87DB-4EBB-8F39-BFEE9B2DBE1F.aspx" target="_blank">UNO-2178A</a>，跳脫以往平台概念，該產品不僅符合多項工業級標準設計，具備多接口的特性，支援PC/104+、PCI-104、PCIe mini card等擴充，還支援遠端監控軟體DiagAnywhere，讓您不需要親臨現場，就能掌握各項設備的運行狀況。
+<table width="100%" border="0" cellpadding="3" cellspacing="0">
+                    <tr>                      </tr>
+                    </table>                  
+                  </td></TR></TBODY></TABLE></TD></TR>
+                  <TR>
+                    <TD width=750>
+                      <TABLE class=pcont1 cellSpacing=1 cellPadding=0 border=0>
+                        <TBODY>
+                        <TR>
+                          <TD width=15></TD>
+                          <TD width=712><MAP name=Map2Map><AREA shape=RECT 
+                              coords=260,340,337,366 
+                              href="http://www.advantech.com.tw/ia/newsletter/tw/sales/2011UNO/case-1.html"></MAP><MAP 
+                            name=Map3Map><AREA shape=RECT coords=257,338,333,365 
+                              href="http://www.advantech.com.tw/ia/newsletter/tw/sales/2011UNO/case-2.html"></MAP></TD></TR>
+                        <TR>
+                          <TD width=19 height=15></TD>
+                          <TD>
+                            <object id="FlashID" classid="clsid:D27CDB6E-AE6D-11cf-96B8-444553540000" width="720" height="250">
+                  <param name="movie" value="http://www.advantech.com.tw/ia/newsletter/tw/sales/2011UNO/images/features.swf">
+                  <param name="quality" value="high">
+                  <param name="wmode" value="opaque">
+                  <param name="swfversion" value="8.0.35.0">
+                  <!-- 此 param 標籤會提示使用 Flash Player 6.0 r65 和更新版本的使用者下載最新版本的 Flash Player。如果您不想讓使用者看到這項提示，請將其刪除。 -->
+                  
+                  <!-- 下一個物件標籤僅供非 IE 瀏覽器使用。因此，請使用 IECC 將其自 IE 隱藏。 -->
+                  <!--[if !IE]>-->
+                  <object type="application/x-shockwave-flash" data="http://www.advantech.com.tw/ia/newsletter/tw/sales/2011UNO/images/features.swf" width="720" height="250">
+                    <!--<![endif]-->
+                    <param name="quality" value="high">
+                    <param name="wmode" value="opaque">
+                    <param name="swfversion" value="8.0.35.0">
+                
+                    <!-- 瀏覽器會為使用 Flash Player 6.0 和更早版本的使用者顯示下列替代內容。 -->
+                   
+                    <!--[if !IE]>-->
+                  </object>
+                  <!--<![endif]-->
+                </object></TD></TR>
+                        <TR>
+                          <TD height=5></TD>
+                          <TD>&nbsp;</TD></TR></TBODY></TABLE></TD></TR>
+                  <TR>
+                    <TD vAlign=top align=left>
+                      <TABLE cellSpacing=0 cellPadding=0 width="100%" border=0>
+                        <TBODY>
+                        <TR>
+                          <TD vAlign=top align=left>&nbsp;</TD>
+                          <TD vAlign=top align=left>
+                            <TABLE cellSpacing=2 cellPadding=0 width="99%" 
+                              border=0><TBODY>
+                              <TR>
+                                <TD><A name=app></A>
+                                  <TABLE height="100%" cellSpacing=0 cellPadding=0 
+                                  width=700>
+                                    <TBODY>
+                                    <TR>
+                                    <TD vAlign=top width=17><IMG height=30 alt="" 
+                                    src="index_3.files/grd_title.gif" width=6></TD>
+                                    <TD class=tiltle width=681>參考應用案例</TD></TR>
+                                    <TR>
+                                    <TD vAlign=top colSpan=2><IMG height=1 alt="" 
+                                    src="index_3.files/line02.gif" 
+                                    width=697></TD></TR></TBODY></TABLE></TD></TR>
+                              <TR>
+                                <TD vAlign=center><MAP 
+                                    name=Map2MapMapMapMap><AREA shape=RECT 
+                                    coords=137,179,178,192 
+                                    href="http://www.advantech.com.tw/ia/newsletter/tw/sales/2011UNO/case-1.html"></MAP><MAP 
+                                  name=Map3MapMapMapMap><AREA shape=RECT 
+                                    coords=134,176,174,189 
+                                    href="http://www.advantech.com.tw/ia/newsletter/tw/sales/2011UNO/case-2.html"></MAP>
+                                  <TABLE cellSpacing=0 cellPadding=0 width="100%" 
+                                  border=0>
+                                    <TBODY>
+                                    <TR>
+                                    <TD align=middle width="25%" height=200><IMG 
+                                    height=190 alt="" 
+                                    src="index_3.files/system-s1.jpg" width=175 
+                                    useMap=#Map border=0></TD>
+                                    <TD align=middle width="25%"><IMG height=190 
+                                    alt="" src="index_3.files/system-s2.jpg" 
+                                    width=175 useMap=#Map4 border=0></TD>
+                                    <TD align=middle width="25%"><IMG height=190 
+                                    alt="" src="index_3.files/system-s3.jpg" 
+                                    width=175 useMap=#Map5 border=0></TD>
+                                    <TD align=middle><IMG height=190 alt="" 
+                                    src="index_3.files/system-s4.jpg" width=175 
+                                    useMap=#Map6 
+                              border=0></TD></TR></TBODY></TABLE></TD></TR></TBODY></TABLE><MAP 
+                            name=Map2MapMapMap><AREA shape=RECT 
+                              coords=137,179,178,192 
+                              href="http://www.advantech.com.tw/ia/newsletter/tw/sales/2011UNO/case-1.html"></MAP><MAP 
+                            name=Map3MapMapMap><AREA shape=RECT 
+                              coords=134,176,174,189 
+                              href="http://www.advantech.com.tw/ia/newsletter/tw/sales/2011UNO/case-2.html"></MAP></TD></TR>
+                        <TR>
+                          <TD vAlign=top align=left>&nbsp;</TD>
+                          <TD vAlign=top align=left>&nbsp;</TD></TR>
+                        <TR>
+                          <TD vAlign=top align=left>&nbsp;</TD>
+                          <TD vAlign=top align=left>
+                            <TABLE cellSpacing=0 cellPadding=0 width=724 border=0>
+                              <TBODY>
+                              <TR>
+                                <TD vAlign=top align=left><IMG height=6 alt="" 
+                                  src="index_3.files/tabtop.gif" width=724></TD></TR>
+                              <TR>
+                                <TD vAlign=top align=left bgColor=#f2f5f7>
+                                  <TABLE cellSpacing=0 cellPadding=0 border=0>
+                                    <TBODY>
+                                    <TR>
+                                    <TD vAlign=top align=left width=12></TD>
+                                    <TD vAlign=top align=left width=700>
+                                    <TABLE cellSpacing=0 cellPadding=0 width=700 
+                                    border=0>
+                                    <TBODY>
+                                    <TR>
+                                    <TD vAlign=top align=left width=700>
+                                    <TABLE height="100%" cellSpacing=0 
+    cellPadding=0>
+                                    <TBODY>
+                                    <TR>
+                                    <TD vAlign=top width=17><IMG height=30 alt="" 
+                                    src="index_3.files/grd_title.gif" width=6></TD>
+                                    <TD class=tiltle width=681>申請免費體驗</TD></TR>
+                                    <TR>
+                                    <TD vAlign=top colSpan=2><IMG height=1 alt="" 
+                                    src="index_3.files/line02.gif" 
+                                    width=697></TD></TR></TBODY></TABLE></TD></TR>
+                                    <TR>
+                                    <TD vAlign=top align=left>
+                                    <TABLE cellSpacing=0 cellPadding=0 width=700 
+                                    border=0>
+                                    <TBODY>
+                                    <TR>
+                                    <TD vAlign=top align=left width=10></TD>
+                                    <TD vAlign=top align=left width=690>
+                                    <TABLE cellSpacing=0 cellPadding=0 width=690 
+                                    border=0>
+                                    <TBODY>
+                                    <TR>
+                                    <TD vAlign=top align=left width=690>
+                                    <TABLE class=style101 cellSpacing=4 
+                                    cellPadding=0 width="100%" align=left 
+                                    bgColor=#f2f5f7 border=0>
+                                    <TBODY>
+                                    <TR>
+                                    <TD align=left width=651>
+                                    <TABLE cellSpacing=0 cellPadding=8 width="100%" 
+                                    border=0>
+                                    <TBODY>
+                                    <TR>
+                                    <td width="651" align="left"><table width="100%" border="0" cellspacing="0" cellpadding="0">
+                                            <tr>
+                                              <td height="90" class="content2"><ul>
+                                                <li>
+                                                  <p><span class="t12tit">活動期間： </span>即日起至2012年2月29日</p>
+                                                  </li>
+                                                <li>
+                                                  <p><span class="t12tit">活動辦法： </span>申請人線上填妥申請表送出資料後，將由研華專人聯絡確認需求，並個別通知活動申請者。凡提出申請皆可獲得價值$2,420元的遠端監控軟體DiagAnwhere一套，確認下單購買UNO-2174A或UNO-2178A更可立即折抵1,000元</p>
+                                                  </li>
+                                                <li>
+                                                  <p><span class="t12tit">體驗期間： </span>申請後，產品寄出日起為期2週，不得展延 </p>
+                                                  </li>
+                                                </ul></td>
+                                              </tr>
+                                            </table></td>                                    </TR></TBODY></TABLE></TD></TR>
+                                    <TR>
+                                    <TD align=left>
+                                        <asp:UpdatePanel runat="server" ID="up1" UpdateMode="Conditional">
+                                            <ContentTemplate>
+                                                <TABLE cellSpacing=4 cellPadding=0 width="100%" border=0>
+                                                    <TBODY>
+                                                        <TR>
+                                                            <TD class=content2 width=54>姓名</TD>
+                                                            <TD width=160><asp:TextBox runat="server" ID="txtName" /></TD>
+                                                            <TD class=content2 width=30>公司</TD>
+                                                            <TD width=161><asp:TextBox runat="server" ID="txtCompany" /></TD>
+                                                            <TD class=content2 width=36>電話</TD>
+                                                            <TD align=left width=171><asp:TextBox runat="server" ID="txtPhone" /></TD>
+                                                        </TR>
+                                                        <TR>
+                                                            <TD class=content2>E- mail</TD>
+                                                            <TD><asp:TextBox runat="server" ID="txtEmail" /></TD>
+                                                            <TD class=content2>地址</TD>
+                                                            <TD align=left colSpan=3><asp:TextBox runat="server" ID="txtAddress" Width="380px" /></TD>
+                                                        </TR>
+                                                        <TR>
+                                                            <TD class=t12tit colSpan=6 height=20>應用領域 (可複選)</TD>
+                                                        </TR>
+                                                        <TR>
+                                                            <TD class=content2 colSpan=6>
+                                                                <TABLE cellSpacing=0 cellPadding=0 width="100%" border=0>
+                                                                    <TBODY>
+                                                                        <TR>
+                                                                            <TD width="20%">
+                                                                                <asp:CheckBox runat="server" ID="cb1" Text="機台製造" />
+                                                                            </TD>
+                                                                            <TD width="20%">
+                                                                                <asp:CheckBox runat="server" ID="cb2" Text="廠務自動化" />
+                                                                            </TD>
+                                                                            <TD width="20%">
+                                                                                <asp:CheckBox runat="server" ID="cb3" Text="樓宇自動化" />
+                                                                            </TD>
+                                                                            <TD width="20%">
+                                                                                <asp:CheckBox runat="server" ID="cb4" Text="智慧交控" />
+                                                                            </TD>
+                                                                            <TD>
+                                                                                <asp:CheckBox runat="server" ID="cb5" Text="環境監控" />
+                                                                            </TD>
+                                                                        </TR>
+                                                                        <TR>
+                                                                            <TD>
+                                                                                <asp:CheckBox runat="server" ID="cb6" Text="建築物節能" />
+                                                                            </TD>
+                                                                            <TD>
+                                                                                <asp:CheckBox runat="server" ID="cb7" Text="自動量測" />
+                                                                            </TD>
+                                                                            <TD>
+                                                                                <asp:CheckBox runat="server" ID="cb8" Text="倉儲物流" />
+                                                                            </TD>
+                                                                            <TD colSpan=2>
+                                                                                <TABLE cellSpacing=0 cellPadding=0 width="100%" border=0>
+                                                                                    <TBODY>
+                                                                                        <TR>
+                                                                                            <TD width="8%">其他</TD>
+                                                                                            <TD class=content2 align=left>
+                                                                                                <asp:TextBox runat="server" ID="txtComment1" Width="280px" />
+                                                                                            </TD>
+                                                                                        </TR>
+                                                                                    </TBODY>
+                                                                                </TABLE>
+                                                                            </TD>
+                                                                        </TR>
+                                                                    </TBODY>
+                                                                </TABLE>
+                                                            </TD>
+                                                        </TR>
+                                                        <TR>
+                                                            <TD class=content2 colSpan=6>
+                                                                <TABLE cellSpacing=0 cellPadding=0 width="100%" border=0>
+                                                                    <TBODY>
+                                                                        <TR>
+                                                                            <TD class=t12tit width="13%">我要申請鑑賞</TD>
+                                                                            <TD class=content2 width="28%" height=25>
+                                                                                <asp:RadioButtonList runat="server" ID="rbl1" RepeatDirection="Horizontal">
+                                                                                    <asp:ListItem Text="UNO-2174A" Value="UNO-2174A" />
+                                                                                    <asp:ListItem Text="UNO-2178A" Value="UNO-2178A" />
+                                                                                </asp:RadioButtonList>
+                                                                            </TD>
+                                                                            <TD class=content2 width="12%">一台，將用於 </TD>
+                                                                            <TD class=content2 align=left><asp:TextBox runat="server" ID="txtComment2" Width="280px" /></TD>
+                                                                        </TR>
+                                                                    </TBODY>
+                                                                </TABLE>
+                                                            </TD>
+                                                        </TR>
+                                                        <TR>
+                                                            <TD class=content2 align=middle colSpan=6 height=28>
+                                                                <table cellpadding="0" cellspacing="0">
+                                                                    <tr>
+                                                                        <td><asp:ImageButton runat="server" ID="btnSend" ImageUrl="~/EC/Surveys/index_3.files/bt_sent.gif" OnClick="btnSend_Click" /></td>
+                                                                        <td><asp:ImageButton runat="server" ID="btnReset" ImageUrl="~/EC/Surveys/index_3.files/bt_re.gif" OnClick="btnReset_Click" /></td>
+                                                                    </tr>
+                                                                </table>
+                                                            </TD>
+                                                        </TR>
+                                                        <tr style="height:15px">
+                                                            <td align="center" colspan="6">
+                                                                <asp:Label runat="server" ID="lbMsg" Font-Bold="true" ForeColor="Tomato" />
+                                                            </td>
+                                                        </tr>
+                                                    </TBODY>
+                                                </TABLE>
+                                            </ContentTemplate>
+                                        </asp:UpdatePanel>
+                                    </TD>
+                                </TR>
+                                <TR>
+                                    <TD align=left height=28>
+                                        <TABLE cellSpacing=4 cellPadding=0 width="100%" border=0>
+                                            <TBODY>
+                                                <TR>
+                                                    <TD class=content2 height=20>
+                                                        <UL>
+                                                            <LI>
+                                                                <P><SPAN class=t12tit>注意事項： 
+                                                                    </SPAN>參加者於參加本活動同時，即視為同意接受本活動規範，研華公司有權決定取消、終止、修改或暫停本活動
+                                                                </P>
+                                                            </LI>
+                                                        </UL>
+                                                    </TD>
+                                                </TR>
+                                            </TBODY>
+                                        </TABLE>
+                                    </TD>
+                                </TR>
+                            </TBODY>
+                        </TABLE>
+                        </TD></TR></TBODY></TABLE></TD></TR></TBODY></TABLE></TD></TR></TBODY></TABLE></TD>
+                        <TD vAlign=top align=left 
+                        width=12>&nbsp;</TD></TR></TBODY></TABLE></TD></TR>
+                              <TR>
+                                <TD vAlign=top align=left><IMG height=7 alt="" 
+                                  src="index_3.files/tabfooter.gif" 
+                              width=724></TD></TR></TBODY></TABLE></TD></TR>
+                        <TR>
+                          <TD vAlign=top align=left>&nbsp;</TD>
+                          <TD vAlign=top align=left>&nbsp;</TD></TR>
+                        <TR>
+                          <TD vAlign=top align=left width=15>&nbsp;</TD>
+                          <TD vAlign=top align=left>
+                            <TABLE cellSpacing=0 cellPadding=0 width="100%" border=0>
+                              <TBODY>
+                              <TR>
+                                <TD vAlign=top align=left>
+                                  <TABLE cellSpacing=0 cellPadding=0 width=724 
+                                  border=0>
+                                    <TBODY>
+                                    <TR>
+                                    <TD vAlign=top align=left><IMG height=6 
+                                    src="index_3.files/tabtop.gif" 
+                                    width=724></TD></TR>
+                                    <TR>
+                                    <TD vAlign=top align=left bgColor=#f2f5f7>
+                                    <TABLE cellSpacing=0 cellPadding=0 width=724 
+                                    border=0>
+                                    <TBODY>
+                                    <TR>
+                                    <TD vAlign=top align=left width=12></TD>
+                                    <TD vAlign=top align=left width=700>
+                                    <TABLE cellSpacing=0 cellPadding=0 width=700 
+                                    border=0>
+                                    <TBODY>
+                                    <TR>
+                                    <TD vAlign=top align=left width=700>
+                                    <TABLE height="100%" cellSpacing=0 cellPadding=0 
+                                    width=700>
+                                    <TBODY>
+                                    <TR>
+                                    <TD vAlign=top width=17><IMG height=30 
+                                    src="index_3.files/grd_title.gif" width=6></TD>
+                                    <TD class=tiltle width=681>產品規格</TD></TR>
+                                    <TR>
+                                    <TD vAlign=top colSpan=2><IMG height=1 
+                                    src="index_3.files/line02.gif" 
+                                    width=697></TD></TR></TBODY></TABLE></TD></TR>
+                                    <TR>
+                                    <TD vAlign=top align=left>
+                                    <TABLE cellSpacing=0 cellPadding=0 width=700 
+                                    border=0>
+                                    <TBODY>
+                                    <TR>
+                                    <TD vAlign=top align=left width=10></TD>
+                                    <TD vAlign=top align=left width=690>
+                                    <TABLE cellSpacing=0 cellPadding=0 width=690 
+                                    border=0>
+                                    <TBODY>
+                                    <TR>
+                                    <TD vAlign=top align=left width=690 
+                                    height=10></TD></TR>
+                                    <TR>
+                                    <TD vAlign=top align=left width=690>
+                                    <TABLE cellSpacing=0 cellPadding=0 width="100%" 
+                                    border=0>
+                                    <TBODY>
+                                    <TR>
+                                    <TD vAlign=top align=left width="30%"></TD>
+                                    <TD vAlign=center align=middle width="35%" 
+                                    height=100><IMG height=95 
+                                    src="index_3.files/2174.jpg" width=237 
+                                    border=0></TD>
+                                    <TD vAlign=center align=middle height=100><IMG 
+                                    height=95 src="index_3.files/2178.jpg" width=237 
+                                    border=0></TD></TR>
+                                    <TR>
+                                    <TD class=tableColor031 vAlign=center 
+                                    align=middle>產品型號</TD>
+                                    <TD class=tableColor011 vAlign=center 
+                                    align=middle><A class=p11 
+                                    href="http://www.advantech.com.tw/products/UNO-2174A/mod_E743A107-266F-49D2-9F5D-C4BDF0A7B64D.aspx" 
+                                    target=_blank>UNO-2174A</A> </TD>
+                                    <TD class=tableColor011 vAlign=center 
+                                    align=middle><A class=p11 
+                                    href="http://www.advantech.com.tw/products/UNO-2178A/mod_5CA4AB53-87DB-4EBB-8F39-BFEE9B2DBE1F.aspx" 
+                                    target=_blank>UNO-2178A</A> </TD></TR>
+                                    <TR>
+                                    <TD class=tableColor031 vAlign=center 
+                                    align=middle>規格下載</TD>
+                                    <TD class=tableColor021 vAlign=center 
+                                    align=middle><A 
+                                    href="http://downloadt.advantech.com/ProductFile/PIS/UNO-2174A/Product%20-%20Datasheet/UNO-2174A_DS20110913103408.pdf" 
+                                    target=_blank><IMG height=18 hspace=5 
+                                    src="index_3.files/icn_ds.gif" width=15 vspace=5 
+                                    border=0></A></TD>
+                                    <TD class=tableColor021 vAlign=center 
+                                    align=middle><A 
+                                    href="http://downloadt.advantech.com/ProductFile/PIS/UNO-2174A/Product%20-%20Datasheet/UNO-2174A_DS20110913103408.pdf" 
+                                    target=_blank><IMG height=18 hspace=5 
+                                    src="index_3.files/icn_ds.gif" width=15 vspace=5 
+                                    border=0></A></TD></TR>
+                                    <TR>
+                                    <TD class=tableColor031 vAlign=center 
+                                    align=middle>處理器</TD>
+                                    <TD class=tableColor021 vAlign=center 
+                                    align=middle>Intel Atom N450 1.67 GHz</TD>
+                                    <TD class=tableColor021 vAlign=center 
+                                    align=middle>Intel Atom D510 Dual<BR>Core 1.67 
+                                    GHz</TD></TR>
+                                    <TR>
+                                    <TD class=tableColor031 vAlign=center 
+                                    align=middle>記憶體</TD>
+                                    <TD class=tableColor021 vAlign=center 
+                                    align=middle>2 GB DDR2 SDRAM</TD>
+                                    <TD class=tableColor021 vAlign=center 
+                                    align=middle>2 GB DDR2 SDRAM</TD></TR>
+                                    <TR>
+                                    <TD class=tableColor031 vAlign=center 
+                                    align=middle>顯示器</TD>
+                                    <TD class=tableColor021 vAlign=center 
+                                    align=middle>DB15 VGA connector<BR>1400 x 1050 @ 
+                                    85 Hz</TD>
+                                    <TD class=tableColor021 vAlign=center 
+                                    align=middle>DB15 VGA connector<BR>2048 x 1536 @ 
+                                    85 Hz</TD></TR>
+                                    <TR>
+                                    <TD class=tableColor031 vAlign=center 
+                                    align=middle>5.1 HD高音質聲道<BR>音頻輸出</TD>
+                                    <TD class=tableColor021 vAlign=center 
+                                    align=middle>V</TD>
+                                    <TD class=tableColor021 vAlign=center 
+                                    align=middle>V</TD></TR>
+                                    <TR>
+                                    <TD class=tableColor031 vAlign=center 
+                                    align=middle>序列埠</TD>
+                                    <TD class=tableColor021 vAlign=center 
+                                    align=middle>2 x RS-232/485<BR>2 x 
+                                    RS-232/422/485</TD>
+                                    <TD class=tableColor021 vAlign=center 
+                                    align=middle>6 x RS-232/485<BR>2 x 
+                                    RS-232/422/485</TD></TR>
+                                    <TR>
+                                    <TD class=tableColor031 vAlign=center 
+                                    align=middle>乙太網路埠</TD>
+                                    <TD class=tableColor021 vAlign=center 
+                                    align=middle>2 x 10/100/1000 Base-T</TD>
+                                    <TD class=tableColor021 vAlign=center 
+                                    align=middle>2 x 10/100/1000 Base-T</TD></TR>
+                                    <TR>
+                                    <TD class=tableColor031 vAlign=center 
+                                    align=middle>USB介面</TD>
+                                    <TD class=tableColor021 vAlign=center 
+                                    align=middle>6</TD>
+                                    <TD class=tableColor021 vAlign=center 
+                                    align=middle>6</TD></TR>
+                                    <TR>
+                                    <TD class=tableColor031 vAlign=center 
+                                    align=middle>儲存槽</TD>
+                                    <TD class=tableColor021 vAlign=center 
+                                    align=middle colSpan=2>CF: 1 x front-accessible 
+                                    type I/II CompactFlash<SUP>®</SUP> slot<BR>HDD: 
+                                    1 x built-in 2.5" SATA HDD/SSD bracket</TD></TR>
+                                    <TR>
+                                    <TD class=tableColor031 vAlign=center 
+                                    align=middle>擴充槽</TD>
+                                    <TD class=tableColor021 vAlign=center 
+                                    align=middle colSpan=2>2 x Mini PCIe with 1 x 
+                                    SIM slot<BR>PC/104+ and PCI-104*</TD></TR>
+                                    <TR>
+                                    <TD class=tableColor031 vAlign=center 
+                                    align=middle>印表機連接埠</TD>
+                                    <TD class=tableColor021 vAlign=center 
+                                    align=middle>1</TD>
+                                    <TD class=tableColor021 vAlign=center 
+                                    align=middle>-</TD></TR>
+                                    <TR>
+                                    <TD class=tableColor031 vAlign=center 
+                                    align=middle>作業溫度</TD>
+                                    <TD class=tableColor021 vAlign=center 
+                                    align=middle colSpan=2>IEC 60068-2-2 with 100% 
+                                    CPU/ I/O loading<BR>-10 ~ 70℃ (14 ~ 
+                                    158°F)</TD></TR>
+                                    <TR>
+                                    <TD class=tableColor031 vAlign=center 
+                                    align=middle>安裝方式</TD>
+                                    <TD class=tableColor021 vAlign=center 
+                                    align=middle colSpan=2>DIN-rail, Wallmount, 
+                                    VESA</TD></TR>
+                                    <TR>
+                                    <TD class=tableColor031 vAlign=center 
+                                    align=middle>整機尺寸<BR>(W x D x H)</TD>
+                                    <TD class=tableColor021 vAlign=center 
+                                    align=middle colSpan=2>255 x 152 x 59 mm<BR>(10" 
+                                    x 6.0" x 
+                                    2.3")</TD></TR></TBODY></TABLE></TD></TR>
+                                    <TR>
+                                    <TD class=pcont vAlign=center align=left 
+                                    height=30>* : 
+                                    需要購買額外的daughterboard</TD></TR></TBODY></TABLE></TD></TR></TBODY></TABLE></TD></TR></TBODY></TABLE></TD>
+                                    <TD vAlign=top align=left 
+                                    width=12>&nbsp;</TD></TR></TBODY></TABLE></TD></TR>
+                                    <TR>
+                                    <TD vAlign=top align=left><IMG height=7 
+                                    src="index_3.files/tabfooter.gif" 
+                                    width=724></TD></TR></TBODY></TABLE></TD></TR>
+                              <TR>
+                                <TD vAlign=top align=left height=15></TD></TR>
+                              <TR>
+                                <TD vAlign=top align=left>
+                                  <TABLE cellSpacing=0 cellPadding=0 border=0>
+                                    <TBODY>
+                                    <TR>
+                                    <TD vAlign=top align=left width=11>&nbsp;</TD>
+                                    <TD vAlign=top align=left>
+                                    <TABLE cellSpacing=0 cellPadding=0 border=0>
+                                    <TBODY>
+                                    <TR>
+                                    <TD width=30 height=40><IMG height=26 
+                                    src="index_3.files/footer_icn01.gif" 
+                                    width=24></TD>
+                                    <TD class=footertit 
+                                    height=40>聯絡研華：想更進一步瞭解研華UNO系列產品或活動內容，請洽0800-777-111<BR>或 
+                                    <A 
+                                    href="mailto:emarketing.aatw@advantech.com.tw">emarketing.aatw@advantech.com.tw</A></TD></TR>
+                                    <TR>
+                                    <TD height=30><IMG height=26 
+                                    src="index_3.files/footer_icn02.gif" 
+                                    width=24></TD>
+                                    <TD 
+                                    class=footertit><asp:HyperLink runat="server" ID="hl1" Text="轉寄好友" Target="_blank" />：免費轉寄與您的客戶、夥伴、親友分享</TD></TR></TBODY></TABLE></TD></TR></TBODY></TABLE></TD></TR></TBODY></TABLE></TD></TR></TBODY></TABLE></TD></TR></TBODY></TABLE></TD></TR>
+            <TR>
+              <TD><IMG height=14 src="index_3.files/shadow03.gif" width=750></TD></TR>
+            <TR>
+              <TD bgColor=#87909a height=35>
+                <TABLE cellSpacing=0 cellPadding=0>
+                  <TBODY>
+                  <TR>
+                    <TD width=17></TD>
+                    <TD class=footer width=520>Copyright © 1983-2011 Advantech 
+                      Co., Ltd. All Rights Reserved.</TD>
+                    <TD class=footer width=102><IMG height=7 hspace=5 
+                      src="index_3.files/footerarrow.gif" width=4><A class=footer 
+                      href="http://www.advantech.com.tw/about/privacy.aspx" 
+                      target=_blank>隱私權政策</A></TD>
+                    <TD class=footer><IMG height=7 hspace=5 
+                      src="index_3.files/footerarrow.gif" width=4><A class=footer 
+                      href="http://www.advantech.com.tw/rss/" 
+                    target=_blank>研華RSS</A></TD></TR></TBODY></TABLE></TD></TR>
+            <TR>
+              <TD bgColor=#87909a 
+    height=9></TD></TR></TBODY></TABLE></TD></TR></TBODY></TABLE><MAP 
+      name=Map2><AREA shape=RECT coords=260,340,337,366 
+      href="http://www.advantech.com.tw/ia/newsletter/tw/sales/2011UNO/case-1.html"></MAP><MAP 
+    name=Map3><AREA shape=RECT coords=257,338,333,365 
+      href="http://www.advantech.com.tw/ia/newsletter/tw/sales/2011UNO/case-2.html"></MAP><MAP 
+    name=Map><AREA shape=RECT coords=113,167,169,181 
+      href="http://www.advantech.com.tw/ia/newsletter/tw/sales/2011UNO/case-1.html"></MAP><MAP 
+    name=Map4><AREA shape=RECT coords=112,166,169,181 
+      href="http://www.advantech.com.tw/ia/newsletter/tw/sales/2011UNO/case-2.html"></MAP><MAP 
+    name=Map5><AREA shape=RECT coords=112,167,168,182 
+      href="http://www.advantech.com.tw/ia/newsletter/tw/sales/2011UNO/case-3.html"></MAP><MAP 
+    name=Map6><AREA shape=RECT coords=113,167,169,183 
+      href="http://www.advantech.com.tw/ia/newsletter/tw/sales/2011UNO/case-4.html"></MAP>
+    <SCRIPT type=text/javascript>
+        swfobject.registerObject("FlashID");
+    </SCRIPT>
+    </form>
+</body>
+</html>

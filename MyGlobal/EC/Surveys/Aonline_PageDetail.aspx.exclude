@@ -1,0 +1,240 @@
+﻿<%@ Page Title="Aonline Survey" Language="VB" MasterPageFile="~/Includes/MyMaster.master" ValidateRequest="false" %>
+<%@ Register Src="~/EC/Surveys/Aonline_PageDetail.ascx" TagName="PageDetail" TagPrefix="uc3" %>
+
+<script runat="server">
+
+    Protected Sub btnSubmit_Click(sender As Object, e As System.EventArgs)
+        Dim dt As DataTable = ucPageDetail.GetAnswer()
+        Dim row_id As String = NewId()
+        Dim d As Date = Now
+        For Each row As DataRow In dt.Rows
+            If row.Item(1).ToString.Trim <> "" Then dbUtil.dbExecuteNoQuery("MyLocal", String.Format("insert into survey_result (question_id, answer, user_id, region, row_id, timestamp, survey_id) values ('{0}',N'{1}',N'{2}',N'{3}','{4}','{5}','{6}')", row.Item(0), row.Item(1), txtUser.Text.Replace("'", "''").Trim, txtRegion.Text.Replace("'", "''").Trim, row_id, d, Request("id")))
+        Next
+        Util.JSAlert(Page, "Thank you for your feedback.")
+    End Sub
+    
+    Private Shared Function NewId() As String
+        Dim tmpRowId As String = ""
+        Do While True
+            tmpRowId = System.Guid.NewGuid.ToString().Replace("-", "").Substring(0, 10)
+            If CInt( _
+              dbUtil.dbExecuteScalar("MYLocal", String.Format("select count(*) as counts from SURVEY_RESULT where row_id='{0}'", tmpRowId)) _
+               ) = 0 Then
+                Exit Do
+            End If
+        Loop
+        Return tmpRowId
+    End Function
+
+    Protected Sub btnSubmit2_Click(sender As Object, e As System.EventArgs)
+        Dim row_id As String = NewId()
+        Dim d As Date = Now
+        Dim q1 As New ArrayList
+        If txtS2Q11.Text.Trim.Replace("'", "") <> "" Then
+            q1.Add(txtS2Q11.Text.Replace("'", "''").Trim)
+        End If
+        If txtS2Q12.Text.Trim.Replace("'", "") <> "" Then
+            q1.Add(txtS2Q12.Text.Replace("'", "''").Trim)
+        End If
+        If txtS2Q13.Text.Trim.Replace("'", "") <> "" Then
+            q1.Add(txtS2Q13.Text.Replace("'", "''").Trim)
+        End If
+        If txtS2Q14.Text.Trim.Replace("'", "") <> "" Then
+            q1.Add(txtS2Q14.Text.Replace("'", "''").Trim)
+        End If
+        If q1.Count > 0 Then dbUtil.dbExecuteNoQuery("MyLocal", String.Format("insert into survey_result (question_id, answer, user_id, region, row_id, timestamp, survey_id) values ('{0}',N'{1}',N'{2}',N'{3}','{4}','{5}','{6}')", "s2q1", String.Join("|", q1.ToArray()), txtUser2.Text.Replace("'", "''").Trim, txtRegion2.Text.Replace("'", "''").Trim, row_id, d, Request("id")))
+        q1.Clear()
+        For Each i As ListItem In rblQ2.Items
+            If i.Selected = True Then
+                q1.Add(i.Text)
+                If txtS2Q2.Text.Replace("'", "") <> "" Then q1.Add(txtS2Q2.Text.Replace("'", "''").Replace(ControlChars.Lf, "<br/>").Trim)
+                dbUtil.dbExecuteNoQuery("MyLocal", String.Format("insert into survey_result (question_id, answer, user_id, region, row_id, timestamp, survey_id) values ('{0}',N'{1}',N'{2}',N'{3}','{4}','{5}','{6}')", "s2q2", String.Join("|", q1.ToArray()), txtUser2.Text.Replace("'", "''").Trim, txtRegion2.Text.Replace("'", "''").Trim, row_id, d, Request("id")))
+            End If
+        Next
+        q1.Clear()
+        For Each i As ListItem In rblQ3.Items
+            If i.Selected Then
+                q1.Add(i.Text)
+                If txtS2Q3.Text.Replace("'", "") <> "" Then q1.Add(txtS2Q3.Text.Replace("'", "''").Replace(ControlChars.Lf, "<br/>").Trim)
+                dbUtil.dbExecuteNoQuery("MyLocal", String.Format("insert into survey_result (question_id, answer, user_id, region, row_id, timestamp, survey_id) values ('{0}',N'{1}',N'{2}',N'{3}','{4}','{5}','{6}')", "s2q3", String.Join("|", q1.ToArray()), txtUser2.Text.Replace("'", "''").Trim, txtRegion2.Text.Replace("'", "''").Trim, row_id, d, Request("id")))
+            End If
+        Next
+        If txtS2Q4.Text.Replace("'", "") <> "" Then dbUtil.dbExecuteNoQuery("MyLocal", String.Format("insert into survey_result (question_id, answer, user_id, region, row_id, timestamp, survey_id) values ('{0}',N'{1}',N'{2}',N'{3}','{4}','{5}','{6}')", "s2q4", txtS2Q4.Text.Replace("'", "''").Replace(ControlChars.Lf, "<br/>").Trim, txtUser2.Text.Replace("'", "''").Trim, txtRegion2.Text.Replace("'", "''").Trim, row_id, d, Request("id")))
+        Util.JSAlert(Page, "Thank you for your feedback.")
+    End Sub
+
+    Protected Sub Page_Load(sender As Object, e As System.EventArgs)
+        If Request("id") = "2" Then
+            panel1.Visible = False : panel2.Visible = True
+        End If
+    End Sub
+</script>
+
+<asp:Content ID="Content1" ContentPlaceHolderID="_main" Runat="Server">
+    <asp:Panel runat="server" ID="panel1">
+        <table>
+            <tr>
+                <td height="10"></td>
+            </tr>
+            <tr><th align="left"><font size="4">AOnline Future Strategy Questionaire</font></th></tr>
+            <tr><td height="20"></td></tr>
+            <tr><th align="left">Dear AOnline Members</th></tr>
+            <tr>
+                <td align="left">
+                    Your inputs are very valuable to our web development team, please take a moment to help us undestand your regional customer <br />
+                    web experiences and needs.  Please complete and return by 10/14/2011
+                </td>
+            </tr>
+            <tr><td height="10"></td></tr>
+            <tr>
+                <td align="left">
+                    <table>
+                        <tr>
+                            <td>Participant: </td>
+                            <td><asp:TextBox runat="server" ID="txtUser" Width="300px" /></td>
+                            <td>REGION: </td>
+                            <td><asp:TextBox runat="server" ID="txtRegion" Width="100px" /></td>
+                        </tr>
+                    </table>
+                </td>
+            </tr>
+            <tr><td height="10"></td></tr>
+            <tr>
+                <td><uc3:PageDetail runat="server" ID="ucPageDetail" /></td>
+            </tr>
+            <tr>
+                <td align="center"><asp:Button runat="server" ID="btnSubmit" Text="Submit" Width="80" Height="30" OnClick="btnSubmit_Click" /></td>
+            </tr>
+            <tr><td height="10"></td></tr>
+        </table>
+    </asp:Panel>
+    <asp:Panel runat="server" ID="panel2" Visible="false">
+        <table>
+            <tr>
+                <td height="10"></td>
+            </tr>
+            <tr><th align="left"><font size="4">AOnline Future Strategy Questionaire</font></th></tr>
+            <tr><td>Part II : Lead Management</td></tr>
+            <tr><td height="20"></td></tr>
+            <tr><th align="left">Dear AOnline Members</th></tr>
+            <tr>
+                <td align="left">
+                    Your inputs are very valuable to our web development team, please take a moment to help us undestand your regional customer web experiences and needs.<br />
+                    Please complete and return by 10/14/2011
+                </td>
+            </tr>
+            <tr><td height="10"></td></tr>
+            <tr>
+                <td align="left">
+                    <table>
+                        <tr>
+                            <td>Participant: </td>
+                            <td><asp:TextBox runat="server" ID="txtUser2" Width="300px" /></td>
+                            <td>REGION: </td>
+                            <td><asp:TextBox runat="server" ID="txtRegion2" Width="100px" /></td>
+                        </tr>
+                    </table>
+                </td>
+            </tr>
+            <tr><td height="10"></td></tr>
+            <tr>
+                <td>
+                    <table width="100%" border="0" style="background-color:#ebebeb">
+                        <tr>
+                            <th width="20" align="left" valign="top">
+                                <font color="gray" size="3">1.</font>
+                            </th>
+                            <th align="left">List the functions or features that would improve your lead management process:</th>
+                        </tr>
+                        <tr><td height="2"></td></tr>
+                        <tr>
+                            <td></td>
+                            <td align="left">
+                                1&nbsp;<asp:TextBox runat="server" ID="txtS2Q11" Width="400" /><br />
+                                2&nbsp;<asp:TextBox runat="server" ID="txtS2Q12" Width="400" /><br />
+                                3&nbsp;<asp:TextBox runat="server" ID="txtS2Q13" Width="400" /><br />
+                                4&nbsp;<asp:TextBox runat="server" ID="txtS2Q14" Width="400" />
+                            </td>
+                        </tr>
+                        <tr><td colspan="2" height="40"></td></tr>
+                    </table>
+                    <table width="100%" border="0" style="background-color:#ebebeb">
+                        <tr>
+                            <th width="20" align="left" valign="top">
+                                <font color="gray" size="3">2.</font>
+                            </th>
+                            <th align="left">Are you satisfied with the current way of data mining Siebel or MyAdvantech?</th>
+                        </tr>
+                        <tr><td height="2"></td></tr>
+                        <tr>
+                            <td></td>
+                            <td align="left">
+                                <asp:RadioButtonList runat="server" ID="rblQ2">
+                                    <asp:ListItem Text="Yes" />
+                                    <asp:ListItem Text="No" />
+                                </asp:RadioButtonList>
+                            </td>
+                        </tr>
+                        <tr><td height="5"></td></tr>
+                        <tr>
+                            <td></td>
+                            <td align="left">
+                                If No, please explain what could be improved.<br />
+                                <asp:TextBox runat="server" ID="txtS2Q2" TextMode="MultiLine" Width="400px" Height="100" />
+                            </td>
+                        </tr>
+                        <tr><td colspan="2" height="40"></td></tr>
+                    </table>
+                    <table width="100%" border="0" style="background-color:#ebebeb">
+                        <tr>
+                            <th width="20" align="left" valign="top">
+                                <font color="gray" size="3">3.</font>
+                            </th>
+                            <th align="left">Do you need help in performing any of the data mining functions? (such as list exporting, setting call list schedule)</th>
+                        </tr>
+                        <tr><td height="2"></td></tr>
+                        <tr>
+                            <td></td>
+                            <td align="left">
+                                <asp:RadioButtonList runat="server" ID="rblQ3">
+                                    <asp:ListItem Text="Yes" Value="" />
+                                    <asp:ListItem Text="No" Value="" />
+                                </asp:RadioButtonList>
+                            </td>
+                        </tr>
+                        <tr><td height="5"></td></tr>
+                        <tr>
+                            <td></td>
+                            <td align="left">
+                                If yes, please specify.<br />
+                                <asp:TextBox runat="server" ID="txtS2Q3" TextMode="MultiLine" Width="400px" Height="100" />
+                            </td>
+                        </tr>
+                        <tr><td colspan="2" height="40"></td></tr>
+                    </table>
+                    <table width="100%" border="0" style="background-color:#ebebeb">
+                        <tr>
+                            <th width="20" align="left" valign="top">
+                                <font color="gray" size="3">4.</font>
+                            </th>
+                            <th align="left">If there is a search criterion that is currently missing from Siebel or MyAdvantech, that you would like to see, what is it?</th>
+                        </tr>
+                        <tr><td height="2"></td></tr>
+                        <tr>
+                            <td></td>
+                            <td align="left">
+                                <asp:TextBox runat="server" ID="txtS2Q4" TextMode="MultiLine" Width="400px" Height="100" />
+                            </td>
+                        </tr>
+                        <tr><td colspan="2" height="40"></td></tr>
+                    </table>
+                </td>
+            </tr>
+            <tr>
+                <td align="center"><asp:Button runat="server" ID="btnSubmit2" Text="Submit" Width="80" Height="30" OnClick="btnSubmit2_Click" /></td>
+            </tr>
+            <tr><td height="10"></td></tr>
+        </table>
+    </asp:Panel>
+</asp:Content>
+

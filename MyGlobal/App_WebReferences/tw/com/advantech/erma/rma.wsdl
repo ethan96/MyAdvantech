@@ -1,0 +1,544 @@
+<?xml version="1.0" encoding="utf-8"?>
+<wsdl:definitions xmlns:http="http://schemas.xmlsoap.org/wsdl/http/" xmlns:soapenc="http://schemas.xmlsoap.org/soap/encoding/" xmlns:mime="http://schemas.xmlsoap.org/wsdl/mime/" xmlns:tns="http://erma.advantech.com.tw/" xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/" xmlns:tm="http://microsoft.com/wsdl/mime/textMatching/" xmlns:s="http://www.w3.org/2001/XMLSchema" xmlns:soap12="http://schemas.xmlsoap.org/wsdl/soap12/" targetNamespace="http://erma.advantech.com.tw/" xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/">
+  <wsdl:types>
+    <s:schema elementFormDefault="qualified" targetNamespace="http://erma.advantech.com.tw/">
+      <s:element name="getBarCodeByOrderNO">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="order_no" type="s:string" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="getBarCodeByOrderNOResponse">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="getBarCodeByOrderNOResult">
+              <s:complexType>
+                <s:sequence>
+                  <s:element ref="s:schema" />
+                  <s:any />
+                </s:sequence>
+              </s:complexType>
+            </s:element>
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="getWarrantyByPartNumber">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="PartNumber" type="s:string" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="getWarrantyByPartNumberResponse">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="getWarrantyByPartNumberResult">
+              <s:complexType>
+                <s:sequence>
+                  <s:element ref="s:schema" />
+                  <s:any />
+                </s:sequence>
+              </s:complexType>
+            </s:element>
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="getWarrantyByBarCode">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="BarCode" type="s:string" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="getWarrantyByBarCodeResponse">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="getWarrantyByBarCodeResult">
+              <s:complexType>
+                <s:sequence>
+                  <s:element ref="s:schema" />
+                  <s:any />
+                </s:sequence>
+              </s:complexType>
+            </s:element>
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="getWarrantyByMuiltBarCode">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="SN" type="tns:ArrayOfMulitBarcode" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:complexType name="ArrayOfMulitBarcode">
+        <s:sequence>
+          <s:element minOccurs="0" maxOccurs="unbounded" name="MulitBarcode" nillable="true" type="tns:MulitBarcode" />
+        </s:sequence>
+      </s:complexType>
+      <s:complexType name="MulitBarcode">
+        <s:sequence>
+          <s:element minOccurs="0" maxOccurs="1" name="SN" type="s:string" />
+        </s:sequence>
+      </s:complexType>
+      <s:element name="getWarrantyByMuiltBarCodeResponse">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="getWarrantyByMuiltBarCodeResult" type="tns:ArrayOfWarrantyInfo" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:complexType name="ArrayOfWarrantyInfo">
+        <s:sequence>
+          <s:element minOccurs="0" maxOccurs="unbounded" name="WarrantyInfo" nillable="true" type="tns:WarrantyInfo" />
+        </s:sequence>
+      </s:complexType>
+      <s:complexType name="WarrantyInfo">
+        <s:sequence>
+          <s:element minOccurs="0" maxOccurs="1" name="Search_barcode_no" type="s:string" />
+          <s:element minOccurs="0" maxOccurs="1" name="barcode_no" type="s:string" />
+          <s:element minOccurs="0" maxOccurs="1" name="product_name" type="s:string" />
+          <s:element minOccurs="0" maxOccurs="1" name="hw_version" type="s:string" />
+          <s:element minOccurs="0" maxOccurs="1" name="bios_version" type="s:string" />
+          <s:element minOccurs="1" maxOccurs="1" name="warranty_date" type="s:dateTime" />
+          <s:element minOccurs="0" maxOccurs="1" name="customer_no" type="s:string" />
+          <s:element minOccurs="0" maxOccurs="1" name="group_name" type="s:string" />
+          <s:element minOccurs="0" maxOccurs="1" name="order_no" type="s:string" />
+          <s:element minOccurs="1" maxOccurs="1" name="in_station_time" type="s:dateTime" />
+          <s:element minOccurs="0" maxOccurs="1" name="mo_no" type="s:string" />
+          <s:element minOccurs="1" maxOccurs="1" name="in_line_time" type="s:dateTime" />
+          <s:element minOccurs="1" maxOccurs="1" name="flag" type="s:boolean" />
+          <s:element minOccurs="0" maxOccurs="1" name="Cust_SN" type="s:string" />
+          <s:element minOccurs="0" maxOccurs="1" name="Cust_PN" type="s:string" />
+          <s:element minOccurs="0" maxOccurs="1" name="Wholeset_SN" type="s:string" />
+          <s:element minOccurs="0" maxOccurs="1" name="Wholeset_PN" type="s:string" />
+          <s:element minOccurs="0" maxOccurs="1" name="Search_PN" type="s:string" />
+          <s:element minOccurs="0" maxOccurs="1" name="Search_SN" type="s:string" />
+        </s:sequence>
+      </s:complexType>
+      <s:element name="getFailureRateforReturn">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="StartMonth" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="EndMonth" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="InPartModel" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="OutPartModel" type="s:string" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="getFailureRateforReturnResponse">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="getFailureRateforReturnResult" type="tns:ArrayOfFailureRate" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:complexType name="ArrayOfFailureRate">
+        <s:sequence>
+          <s:element minOccurs="0" maxOccurs="unbounded" name="FailureRate" nillable="true" type="tns:FailureRate" />
+        </s:sequence>
+      </s:complexType>
+      <s:complexType name="FailureRate">
+        <s:sequence>
+          <s:element minOccurs="0" maxOccurs="1" name="FailureType" type="s:string" />
+          <s:element minOccurs="0" maxOccurs="1" name="DDate" type="s:string" />
+          <s:element minOccurs="1" maxOccurs="1" name="ReturnQty" type="s:int" />
+          <s:element minOccurs="1" maxOccurs="1" name="ShipQty" type="s:int" />
+        </s:sequence>
+      </s:complexType>
+      <s:element name="getDOARateforReturn">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="StartMonth" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="EndMonth" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="InPartModel" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="OutPartModel" type="s:string" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="getDOARateforReturnResponse">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="getDOARateforReturnResult" type="tns:ArrayOfFailureRate" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="getRMARateforReturn">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="StartMonth" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="EndMonth" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="InPartModel" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="OutPartModel" type="s:string" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="getRMARateforReturnResponse">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="getRMARateforReturnResult" type="tns:ArrayOfFailureRate" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="getDOARate">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="StartMonth" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="EndMonth" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="InPartModel" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="OutPartModel" type="s:string" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="getDOARateResponse">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="getDOARateResult" type="tns:ArrayOfDRate" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:complexType name="ArrayOfDRate">
+        <s:sequence>
+          <s:element minOccurs="0" maxOccurs="unbounded" name="DRate" nillable="true" type="tns:DRate" />
+        </s:sequence>
+      </s:complexType>
+      <s:complexType name="DRate">
+        <s:sequence>
+          <s:element minOccurs="0" maxOccurs="1" name="DDate" type="s:string" />
+          <s:element minOccurs="1" maxOccurs="1" name="Rate" type="s:double" />
+        </s:sequence>
+      </s:complexType>
+      <s:element name="getRMARate">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="StartMonth" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="EndMonth" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="InPartModel" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="OutPartModel" type="s:string" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="getRMARateResponse">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="getRMARateResult" type="tns:ArrayOfDRate" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="getFailureRate">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="StartMonth" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="EndMonth" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="InPartModel" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="OutPartModel" type="s:string" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="getFailureRateResponse">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="getFailureRateResult" type="tns:ArrayOfDRate" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+    </s:schema>
+  </wsdl:types>
+  <wsdl:message name="getBarCodeByOrderNOSoapIn">
+    <wsdl:part name="parameters" element="tns:getBarCodeByOrderNO" />
+  </wsdl:message>
+  <wsdl:message name="getBarCodeByOrderNOSoapOut">
+    <wsdl:part name="parameters" element="tns:getBarCodeByOrderNOResponse" />
+  </wsdl:message>
+  <wsdl:message name="getWarrantyByPartNumberSoapIn">
+    <wsdl:part name="parameters" element="tns:getWarrantyByPartNumber" />
+  </wsdl:message>
+  <wsdl:message name="getWarrantyByPartNumberSoapOut">
+    <wsdl:part name="parameters" element="tns:getWarrantyByPartNumberResponse" />
+  </wsdl:message>
+  <wsdl:message name="getWarrantyByBarCodeSoapIn">
+    <wsdl:part name="parameters" element="tns:getWarrantyByBarCode" />
+  </wsdl:message>
+  <wsdl:message name="getWarrantyByBarCodeSoapOut">
+    <wsdl:part name="parameters" element="tns:getWarrantyByBarCodeResponse" />
+  </wsdl:message>
+  <wsdl:message name="getWarrantyByMuiltBarCodeSoapIn">
+    <wsdl:part name="parameters" element="tns:getWarrantyByMuiltBarCode" />
+  </wsdl:message>
+  <wsdl:message name="getWarrantyByMuiltBarCodeSoapOut">
+    <wsdl:part name="parameters" element="tns:getWarrantyByMuiltBarCodeResponse" />
+  </wsdl:message>
+  <wsdl:message name="getFailureRateforReturnSoapIn">
+    <wsdl:part name="parameters" element="tns:getFailureRateforReturn" />
+  </wsdl:message>
+  <wsdl:message name="getFailureRateforReturnSoapOut">
+    <wsdl:part name="parameters" element="tns:getFailureRateforReturnResponse" />
+  </wsdl:message>
+  <wsdl:message name="getDOARateforReturnSoapIn">
+    <wsdl:part name="parameters" element="tns:getDOARateforReturn" />
+  </wsdl:message>
+  <wsdl:message name="getDOARateforReturnSoapOut">
+    <wsdl:part name="parameters" element="tns:getDOARateforReturnResponse" />
+  </wsdl:message>
+  <wsdl:message name="getRMARateforReturnSoapIn">
+    <wsdl:part name="parameters" element="tns:getRMARateforReturn" />
+  </wsdl:message>
+  <wsdl:message name="getRMARateforReturnSoapOut">
+    <wsdl:part name="parameters" element="tns:getRMARateforReturnResponse" />
+  </wsdl:message>
+  <wsdl:message name="getDOARateSoapIn">
+    <wsdl:part name="parameters" element="tns:getDOARate" />
+  </wsdl:message>
+  <wsdl:message name="getDOARateSoapOut">
+    <wsdl:part name="parameters" element="tns:getDOARateResponse" />
+  </wsdl:message>
+  <wsdl:message name="getRMARateSoapIn">
+    <wsdl:part name="parameters" element="tns:getRMARate" />
+  </wsdl:message>
+  <wsdl:message name="getRMARateSoapOut">
+    <wsdl:part name="parameters" element="tns:getRMARateResponse" />
+  </wsdl:message>
+  <wsdl:message name="getFailureRateSoapIn">
+    <wsdl:part name="parameters" element="tns:getFailureRate" />
+  </wsdl:message>
+  <wsdl:message name="getFailureRateSoapOut">
+    <wsdl:part name="parameters" element="tns:getFailureRateResponse" />
+  </wsdl:message>
+  <wsdl:portType name="RMASoap">
+    <wsdl:operation name="getBarCodeByOrderNO">
+      <wsdl:input message="tns:getBarCodeByOrderNOSoapIn" />
+      <wsdl:output message="tns:getBarCodeByOrderNOSoapOut" />
+    </wsdl:operation>
+    <wsdl:operation name="getWarrantyByPartNumber">
+      <wsdl:input message="tns:getWarrantyByPartNumberSoapIn" />
+      <wsdl:output message="tns:getWarrantyByPartNumberSoapOut" />
+    </wsdl:operation>
+    <wsdl:operation name="getWarrantyByBarCode">
+      <wsdl:input message="tns:getWarrantyByBarCodeSoapIn" />
+      <wsdl:output message="tns:getWarrantyByBarCodeSoapOut" />
+    </wsdl:operation>
+    <wsdl:operation name="getWarrantyByMuiltBarCode">
+      <wsdl:input message="tns:getWarrantyByMuiltBarCodeSoapIn" />
+      <wsdl:output message="tns:getWarrantyByMuiltBarCodeSoapOut" />
+    </wsdl:operation>
+    <wsdl:operation name="getFailureRateforReturn">
+      <wsdl:input message="tns:getFailureRateforReturnSoapIn" />
+      <wsdl:output message="tns:getFailureRateforReturnSoapOut" />
+    </wsdl:operation>
+    <wsdl:operation name="getDOARateforReturn">
+      <wsdl:input message="tns:getDOARateforReturnSoapIn" />
+      <wsdl:output message="tns:getDOARateforReturnSoapOut" />
+    </wsdl:operation>
+    <wsdl:operation name="getRMARateforReturn">
+      <wsdl:input message="tns:getRMARateforReturnSoapIn" />
+      <wsdl:output message="tns:getRMARateforReturnSoapOut" />
+    </wsdl:operation>
+    <wsdl:operation name="getDOARate">
+      <wsdl:input message="tns:getDOARateSoapIn" />
+      <wsdl:output message="tns:getDOARateSoapOut" />
+    </wsdl:operation>
+    <wsdl:operation name="getRMARate">
+      <wsdl:input message="tns:getRMARateSoapIn" />
+      <wsdl:output message="tns:getRMARateSoapOut" />
+    </wsdl:operation>
+    <wsdl:operation name="getFailureRate">
+      <wsdl:input message="tns:getFailureRateSoapIn" />
+      <wsdl:output message="tns:getFailureRateSoapOut" />
+    </wsdl:operation>
+  </wsdl:portType>
+  <wsdl:binding name="RMASoap" type="tns:RMASoap">
+    <soap:binding transport="http://schemas.xmlsoap.org/soap/http" />
+    <wsdl:operation name="getBarCodeByOrderNO">
+      <soap:operation soapAction="http://erma.advantech.com.tw/getBarCodeByOrderNO" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="getWarrantyByPartNumber">
+      <soap:operation soapAction="http://erma.advantech.com.tw/getWarrantyByPartNumber" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="getWarrantyByBarCode">
+      <soap:operation soapAction="http://erma.advantech.com.tw/getWarrantyByBarCode" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="getWarrantyByMuiltBarCode">
+      <soap:operation soapAction="http://erma.advantech.com.tw/getWarrantyByMuiltBarCode" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="getFailureRateforReturn">
+      <soap:operation soapAction="http://erma.advantech.com.tw/getFailureRateforReturn" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="getDOARateforReturn">
+      <soap:operation soapAction="http://erma.advantech.com.tw/getDOARateforReturn" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="getRMARateforReturn">
+      <soap:operation soapAction="http://erma.advantech.com.tw/getRMARateforReturn" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="getDOARate">
+      <soap:operation soapAction="http://erma.advantech.com.tw/getDOARate" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="getRMARate">
+      <soap:operation soapAction="http://erma.advantech.com.tw/getRMARate" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="getFailureRate">
+      <soap:operation soapAction="http://erma.advantech.com.tw/getFailureRate" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+  </wsdl:binding>
+  <wsdl:binding name="RMASoap12" type="tns:RMASoap">
+    <soap12:binding transport="http://schemas.xmlsoap.org/soap/http" />
+    <wsdl:operation name="getBarCodeByOrderNO">
+      <soap12:operation soapAction="http://erma.advantech.com.tw/getBarCodeByOrderNO" style="document" />
+      <wsdl:input>
+        <soap12:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap12:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="getWarrantyByPartNumber">
+      <soap12:operation soapAction="http://erma.advantech.com.tw/getWarrantyByPartNumber" style="document" />
+      <wsdl:input>
+        <soap12:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap12:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="getWarrantyByBarCode">
+      <soap12:operation soapAction="http://erma.advantech.com.tw/getWarrantyByBarCode" style="document" />
+      <wsdl:input>
+        <soap12:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap12:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="getWarrantyByMuiltBarCode">
+      <soap12:operation soapAction="http://erma.advantech.com.tw/getWarrantyByMuiltBarCode" style="document" />
+      <wsdl:input>
+        <soap12:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap12:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="getFailureRateforReturn">
+      <soap12:operation soapAction="http://erma.advantech.com.tw/getFailureRateforReturn" style="document" />
+      <wsdl:input>
+        <soap12:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap12:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="getDOARateforReturn">
+      <soap12:operation soapAction="http://erma.advantech.com.tw/getDOARateforReturn" style="document" />
+      <wsdl:input>
+        <soap12:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap12:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="getRMARateforReturn">
+      <soap12:operation soapAction="http://erma.advantech.com.tw/getRMARateforReturn" style="document" />
+      <wsdl:input>
+        <soap12:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap12:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="getDOARate">
+      <soap12:operation soapAction="http://erma.advantech.com.tw/getDOARate" style="document" />
+      <wsdl:input>
+        <soap12:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap12:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="getRMARate">
+      <soap12:operation soapAction="http://erma.advantech.com.tw/getRMARate" style="document" />
+      <wsdl:input>
+        <soap12:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap12:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="getFailureRate">
+      <soap12:operation soapAction="http://erma.advantech.com.tw/getFailureRate" style="document" />
+      <wsdl:input>
+        <soap12:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap12:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+  </wsdl:binding>
+  <wsdl:service name="RMA">
+    <wsdl:port name="RMASoap" binding="tns:RMASoap">
+      <soap:address location="http://erma.advantech.com.tw/rmawebservice/rma.asmx" />
+    </wsdl:port>
+    <wsdl:port name="RMASoap12" binding="tns:RMASoap12">
+      <soap12:address location="http://erma.advantech.com.tw/rmawebservice/rma.asmx" />
+    </wsdl:port>
+  </wsdl:service>
+</wsdl:definitions>

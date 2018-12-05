@@ -1,0 +1,190 @@
+﻿<div class="main-intro">
+                <div class="intro-heading">
+                    区域积分标准- for IAG PCP
+                </div>
+                <!-- end .main-intro -->
+            </div>
+            <div class="main-content">
+                <div class="content-heading">
+                    活动规则:</div>
+                <div id="Opp_table">
+                    <table width="100%">
+                        <thead>
+						 <tr class="odd2">
+						 <td colspan=4 style="text-align: left">
+						<b> 条件：</b><br/>
+<li>PCP 年度达成业绩：￥8,000K</li>
+<li>PCP 业务个人年度达成业绩：￥2,000K</li>
+
+
+						 </td>
+						 
+						 </tr>
+                            <tr>
+								<th width="8%">规则#</th>
+                                <th width="60%" scope="col" style="padding: 10px; text-align: left">
+                                    业绩达成5K = 1分 
+                                </th>
+                                <th width="16%" scope="col">
+                                </th>
+                                <th width="16%" scope="col" style="padding: 10px; text-align: left">
+                                    举例 
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr class="odd1">
+								<td>1</td>
+                                <td style="padding: 10px; text-align: left">
+                                    个人季度达成最低业绩500K<br/>（或最低积分100分）
+
+                                </td>
+                                <td style="padding: 10px; text-align: left">
+                                    = 500K<br />
+                                    = 100 分
+                                </td>
+                                <td>
+                                </td>
+                            </tr>
+                            <tr class="odd2">
+								<td>2</td>
+                                <td style="padding: 10px; text-align: left">
+                                    特殊产品（特卖、促销、限时抢购活动）业绩积分 
+                                </td>
+                                <td style="padding: 10px; text-align: left">
+                                    = ? 分 X 2<br />
+                                    = 100K <br />= 20 分
+                                </td>
+                                <td style="padding: 10px; text-align: left">
+                                    20 分 x 2<br />
+                                    = 40 分
+                                </td>
+                            </tr>
+                            <tr class="odd1">
+								<td>3</td>
+                                <td style="padding: 10px; text-align: left">
+                                    大案达成（从竞争对手争取来的今年新的大案）业绩积分，<br/>提交的最低业绩为300K（或最低积分90分）
+
+                                </td>
+                                <td style="padding: 10px; text-align: left">
+                                    = ? 分 = x1.5<br />
+                                    = 250K <br />= 50 分
+                                </td>
+                                <td style="padding: 10px; text-align: left">
+                                    50 分 x 1.5<br />
+                                    = 75 分
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="main-content">
+                <div class="content-heading" style="display: none;">
+                    积分条件:</div>
+                <p>
+                
+                </p>
+                <ul type="disc" style="display: none;">
+                    <li>PCP 年度达成业绩：￥8,000K</li>
+                    <li>PCP 业务个人年度达成业绩：￥2,000K </li>
+                </ul>
+				<div class="sure">
+                    <a href="PersonalInfo.aspx?PD=IAG">我要参加</a></div><br/><br/>
+              <!--5566--> <div class="intro-heading" >
+                    区域积分标准- for ESG PCP
+                </div>
+                <!-- end .main-intro -->
+            </div>
+            <div class="main-content" >
+                <div class="content-heading">
+                    活动规则:</div>
+                <div id="Opp_table" >
+                    <table width="100%">
+                        <thead>
+						 <tr class="odd2">
+						 <td colspan=4 style="text-align: left">
+						<b> 条件：</b><br/>
+<li>PCP 年度达成业绩：￥14,000K </li>
+<li>PCP 业务个人年度达成业绩：￥4,000K</li>
+
+
+						 </td>
+						 
+						 </tr>
+                            <tr>
+								<th width="8%">规则#</th>
+                                <th width="60%" scope="col" style="padding: 10px; text-align: left">
+                                    业绩达成10K = 1分 
+                                </th>
+                                <th width="16%" scope="col">
+                                </th>
+                                <th width="16%" scope="col" style="padding: 10px; text-align: left">
+                                    举例 
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr class="odd1">
+								<td>1</td>
+                                <td style="padding: 10px; text-align: left">
+                                    个人季度达成最低业绩1000K<br/>（或最低积分100分）
+
+
+                                </td>
+                                <td style="padding: 10px; text-align: left">
+                                    = 1000K<br />
+                                    = 100 分
+                                </td>
+                                <td>
+                                </td>
+                            </tr>
+                            <tr class="odd2">
+								<td>2</td>
+                                <td style="padding: 10px; text-align: left">
+                                  特殊产品（特卖、促销、限时抢购活动）业绩积分
+
+                                </td>
+                                <td style="padding: 10px; text-align: left">
+                                    = ? 分 X 2<br />
+                                    = 200K <br />= 20 分
+                                </td>
+                                <td style="padding: 10px; text-align: left">
+                                    20 分 x 2<br />
+                                    = 40 分
+                                </td>
+                            </tr>
+                            <tr class="odd1">
+								<td>3</td>
+                                <td style="padding: 10px; text-align: left">
+                                 大案达成（从竞争对手争取来的今年新的大案）业绩积分，<br/>提交的最低业绩为500K（或最低积分75分）
+
+
+                                </td>
+                                <td style="padding: 10px; text-align: left">
+                                    = ? 分 = x1.5<br />
+                                    = 200K<br /> = 20 分
+                                </td>
+                                <td style="padding: 10px; text-align: left">
+                                    20 分 x 1.5<br />
+                                    = 30 分
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="main-content" >
+                <!--  <div class="content-heading">
+                    积分条件:</div>
+                <p>
+                
+                </p>
+                <ul type="disc">
+                    <li>PCP 年度达成业绩：￥14,000K</li>
+                    <li>PCP 业务个人年度达成业绩：￥4,000K </li>
+                </ul>
+        5566--><p> </p>
+                <div class="sure">
+                    <a href="PersonalInfo.aspx?PD=ESG">我要参加</a></div>
+            </div>

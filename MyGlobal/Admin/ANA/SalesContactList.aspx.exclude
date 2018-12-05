@@ -1,0 +1,112 @@
+﻿<%@ Page Title="MyAdvantech - Edit Sales Contact List for Project Registration (ANA)" Language="VB" MasterPageFile="~/Includes/MyMaster.master" %>
+
+<script runat="server">
+    Function GetSql() As String
+        Dim sb As New System.Text.StringBuilder
+        With sb
+            .AppendLine(String.Format(" select SALES_NAME, SALES_EMAIL, SEQ_NO, RBU  "))
+            .AppendLine(String.Format(" from MYADVANTECH_ANA_SALESCONTACT  where 1=1 "))
+            If rblOrg.SelectedIndex < 2 Then .AppendLine(String.Format(" and RBU='{0}' ", rblOrg.SelectedValue))
+            .AppendLine(String.Format(" order by SALES_NAME "))
+        End With
+        Return sb.ToString()
+    End Function
+
+    Protected Sub Page_Load(ByVal sender As Object, ByVal e As System.EventArgs)
+        If Not Util.IsAdmin() Then
+            Server.Transfer("~/home.aspx")
+        End If
+        src1.SelectCommand = GetSql()
+    End Sub
+
+    Protected Sub btnAddSales_Click(ByVal sender As Object, ByVal e As System.EventArgs)
+        lbMsg.Text = ""
+        If txtSalesName.Text.Trim() <> "" AndAlso Util.IsValidEmailFormat(txtSalesEmail.Text) AndAlso Integer.TryParse(txtSeqNo.Text, 0) Then
+            dbUtil.dbExecuteNoQuery("MY", String.Format( _
+       "insert into MYADVANTECH_ANA_SALESCONTACT (SALES_EMAIL, SALES_NAME, RBU, SEQ_NO, PARENT_SALES) values (N'{0}',N'{1}',N'{2}',{3}, '')", _
+       txtSalesEmail.Text.Trim().Replace("'", "''"), txtSalesName.Text.Trim().Replace("'", "''"), rblAddOrg.SelectedValue, CInt(txtSeqNo.Text).ToString()))
+            src1.SelectCommand = GetSql() : gv1.DataBind()
+        Else
+            lbMsg.Text = "Please input sales name, email, and sequence number"
+        End If
+    End Sub
+
+    Protected Sub gv1_PageIndexChanging(ByVal sender As Object, ByVal e As System.Web.UI.WebControls.GridViewPageEventArgs)
+        src1.SelectCommand = GetSql()
+    End Sub
+
+    Protected Sub gv1_Sorting(ByVal sender As Object, ByVal e As System.Web.UI.WebControls.GridViewSortEventArgs)
+        src1.SelectCommand = GetSql()
+    End Sub
+
+    Protected Sub rblOrg_SelectedIndexChanged(ByVal sender As Object, ByVal e As System.EventArgs)
+        src1.SelectCommand = GetSql() : gv1.DataBind()
+    End Sub
+</script>
+
+<asp:Content ID="Content1" ContentPlaceHolderID="_main" Runat="Server">
+    <table width="100%">
+        <tr>
+            <td>
+                <table>
+                    <tr>
+                        <th align="left">Name:</th>
+                        <td><asp:TextBox runat="server" ID="txtSalesName" Width="100px" /></td>
+                        <th align="left">Email:</th>
+                        <td><asp:TextBox runat="server" ID="txtSalesEmail" Width="180px" /></td>
+                        <th align="left">Seq No. (for display order):</th>
+                        <td><asp:TextBox runat="server" ID="txtSeqNo" Width="40px" /></td>
+                        <td>
+                            <asp:RadioButtonList runat="server" ID="rblAddOrg" RepeatColumns="2" RepeatDirection="Horizontal">
+                                <asp:ListItem Value="AAC" Selected="True" />
+                                <asp:ListItem Value="AENC" />
+                            </asp:RadioButtonList>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td colspan="6">
+                            <asp:Button runat="server" ID="btnAddSales" Text="Add" OnClick="btnAddSales_Click" />
+                            <asp:UpdatePanel runat="server" ID="upMsg" UpdateMode="Conditional">
+                                <ContentTemplate>
+                                    <asp:Label runat="server" ID="lbMsg" Font-Bold="true" ForeColor="Tomato" />
+                                </ContentTemplate>
+                                <Triggers>
+                                    <asp:AsyncPostBackTrigger ControlID="btnAddSales" EventName="Click" />
+                                </Triggers>
+                            </asp:UpdatePanel>
+                        </td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <asp:UpdatePanel runat="server" ID="up1" UpdateMode="Conditional">
+                    <ContentTemplate>
+                        <asp:RadioButtonList runat="server" ID="rblOrg" RepeatColumns="3" 
+                            RepeatDirection="Horizontal" AutoPostBack="true" OnSelectedIndexChanged="rblOrg_SelectedIndexChanged">
+                            <asp:ListItem Value="AAC" />
+                            <asp:ListItem Value="AENC" />
+                            <asp:ListItem Value="All" Selected="True" />
+                        </asp:RadioButtonList>
+                        <asp:GridView runat="server" ID="gv1" Width="95%" AutoGenerateColumns="false" DataKeyNames="SALES_NAME,SALES_EMAIL,RBU"
+                            DataSourceID="src1" AllowPaging="true" AllowSorting="true" PageSize="50" PagerSettings-Position="TopAndBottom" OnPageIndexChanging="gv1_PageIndexChanging" OnSorting="gv1_Sorting">
+                            <Columns>
+                                <asp:CommandField DeleteText="Delete" ShowDeleteButton="true" />
+                                <asp:BoundField HeaderText="Sales Name" DataField="SALES_NAME" SortExpression="SALES_NAME" />
+                                <asp:BoundField HeaderText="Sales Email" DataField="SALES_EMAIL" SortExpression="SALES_EMAIL" />
+                                <asp:BoundField HeaderText="Seq No." DataField="SEQ_NO" SortExpression="SEQ_NO" />
+                                <asp:BoundField HeaderText="Org" DataField="RBU" SortExpression="RBU" />
+                            </Columns>
+                        </asp:GridView>
+                        <asp:SqlDataSource runat="server" ID="src1" ConnectionString="<%$ConnectionStrings:MY %>" 
+                            DeleteCommand="delete from MYADVANTECH_ANA_SALESCONTACT where SALES_NAME=@SALES_NAME and SALES_EMAIL=@SALES_EMAIL and RBU=@RBU" />
+                    </ContentTemplate>
+                    <Triggers>
+                        <asp:AsyncPostBackTrigger ControlID="btnAddSales" EventName="Click" />
+                    </Triggers>
+                </asp:UpdatePanel>
+            </td>
+        </tr>
+    </table>
+</asp:Content>

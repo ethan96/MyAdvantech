@@ -1,0 +1,155 @@
+﻿<%@ Page Title="" Language="VB" MasterPageFile="~/Includes/MyMaster.master" %>
+
+<%@ Import Namespace="System.IO" %>
+
+<script runat="server">
+    Public Shared Function UpdateSOZeroPriceItems(ByVal SO_NO As String, ByRef ReturnTable As DataTable) As Boolean
+        'Dim aptOrderDetail As New MyOrderDSTableAdapters.ORDER_DETAILTableAdapter
+        'Dim dtOrderDetail As MyOrderDS.ORDER_DETAILDataTable = aptOrderDetail.GetOrderDetailByOrderID(SO_NO)
+        'If dtOrderDetail.Count = 0 Then
+        '    Return False
+        'End If
+        Dim p1 As New Change_SD_Order.Change_SD_Order()
+        p1.Connection = New SAP.Connector.SAPConnection(ConfigurationManager.AppSettings("SAP_PRD"))
+        Dim OrderHeader As New Change_SD_Order.BAPISDH1, OrderHeaderX As New Change_SD_Order.BAPISDH1X
+        Dim ItemIn As New Change_SD_Order.BAPISDITMTable, ItemInX As New Change_SD_Order.BAPISDITMXTable
+        Dim PartNr As New Change_SD_Order.BAPIPARNRTable
+        Dim Condition As New Change_SD_Order.BAPICONDTable, ScheLine As New Change_SD_Order.BAPISCHDLTable
+        Dim ScheLineX As New Change_SD_Order.BAPISCHDLXTable, OrderText As New Change_SD_Order.BAPISDTEXTTable
+        Dim sales_note As New Change_SD_Order.BAPISDTEXT, ext_note As New Change_SD_Order.BAPISDTEXT
+        Dim op_note As New Change_SD_Order.BAPISDTEXT, retTable As New Change_SD_Order.BAPIRET2Table
+        Dim ADDRTable As New Change_SD_Order.BAPIADDR1Table, PartnerChangeTable As New Change_SD_Order.BAPIPARNRCTable
+        Dim Doc_Number As String = SO_NO
+        OrderHeaderX.Updateflag = "U"
+        OrderHeaderX.Version="X"
+        OrderHeader.Version = "New ID"
+        p1.Connection.Open()
+        p1.Bapi_Salesorder_Change("", "", New Change_SD_Order.BAPISDLS, OrderHeader, OrderHeaderX, Doc_Number, "", Condition, _
+            New Change_SD_Order.BAPICONDXTable, New Change_SD_Order.BAPIPAREXTable, New Change_SD_Order.BAPICUBLBTable, _
+            New Change_SD_Order.BAPICUINSTable, New Change_SD_Order.BAPICUPRTTable, New Change_SD_Order.BAPICUCFGTable, _
+            New Change_SD_Order.BAPICUREFTable, New Change_SD_Order.BAPICUVALTable, New Change_SD_Order.BAPICUVKTable, ItemIn, _
+            New Change_SD_Order.BAPISDITMXTable, New Change_SD_Order.BAPISDKEYTable, OrderText, ADDRTable, _
+            PartnerChangeTable, PartNr, retTable, ScheLine, ScheLineX)
+        p1.CommitWork()
+        p1.Connection.Close()
+        ReturnTable = retTable.ToADODataTable()
+        For Each RetRow As DataRow In ReturnTable.Rows
+            If RetRow.Item("Type").ToString().Equals("E") Then Return False
+        Next
+
+        Return True
+
+    End Function
+    Protected Sub bt1_Click(sender As Object, e As System.EventArgs)
+        'Response.Write(SAPDOC.SendPI("TWO004197"))
+        
+        ' '' Dim dt As DataTable = OraDbUtil.dbGetDataTable("SAP_PRD", " select a.vbeln, a.erdat, a.VSNMR_V as ver " +
+        ' ''"from saprdp.vbak a " +
+        ' ''"where a.mandt='168' and a.vbeln like 'TWO%' and a.vkorg='TW01' and a.erdat>='20150401' " +
+        ' ''"and a.VSNMR_V in ('NEW ID',' ') " +
+        ' ''"order by a.erdat desc")
+        
+        ' ''  OrderUtilities.showDT(dt)
+        ' ''  Exit Sub
+        
+        
+        
+        Dim ReturnTable As New DataTable()
+        UpdateSOZeroPriceItems("TWO004487", ReturnTable)
+        
+        OrderUtilities.showDT(ReturnTable)
+        
+        
+        
+        
+        
+        ''SAPDOC.SendSPR_NOPI("FU673076")
+        'Response.Write(CType(Nothing, Decimal))
+        'Dim dtPriceRec As New DataTable
+        'SAPtools.getSAPPriceByTable("1757003062", "SG01", "SAPH", dtPriceRec)
+        'OrderUtilities.showDT(dtPriceRec)
+        'Response.Write("<hr/>")
+        'dtPriceRec = Nothing
+        'SAPtools.getSAPPriceByTable("1757003062", "US01", "UAAC00100", dtPriceRec)
+        'Dim dt As DataTable = OraDbUtil.dbGetDataTable("SAP_Test", "select *  from  saprdp.kna1  where Kunnr ='EDDEVI60'")
+        'OrderUtilities.showDT(dt)
+        'dt = OraDbUtil.dbGetDataTable("SAP_Test", "select *  from  saprdp.kna1  where Kunnr ='EDDEVI70'")
+        'OrderUtilities.showDT(dt)
+        'dt = OraDbUtil.dbGetDataTable("SAP_Test", "select *  from  saprdp.knvv  where Kunnr ='EDDEVI43'")
+        'OrderUtilities.showDT(dt)
+        'Dim knvp_dt As DataTable = OraDbUtil.dbGetDataTable("SAP_Test", "select * from  saprdp.knvp  where Kunnr ='" + "EDDEVI43" + "' ")
+        'OrderUtilities.showDT(knvp_dt)
+        'Dim srFile As StreamReader = Nothing
+        'Dim sql As String = String.Empty
+        'srFile = New StreamReader("D:\GlobalMyadvantech\MyGlobal2\Lab\1.txt", System.Text.Encoding.[Default])
+        'sql = srFile.ReadToEnd()
+   
+        'Dim dt As DataTable = OraDbUtil.dbGetDataTable("SAP_PRD", sql)
+        'GridView1.DataSource = dt
+        'GridView1.DataBind()
+        'Dim conn As New SqlClient.SqlConnection(ConfigurationManager.ConnectionStrings("my").ConnectionString)
+        'conn.Open()
+        'Dim bk As New SqlClient.SqlBulkCopy(conn)
+        'bk.DestinationTableName = "SAP_EMPLOYEE" : bk.WriteToServer(dt)
+        'If conn.State <> ConnectionState.Closed Then conn.Close()
+            
+        'Dim dt2 As DataTable = OraDbUtil.dbGetDataTable("SAP_PRD", "select kunnr as company_id, kunn2 as sub_company_id, vkorg as sales_org, parvw as partner_function, pernr as sales_code from saprdp.knvp where mandt='168' and pernr<>'00000000' and pernr = '20104174'")
+        'GridView2.DataSource = dt2
+        'GridView2.DataBind()
+    End Sub
+
+    Protected Sub Page_Load(sender As Object, e As System.EventArgs)
+        ' Dim tmpCompanyId As String = ""
+        ' Dim arrChar As Char() = New Char() {"A", "B", "C", "D", _
+        '"E", "F", "G", "H", "I", "J", _
+        '"K", "L", "M", "N", "O", "P", "Q", _
+        '"R", "T", "S", "V", "U", "W", _
+        '"X", "Y", "Z"}
+        ' Dim i As Integer = 0
+        ' Do While True
+        '     Response.Write(arrChar(i).ToString() + vbTab + i.ToString)
+        '     Response.Write("<hr/>")
+        '     If i=25 Then
+        '         Exit Do
+        '     End If
+        '     i = i + 1
+        ' Loop
+        'Dim rnd As New Random(DateTime.Now.Millisecond)
+        'Response.Write(arrChar(rnd.Next(0, arrChar.Length)))
+        'Response.Write(SAPDOC.replaceCartBTO("ARK-3360-BTO"))
+        'Dim offset As Integer = TimeZone.CurrentTimeZone.GetUtcOffset(DateTime.Now).Hours
+        'Response.Write("国际标准时间：" + offset.ToString())
+        '  Response.Write("<hr/>")
+        'Dim utcTime As DateTime = DateTime.Now.ToUniversalTime()
+        'Response.Write("国际标准时间：" + utcTime.ToString())
+        'Response.Write("<hr/>")
+        'Dim TimeZoneInfo1 As TimeZoneInfo = TimeZoneInfo.FindSystemTimeZoneById("Pacific Standard Time")
+        'Dim timespan As TimeSpan = TimeZoneInfo1.GetUtcOffset(utcTime)
+        'Response.Write("时差：" + timespan.ToString())
+        'Response.Write("<hr/>")
+
+        'Response.Write("新时间：" + utcTime.Add(timespan))
+        'Response.Write("<hr/>")
+    End Sub
+</script>
+
+<asp:Content ID="Content1" ContentPlaceHolderID="_main" Runat="Server">
+<%--<img src="../Includes/ShowFile.aspx?ROW_ID=B3E2E21BD359438B932D555831AE8B" width="200">--%>
+    <asp:Button runat="server" Text="Button" id="bt1" OnClick="bt1_Click" />
+
+    <asp:GridView ID="GridView1" runat="server">
+    </asp:GridView>
+    <asp:GridView ID="GridView2" runat="server">
+    </asp:GridView>
+
+ <script type="text/javascript">
+
+     var d = new Date()
+     var gmtHours = d.getTimezoneOffset() / 60
+     document.write("The local time zone is: GMT " + gmtHours)
+
+</script>
+</asp:Content>
+<asp:Content ID="Content2" ContentPlaceHolderID="cph1" Runat="Server">
+</asp:Content>
+

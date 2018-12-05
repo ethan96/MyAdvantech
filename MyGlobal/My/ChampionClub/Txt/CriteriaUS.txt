@@ -1,0 +1,125 @@
+﻿<div class="main-intro">
+    <div class="intro-heading">
+        Regional Program Criteria
+    </div>
+    <!-- end .main-intro -->
+</div>
+<div class="main-content">
+    <div class="content-heading">
+        Gaming Rules:
+    </div>
+    <div id="Opp_table">
+        <table width="100%">
+            <thead>
+                <tr>
+					<th>Rule #</th>
+                    <th width="70%" scope="col" style="padding: 10px; text-align: left">
+                        Action
+                    </th>
+                    <th width="30%" scope="col" style="padding: 10px; text-align: left">
+                        Reward
+                    </th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr class="odd1">
+					<td>1</td>
+                    <td style="padding: 10px; text-align: left">
+                        1 point
+                    </td>
+                    <td style="padding: 10px; text-align: left">
+                        $2
+                    </td>
+                </tr>
+                <tr class="odd2">
+					<td>2</td>
+                    <td style="padding: 10px; text-align: left">
+                        Minimum amount of points for 1 award redemption
+                    </td>
+                    <td style="padding: 10px; text-align: left">
+                        100 points
+                    </td>
+                </tr>
+                <tr class="odd1">
+					<td>3</td>
+                    <td style="padding: 10px; text-align: left">
+						Minimum individual sales person annual quota achievement for eligibility
+                    </td>
+                    <td style="padding: 10px; text-align: left">
+                        $50,000
+                    </td>
+                </tr>
+                <tr class="odd2">
+					<td>4</td>
+                    <td style="padding: 10px; text-align: left">
+                        New product sales (per unit) within 3 months
+                    </td>
+                    <td style="padding: 10px; text-align: left">
+                        4 points
+                    </td>
+                </tr>
+                <tr class="odd1">
+					<td>5</td>
+                    <td style="padding: 10px; text-align: left">
+                        Promotional product sale (per unit) in promo time frame
+                    </td>
+                    <td style="padding: 10px; text-align: left">
+                        4 points
+                    </td>
+                </tr>
+                <tr class="odd2">
+					<td>6</td>
+                    <td style="padding: 10px; text-align: left">
+                        Field Sales quarterly quota achievement ($12.5K)
+                    </td>
+                    <td style="padding: 10px; text-align: left">
+                        100 points
+                    </td>
+                </tr>
+                <tr class="odd1">
+					<td>7</td>
+                    <td style="padding: 10px; text-align: left">
+                        New accounts reaching $40K in revenue
+                    </td>
+                    <td style="padding: 10px; text-align: left">
+                        40 points
+                    </td>
+                </tr>
+                <tr class="odd2">
+					<td>8</td>
+                    <td style="padding: 10px; text-align: left">
+                        Maximum yearly amount to be redeemed (by individual salesperson)
+                    </td>
+                    <td style="padding: 10px; text-align: left">
+                        800 points ($1,600 value)
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+<div class="main-content">
+   <!-- <div class="content-heading">
+        Point Accumulate Regulations:
+    </div>
+    <p>
+        When overlap between above rules, participant can only select for the
+        best rule to apply for exchanging the points. See examples:
+    </p>
+    <ul type="disc">
+        <li>
+            110 points (including 50K from PRM project registration): 60 points +
+            (50 points x 1.5) = 60 + 125 points
+        </li>
+        <li>
+            170 points (including 20K from Special Offering + 50K from PRM project
+            registration): 100 points + (20 points x 2) + (50 points x 1.5) = 100 +
+            40 + 125 points
+        </li>
+    </ul>-->
+    <div class="sure" style="margin-top:10px;">
+        <a href="PersonalInfo.aspx">
+            Join Us
+        </a>
+    </div>
+</div>

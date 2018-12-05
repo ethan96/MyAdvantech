@@ -1,0 +1,512 @@
+﻿<%@ Page Title="Advantech Celebrates One Million ADAM Remote I/O Modules Sold!" Language="VB" MasterPageFile="~/MADAM/MADAM_MP.master" %>
+<script runat="server">
+
+    Protected Sub Page_Load(ByVal sender As Object, ByVal e As System.EventArgs)
+        'If Session("user_id") IsNot Nothing AndAlso (Util.IsAEUIT() OrElse Session("user_id").ToString.ToLower.StartsWith("julia.ko")) Then            
+        'Else
+        '    Response.End()
+        'End If
+        If LCase(Request.ServerVariables("PATH_INFO")) Like "*index*" OrElse LCase(Request.ServerVariables("PATH_INFO")) Like "*home*" Then
+            Try
+                Dim FOOTTB As HtmlTable = Me.Master.FindControl("footTB")
+                FOOTTB.Visible = False
+            Catch ex As Exception
+            End Try
+          
+        End If
+        If Not IsPostBack Then         
+            Try
+                Dim Domainstr As String = Request.Url.Host.ToLower
+                'If InStr(Domainstr, "1millionadam.advantech.com") > 0 Then 'OrElse InStr(Domainstr, "my-global.advantech.eu") > 0 Then
+                'Else
+                Dim SRC_VALUE As String = "", REFERRER As String = ""
+                If Request("Src") IsNot Nothing Then SRC_VALUE = Request("Src").ToString
+                If Request.UrlReferrer IsNot Nothing Then REFERRER = Request.UrlReferrer.ToString
+                Dim SQL As String = String.Format(" insert into MADAM_LOGIN (Row_ID,SRC_VALUE,IP,REFERRER,TIMESTAMP) values ('{0}',N'{1}',N'{2}',N'{3}',GETDATE())", _
+                                                  Util.NewRowId("MADAM_LOGIN", "MYLOCAL"), Replace(SRC_VALUE, "'", "''"), _
+                                                  Util.GetClientIP(), Replace(REFERRER, "'", "''"))
+                dbUtil.dbExecuteNoQuery("MYLOCAL", SQL)
+                ' End If
+               
+            Catch ex As Exception
+                Util.SendEmail("MING.ZHAO@ADVANTECH.COM.CN", "ebiz.aeu@advantech.eu", "MADAM Error email:", ex.ToString(), False, "", "")
+            End Try
+        End If
+    End Sub
+
+    Protected Sub Page_Init(ByVal sender As Object, ByVal e As System.EventArgs)
+        PanENG.Visible = False
+        PanChina.Visible = False
+        If Session("Browser_lan") IsNot Nothing AndAlso Session("Browser_lan").ToString() <> "" Then
+            Dim lan As String = Session("Browser_lan").ToString.ToLower
+            Select Case lan
+                Case "zh-cn"
+                    PanChina.Visible = True
+                Case Else
+                   PanENG.Visible = True 
+            End Select          
+        End If
+
+    End Sub
+</script>
+<asp:Content ID="Content1" ContentPlaceHolderID="head" Runat="Server">
+    <script src="../Includes/jquery-1.11.1.min.js" type="text/javascript"></script>
+    <script language="javascript" type="text/javascript">
+        window.setTimeout('openwin();', 7000);
+        window.setTimeout('openwin2();', 3000);
+        function openwin() {
+            var obj = document.getElementById('paneldiv1');
+            var obj2 = document.getElementById('Div1');
+            if (obj2) { $("#Div1").fadeIn("slow"); }
+        //    if (obj) { $("#paneldiv1").fadeIn("slow"); }
+            var obj = document.getElementById('paneldiv2');
+        //    if (obj) { $("#paneldiv2").fadeIn("slow"); }
+    
+    }
+
+    function openwin2() {
+        var obj2 = document.getElementById('Div1');
+        if (obj2) { $("#Div1").show(); }   
+    }
+    </script>
+</asp:Content>
+<asp:Content ID="Content2" ContentPlaceHolderID="ContentPlaceHolder1" Runat="Server">
+    <asp:Panel ID="PanENG" runat="server">
+          <script type="text/javascript">
+<!--
+              function MM_preloadImages() { //v3.0
+                  var d = document; if (d.images) {
+                      if (!d.MM_p) d.MM_p = new Array();
+                      var i, j = d.MM_p.length, a = MM_preloadImages.arguments; for (i = 0; i < a.length; i++)
+                          if (a[i].indexOf("#") != 0) { d.MM_p[j] = new Image; d.MM_p[j++].src = a[i]; } 
+                  }
+              }
+
+              function MM_swapImgRestore() { //v3.0
+                  var i, x, a = document.MM_sr; for (i = 0; a && i < a.length && (x = a[i]) && x.oSrc; i++) x.src = x.oSrc;
+              }
+
+              function MM_findObj(n, d) { //v4.01
+                  var p, i, x; if (!d) d = document; if ((p = n.indexOf("?")) > 0 && parent.frames.length) {
+                      d = parent.frames[n.substring(p + 1)].document; n = n.substring(0, p);
+                  }
+                  if (!(x = d[n]) && d.all) x = d.all[n]; for (i = 0; !x && i < d.forms.length; i++) x = d.forms[i][n];
+                  for (i = 0; !x && d.layers && i < d.layers.length; i++) x = MM_findObj(n, d.layers[i].document);
+                  if (!x && d.getElementById) x = d.getElementById(n); return x;
+              }
+
+              function MM_swapImage() { //v3.0
+                  var i, j = 0, x, a = MM_swapImage.arguments; document.MM_sr = new Array; for (i = 0; i < (a.length - 2); i += 3)
+                      if ((x = MM_findObj(a[i])) != null) { document.MM_sr[j++] = x; if (!x.oSrc) x.oSrc = x.src; x.src = a[i + 2]; }
+              }
+
+              function link_m1() {
+                  window.open('http://www.1millionadam.advantech.com/MADAM/story.aspx', '_self');
+              }
+
+              function link_m2() {
+                  window.open('http://www.1millionadam.advantech.com/MADAM/wwfeedback.aspx', '_self');
+              }
+
+              function link_b1() {
+                  window.open('http://www.1millionadam.advantech.com/MADAM/story.aspx', '_self');
+              }
+              function link_b2() {
+                  window.open('http://www.1millionadam.advantech.com/MADAM/main_1.aspx', '_self');
+              }
+              function link_b3() {
+                  window.open('http://www.1millionadam.advantech.com/MADAM/download.aspx', '_self');
+              }
+              function link_b4() {
+                  window.open('http://www.advantech.com/eautomation/remote-io/news.aspx?doc_id={4C2692BC-CFE8-4B13-AA4A-CC4C8F2DCB0', '_blank');
+              }
+              function link_b5() {
+                  window.open('http://www.daqyourway.advantech.com/', '_blank');
+              }
+              function link_b6() {
+                  window.open('http://www.1millionadam.advantech.com/MADAM/wwfeedback.aspx', '_self');
+              }
+              function link_fb() {
+                  window.open('http://www.facebook.com/sharer.php?u=http://www.1millionadam.advantech.com/MADAM/home.aspx&t=Celebrate One Millionth ADAM Remote I/O Modules with Advantech', '_blank');
+              }
+              function link_tw() {
+                  window.open('http://twitter.com/home/?status=Celebrate One Millionth ADAM Remote I/O Modules with Advantech  http://www.1millionadam.advantech.com/MADAM/home.aspx', '_blank');
+              }
+//-->
+</script>
+        <table width="977"  border="0" align="center" cellpadding="0" cellspacing="0" id="Table_01">
+            <tr>
+		            <td width="977" height="0"></td>
+            </tr>
+	        <tr>
+		        <td height="500">
+                     <div style="position:relative; width:977px; height:500px;">
+                        <object classid="clsid:D27CDB6E-AE6D-11cf-96B8-444553540000" codebase="http://download.macromedia.com/pub/shockwave/cabs/flash/swflash.cab#version=9,0,28,0" width="977" height="500">
+                            <param name="movie" value="./images/index.swf">
+                            <param name="quality" value="high">
+                            <param name="wmode" value="transparent" />
+                            <embed src="./images/index.swf" wmode="transparent"   quality="high" pluginspage="http://www.adobe.com/shockwave/download/download.cgi?P1_Prod_Version=ShockwaveFlash" type="application/x-shockwave-flash" width="977" height="500"></embed>
+	                    </object>
+                        <div style="position:absolute;bottom:100px; right:20%; display:none; z-index:101;" id="paneldiv1">
+                         <table width="550" border="0" align="left" cellpadding="0" cellspacing="0">
+                                      <tr>
+                                        <td align="center" ><img src="./images/top12.gif" width="550" height="9" /></td>
+                                      </tr>
+                                      <tr>
+                                        <td align="center" background="./images/top32.gif" style="text-align:center; color:tomato;" height="25">
+                                            <b>'Three Things You Like About ADAM' Winner Announcement</b>
+                                        </td>
+                                      </tr>
+                                      <tr>
+                                        <td align="center" style="text-align:center;" background="./images/top32.gif">
+                                            <img src="./images/top2.gif" width="500" height="5"  />
+                                        </td>
+                                      </tr>
+                                      <tr>
+                                        <td align="left" background="./images/top32.gif" class="Pancs20" style="line-height:21px;">
+                                            <asp:Panel runat="server" ID="Panel1" HorizontalAlign="Left" CssClass="Pancs3" ScrollBars="Auto" height="240">
+                                                Thanks for all the participants in this ‘1 Million ADAM’ Celebration event! Congratulations to the winners below, listed by their submitted nicknames. Advantech will contact the winners shortly so don’t forget to check your email!
+                                                <br /><b>iPad Winner: </b><span  style="color: #666666;"> 未来</span>  
+                                                <br />
+                                                <b>ADAM-shape Memo Pad Winners:</b>
+                                               <table width="80%" border="0" align="left" style="color: #666666;">
+                                                    <tr>
+                                                    <td width="25%">Felix</td>
+                                                    <td width="25%">Tom</td>
+                                                    <td width="25%">qq</td>
+                                                    <td>Alan</td>
+                                                    </tr>
+                                                    <tr>
+                                                    
+                                                    <td>Nickname</td>
+                                                    <td>翟工</td>
+                                                     <td>Dolomiti</td>
+                                                    <td>graydoc</td>
+                                                    </tr>  
+                                                    <tr>
+                                                  
+                                                    <td>Jason</td>
+                                                     <td>Alvaro</td>
+                                                    <td>wohuole</td>
+                                                    <td>亚当很给力</td>
+                                                    </tr>
+                                                  
+                                                    <tr>
+                                                    <td>andrefreire</td>
+                                                    <td>都市2046</td>
+                                                    <td>phosphor</td>
+                                                      <td>protoneone</td>
+                                                    </tr>
+                                                    <tr>
+                                                  
+                                                    <td>DR</td>
+                                                    <td>顺泰</td>
+                                                      <td>bob</td>
+                                                    <td>申广</td>
+                                                    </tr>
+                                                   
+                                                    <tr>
+                                                    <td>jshen7</td>
+                                                    <td>Jimthegr</td>
+                                                    <td>oldthree</td>
+                                                    <td>孙高旭</td>
+                                                    </tr>
+                                                    <tr>
+                                                    <td>Edison</td>
+                                                    <td>阿安</td>
+                                                    <td>xiaoliang</td>
+                                                    <td>Frank</td>
+                                                    </tr>
+                                                    <tr>
+                                                 
+                                                    <td>李戈</td>
+                                                    <td>NicoLuis</td>
+                                                    <td>homeauto</td>
+                                                    <td>峰</td>
+                                                    </tr>
+                                                    <tr>                                              
+                                                    <td>杨杰</td>
+                                                      <td>Morales</td>
+                                                    <td>li</td>
+                                                    <td>yangjun</td>
+                                                    </tr>
+                                                    
+                                                    <tr>
+                                                    <td>Manel</td>
+                                                    <td>胖胖</td>
+                                                    <td>蚜虫</td> 
+                                                     <td>Pilotto</td>
+                                                    </tr>
+                                                    <tr>
+                                                  
+                                                    <td>sczty</td>
+                                                    <td>飞雁</td>
+                                                      <td>2016nguyenhuong</td>
+                                                    <td>SUNNY</td>
+                                                    </tr>
+                                                    <tr>                                               
+                                                    <td>邓城</td>
+                                                      <td>Peterpan</td>
+                                                    <td>hufo</td>
+                                                    <td>houzi80</td>
+                                                    </tr>
+                                                   
+                                                    <tr>
+                                                    <td>Sergio</td>
+                                                    <td>james</td>
+                                                    <td></td>
+                                                    <td></td>
+                                                    </tr>
+                                                </table>
+                                            </asp:Panel>     
+                                        </td>
+                                      </tr>
+                                      <tr>
+                                         <td align="right" background="./images/top32.gif" style="text-align:right; padding-right:10px;">
+                                            <a href="javascript:viod(0);" onclick="closepanle('paneldiv1');" style="cursor:pointer"><img alt="close" src="./images/madamclose2.gif" border="0" width="55" height="19"/></a>
+                                         </td>
+                                      </tr>
+                                       <tr>
+                                        <td align="center"><img src="./images/top42.gif" width="550" height="8" /></td>
+                                      </tr>
+                                    </table>   
+                    </div>
+                        <div style="position:absolute;bottom:40px; right:568px; z-index:99; display:none; " id="Div1">
+                            <a href="./wwfeedback.aspx">
+                                <img src="images_new/menu_06xin.gif" alt="" style="cursor:hand" 
+                                    onmouseout="this.src='images_new/menu_06xin.gif';"
+                                    onmouseover="this.src='images_new/menu_06xin2.jpg';"  border="0" width="69" height="38"  />
+                            </a>
+                        </div>
+                        <div style="position:absolute;bottom:378px; right:845px; z-index:99;" id="Div2">
+                            <a href="./wwfeedback.aspx">
+                                <img src="images_new/tongming.gif" alt="" style="cursor:hand"  border="0" width="129" height="117"  />
+                            </a>
+                        </div>
+                    </div>
+                </td>
+            </tr>
+         </table>
+
+    </asp:Panel>
+    <asp:Panel ID="PanChina" runat="server">        
+         <script type="text/javascript">
+             function MM_preloadImages() { //v3.0
+                 var d = document; if (d.images) {
+                     if (!d.MM_p) d.MM_p = new Array();
+                     var i, j = d.MM_p.length, a = MM_preloadImages.arguments; for (i = 0; i < a.length; i++)
+                         if (a[i].indexOf("#") != 0) { d.MM_p[j] = new Image; d.MM_p[j++].src = a[i]; } 
+                 }
+             }
+
+             function MM_swapImgRestore() { //v3.0
+                 var i, x, a = document.MM_sr; for (i = 0; a && i < a.length && (x = a[i]) && x.oSrc; i++) x.src = x.oSrc;
+             }
+
+             function MM_findObj(n, d) { //v4.01
+                 var p, i, x; if (!d) d = document; if ((p = n.indexOf("?")) > 0 && parent.frames.length) {
+                     d = parent.frames[n.substring(p + 1)].document; n = n.substring(0, p);
+                 }
+                 if (!(x = d[n]) && d.all) x = d.all[n]; for (i = 0; !x && i < d.forms.length; i++) x = d.forms[i][n];
+                 for (i = 0; !x && d.layers && i < d.layers.length; i++) x = MM_findObj(n, d.layers[i].document);
+                 if (!x && d.getElementById) x = d.getElementById(n); return x;
+             }
+
+             function MM_swapImage() { //v3.0
+                 var i, j = 0, x, a = MM_swapImage.arguments; document.MM_sr = new Array; for (i = 0; i < (a.length - 2); i += 3)
+                     if ((x = MM_findObj(a[i])) != null) { document.MM_sr[j++] = x; if (!x.oSrc) x.oSrc = x.src; x.src = a[i + 2]; }
+             }
+
+             function link_m1() {
+                 window.open('http://www.1millionadam.advantech.com/MADAM/story.aspx', '_self');
+             }
+
+             function link_m2() {
+                 window.open('http://www.1millionadam.advantech.com/MADAM/main_2.aspx', '_self');
+             }
+
+             function link_b1() {
+                 window.open('http://www.1millionadam.advantech.com/MADAM/story.aspx', '_self');
+             }
+             function link_b2() {
+                 window.open('http://www.1millionadam.advantech.com/MADAM/main_1.aspx', '_self');
+             }
+             function link_b3() {
+                 window.open('http://www.1millionadam.advantech.com/MADAM/download.aspx', '_self');
+             }
+             function link_b4() {
+                 window.open('http://www.advantech.com/eautomation/remote-io/news.aspx?doc_id={4C2692BC-CFE8-4B13-AA4A-CC4C8F2DCB0', '_blank');
+             }
+             function link_b5() {
+                 window.open('http://www.daqyourway.advantech.com/', '_blank');
+             }
+             function link_fb() {
+                 window.open('http://www.facebook.com/sharer.php?u=http://www.1millionadam.advantech.com/&t=Celebrate One Million Advantech ADAM Modules', '_blank');
+             }
+             function link_tw() {
+                 window.open('http://twitter.com/home/?status=Celebrate One Million Advantech ADAM Modules  http://www.1millionadam.advantech.com/', '_blank');
+             }
+//-->
+</script>
+
+<table width="977"  border="0" align="center" cellpadding="0" cellspacing="0" id="Table_01">
+<tr>
+		<td width="977" height="0"></td>
+  </tr>
+	<tr>
+		<td height="500">
+               <div style="position:relative; width:977px; height:500px;">
+                    <object classid="clsid:D27CDB6E-AE6D-11cf-96B8-444553540000" codebase="http://download.macromedia.com/pub/shockwave/cabs/flash/swflash.cab#version=9,0,28,0" width="977" height="500">
+                      <param name="movie" value="./images/index_s.swf">
+                      <param name="quality" value="high">
+                       <param name="wmode" value="transparent" />
+                      <embed src="./images/index_s.swf" wmode="transparent"  quality="high" pluginspage="http://www.adobe.com/shockwave/download/download.cgi?P1_Prod_Version=ShockwaveFlash" type="application/x-shockwave-flash" width="977" height="500"></embed>
+	                </object>
+                    <div style="position:absolute;bottom:468px; right:50px;;">
+                        <!-- JiaThis Button BEGIN -->
+                        <div id="ckepop">
+	                        <a href="http://www.jiathis.com/share/?uid=894389" class="jiathis jiathis_txt jtico jtico_jiathis" target="_blank">分享到：</a>
+	                        <a class="jiathis_button_tsina"></a>
+	                        <a class="jiathis_button_qzone"></a>
+	                        <a class="jiathis_button_kaixin001"></a>
+	                        <a class="jiathis_button_renren"></a>
+                        </div>
+                        <script type="text/javascript" src="http://v2.jiathis.com/code/jia.js?uid=894389" charset="utf-8"></script>
+                        <!-- JiaThis Button END -->
+                   </div>
+                    <div style="position:absolute;bottom:100px; right:20%; display:none;" id="paneldiv2">
+                         <table width="550" border="0" align="left" cellpadding="0" cellspacing="0">
+                                      <tr>
+                                        <td align="center" ><img src="./images/top12.gif" width="550" height="9" /></td>
+                                      </tr>
+                                      <tr>
+                                        <td align="center" background="./images/top32.gif" style="text-align:center; color:tomato;" height="25">
+                                            <b>“百万亚当销量 荣耀与您分享”获奖名单公布</b>
+                                        </td>
+                                      </tr>
+                                      <tr>
+                                        <td align="center" style="text-align:center;" background="./images/top32.gif">
+                                            <img src="./images/top2.gif" width="500" height="5"  />
+                                        </td>
+                                      </tr>
+                                      <tr>
+                                        <td align="left" background="./images/top32.gif" class="Pancs20" style="line-height:21px;">
+                                            <asp:Panel runat="server" ID="reasons" HorizontalAlign="Left" CssClass="Pancs3" ScrollBars="Auto" height="240">
+                                                &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;感谢所有关注、参与研华“百万亚当”庆祝活动的朋友们！在此，祝贺以下获奖者（获奖名单以注册名显示）。近期，研华将与所有的获奖者联系并寄送礼品，请获奖者再次检查自己的邮箱、邮寄地址及联系电话！谢谢！
+                                                <br /><b>iPad 获得者: </b><span  style="color: #666666;"> 未来</span>  
+                                                <br />
+                                                <b>限量ADAM造型便利贴 获得者:</b>
+                                                <table width="80%" border="0" align="left" style="color: #666666;">
+                                                    <tr>
+                                                    <td width="25%">Felix</td>
+                                                    <td width="25%">Tom</td>
+                                                    <td width="25%">qq</td>
+                                                    <td>Alan</td>
+                                                    </tr>
+                                                    <tr>
+                                                    
+                                                    <td>Nickname</td>
+                                                    <td>翟工</td>
+                                                     <td>Dolomiti</td>
+                                                    <td>graydoc</td>
+                                                    </tr>  
+                                                    <tr>
+                                                  
+                                                    <td>Jason</td>
+                                                     <td>Alvaro</td>
+                                                    <td>wohuole</td>
+                                                    <td>亚当很给力</td>
+                                                    </tr>
+                                                  
+                                                    <tr>
+                                                    <td>andrefreire</td>
+                                                    <td>都市2046</td>
+                                                    <td>phosphor</td>
+                                                      <td>protoneone</td>
+                                                    </tr>
+                                                    <tr>
+                                                  
+                                                    <td>DR</td>
+                                                    <td>顺泰</td>
+                                                      <td>bob</td>
+                                                    <td>申广</td>
+                                                    </tr>
+                                                   
+                                                    <tr>
+                                                    <td>jshen7</td>
+                                                    <td>Jimthegr</td>
+                                                    <td>oldthree</td>
+                                                    <td>孙高旭</td>
+                                                    </tr>
+                                                    <tr>
+                                                    <td>Edison</td>
+                                                    <td>阿安</td>
+                                                    <td>xiaoliang</td>
+                                                    <td>Frank</td>
+                                                    </tr>
+                                                    <tr>
+                                                 
+                                                    <td>李戈</td>
+                                                    <td>NicoLuis</td>
+                                                    <td>homeauto</td>
+                                                    <td>峰</td>
+                                                    </tr>
+                                                    <tr>                                              
+                                                    <td>杨杰</td>
+                                                      <td>Morales</td>
+                                                    <td>li</td>
+                                                    <td>yangjun</td>
+                                                    </tr>
+                                                    
+                                                    <tr>
+                                                    <td>Manel</td>
+                                                    <td>胖胖</td>
+                                                    <td>蚜虫</td> 
+                                                     <td>Pilotto</td>
+                                                    </tr>
+                                                    <tr>
+                                                  
+                                                    <td>sczty</td>
+                                                    <td>飞雁</td>
+                                                      <td>2016nguyenhuong</td>
+                                                    <td>SUNNY</td>
+                                                    </tr>
+                                                    <tr>                                               
+                                                    <td>邓城</td>
+                                                      <td>Peterpan</td>
+                                                    <td>hufo</td>
+                                                    <td>houzi80</td>
+                                                    </tr>
+                                                   
+                                                    <tr>
+                                                    <td>Sergio</td>
+                                                    <td>james</td>
+                                                    <td></td>
+                                                    <td></td>
+                                                    </tr>
+                                                </table>
+                                            </asp:Panel>     
+                                        </td>
+                                      </tr>
+                                      <tr>
+                                         <td align="right" background="./images/top32.gif" style="text-align:right; padding-right:10px;">
+                                            <a href="javascript:viod(0);" onclick="closepanle('paneldiv2');" style="cursor:pointer"><img alt="close" src="./images/madamclose1.gif" border="0" width="52" height="19"/></a>
+                                         </td>
+                                      </tr>
+                                       <tr>
+                                        <td align="center"><img src="./images/top42.gif" width="550" height="8" /></td>
+                                      </tr>
+                                    </table>   
+                    </div>
+            </div>
+        </td>
+  </tr>
+</table>         
+</asp:Panel>
+<script language="javascript" type="text/javascript">
+    function closepanle(paneldiv) {
+        var obj = document.getElementById(paneldiv);
+        if (obj) {obj.style.display = "none";}
+    }
+</script>
+</asp:Content>

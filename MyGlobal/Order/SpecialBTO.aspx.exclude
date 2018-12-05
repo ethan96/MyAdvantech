@@ -1,0 +1,264 @@
+﻿<%@ Page Title="" Language="VB" MasterPageFile="~/Includes/MyMaster.master" %>
+
+<%@ Register Src="~/Includes/Order/PickEC.ascx" TagName="EC" TagPrefix="uc1" %>
+<%@ Register Src="~/Includes/Order/PickERE.ascx" TagName="ERE" TagPrefix="uc2" %>
+<script runat="server">
+    Dim mycart As New CartList("b2b", "cart_detail")
+    Dim myCartHistory As New cart_history("b2b", "cart_history")
+    Dim MySpecialBto As New SpecialBto("b2b", "SpecialBto")
+    Protected Sub Page_Load(ByVal sender As Object, ByVal e As System.EventArgs)
+        If Not IsPostBack Then
+            initGV()
+        End If
+    End Sub
+    Protected Sub initGV()
+        Dim dt As DataTable = MySpecialBto.GetDTbySelectStr(String.Format("select distinct Parent as name, sum(price) as price From {0} group by Parent order by Parent", MySpecialBto.tb))
+        Me.GridView1.DataSource = dt
+        Me.GridView1.DataBind()
+    End Sub
+    Protected Sub GridView1_PageIndexChanging(ByVal sender As Object, ByVal e As System.Web.UI.WebControls.GridViewPageEventArgs)
+        Me.GridView1.PageIndex = e.NewPageIndex
+        initGV()
+    End Sub
+
+    Protected Sub lbtnCheckOut_Click(ByVal sender As Object, ByVal e As System.EventArgs)
+        Dim OBJ As LinkButton = CType(sender, LinkButton)
+        Dim row As GridViewRow = CType(OBJ.NamingContainer, GridViewRow)
+        Dim Key As String = OBJ.CommandName
+        Me.txtItem.Text = Key
+        Me.MPPickFm.Show()
+    End Sub
+    
+    Sub ORDER()
+        Dim Key As String = Me.txtItem.Text
+        Dim ReqDate As DateTime = Now
+        If IsDate(Me.txtReqDate.Text) Then
+            ReqDate = CDate(Me.txtReqDate.Text)
+        End If
+        Dim isESE As String = "N"
+        isESE = Me.rbtnESA.SelectedValue
+        Dim ERE As String = Me.txtERE.Text.Trim
+        Dim EC As String = Me.txtEC.Text.Trim
+        Dim QTY As Integer = Me.txtGVQty.Text
+        Dim dt As DataTable = MySpecialBto.GetDT(String.Format("Parent='{0}'", KEY), "")
+        If dt.Rows.Count > 0 Then
+            Dim cart_id As String = Session("cart_id")
+            mycart.Delete(String.Format("cart_id='{0}'", cart_id))
+            mycart.ADD2CART(cart_id, KEY.ToUpper, QTY, 0, -1, "", 0, 0)
+            For Each r As DataRow In dt.Rows
+                mycart.ADD2CART(cart_id, r.Item("Name").ToUpper, QTY, 0, 1, "Specail BTOS", 0, 1, ReqDate)
+                mycart.Update(String.Format("cart_id='{0}' and part_no='{1}'", cart_id, r.Item("Name").ToString.TrimStart("0")), String.Format("list_price='{0}',unit_price='{1}'", r.Item("Price"), r.Item("Price")))
+            Next
+            Response.Redirect("~/Order/OrderInfo.aspx?ISESE=" & isESE & "&ERE=" & ERE & "&EC=" & EC)
+        End If
+    End Sub
+
+    Protected Sub pickEC_Click(ByVal sender As Object, ByVal e As System.Web.UI.ImageClickEventArgs)
+        Me.ascxPickEC.ShowData("")
+        Me.UPPickEC.Update()
+        Me.MPPickEC.Show()
+    End Sub
+
+    Protected Sub pickERE_Click(ByVal sender As Object, ByVal e As System.Web.UI.ImageClickEventArgs)
+        Me.ascxPickERE.ShowData("")
+        Me.UPPickERE.Update()
+        Me.MPPickERE.Show()
+    End Sub
+    
+    Public Sub PickECEnd(ByVal str As Object)
+        Dim KEY As String = str.ToString
+        Me.txtEC.Text = KEY
+        Me.UPPickFm.Update()
+        Me.MPPickEC.Hide()
+    End Sub
+    Public Sub PickEREEnd(ByVal str As Object)
+        Dim KEY As String = str.ToString
+        Me.txtERE.Text = KEY
+        Me.UPPickFm.Update()
+        Me.MPPickERE.Hide()
+    End Sub
+
+    Protected Sub btnConfirm_Click(ByVal sender As Object, ByVal e As System.EventArgs)
+        ORDER()
+    End Sub
+</script>
+<asp:Content ID="Content1" ContentPlaceHolderID="_main" runat="Server">
+    <table>
+        <tr>
+            <td class="menu_title">
+                Special BTOS Ordering
+            </td>
+        </tr>
+        <%--<tr>
+            <td style="border: 1px solid #d7d0d0; padding: 10px">
+            </td>
+        </tr>--%>
+    </table>
+    <hr />
+    <asp:GridView DataKeyNames="Name" ID="GridView1" runat="server" AllowPaging="true"
+        PageSize="50" PageIndex="0" AutoGenerateColumns="false" OnPageIndexChanging="GridView1_PageIndexChanging"
+        Width="100%">
+        <Columns>
+            <asp:BoundField DataField="Name" HeaderText="Name" />
+            <asp:TemplateField ItemStyle-HorizontalAlign="right" HeaderStyle-HorizontalAlign="Center">
+                <HeaderTemplate>
+                    Price
+                </HeaderTemplate>
+                <ItemTemplate>
+                    <asp:Label runat="server" Text='<%# Session("company_currency_sign")%>' ID="lbListPriceSign"></asp:Label>
+                    <asp:Label runat="server" Text='<%#FormatNumber(Eval("price"),2) %>' ID="lbPrice"></asp:Label>
+                </ItemTemplate>
+            </asp:TemplateField>
+            <asp:TemplateField ItemStyle-HorizontalAlign="Center" HeaderStyle-HorizontalAlign="Center">
+                <HeaderTemplate>
+                    Check Out
+                </HeaderTemplate>
+                <ItemTemplate>
+                    <asp:LinkButton ID="lbtnCheckOut" CommandName='<%#Bind("Name")%>' runat="server"
+                        Text="Check Out" OnClick="lbtnCheckOut_Click"></asp:LinkButton>
+                </ItemTemplate>
+            </asp:TemplateField>
+        </Columns>
+    </asp:GridView>
+    <asp:Panel ID="PLPickFm" runat="server" Style="display: none" CssClass="modalPopup">
+        <div style="text-align: right;">
+            <asp:LinkButton ID="CancelButtonFm" runat="server" Text="Close" />
+        </div>
+        <div>
+            <asp:UpdatePanel ID="UPPickFm" runat="server" UpdateMode="Conditional">
+                <ContentTemplate>
+                    <table width="100%">
+                        <tr>
+                            <td>
+                                Current Item:
+                            </td>
+                            <td>
+                                <asp:TextBox ID="txtItem" runat="server" ReadOnly="true"></asp:TextBox>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                Required Date:
+                            </td>
+                            <td>
+                                <asp:TextBox ID="txtReqDate" runat="server"></asp:TextBox>
+                                <ajaxtoolkit:calendarextender targetcontrolid="txtReqDate" runat="server" format="yyyy/MM/dd"
+                                    id="calDate" />
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                Early Shipment Allowed:
+                            </td>
+                            <td>
+                                <asp:RadioButtonList runat="server" ID="rbtnESA" RepeatDirection="Horizontal">
+                                    <asp:ListItem Value="Y">Y</asp:ListItem>
+                                    <asp:ListItem Value="N" Selected="True">N</asp:ListItem>
+                                </asp:RadioButtonList>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                ER Employee:
+                            </td>
+                            <td>
+                                <asp:TextBox ID="txtERE" runat="server" Width="100px"></asp:TextBox><asp:ImageButton
+                                    ID="pickERE" runat="server" ImageUrl="~/images/pickPick.gif" OnClick="pickERE_Click" />
+                                    <ajaxtoolkit:filteredtextboxextender runat="server" id="ft1" targetcontrolid="txtERE"
+                                filtertype="Numbers, Custom" />
+                                
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                End Customer:
+                            </td>
+                            <td>
+                                <asp:TextBox ID="txtEC" runat="server" Width="100px"></asp:TextBox><asp:ImageButton
+                                    ID="pickEC" runat="server" ImageUrl="~/images/pickPick.gif" OnClick="pickEC_Click" />
+                                    
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                               QTY:
+                            </td>
+                            <td>
+                                <asp:TextBox ID="txtGVQty" runat="server" Text='1' Width="30px" Style="text-align: right"></asp:TextBox>
+                                <ajaxtoolkit:filteredtextboxextender runat="server" id="ft2" targetcontrolid="txtGVQty"
+                                filtertype="Numbers, Custom" />
+                            </td>
+                        </tr>
+                         
+                    </table>
+                    <table width="100%">
+                        <tr>
+                            <td align="center">
+                                <asp:Button ID="btnConfirm" OnClientClick="return IsNewOpty()" runat="server" Text="Confirm" OnClick="btnConfirm_Click" />
+                            </td>
+                        </tr>
+                    </table>
+                </ContentTemplate>
+            </asp:UpdatePanel>
+        </div>
+    </asp:Panel>
+    <asp:LinkButton ID="lbDummyFm" runat="server"></asp:LinkButton>
+    <ajaxtoolkit:modalpopupextender id="MPPickFm" runat="server" targetcontrolid="lbDummyFm"
+        popupcontrolid="PLPickFm" backgroundcssclass="modalBackground" cancelcontrolid="CancelButtonFm"
+        dropshadow="true" />
+    <asp:Panel ID="PLPickEC" runat="server" Style="display: none" CssClass="modalPopup">
+        <div style="text-align: right;">
+            <asp:LinkButton ID="CancelButtonEC" runat="server" Text="Close" />
+        </div>
+        <div>
+            <asp:UpdatePanel ID="UPPickEC" runat="server" UpdateMode="Conditional">
+                <ContentTemplate>
+                    <uc1:EC ID="ascxPickEC" runat="server" />
+                </ContentTemplate>
+            </asp:UpdatePanel>
+        </div>
+    </asp:Panel>
+    <asp:LinkButton ID="lbDummyEC" runat="server"></asp:LinkButton>
+    <ajaxtoolkit:modalpopupextender id="MPPickEC" runat="server" targetcontrolid="lbDummyEC"
+        popupcontrolid="PLPickEC" backgroundcssclass="modalBackground" cancelcontrolid="CancelButtonEC"
+        dropshadow="true" />
+    <asp:Panel ID="PLPickERE" runat="server" Style="display: none" CssClass="modalPopup">
+        <div style="text-align: right;">
+            <asp:LinkButton ID="CancelButtonERE" runat="server" Text="Close" />
+        </div>
+        <div>
+            <asp:UpdatePanel ID="UPPickERE" runat="server" UpdateMode="Conditional">
+                <ContentTemplate>
+                    <uc2:ERE ID="ascxPickERE" runat="server" />
+                </ContentTemplate>
+            </asp:UpdatePanel>
+        </div>
+    </asp:Panel>
+    <asp:LinkButton ID="lbDummyERE" runat="server"></asp:LinkButton>
+    <ajaxtoolkit:modalpopupextender id="MPPickERE" runat="server" targetcontrolid="lbDummyERE"
+        popupcontrolid="PLPickERE" backgroundcssclass="modalBackground" cancelcontrolid="CancelButtonERE"
+        dropshadow="true" />
+        <script type="text/javascript">
+            function IsNewOpty() {
+                var Obj3 = document.getElementById('<%=Me.txtReqDate.ClientID%>')
+                var Obj2 = document.getElementById('<%=Me.txtEC.ClientID%>')
+                var Obj1 = document.getElementById('<%=Me.txtERE.ClientID%>')
+                if (Obj3.value == '') {
+                    Obj3.style.backgroundColor = "#ff0000";
+                    return false;
+                }
+                if (Obj1.value == '') {
+                    Obj1.style.backgroundColor = "#ff0000";
+                    return false;
+                }
+                if (Obj2.value == '') {
+                    Obj2.style.backgroundColor = "#ff0000";
+                    return false;
+                }
+
+                return true;
+            }
+        </script>
+</asp:Content>
+<asp:Content ID="Content2" ContentPlaceHolderID="cph1" runat="Server">
+</asp:Content>

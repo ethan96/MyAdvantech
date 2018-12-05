@@ -1,0 +1,4221 @@
+<?xml version="1.0" encoding="utf-8"?>
+<wsdl:definitions xmlns:http="http://schemas.xmlsoap.org/wsdl/http/" xmlns:soapenc="http://schemas.xmlsoap.org/soap/encoding/" xmlns:mime="http://schemas.xmlsoap.org/wsdl/mime/" xmlns:tns="http://tempuri.org/b2baeu_SAP_WS/Service1" xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/" xmlns:tm="http://microsoft.com/wsdl/mime/textMatching/" xmlns:s="http://www.w3.org/2001/XMLSchema" xmlns:soap12="http://schemas.xmlsoap.org/wsdl/soap12/" targetNamespace="http://tempuri.org/b2baeu_SAP_WS/Service1" xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/">
+  <wsdl:types>
+    <s:schema elementFormDefault="qualified" targetNamespace="http://tempuri.org/b2baeu_SAP_WS/Service1">
+      <s:element name="Get_Serial_No_By_GUI">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="SerialNo" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="ItemList" type="s:string" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="Get_Serial_No_By_GUIResponse">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="Get_Serial_No_By_GUIResult" />
+            <s:element minOccurs="0" maxOccurs="1" name="ItemList" type="s:string" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="Get_Billing_From_SO">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="SalesNo" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="ReturnBilling" type="s:string" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="Get_Billing_From_SOResponse">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="Get_Billing_From_SOResult" />
+            <s:element minOccurs="0" maxOccurs="1" name="ReturnBilling" type="s:string" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="Get_So_From_Billing_No">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="BillingNo" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="ReturnBilling" type="s:string" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="Get_So_From_Billing_NoResponse">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="Get_So_From_Billing_NoResult" />
+            <s:element minOccurs="0" maxOccurs="1" name="ReturnBilling" type="s:string" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="Get_ExchangeRate">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="fromCurr" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="toCurr" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="ReturnList" type="s:string" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="Get_ExchangeRateResponse">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="Get_ExchangeRateResult" />
+            <s:element minOccurs="0" maxOccurs="1" name="ReturnList" type="s:string" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="Get_Standard_Cost_4_Digit">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="matnr" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="werk" type="s:string" />
+            <s:element minOccurs="1" maxOccurs="1" name="stand_cost" type="s:decimal" />
+            <s:element minOccurs="1" maxOccurs="1" name="Group_cost" type="s:decimal" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="Get_Standard_Cost_4_DigitResponse">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="Get_Standard_Cost_4_DigitResult" />
+            <s:element minOccurs="1" maxOccurs="1" name="stand_cost" type="s:decimal" />
+            <s:element minOccurs="1" maxOccurs="1" name="Group_cost" type="s:decimal" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="Quotation_CREATE">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="Order_DataXML" type="s:string" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="Quotation_CREATEResponse">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="1" maxOccurs="1" name="Quotation_CREATEResult" type="s:int" />
+            <s:element minOccurs="0" maxOccurs="1" name="Order_Status_XML" type="s:string" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="ZGET_WHERE_UESD_BOM_RFC">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="eolpart" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="finishgoods" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="werks" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="result" type="s:string" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="ZGET_WHERE_UESD_BOM_RFCResponse">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="result" type="s:string" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="ZSD_SPA_INSERT">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="VKORG" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="ZZ_SPA" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="MATNR" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="VTWEG" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="SPART" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="VKBUR" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="VKGRP" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="KUNNR" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="WAERK" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="NETPR" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="ZMENG" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="PEINH" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="ERNAM" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="ERNAM_EMAIL" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="CATSAPNAME" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="CATSAPNAME_EMAIL" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="DATAB" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="DATBI" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="APPLSTATUS" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="REMARKS" type="s:string" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="ZSD_SPA_INSERTResponse">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="1" maxOccurs="1" name="ZSD_SPA_INSERTResult" type="s:int" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="SOC_Create">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="dt_set">
+              <s:complexType>
+                <s:sequence>
+                  <s:element ref="s:schema" />
+                  <s:any />
+                </s:sequence>
+              </s:complexType>
+            </s:element>
+            <s:element minOccurs="0" maxOccurs="1" name="log_XML" type="s:string" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="SOC_CreateResponse">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="SOC_CreateResult" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="log_XML" type="s:string" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="ConvertToExCurrencyValue">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="1" maxOccurs="1" name="amount" type="s:decimal" />
+            <s:element minOccurs="0" maxOccurs="1" name="currency" type="s:string" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="ConvertToExCurrencyValueResponse">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="1" maxOccurs="1" name="ConvertToExCurrencyValueResult" type="s:decimal" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="GetAdvantechStockPrice">
+        <s:complexType />
+      </s:element>
+      <s:element name="GetAdvantechStockPriceResponse">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="GetAdvantechStockPriceResult" type="s:string" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="GetAdvantechStockPriceInt">
+        <s:complexType />
+      </s:element>
+      <s:element name="GetAdvantechStockPriceIntResponse">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="GetAdvantechStockPriceIntResult" type="s:string" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="UpdateSOWarrantyFlag">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="inxml" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="status" type="s:string" />
+            <s:element minOccurs="1" maxOccurs="1" name="retCode" type="s:boolean" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="UpdateSOWarrantyFlagResponse">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="status" type="s:string" />
+            <s:element minOccurs="1" maxOccurs="1" name="retCode" type="s:boolean" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="UpdateSOWarrantyFlag_TEST">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="inxml" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="status" type="s:string" />
+            <s:element minOccurs="1" maxOccurs="1" name="retCode" type="s:boolean" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="UpdateSOWarrantyFlag_TESTResponse">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="status" type="s:string" />
+            <s:element minOccurs="1" maxOccurs="1" name="retCode" type="s:boolean" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="GetRMAStatus">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="customer" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="rma_no" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="part_no" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="order_from" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="status" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="Xmlresult" type="s:string" />
+            <s:element minOccurs="1" maxOccurs="1" name="retCode" type="s:boolean" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="GetRMAStatusResponse">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="customer" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="rma_no" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="part_no" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="order_from" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="status" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="Xmlresult" type="s:string" />
+            <s:element minOccurs="1" maxOccurs="1" name="retCode" type="s:boolean" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="GetCreditBalance_New">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="company_code" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="customer" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="keyDate" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="CreditBalance" type="s:string" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="GetCreditBalance_NewResponse">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="company_code" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="customer" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="keyDate" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="CreditBalance" type="s:string" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="GetCreditBalance">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="company_code" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="customer" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="keyDate" type="s:string" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="GetCreditBalanceResponse">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="GetCreditBalanceResult" type="s:string" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="eBizAEU_SAPDYNSQL">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="strSql" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="id" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="pwd" type="s:string" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="eBizAEU_SAPDYNSQLResponse">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="eBizAEU_SAPDYNSQLResult" type="s:string" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="SAP_DynSql">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="sqlStatement" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="IP" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="Client" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="SysNum" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="Account" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="pwd" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="SapError" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="runtimeError" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="xmlResult" type="s:string" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="SAP_DynSqlResponse">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="1" maxOccurs="1" name="SAP_DynSqlResult" type="s:int" />
+            <s:element minOccurs="0" maxOccurs="1" name="SapError" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="runtimeError" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="xmlResult" type="s:string" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="ReadSAPTable">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="table_name" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="Where" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="FieldXml" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="strXml" type="s:string" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="ReadSAPTableResponse">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="1" maxOccurs="1" name="ReadSAPTableResult" type="s:int" />
+            <s:element minOccurs="0" maxOccurs="1" name="strXml" type="s:string" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="ReadSAPTable2">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="table_name" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="Where" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="FieldString" type="s:string" />
+            <s:element minOccurs="1" maxOccurs="1" name="top" type="s:int" />
+            <s:element minOccurs="0" maxOccurs="1" name="strXml" type="s:string" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="ReadSAPTable2Response">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="1" maxOccurs="1" name="ReadSAPTable2Result" type="s:int" />
+            <s:element minOccurs="0" maxOccurs="1" name="strXml" type="s:string" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="ReadSAPTable3">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="table_name" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="Where" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="FieldString" type="s:string" />
+            <s:element minOccurs="1" maxOccurs="1" name="top" type="s:int" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="ReadSAPTable3Response">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="ReadSAPTable3Result">
+              <s:complexType>
+                <s:sequence>
+                  <s:any minOccurs="0" maxOccurs="unbounded" namespace="http://www.w3.org/2001/XMLSchema" processContents="lax" />
+                  <s:any minOccurs="1" namespace="urn:schemas-microsoft-com:xml-diffgram-v1" processContents="lax" />
+                </s:sequence>
+              </s:complexType>
+            </s:element>
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="CustomerInquiry">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="customer_id" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="customer_name" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="customer_addr" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="errMsg" type="s:string" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="CustomerInquiryResponse">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="CustomerInquiryResult" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="errMsg" type="s:string" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="B2BValidation">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="sales_org" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="userid" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="pwd" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="errMsg" type="s:string" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="B2BValidationResponse">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="1" maxOccurs="1" name="B2BValidationResult" type="s:int" />
+            <s:element minOccurs="0" maxOccurs="1" name="errMsg" type="s:string" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="SerialNumberInquiry">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="soXml" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="SNXml" type="s:string" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="SerialNumberInquiryResponse">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="1" maxOccurs="1" name="SerialNumberInquiryResult" type="s:int" />
+            <s:element minOccurs="0" maxOccurs="1" name="SNXml" type="s:string" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="TrackingInfoInquiry">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="soXml" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="TrackInfoXml" type="s:string" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="TrackingInfoInquiryResponse">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="1" maxOccurs="1" name="TrackingInfoInquiryResult" type="s:int" />
+            <s:element minOccurs="0" maxOccurs="1" name="TrackInfoXml" type="s:string" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="Salesorder_Getlist">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="SalesOrg" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="CustId" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="dateFrom" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="dateTo" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="so_no" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="po_no" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="part_no" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="strXml" type="s:string" />
+            <s:element minOccurs="1" maxOccurs="1" name="retCode" type="s:boolean" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="Salesorder_GetlistResponse">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="strXml" type="s:string" />
+            <s:element minOccurs="1" maxOccurs="1" name="retCode" type="s:boolean" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="Bapi_Salesorder_Getlist">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="SalesOrg" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="CustId" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="dateFrom" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="dateTo" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="so_no" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="po_no" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="part_no" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="strXml" type="s:string" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="Bapi_Salesorder_GetlistResponse">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="1" maxOccurs="1" name="Bapi_Salesorder_GetlistResult" type="s:boolean" />
+            <s:element minOccurs="0" maxOccurs="1" name="strXml" type="s:string" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="GetOrderHistory">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="SalesOrg" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="CustId" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="dateFrom" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="dateTo" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="so_no" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="po_no" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="part_no" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="strXml" type="s:string" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="GetOrderHistoryResponse">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="1" maxOccurs="1" name="GetOrderHistoryResult" type="s:boolean" />
+            <s:element minOccurs="0" maxOccurs="1" name="strXml" type="s:string" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="GetBackOrder_Track">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="xSalesOrg" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="xCustomer" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="xDateFrom" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="xDateTo" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="xMaterial" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="xPO_NO" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="xSO_NO" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="BackOrder_XML" type="s:string" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="GetBackOrder_TrackResponse">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="1" maxOccurs="1" name="GetBackOrder_TrackResult" type="s:int" />
+            <s:element minOccurs="0" maxOccurs="1" name="BackOrder_XML" type="s:string" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="GetBackOrderList">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="xSO_NO" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="xSoldTo" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="xSalesOrg" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="xDisChnl" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="xDateFrom" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="xDateTo" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="BackOrder_XML" type="s:string" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="GetBackOrderListResponse">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="1" maxOccurs="1" name="GetBackOrderListResult" type="s:int" />
+            <s:element minOccurs="0" maxOccurs="1" name="BackOrder_XML" type="s:string" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="GetBackOrderItem">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="xSO_NO" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="BackOrderItem_XML" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="strMsg1" type="s:string" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="GetBackOrderItemResponse">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="1" maxOccurs="1" name="GetBackOrderItemResult" type="s:int" />
+            <s:element minOccurs="0" maxOccurs="1" name="BackOrderItem_XML" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="strMsg1" type="s:string" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="Get_Customer_AEU">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="Cus_ID" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="sales_org" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="Cus_Add" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="Cus_Gen" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="cur" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="credit_term" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="ship_via" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="company_price_type" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="ship_condition" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="parent_company_id" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="add2" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="attention" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="fax_no" type="s:string" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="Get_Customer_AEUResponse">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="Get_Customer_AEUResult" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="Cus_Add" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="Cus_Gen" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="cur" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="credit_term" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="ship_via" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="company_price_type" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="ship_condition" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="parent_company_id" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="add2" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="attention" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="fax_no" type="s:string" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="Get_Next_WrokingDate">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="iATPDate" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="Loading_Days" type="s:string" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="Get_Next_WrokingDateResponse">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="1" maxOccurs="1" name="Get_Next_WrokingDateResult" type="s:int" />
+            <s:element minOccurs="0" maxOccurs="1" name="iATPDate" type="s:string" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="Get_Next_WorkingDate_ByCode">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="iATPDate" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="Loading_Days" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="code" type="s:string" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="Get_Next_WorkingDate_ByCodeResponse">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="1" maxOccurs="1" name="Get_Next_WorkingDate_ByCodeResult" type="s:int" />
+            <s:element minOccurs="0" maxOccurs="1" name="iATPDate" type="s:string" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="GetAR">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="Sales_Org" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="discha" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="division" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="customer_id" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="SDate" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="EDate" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="S_Due_Date" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="E_Due_Date" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="ArResult" type="s:string" />
+            <s:element minOccurs="1" maxOccurs="1" name="retCode" type="s:boolean" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="GetARResponse">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="customer_id" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="ArResult" type="s:string" />
+            <s:element minOccurs="1" maxOccurs="1" name="retCode" type="s:boolean" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="GetAR_Detail">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="Sales_Org" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="discha" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="division" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="customer_id" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="SDate" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="EDate" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="S_Due_Date" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="E_Due_Date" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="ArResult" type="s:string" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="GetAR_DetailResponse">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="1" maxOccurs="1" name="GetAR_DetailResult" type="s:int" />
+            <s:element minOccurs="0" maxOccurs="1" name="ArResult" type="s:string" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="GetAR_Detail_New">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="Sales_Org" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="discha" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="division" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="customer_id" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="SDate" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="EDate" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="S_Due_Date" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="E_Due_Date" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="status" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="ArResult" type="s:string" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="GetAR_Detail_NewResponse">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="1" maxOccurs="1" name="GetAR_Detail_NewResult" type="s:int" />
+            <s:element minOccurs="0" maxOccurs="1" name="ArResult" type="s:string" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="GetAR_SO">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="Sales_Org" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="ar_no" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="disCha" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="Div" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="strResult" type="s:string" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="GetAR_SOResponse">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="1" maxOccurs="1" name="GetAR_SOResult" type="s:int" />
+            <s:element minOccurs="0" maxOccurs="1" name="strResult" type="s:string" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="GetMaterialStatusCost">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="Sales_Org" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="part_no" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="MPlant" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="MCurrency" type="s:string" />
+            <s:element minOccurs="1" maxOccurs="1" name="MCost" type="s:decimal" />
+            <s:element minOccurs="0" maxOccurs="1" name="MStatus" type="s:string" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="GetMaterialStatusCostResponse">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="1" maxOccurs="1" name="GetMaterialStatusCostResult" type="s:int" />
+            <s:element minOccurs="0" maxOccurs="1" name="MPlant" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="MCurrency" type="s:string" />
+            <s:element minOccurs="1" maxOccurs="1" name="MCost" type="s:decimal" />
+            <s:element minOccurs="0" maxOccurs="1" name="MStatus" type="s:string" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="AR_DueDate_Inquiry">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="ARXml" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="ARDueResult" type="s:string" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="AR_DueDate_InquiryResponse">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="1" maxOccurs="1" name="AR_DueDate_InquiryResult" type="s:int" />
+            <s:element minOccurs="0" maxOccurs="1" name="ARDueResult" type="s:string" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="GetCustAP">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="Sales_Org" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="customer_id" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="FromDate" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="ToDate" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="APResult" type="s:string" />
+            <s:element minOccurs="1" maxOccurs="1" name="retCode" type="s:boolean" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="GetCustAPResponse">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="customer_id" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="APResult" type="s:string" />
+            <s:element minOccurs="1" maxOccurs="1" name="retCode" type="s:boolean" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="GetCustomerAP">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="Sales_Org" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="customer_id" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="FromDate" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="ToDate" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="APResult" type="s:string" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="GetCustomerAPResponse">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="1" maxOccurs="1" name="GetCustomerAPResult" type="s:int" />
+            <s:element minOccurs="0" maxOccurs="1" name="APResult" type="s:string" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="GetMultiATP_New">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="strXML" type="s:string" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="GetMultiATP_NewResponse">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="1" maxOccurs="1" name="GetMultiATP_NewResult" type="s:int" />
+            <s:element minOccurs="0" maxOccurs="1" name="strResult" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="strRemark" type="s:string" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="GetMultiATP_ACN">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="strXML" type="s:string" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="GetMultiATP_ACNResponse">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="1" maxOccurs="1" name="GetMultiATP_ACNResult" type="s:int" />
+            <s:element minOccurs="0" maxOccurs="1" name="strResult" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="strRemark" type="s:string" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="GetMultiATP_New_US">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="strXML" type="s:string" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="GetMultiATP_New_USResponse">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="1" maxOccurs="1" name="GetMultiATP_New_USResult" type="s:int" />
+            <s:element minOccurs="0" maxOccurs="1" name="strResult" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="strRemark" type="s:string" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="GetMultiATP_New2">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="strXML" type="s:string" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="GetMultiATP_New2Response">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="1" maxOccurs="1" name="GetMultiATP_New2Result" type="s:int" />
+            <s:element minOccurs="0" maxOccurs="1" name="strResult" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="strRemark" type="s:string" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="GetSingleATP">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="WERK" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="MATNR" type="s:string" />
+            <s:element minOccurs="1" maxOccurs="1" name="REQ_QTY" type="s:decimal" />
+            <s:element minOccurs="0" maxOccurs="1" name="REQ_Date" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="UNI" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="strResult" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="strRemark" type="s:string" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="GetSingleATPResponse">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="1" maxOccurs="1" name="GetSingleATPResult" type="s:int" />
+            <s:element minOccurs="0" maxOccurs="1" name="strResult" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="strRemark" type="s:string" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="GetSingleATP_New">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="distr_chan" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="division" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="customer_no" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="shipto_no" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="sales_org" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="WERK" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="MATNR" type="s:string" />
+            <s:element minOccurs="1" maxOccurs="1" name="REQ_QTY" type="s:decimal" />
+            <s:element minOccurs="0" maxOccurs="1" name="REQ_Date" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="UNI" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="strResult" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="strRemark" type="s:string" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="GetSingleATP_NewResponse">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="1" maxOccurs="1" name="GetSingleATP_NewResult" type="s:int" />
+            <s:element minOccurs="0" maxOccurs="1" name="strResult" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="strRemark" type="s:string" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="GetMultiDueDate_New">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="customer_no" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="shipto_no" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="sales_org" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="distr_chan" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="division" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="strXML" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="strResult" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="strRemark" type="s:string" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="GetMultiDueDate_NewResponse">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="1" maxOccurs="1" name="GetMultiDueDate_NewResult" type="s:int" />
+            <s:element minOccurs="0" maxOccurs="1" name="strResult" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="strRemark" type="s:string" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="GetMultiDueDate">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="customer_no" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="shipto_no" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="sales_org" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="distr_chan" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="division" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="strXML" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="strResult" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="strRemark" type="s:string" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="GetMultiDueDateResponse">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="1" maxOccurs="1" name="GetMultiDueDateResult" type="s:int" />
+            <s:element minOccurs="0" maxOccurs="1" name="strResult" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="strRemark" type="s:string" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="GetMultiDueDate_SpecialATP">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="customer_no" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="shipto_no" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="sales_org" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="distr_chan" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="division" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="strXML" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="strResult" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="strRemark" type="s:string" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="GetMultiDueDate_SpecialATPResponse">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="1" maxOccurs="1" name="GetMultiDueDate_SpecialATPResult" type="s:int" />
+            <s:element minOccurs="0" maxOccurs="1" name="strResult" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="strRemark" type="s:string" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="GetMultiDueDate_RDQ">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="customer_no" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="shipto_no" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="sales_org" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="distr_chan" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="division" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="strXML" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="strResult" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="strRemark" type="s:string" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="GetMultiDueDate_RDQResponse">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="1" maxOccurs="1" name="GetMultiDueDate_RDQResult" type="s:int" />
+            <s:element minOccurs="0" maxOccurs="1" name="strResult" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="strRemark" type="s:string" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="GET_CUSTOMER_COUNTRYPOSTAL_CODE">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="customer_id" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="country_code" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="postal_code" type="s:string" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="GET_CUSTOMER_COUNTRYPOSTAL_CODEResponse">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="1" maxOccurs="1" name="GET_CUSTOMER_COUNTRYPOSTAL_CODEResult" type="s:int" />
+            <s:element minOccurs="0" maxOccurs="1" name="country_code" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="postal_code" type="s:string" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="GetMaterialSingle">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="PartNo" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="Org" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="Plant" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="Err_Log" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="ProductTb" type="s:string" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="GetMaterialSingleResponse">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="1" maxOccurs="1" name="GetMaterialSingleResult" type="s:int" />
+            <s:element minOccurs="0" maxOccurs="1" name="Err_Log" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="ProductTb" type="s:string" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="Get_Material_Detail">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="part_no" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="sales_org" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="plant" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="p_desc" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="p_status" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="p_model_no" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="p_productline" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="p_productgroup" type="s:string" />
+            <s:element minOccurs="1" maxOccurs="1" name="p_shipweight" type="s:double" />
+            <s:element minOccurs="1" maxOccurs="1" name="p_netweight" type="s:double" />
+            <s:element minOccurs="1" maxOccurs="1" name="p_cost" type="s:double" />
+            <s:element minOccurs="0" maxOccurs="1" name="ErrorMsg" type="s:string" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="Get_Material_DetailResponse">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="1" maxOccurs="1" name="Get_Material_DetailResult" type="s:int" />
+            <s:element minOccurs="0" maxOccurs="1" name="p_desc" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="p_status" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="p_model_no" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="p_productline" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="p_productgroup" type="s:string" />
+            <s:element minOccurs="1" maxOccurs="1" name="p_shipweight" type="s:double" />
+            <s:element minOccurs="1" maxOccurs="1" name="p_netweight" type="s:double" />
+            <s:element minOccurs="1" maxOccurs="1" name="p_cost" type="s:double" />
+            <s:element minOccurs="0" maxOccurs="1" name="ErrorMsg" type="s:string" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="GET_MATERIAL_WEIGHT_VOLUME">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="part_no" type="s:string" />
+            <s:element minOccurs="1" maxOccurs="1" name="GrossWeight" type="s:double" />
+            <s:element minOccurs="1" maxOccurs="1" name="NetWeight" type="s:double" />
+            <s:element minOccurs="1" maxOccurs="1" name="Volume" type="s:double" />
+            <s:element minOccurs="0" maxOccurs="1" name="ErrorMsg" type="s:string" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="GET_MATERIAL_WEIGHT_VOLUMEResponse">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="1" maxOccurs="1" name="GET_MATERIAL_WEIGHT_VOLUMEResult" type="s:int" />
+            <s:element minOccurs="1" maxOccurs="1" name="GrossWeight" type="s:double" />
+            <s:element minOccurs="1" maxOccurs="1" name="NetWeight" type="s:double" />
+            <s:element minOccurs="1" maxOccurs="1" name="Volume" type="s:double" />
+            <s:element minOccurs="0" maxOccurs="1" name="ErrorMsg" type="s:string" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="GET_CTOS_DOCUMENTINFO">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="Company_Id" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="DocLink" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="DocLocation" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="DocType" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="DocXml" type="s:string" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="GET_CTOS_DOCUMENTINFOResponse">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="1" maxOccurs="1" name="GET_CTOS_DOCUMENTINFOResult" type="s:int" />
+            <s:element minOccurs="0" maxOccurs="1" name="DocLink" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="DocLocation" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="DocType" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="DocXml" type="s:string" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="GET_EXCHANGE_RATE">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="FromCurrency" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="ToCurrency" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="ExpMsg" type="s:string" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="GET_EXCHANGE_RATEResponse">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="1" maxOccurs="1" name="GET_EXCHANGE_RATEResult" type="s:decimal" />
+            <s:element minOccurs="1" maxOccurs="1" name="exRate" type="s:decimal" />
+            <s:element minOccurs="0" maxOccurs="1" name="ExpMsg" type="s:string" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="GET_CREDITLIMIT_USED_PERCENTAGE">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="sales_org" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="company_id" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="percentage" type="s:string" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="GET_CREDITLIMIT_USED_PERCENTAGEResponse">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="1" maxOccurs="1" name="GET_CREDITLIMIT_USED_PERCENTAGEResult" type="s:int" />
+            <s:element minOccurs="0" maxOccurs="1" name="percentage" type="s:string" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="GET_ORDER_SCHEDULE">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="Order_No" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="scheduleXml" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="itemXml" type="s:string" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="GET_ORDER_SCHEDULEResponse">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="1" maxOccurs="1" name="GET_ORDER_SCHEDULEResult" type="s:int" />
+            <s:element minOccurs="0" maxOccurs="1" name="scheduleXml" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="itemXml" type="s:string" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="SALESORDER_GETSTATUS">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="Order_No" type="s:string" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="SALESORDER_GETSTATUSResponse">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="1" maxOccurs="1" name="SALESORDER_GETSTATUSResult" type="s:int" />
+            <s:element minOccurs="0" maxOccurs="1" name="Order_Status_XML" type="s:string" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="SALESORDER_GETSTATUS_Test">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="Order_No" type="s:string" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="SALESORDER_GETSTATUS_TestResponse">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="1" maxOccurs="1" name="SALESORDER_GETSTATUS_TestResult" type="s:int" />
+            <s:element minOccurs="0" maxOccurs="1" name="Order_Status_XML" type="s:string" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="GetMultiATP">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="strXML" type="s:string" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="GetMultiATPResponse">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="1" maxOccurs="1" name="GetMultiATPResult" type="s:int" />
+            <s:element minOccurs="0" maxOccurs="1" name="strResult" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="strRemark" type="s:string" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="GetMutiPrice_EQuote">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="Mandt" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="Vkorg" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="Kunnr" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="xml" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="strResult" type="s:string" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="GetMutiPrice_EQuoteResponse">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="1" maxOccurs="1" name="GetMutiPrice_EQuoteResult" type="s:int" />
+            <s:element minOccurs="0" maxOccurs="1" name="strResult" type="s:string" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="GetMultiPrice">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="Mandt" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="Vkorg" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="Kunnr" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="xml" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="strResult" type="s:string" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="GetMultiPriceResponse">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="1" maxOccurs="1" name="GetMultiPriceResult" type="s:int" />
+            <s:element minOccurs="0" maxOccurs="1" name="strResult" type="s:string" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="GetMPrice">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="Vkorg" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="Kunnr" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="xml" type="s:string" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="GetMPriceResponse">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="1" maxOccurs="1" name="GetMPriceResult" type="s:int" />
+            <s:element minOccurs="0" maxOccurs="1" name="strResult" type="s:string" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="GetMultiPrice_old">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="Mandt" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="Vkorg" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="Kunnr" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="xml" type="s:string" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="GetMultiPrice_oldResponse">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="1" maxOccurs="1" name="GetMultiPrice_oldResult" type="s:int" />
+            <s:element minOccurs="0" maxOccurs="1" name="strResult" type="s:string" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="GetPriceRFC">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="Mandt" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="Vkorg" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="Kunnr" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="Matnr" type="s:string" />
+            <s:element minOccurs="1" maxOccurs="1" name="Mglme" type="s:int" />
+            <s:element minOccurs="1" maxOccurs="1" name="p_fltList_Price" type="s:decimal" />
+            <s:element minOccurs="1" maxOccurs="1" name="p_fltUnit_Price" type="s:decimal" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="GetPriceRFCResponse">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="1" maxOccurs="1" name="GetPriceRFCResult" type="s:int" />
+            <s:element minOccurs="1" maxOccurs="1" name="p_fltList_Price" type="s:decimal" />
+            <s:element minOccurs="1" maxOccurs="1" name="p_fltUnit_Price" type="s:decimal" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="GetPriceRFC_old">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="Mandt" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="Vkorg" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="Kunnr" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="Matnr" type="s:string" />
+            <s:element minOccurs="1" maxOccurs="1" name="Mglme" type="s:int" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="GetPriceRFC_oldResponse">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="1" maxOccurs="1" name="GetPriceRFC_oldResult" type="s:int" />
+            <s:element minOccurs="1" maxOccurs="1" name="p_fltList_Price" type="s:decimal" />
+            <s:element minOccurs="1" maxOccurs="1" name="p_fltUnit_Price" type="s:decimal" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="GetVendorList">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="Sales_Org" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="VendorList" type="s:string" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="GetVendorListResponse">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="1" maxOccurs="1" name="GetVendorListResult" type="s:int" />
+            <s:element minOccurs="0" maxOccurs="1" name="VendorList" type="s:string" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="GetVendorDetail">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="Vendor_No" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="GeneralDetail" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="BankDetail" type="s:string" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="GetVendorDetailResponse">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="1" maxOccurs="1" name="GetVendorDetailResult" type="s:int" />
+            <s:element minOccurs="0" maxOccurs="1" name="GeneralDetail" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="BankDetail" type="s:string" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="SO_Delete">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="order_no" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="message" type="s:string" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="SO_DeleteResponse">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="1" maxOccurs="1" name="SO_DeleteResult" type="s:int" />
+            <s:element minOccurs="0" maxOccurs="1" name="message" type="s:string" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="SO_Change">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="Order_DataXml" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="Order_Status_Xml" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="errMsg" type="s:string" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="SO_ChangeResponse">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="1" maxOccurs="1" name="SO_ChangeResult" type="s:int" />
+            <s:element minOccurs="0" maxOccurs="1" name="Order_Status_Xml" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="errMsg" type="s:string" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="SO_CREATE">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="Order_DataXML" type="s:string" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="SO_CREATEResponse">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="1" maxOccurs="1" name="SO_CREATEResult" type="s:int" />
+            <s:element minOccurs="0" maxOccurs="1" name="Order_Status_XML" type="s:string" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="SO_CREATE_Nada">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="Order_DataXML" type="s:string" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="SO_CREATE_NadaResponse">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="1" maxOccurs="1" name="SO_CREATE_NadaResult" type="s:int" />
+            <s:element minOccurs="0" maxOccurs="1" name="Order_Status_XML" type="s:string" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="SO_CREATE_NEW">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="Order_DataXML" type="s:string" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="SO_CREATE_NEWResponse">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="1" maxOccurs="1" name="SO_CREATE_NEWResult" type="s:int" />
+            <s:element minOccurs="0" maxOccurs="1" name="Order_Status_XML" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="SalesOrderStatus_XML" type="s:string" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="SO_CREATE2">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="SAPIP" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="SAPClient" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="SysNum" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="Order_DataXML" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="Order_Status_XML" type="s:string" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="SO_CREATE2Response">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="1" maxOccurs="1" name="SO_CREATE2Result" type="s:int" />
+            <s:element minOccurs="0" maxOccurs="1" name="Order_Status_XML" type="s:string" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="SO_CREATE_TEST">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="Order_DataXML" type="s:string" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="SO_CREATE_TESTResponse">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="1" maxOccurs="1" name="SO_CREATE_TESTResult" type="s:int" />
+            <s:element minOccurs="0" maxOccurs="1" name="Order_Status_XML" type="s:string" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="GetInvoice">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="strSoldTo" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="strSO_NO" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="strSalesOrg" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="strDisChannel" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="strDivision" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="DateFrom" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="DateTo" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="Invoice_Master_XML" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="Invoice_Detail_XML" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="strException" type="s:string" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="GetInvoiceResponse">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="1" maxOccurs="1" name="GetInvoiceResult" type="s:int" />
+            <s:element minOccurs="0" maxOccurs="1" name="Invoice_Master_XML" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="Invoice_Detail_XML" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="strException" type="s:string" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="HelloKitty">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="yourname" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="greetWord" type="s:string" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="HelloKittyResponse">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="yourname" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="greetWord" type="s:string" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="SapXmlAbapDynSql">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="SapConnectionString" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="abapXml" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="xmlResult" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="errMsg" type="s:string" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="SapXmlAbapDynSqlResponse">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="xmlResult" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="errMsg" type="s:string" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="SapAbapDynSql">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="SapConnectionString" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="abaArray" type="tns:ArrayOfString" />
+            <s:element minOccurs="0" maxOccurs="1" name="xmlResult" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="errMsg" type="s:string" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:complexType name="ArrayOfString">
+        <s:sequence>
+          <s:element minOccurs="0" maxOccurs="unbounded" name="string" nillable="true" type="s:string" />
+        </s:sequence>
+      </s:complexType>
+      <s:element name="SapAbapDynSqlResponse">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="xmlResult" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="errMsg" type="s:string" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="Get_Billing_Detail_AEU">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="PI_VBELN" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="BILLING" type="s:string" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="Get_Billing_Detail_AEUResponse">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="Get_Billing_Detail_AEUResult" />
+            <s:element minOccurs="0" maxOccurs="1" name="BILLING" type="s:string" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="Get_Component_Comsume">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="PI_MATRN" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="comp" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="cons" type="s:string" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="Get_Component_ComsumeResponse">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="Get_Component_ComsumeResult" />
+            <s:element minOccurs="0" maxOccurs="1" name="comp" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="cons" type="s:string" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="Get_Material_History">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="Material" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="Plant" type="s:string" />
+            <s:element minOccurs="1" maxOccurs="1" name="returnMessge" type="s:decimal" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="Get_Material_HistoryResponse">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="Get_Material_HistoryResult" />
+            <s:element minOccurs="1" maxOccurs="1" name="returnMessge" type="s:decimal" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="Get_Serial_No">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="SerialNo" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="ItemList" type="s:string" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="Get_Serial_NoResponse">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="Get_Serial_NoResult" />
+            <s:element minOccurs="0" maxOccurs="1" name="ItemList" type="s:string" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="Get_Serial_No_By_Po">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="SerialNo" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="ItemList" type="s:string" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="Get_Serial_No_By_PoResponse">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="Get_Serial_No_By_PoResult" />
+            <s:element minOccurs="0" maxOccurs="1" name="ItemList" type="s:string" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="Get_Serial_No_By_DN">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="SerialNo" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="ItemList" type="s:string" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="Get_Serial_No_By_DNResponse">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="Get_Serial_No_By_DNResult" />
+            <s:element minOccurs="0" maxOccurs="1" name="ItemList" type="s:string" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+    </s:schema>
+  </wsdl:types>
+  <wsdl:message name="Get_Serial_No_By_GUISoapIn">
+    <wsdl:part name="parameters" element="tns:Get_Serial_No_By_GUI" />
+  </wsdl:message>
+  <wsdl:message name="Get_Serial_No_By_GUISoapOut">
+    <wsdl:part name="parameters" element="tns:Get_Serial_No_By_GUIResponse" />
+  </wsdl:message>
+  <wsdl:message name="Get_Billing_From_SOSoapIn">
+    <wsdl:part name="parameters" element="tns:Get_Billing_From_SO" />
+  </wsdl:message>
+  <wsdl:message name="Get_Billing_From_SOSoapOut">
+    <wsdl:part name="parameters" element="tns:Get_Billing_From_SOResponse" />
+  </wsdl:message>
+  <wsdl:message name="Get_So_From_Billing_NoSoapIn">
+    <wsdl:part name="parameters" element="tns:Get_So_From_Billing_No" />
+  </wsdl:message>
+  <wsdl:message name="Get_So_From_Billing_NoSoapOut">
+    <wsdl:part name="parameters" element="tns:Get_So_From_Billing_NoResponse" />
+  </wsdl:message>
+  <wsdl:message name="Get_ExchangeRateSoapIn">
+    <wsdl:part name="parameters" element="tns:Get_ExchangeRate" />
+  </wsdl:message>
+  <wsdl:message name="Get_ExchangeRateSoapOut">
+    <wsdl:part name="parameters" element="tns:Get_ExchangeRateResponse" />
+  </wsdl:message>
+  <wsdl:message name="Get_Standard_Cost_4_DigitSoapIn">
+    <wsdl:part name="parameters" element="tns:Get_Standard_Cost_4_Digit" />
+  </wsdl:message>
+  <wsdl:message name="Get_Standard_Cost_4_DigitSoapOut">
+    <wsdl:part name="parameters" element="tns:Get_Standard_Cost_4_DigitResponse" />
+  </wsdl:message>
+  <wsdl:message name="Quotation_CREATESoapIn">
+    <wsdl:part name="parameters" element="tns:Quotation_CREATE" />
+  </wsdl:message>
+  <wsdl:message name="Quotation_CREATESoapOut">
+    <wsdl:part name="parameters" element="tns:Quotation_CREATEResponse" />
+  </wsdl:message>
+  <wsdl:message name="ZGET_WHERE_UESD_BOM_RFCSoapIn">
+    <wsdl:part name="parameters" element="tns:ZGET_WHERE_UESD_BOM_RFC" />
+  </wsdl:message>
+  <wsdl:message name="ZGET_WHERE_UESD_BOM_RFCSoapOut">
+    <wsdl:part name="parameters" element="tns:ZGET_WHERE_UESD_BOM_RFCResponse" />
+  </wsdl:message>
+  <wsdl:message name="ZSD_SPA_INSERTSoapIn">
+    <wsdl:part name="parameters" element="tns:ZSD_SPA_INSERT" />
+  </wsdl:message>
+  <wsdl:message name="ZSD_SPA_INSERTSoapOut">
+    <wsdl:part name="parameters" element="tns:ZSD_SPA_INSERTResponse" />
+  </wsdl:message>
+  <wsdl:message name="SOC_CreateSoapIn">
+    <wsdl:part name="parameters" element="tns:SOC_Create" />
+  </wsdl:message>
+  <wsdl:message name="SOC_CreateSoapOut">
+    <wsdl:part name="parameters" element="tns:SOC_CreateResponse" />
+  </wsdl:message>
+  <wsdl:message name="ConvertToExCurrencyValueSoapIn">
+    <wsdl:part name="parameters" element="tns:ConvertToExCurrencyValue" />
+  </wsdl:message>
+  <wsdl:message name="ConvertToExCurrencyValueSoapOut">
+    <wsdl:part name="parameters" element="tns:ConvertToExCurrencyValueResponse" />
+  </wsdl:message>
+  <wsdl:message name="GetAdvantechStockPriceSoapIn">
+    <wsdl:part name="parameters" element="tns:GetAdvantechStockPrice" />
+  </wsdl:message>
+  <wsdl:message name="GetAdvantechStockPriceSoapOut">
+    <wsdl:part name="parameters" element="tns:GetAdvantechStockPriceResponse" />
+  </wsdl:message>
+  <wsdl:message name="GetAdvantechStockPriceIntSoapIn">
+    <wsdl:part name="parameters" element="tns:GetAdvantechStockPriceInt" />
+  </wsdl:message>
+  <wsdl:message name="GetAdvantechStockPriceIntSoapOut">
+    <wsdl:part name="parameters" element="tns:GetAdvantechStockPriceIntResponse" />
+  </wsdl:message>
+  <wsdl:message name="UpdateSOWarrantyFlagSoapIn">
+    <wsdl:part name="parameters" element="tns:UpdateSOWarrantyFlag" />
+  </wsdl:message>
+  <wsdl:message name="UpdateSOWarrantyFlagSoapOut">
+    <wsdl:part name="parameters" element="tns:UpdateSOWarrantyFlagResponse" />
+  </wsdl:message>
+  <wsdl:message name="UpdateSOWarrantyFlag_TESTSoapIn">
+    <wsdl:part name="parameters" element="tns:UpdateSOWarrantyFlag_TEST" />
+  </wsdl:message>
+  <wsdl:message name="UpdateSOWarrantyFlag_TESTSoapOut">
+    <wsdl:part name="parameters" element="tns:UpdateSOWarrantyFlag_TESTResponse" />
+  </wsdl:message>
+  <wsdl:message name="GetRMAStatusSoapIn">
+    <wsdl:part name="parameters" element="tns:GetRMAStatus" />
+  </wsdl:message>
+  <wsdl:message name="GetRMAStatusSoapOut">
+    <wsdl:part name="parameters" element="tns:GetRMAStatusResponse" />
+  </wsdl:message>
+  <wsdl:message name="GetCreditBalance_NewSoapIn">
+    <wsdl:part name="parameters" element="tns:GetCreditBalance_New" />
+  </wsdl:message>
+  <wsdl:message name="GetCreditBalance_NewSoapOut">
+    <wsdl:part name="parameters" element="tns:GetCreditBalance_NewResponse" />
+  </wsdl:message>
+  <wsdl:message name="GetCreditBalanceSoapIn">
+    <wsdl:part name="parameters" element="tns:GetCreditBalance" />
+  </wsdl:message>
+  <wsdl:message name="GetCreditBalanceSoapOut">
+    <wsdl:part name="parameters" element="tns:GetCreditBalanceResponse" />
+  </wsdl:message>
+  <wsdl:message name="eBizAEU_SAPDYNSQLSoapIn">
+    <wsdl:part name="parameters" element="tns:eBizAEU_SAPDYNSQL" />
+  </wsdl:message>
+  <wsdl:message name="eBizAEU_SAPDYNSQLSoapOut">
+    <wsdl:part name="parameters" element="tns:eBizAEU_SAPDYNSQLResponse" />
+  </wsdl:message>
+  <wsdl:message name="SAP_DynSqlSoapIn">
+    <wsdl:part name="parameters" element="tns:SAP_DynSql" />
+  </wsdl:message>
+  <wsdl:message name="SAP_DynSqlSoapOut">
+    <wsdl:part name="parameters" element="tns:SAP_DynSqlResponse" />
+  </wsdl:message>
+  <wsdl:message name="ReadSAPTableSoapIn">
+    <wsdl:part name="parameters" element="tns:ReadSAPTable" />
+  </wsdl:message>
+  <wsdl:message name="ReadSAPTableSoapOut">
+    <wsdl:part name="parameters" element="tns:ReadSAPTableResponse" />
+  </wsdl:message>
+  <wsdl:message name="ReadSAPTable2SoapIn">
+    <wsdl:part name="parameters" element="tns:ReadSAPTable2" />
+  </wsdl:message>
+  <wsdl:message name="ReadSAPTable2SoapOut">
+    <wsdl:part name="parameters" element="tns:ReadSAPTable2Response" />
+  </wsdl:message>
+  <wsdl:message name="ReadSAPTable3SoapIn">
+    <wsdl:part name="parameters" element="tns:ReadSAPTable3" />
+  </wsdl:message>
+  <wsdl:message name="ReadSAPTable3SoapOut">
+    <wsdl:part name="parameters" element="tns:ReadSAPTable3Response" />
+  </wsdl:message>
+  <wsdl:message name="CustomerInquirySoapIn">
+    <wsdl:part name="parameters" element="tns:CustomerInquiry" />
+  </wsdl:message>
+  <wsdl:message name="CustomerInquirySoapOut">
+    <wsdl:part name="parameters" element="tns:CustomerInquiryResponse" />
+  </wsdl:message>
+  <wsdl:message name="B2BValidationSoapIn">
+    <wsdl:part name="parameters" element="tns:B2BValidation" />
+  </wsdl:message>
+  <wsdl:message name="B2BValidationSoapOut">
+    <wsdl:part name="parameters" element="tns:B2BValidationResponse" />
+  </wsdl:message>
+  <wsdl:message name="SerialNumberInquirySoapIn">
+    <wsdl:part name="parameters" element="tns:SerialNumberInquiry" />
+  </wsdl:message>
+  <wsdl:message name="SerialNumberInquirySoapOut">
+    <wsdl:part name="parameters" element="tns:SerialNumberInquiryResponse" />
+  </wsdl:message>
+  <wsdl:message name="TrackingInfoInquirySoapIn">
+    <wsdl:part name="parameters" element="tns:TrackingInfoInquiry" />
+  </wsdl:message>
+  <wsdl:message name="TrackingInfoInquirySoapOut">
+    <wsdl:part name="parameters" element="tns:TrackingInfoInquiryResponse" />
+  </wsdl:message>
+  <wsdl:message name="Salesorder_GetlistSoapIn">
+    <wsdl:part name="parameters" element="tns:Salesorder_Getlist" />
+  </wsdl:message>
+  <wsdl:message name="Salesorder_GetlistSoapOut">
+    <wsdl:part name="parameters" element="tns:Salesorder_GetlistResponse" />
+  </wsdl:message>
+  <wsdl:message name="Bapi_Salesorder_GetlistSoapIn">
+    <wsdl:part name="parameters" element="tns:Bapi_Salesorder_Getlist" />
+  </wsdl:message>
+  <wsdl:message name="Bapi_Salesorder_GetlistSoapOut">
+    <wsdl:part name="parameters" element="tns:Bapi_Salesorder_GetlistResponse" />
+  </wsdl:message>
+  <wsdl:message name="GetOrderHistorySoapIn">
+    <wsdl:part name="parameters" element="tns:GetOrderHistory" />
+  </wsdl:message>
+  <wsdl:message name="GetOrderHistorySoapOut">
+    <wsdl:part name="parameters" element="tns:GetOrderHistoryResponse" />
+  </wsdl:message>
+  <wsdl:message name="GetBackOrder_TrackSoapIn">
+    <wsdl:part name="parameters" element="tns:GetBackOrder_Track" />
+  </wsdl:message>
+  <wsdl:message name="GetBackOrder_TrackSoapOut">
+    <wsdl:part name="parameters" element="tns:GetBackOrder_TrackResponse" />
+  </wsdl:message>
+  <wsdl:message name="GetBackOrderListSoapIn">
+    <wsdl:part name="parameters" element="tns:GetBackOrderList" />
+  </wsdl:message>
+  <wsdl:message name="GetBackOrderListSoapOut">
+    <wsdl:part name="parameters" element="tns:GetBackOrderListResponse" />
+  </wsdl:message>
+  <wsdl:message name="GetBackOrderItemSoapIn">
+    <wsdl:part name="parameters" element="tns:GetBackOrderItem" />
+  </wsdl:message>
+  <wsdl:message name="GetBackOrderItemSoapOut">
+    <wsdl:part name="parameters" element="tns:GetBackOrderItemResponse" />
+  </wsdl:message>
+  <wsdl:message name="Get_Customer_AEUSoapIn">
+    <wsdl:part name="parameters" element="tns:Get_Customer_AEU" />
+  </wsdl:message>
+  <wsdl:message name="Get_Customer_AEUSoapOut">
+    <wsdl:part name="parameters" element="tns:Get_Customer_AEUResponse" />
+  </wsdl:message>
+  <wsdl:message name="Get_Next_WrokingDateSoapIn">
+    <wsdl:part name="parameters" element="tns:Get_Next_WrokingDate" />
+  </wsdl:message>
+  <wsdl:message name="Get_Next_WrokingDateSoapOut">
+    <wsdl:part name="parameters" element="tns:Get_Next_WrokingDateResponse" />
+  </wsdl:message>
+  <wsdl:message name="Get_Next_WorkingDate_ByCodeSoapIn">
+    <wsdl:part name="parameters" element="tns:Get_Next_WorkingDate_ByCode" />
+  </wsdl:message>
+  <wsdl:message name="Get_Next_WorkingDate_ByCodeSoapOut">
+    <wsdl:part name="parameters" element="tns:Get_Next_WorkingDate_ByCodeResponse" />
+  </wsdl:message>
+  <wsdl:message name="GetARSoapIn">
+    <wsdl:part name="parameters" element="tns:GetAR" />
+  </wsdl:message>
+  <wsdl:message name="GetARSoapOut">
+    <wsdl:part name="parameters" element="tns:GetARResponse" />
+  </wsdl:message>
+  <wsdl:message name="GetAR_DetailSoapIn">
+    <wsdl:part name="parameters" element="tns:GetAR_Detail" />
+  </wsdl:message>
+  <wsdl:message name="GetAR_DetailSoapOut">
+    <wsdl:part name="parameters" element="tns:GetAR_DetailResponse" />
+  </wsdl:message>
+  <wsdl:message name="GetAR_Detail_NewSoapIn">
+    <wsdl:part name="parameters" element="tns:GetAR_Detail_New" />
+  </wsdl:message>
+  <wsdl:message name="GetAR_Detail_NewSoapOut">
+    <wsdl:part name="parameters" element="tns:GetAR_Detail_NewResponse" />
+  </wsdl:message>
+  <wsdl:message name="GetAR_SOSoapIn">
+    <wsdl:part name="parameters" element="tns:GetAR_SO" />
+  </wsdl:message>
+  <wsdl:message name="GetAR_SOSoapOut">
+    <wsdl:part name="parameters" element="tns:GetAR_SOResponse" />
+  </wsdl:message>
+  <wsdl:message name="GetMaterialStatusCostSoapIn">
+    <wsdl:part name="parameters" element="tns:GetMaterialStatusCost" />
+  </wsdl:message>
+  <wsdl:message name="GetMaterialStatusCostSoapOut">
+    <wsdl:part name="parameters" element="tns:GetMaterialStatusCostResponse" />
+  </wsdl:message>
+  <wsdl:message name="AR_DueDate_InquirySoapIn">
+    <wsdl:part name="parameters" element="tns:AR_DueDate_Inquiry" />
+  </wsdl:message>
+  <wsdl:message name="AR_DueDate_InquirySoapOut">
+    <wsdl:part name="parameters" element="tns:AR_DueDate_InquiryResponse" />
+  </wsdl:message>
+  <wsdl:message name="GetCustAPSoapIn">
+    <wsdl:part name="parameters" element="tns:GetCustAP" />
+  </wsdl:message>
+  <wsdl:message name="GetCustAPSoapOut">
+    <wsdl:part name="parameters" element="tns:GetCustAPResponse" />
+  </wsdl:message>
+  <wsdl:message name="GetCustomerAPSoapIn">
+    <wsdl:part name="parameters" element="tns:GetCustomerAP" />
+  </wsdl:message>
+  <wsdl:message name="GetCustomerAPSoapOut">
+    <wsdl:part name="parameters" element="tns:GetCustomerAPResponse" />
+  </wsdl:message>
+  <wsdl:message name="GetMultiATP_NewSoapIn">
+    <wsdl:part name="parameters" element="tns:GetMultiATP_New" />
+  </wsdl:message>
+  <wsdl:message name="GetMultiATP_NewSoapOut">
+    <wsdl:part name="parameters" element="tns:GetMultiATP_NewResponse" />
+  </wsdl:message>
+  <wsdl:message name="GetMultiATP_ACNSoapIn">
+    <wsdl:part name="parameters" element="tns:GetMultiATP_ACN" />
+  </wsdl:message>
+  <wsdl:message name="GetMultiATP_ACNSoapOut">
+    <wsdl:part name="parameters" element="tns:GetMultiATP_ACNResponse" />
+  </wsdl:message>
+  <wsdl:message name="GetMultiATP_New_USSoapIn">
+    <wsdl:part name="parameters" element="tns:GetMultiATP_New_US" />
+  </wsdl:message>
+  <wsdl:message name="GetMultiATP_New_USSoapOut">
+    <wsdl:part name="parameters" element="tns:GetMultiATP_New_USResponse" />
+  </wsdl:message>
+  <wsdl:message name="GetMultiATP_New2SoapIn">
+    <wsdl:part name="parameters" element="tns:GetMultiATP_New2" />
+  </wsdl:message>
+  <wsdl:message name="GetMultiATP_New2SoapOut">
+    <wsdl:part name="parameters" element="tns:GetMultiATP_New2Response" />
+  </wsdl:message>
+  <wsdl:message name="GetSingleATPSoapIn">
+    <wsdl:part name="parameters" element="tns:GetSingleATP" />
+  </wsdl:message>
+  <wsdl:message name="GetSingleATPSoapOut">
+    <wsdl:part name="parameters" element="tns:GetSingleATPResponse" />
+  </wsdl:message>
+  <wsdl:message name="GetSingleATP_NewSoapIn">
+    <wsdl:part name="parameters" element="tns:GetSingleATP_New" />
+  </wsdl:message>
+  <wsdl:message name="GetSingleATP_NewSoapOut">
+    <wsdl:part name="parameters" element="tns:GetSingleATP_NewResponse" />
+  </wsdl:message>
+  <wsdl:message name="GetMultiDueDate_NewSoapIn">
+    <wsdl:part name="parameters" element="tns:GetMultiDueDate_New" />
+  </wsdl:message>
+  <wsdl:message name="GetMultiDueDate_NewSoapOut">
+    <wsdl:part name="parameters" element="tns:GetMultiDueDate_NewResponse" />
+  </wsdl:message>
+  <wsdl:message name="GetMultiDueDateSoapIn">
+    <wsdl:part name="parameters" element="tns:GetMultiDueDate" />
+  </wsdl:message>
+  <wsdl:message name="GetMultiDueDateSoapOut">
+    <wsdl:part name="parameters" element="tns:GetMultiDueDateResponse" />
+  </wsdl:message>
+  <wsdl:message name="GetMultiDueDate_SpecialATPSoapIn">
+    <wsdl:part name="parameters" element="tns:GetMultiDueDate_SpecialATP" />
+  </wsdl:message>
+  <wsdl:message name="GetMultiDueDate_SpecialATPSoapOut">
+    <wsdl:part name="parameters" element="tns:GetMultiDueDate_SpecialATPResponse" />
+  </wsdl:message>
+  <wsdl:message name="GetMultiDueDate_RDQSoapIn">
+    <wsdl:part name="parameters" element="tns:GetMultiDueDate_RDQ" />
+  </wsdl:message>
+  <wsdl:message name="GetMultiDueDate_RDQSoapOut">
+    <wsdl:part name="parameters" element="tns:GetMultiDueDate_RDQResponse" />
+  </wsdl:message>
+  <wsdl:message name="GET_CUSTOMER_COUNTRYPOSTAL_CODESoapIn">
+    <wsdl:part name="parameters" element="tns:GET_CUSTOMER_COUNTRYPOSTAL_CODE" />
+  </wsdl:message>
+  <wsdl:message name="GET_CUSTOMER_COUNTRYPOSTAL_CODESoapOut">
+    <wsdl:part name="parameters" element="tns:GET_CUSTOMER_COUNTRYPOSTAL_CODEResponse" />
+  </wsdl:message>
+  <wsdl:message name="GetMaterialSingleSoapIn">
+    <wsdl:part name="parameters" element="tns:GetMaterialSingle" />
+  </wsdl:message>
+  <wsdl:message name="GetMaterialSingleSoapOut">
+    <wsdl:part name="parameters" element="tns:GetMaterialSingleResponse" />
+  </wsdl:message>
+  <wsdl:message name="Get_Material_DetailSoapIn">
+    <wsdl:part name="parameters" element="tns:Get_Material_Detail" />
+  </wsdl:message>
+  <wsdl:message name="Get_Material_DetailSoapOut">
+    <wsdl:part name="parameters" element="tns:Get_Material_DetailResponse" />
+  </wsdl:message>
+  <wsdl:message name="GET_MATERIAL_WEIGHT_VOLUMESoapIn">
+    <wsdl:part name="parameters" element="tns:GET_MATERIAL_WEIGHT_VOLUME" />
+  </wsdl:message>
+  <wsdl:message name="GET_MATERIAL_WEIGHT_VOLUMESoapOut">
+    <wsdl:part name="parameters" element="tns:GET_MATERIAL_WEIGHT_VOLUMEResponse" />
+  </wsdl:message>
+  <wsdl:message name="GET_CTOS_DOCUMENTINFOSoapIn">
+    <wsdl:part name="parameters" element="tns:GET_CTOS_DOCUMENTINFO" />
+  </wsdl:message>
+  <wsdl:message name="GET_CTOS_DOCUMENTINFOSoapOut">
+    <wsdl:part name="parameters" element="tns:GET_CTOS_DOCUMENTINFOResponse" />
+  </wsdl:message>
+  <wsdl:message name="GET_EXCHANGE_RATESoapIn">
+    <wsdl:part name="parameters" element="tns:GET_EXCHANGE_RATE" />
+  </wsdl:message>
+  <wsdl:message name="GET_EXCHANGE_RATESoapOut">
+    <wsdl:part name="parameters" element="tns:GET_EXCHANGE_RATEResponse" />
+  </wsdl:message>
+  <wsdl:message name="GET_CREDITLIMIT_USED_PERCENTAGESoapIn">
+    <wsdl:part name="parameters" element="tns:GET_CREDITLIMIT_USED_PERCENTAGE" />
+  </wsdl:message>
+  <wsdl:message name="GET_CREDITLIMIT_USED_PERCENTAGESoapOut">
+    <wsdl:part name="parameters" element="tns:GET_CREDITLIMIT_USED_PERCENTAGEResponse" />
+  </wsdl:message>
+  <wsdl:message name="GET_ORDER_SCHEDULESoapIn">
+    <wsdl:part name="parameters" element="tns:GET_ORDER_SCHEDULE" />
+  </wsdl:message>
+  <wsdl:message name="GET_ORDER_SCHEDULESoapOut">
+    <wsdl:part name="parameters" element="tns:GET_ORDER_SCHEDULEResponse" />
+  </wsdl:message>
+  <wsdl:message name="SALESORDER_GETSTATUSSoapIn">
+    <wsdl:part name="parameters" element="tns:SALESORDER_GETSTATUS" />
+  </wsdl:message>
+  <wsdl:message name="SALESORDER_GETSTATUSSoapOut">
+    <wsdl:part name="parameters" element="tns:SALESORDER_GETSTATUSResponse" />
+  </wsdl:message>
+  <wsdl:message name="SALESORDER_GETSTATUS_TestSoapIn">
+    <wsdl:part name="parameters" element="tns:SALESORDER_GETSTATUS_Test" />
+  </wsdl:message>
+  <wsdl:message name="SALESORDER_GETSTATUS_TestSoapOut">
+    <wsdl:part name="parameters" element="tns:SALESORDER_GETSTATUS_TestResponse" />
+  </wsdl:message>
+  <wsdl:message name="GetMultiATPSoapIn">
+    <wsdl:part name="parameters" element="tns:GetMultiATP" />
+  </wsdl:message>
+  <wsdl:message name="GetMultiATPSoapOut">
+    <wsdl:part name="parameters" element="tns:GetMultiATPResponse" />
+  </wsdl:message>
+  <wsdl:message name="GetMutiPrice_EQuoteSoapIn">
+    <wsdl:part name="parameters" element="tns:GetMutiPrice_EQuote" />
+  </wsdl:message>
+  <wsdl:message name="GetMutiPrice_EQuoteSoapOut">
+    <wsdl:part name="parameters" element="tns:GetMutiPrice_EQuoteResponse" />
+  </wsdl:message>
+  <wsdl:message name="GetMultiPriceSoapIn">
+    <wsdl:part name="parameters" element="tns:GetMultiPrice" />
+  </wsdl:message>
+  <wsdl:message name="GetMultiPriceSoapOut">
+    <wsdl:part name="parameters" element="tns:GetMultiPriceResponse" />
+  </wsdl:message>
+  <wsdl:message name="GetMPriceSoapIn">
+    <wsdl:part name="parameters" element="tns:GetMPrice" />
+  </wsdl:message>
+  <wsdl:message name="GetMPriceSoapOut">
+    <wsdl:part name="parameters" element="tns:GetMPriceResponse" />
+  </wsdl:message>
+  <wsdl:message name="GetMultiPrice_oldSoapIn">
+    <wsdl:part name="parameters" element="tns:GetMultiPrice_old" />
+  </wsdl:message>
+  <wsdl:message name="GetMultiPrice_oldSoapOut">
+    <wsdl:part name="parameters" element="tns:GetMultiPrice_oldResponse" />
+  </wsdl:message>
+  <wsdl:message name="GetPriceRFCSoapIn">
+    <wsdl:part name="parameters" element="tns:GetPriceRFC" />
+  </wsdl:message>
+  <wsdl:message name="GetPriceRFCSoapOut">
+    <wsdl:part name="parameters" element="tns:GetPriceRFCResponse" />
+  </wsdl:message>
+  <wsdl:message name="GetPriceRFC_oldSoapIn">
+    <wsdl:part name="parameters" element="tns:GetPriceRFC_old" />
+  </wsdl:message>
+  <wsdl:message name="GetPriceRFC_oldSoapOut">
+    <wsdl:part name="parameters" element="tns:GetPriceRFC_oldResponse" />
+  </wsdl:message>
+  <wsdl:message name="GetVendorListSoapIn">
+    <wsdl:part name="parameters" element="tns:GetVendorList" />
+  </wsdl:message>
+  <wsdl:message name="GetVendorListSoapOut">
+    <wsdl:part name="parameters" element="tns:GetVendorListResponse" />
+  </wsdl:message>
+  <wsdl:message name="GetVendorDetailSoapIn">
+    <wsdl:part name="parameters" element="tns:GetVendorDetail" />
+  </wsdl:message>
+  <wsdl:message name="GetVendorDetailSoapOut">
+    <wsdl:part name="parameters" element="tns:GetVendorDetailResponse" />
+  </wsdl:message>
+  <wsdl:message name="SO_DeleteSoapIn">
+    <wsdl:part name="parameters" element="tns:SO_Delete" />
+  </wsdl:message>
+  <wsdl:message name="SO_DeleteSoapOut">
+    <wsdl:part name="parameters" element="tns:SO_DeleteResponse" />
+  </wsdl:message>
+  <wsdl:message name="SO_ChangeSoapIn">
+    <wsdl:part name="parameters" element="tns:SO_Change" />
+  </wsdl:message>
+  <wsdl:message name="SO_ChangeSoapOut">
+    <wsdl:part name="parameters" element="tns:SO_ChangeResponse" />
+  </wsdl:message>
+  <wsdl:message name="SO_CREATESoapIn">
+    <wsdl:part name="parameters" element="tns:SO_CREATE" />
+  </wsdl:message>
+  <wsdl:message name="SO_CREATESoapOut">
+    <wsdl:part name="parameters" element="tns:SO_CREATEResponse" />
+  </wsdl:message>
+  <wsdl:message name="SO_CREATE_NadaSoapIn">
+    <wsdl:part name="parameters" element="tns:SO_CREATE_Nada" />
+  </wsdl:message>
+  <wsdl:message name="SO_CREATE_NadaSoapOut">
+    <wsdl:part name="parameters" element="tns:SO_CREATE_NadaResponse" />
+  </wsdl:message>
+  <wsdl:message name="SO_CREATE_NEWSoapIn">
+    <wsdl:part name="parameters" element="tns:SO_CREATE_NEW" />
+  </wsdl:message>
+  <wsdl:message name="SO_CREATE_NEWSoapOut">
+    <wsdl:part name="parameters" element="tns:SO_CREATE_NEWResponse" />
+  </wsdl:message>
+  <wsdl:message name="SO_CREATE2SoapIn">
+    <wsdl:part name="parameters" element="tns:SO_CREATE2" />
+  </wsdl:message>
+  <wsdl:message name="SO_CREATE2SoapOut">
+    <wsdl:part name="parameters" element="tns:SO_CREATE2Response" />
+  </wsdl:message>
+  <wsdl:message name="SO_CREATE_TESTSoapIn">
+    <wsdl:part name="parameters" element="tns:SO_CREATE_TEST" />
+  </wsdl:message>
+  <wsdl:message name="SO_CREATE_TESTSoapOut">
+    <wsdl:part name="parameters" element="tns:SO_CREATE_TESTResponse" />
+  </wsdl:message>
+  <wsdl:message name="GetInvoiceSoapIn">
+    <wsdl:part name="parameters" element="tns:GetInvoice" />
+  </wsdl:message>
+  <wsdl:message name="GetInvoiceSoapOut">
+    <wsdl:part name="parameters" element="tns:GetInvoiceResponse" />
+  </wsdl:message>
+  <wsdl:message name="HelloKittySoapIn">
+    <wsdl:part name="parameters" element="tns:HelloKitty" />
+  </wsdl:message>
+  <wsdl:message name="HelloKittySoapOut">
+    <wsdl:part name="parameters" element="tns:HelloKittyResponse" />
+  </wsdl:message>
+  <wsdl:message name="SapXmlAbapDynSqlSoapIn">
+    <wsdl:part name="parameters" element="tns:SapXmlAbapDynSql" />
+  </wsdl:message>
+  <wsdl:message name="SapXmlAbapDynSqlSoapOut">
+    <wsdl:part name="parameters" element="tns:SapXmlAbapDynSqlResponse" />
+  </wsdl:message>
+  <wsdl:message name="SapAbapDynSqlSoapIn">
+    <wsdl:part name="parameters" element="tns:SapAbapDynSql" />
+  </wsdl:message>
+  <wsdl:message name="SapAbapDynSqlSoapOut">
+    <wsdl:part name="parameters" element="tns:SapAbapDynSqlResponse" />
+  </wsdl:message>
+  <wsdl:message name="Get_Billing_Detail_AEUSoapIn">
+    <wsdl:part name="parameters" element="tns:Get_Billing_Detail_AEU" />
+  </wsdl:message>
+  <wsdl:message name="Get_Billing_Detail_AEUSoapOut">
+    <wsdl:part name="parameters" element="tns:Get_Billing_Detail_AEUResponse" />
+  </wsdl:message>
+  <wsdl:message name="Get_Component_ComsumeSoapIn">
+    <wsdl:part name="parameters" element="tns:Get_Component_Comsume" />
+  </wsdl:message>
+  <wsdl:message name="Get_Component_ComsumeSoapOut">
+    <wsdl:part name="parameters" element="tns:Get_Component_ComsumeResponse" />
+  </wsdl:message>
+  <wsdl:message name="Get_Material_HistorySoapIn">
+    <wsdl:part name="parameters" element="tns:Get_Material_History" />
+  </wsdl:message>
+  <wsdl:message name="Get_Material_HistorySoapOut">
+    <wsdl:part name="parameters" element="tns:Get_Material_HistoryResponse" />
+  </wsdl:message>
+  <wsdl:message name="Get_Serial_NoSoapIn">
+    <wsdl:part name="parameters" element="tns:Get_Serial_No" />
+  </wsdl:message>
+  <wsdl:message name="Get_Serial_NoSoapOut">
+    <wsdl:part name="parameters" element="tns:Get_Serial_NoResponse" />
+  </wsdl:message>
+  <wsdl:message name="Get_Serial_No_By_PoSoapIn">
+    <wsdl:part name="parameters" element="tns:Get_Serial_No_By_Po" />
+  </wsdl:message>
+  <wsdl:message name="Get_Serial_No_By_PoSoapOut">
+    <wsdl:part name="parameters" element="tns:Get_Serial_No_By_PoResponse" />
+  </wsdl:message>
+  <wsdl:message name="Get_Serial_No_By_DNSoapIn">
+    <wsdl:part name="parameters" element="tns:Get_Serial_No_By_DN" />
+  </wsdl:message>
+  <wsdl:message name="Get_Serial_No_By_DNSoapOut">
+    <wsdl:part name="parameters" element="tns:Get_Serial_No_By_DNResponse" />
+  </wsdl:message>
+  <wsdl:portType name="B2B_AEU_WSSoap">
+    <wsdl:operation name="Get_Serial_No_By_GUI">
+      <wsdl:input message="tns:Get_Serial_No_By_GUISoapIn" />
+      <wsdl:output message="tns:Get_Serial_No_By_GUISoapOut" />
+    </wsdl:operation>
+    <wsdl:operation name="Get_Billing_From_SO">
+      <wsdl:input message="tns:Get_Billing_From_SOSoapIn" />
+      <wsdl:output message="tns:Get_Billing_From_SOSoapOut" />
+    </wsdl:operation>
+    <wsdl:operation name="Get_So_From_Billing_No">
+      <wsdl:input message="tns:Get_So_From_Billing_NoSoapIn" />
+      <wsdl:output message="tns:Get_So_From_Billing_NoSoapOut" />
+    </wsdl:operation>
+    <wsdl:operation name="Get_ExchangeRate">
+      <wsdl:input message="tns:Get_ExchangeRateSoapIn" />
+      <wsdl:output message="tns:Get_ExchangeRateSoapOut" />
+    </wsdl:operation>
+    <wsdl:operation name="Get_Standard_Cost_4_Digit">
+      <wsdl:input message="tns:Get_Standard_Cost_4_DigitSoapIn" />
+      <wsdl:output message="tns:Get_Standard_Cost_4_DigitSoapOut" />
+    </wsdl:operation>
+    <wsdl:operation name="Quotation_CREATE">
+      <wsdl:input message="tns:Quotation_CREATESoapIn" />
+      <wsdl:output message="tns:Quotation_CREATESoapOut" />
+    </wsdl:operation>
+    <wsdl:operation name="ZGET_WHERE_UESD_BOM_RFC">
+      <wsdl:input message="tns:ZGET_WHERE_UESD_BOM_RFCSoapIn" />
+      <wsdl:output message="tns:ZGET_WHERE_UESD_BOM_RFCSoapOut" />
+    </wsdl:operation>
+    <wsdl:operation name="ZSD_SPA_INSERT">
+      <wsdl:input message="tns:ZSD_SPA_INSERTSoapIn" />
+      <wsdl:output message="tns:ZSD_SPA_INSERTSoapOut" />
+    </wsdl:operation>
+    <wsdl:operation name="SOC_Create">
+      <wsdl:input message="tns:SOC_CreateSoapIn" />
+      <wsdl:output message="tns:SOC_CreateSoapOut" />
+    </wsdl:operation>
+    <wsdl:operation name="ConvertToExCurrencyValue">
+      <wsdl:input message="tns:ConvertToExCurrencyValueSoapIn" />
+      <wsdl:output message="tns:ConvertToExCurrencyValueSoapOut" />
+    </wsdl:operation>
+    <wsdl:operation name="GetAdvantechStockPrice">
+      <wsdl:input message="tns:GetAdvantechStockPriceSoapIn" />
+      <wsdl:output message="tns:GetAdvantechStockPriceSoapOut" />
+    </wsdl:operation>
+    <wsdl:operation name="GetAdvantechStockPriceInt">
+      <wsdl:input message="tns:GetAdvantechStockPriceIntSoapIn" />
+      <wsdl:output message="tns:GetAdvantechStockPriceIntSoapOut" />
+    </wsdl:operation>
+    <wsdl:operation name="UpdateSOWarrantyFlag">
+      <wsdl:input message="tns:UpdateSOWarrantyFlagSoapIn" />
+      <wsdl:output message="tns:UpdateSOWarrantyFlagSoapOut" />
+    </wsdl:operation>
+    <wsdl:operation name="UpdateSOWarrantyFlag_TEST">
+      <wsdl:input message="tns:UpdateSOWarrantyFlag_TESTSoapIn" />
+      <wsdl:output message="tns:UpdateSOWarrantyFlag_TESTSoapOut" />
+    </wsdl:operation>
+    <wsdl:operation name="GetRMAStatus">
+      <wsdl:input message="tns:GetRMAStatusSoapIn" />
+      <wsdl:output message="tns:GetRMAStatusSoapOut" />
+    </wsdl:operation>
+    <wsdl:operation name="GetCreditBalance_New">
+      <wsdl:input message="tns:GetCreditBalance_NewSoapIn" />
+      <wsdl:output message="tns:GetCreditBalance_NewSoapOut" />
+    </wsdl:operation>
+    <wsdl:operation name="GetCreditBalance">
+      <wsdl:input message="tns:GetCreditBalanceSoapIn" />
+      <wsdl:output message="tns:GetCreditBalanceSoapOut" />
+    </wsdl:operation>
+    <wsdl:operation name="eBizAEU_SAPDYNSQL">
+      <wsdl:input message="tns:eBizAEU_SAPDYNSQLSoapIn" />
+      <wsdl:output message="tns:eBizAEU_SAPDYNSQLSoapOut" />
+    </wsdl:operation>
+    <wsdl:operation name="SAP_DynSql">
+      <wsdl:input message="tns:SAP_DynSqlSoapIn" />
+      <wsdl:output message="tns:SAP_DynSqlSoapOut" />
+    </wsdl:operation>
+    <wsdl:operation name="ReadSAPTable">
+      <wsdl:input message="tns:ReadSAPTableSoapIn" />
+      <wsdl:output message="tns:ReadSAPTableSoapOut" />
+    </wsdl:operation>
+    <wsdl:operation name="ReadSAPTable2">
+      <wsdl:input message="tns:ReadSAPTable2SoapIn" />
+      <wsdl:output message="tns:ReadSAPTable2SoapOut" />
+    </wsdl:operation>
+    <wsdl:operation name="ReadSAPTable3">
+      <wsdl:input message="tns:ReadSAPTable3SoapIn" />
+      <wsdl:output message="tns:ReadSAPTable3SoapOut" />
+    </wsdl:operation>
+    <wsdl:operation name="CustomerInquiry">
+      <wsdl:input message="tns:CustomerInquirySoapIn" />
+      <wsdl:output message="tns:CustomerInquirySoapOut" />
+    </wsdl:operation>
+    <wsdl:operation name="B2BValidation">
+      <wsdl:input message="tns:B2BValidationSoapIn" />
+      <wsdl:output message="tns:B2BValidationSoapOut" />
+    </wsdl:operation>
+    <wsdl:operation name="SerialNumberInquiry">
+      <wsdl:input message="tns:SerialNumberInquirySoapIn" />
+      <wsdl:output message="tns:SerialNumberInquirySoapOut" />
+    </wsdl:operation>
+    <wsdl:operation name="TrackingInfoInquiry">
+      <wsdl:input message="tns:TrackingInfoInquirySoapIn" />
+      <wsdl:output message="tns:TrackingInfoInquirySoapOut" />
+    </wsdl:operation>
+    <wsdl:operation name="Salesorder_Getlist">
+      <wsdl:input message="tns:Salesorder_GetlistSoapIn" />
+      <wsdl:output message="tns:Salesorder_GetlistSoapOut" />
+    </wsdl:operation>
+    <wsdl:operation name="Bapi_Salesorder_Getlist">
+      <wsdl:input message="tns:Bapi_Salesorder_GetlistSoapIn" />
+      <wsdl:output message="tns:Bapi_Salesorder_GetlistSoapOut" />
+    </wsdl:operation>
+    <wsdl:operation name="GetOrderHistory">
+      <wsdl:input message="tns:GetOrderHistorySoapIn" />
+      <wsdl:output message="tns:GetOrderHistorySoapOut" />
+    </wsdl:operation>
+    <wsdl:operation name="GetBackOrder_Track">
+      <wsdl:input message="tns:GetBackOrder_TrackSoapIn" />
+      <wsdl:output message="tns:GetBackOrder_TrackSoapOut" />
+    </wsdl:operation>
+    <wsdl:operation name="GetBackOrderList">
+      <wsdl:input message="tns:GetBackOrderListSoapIn" />
+      <wsdl:output message="tns:GetBackOrderListSoapOut" />
+    </wsdl:operation>
+    <wsdl:operation name="GetBackOrderItem">
+      <wsdl:input message="tns:GetBackOrderItemSoapIn" />
+      <wsdl:output message="tns:GetBackOrderItemSoapOut" />
+    </wsdl:operation>
+    <wsdl:operation name="Get_Customer_AEU">
+      <wsdl:input message="tns:Get_Customer_AEUSoapIn" />
+      <wsdl:output message="tns:Get_Customer_AEUSoapOut" />
+    </wsdl:operation>
+    <wsdl:operation name="Get_Next_WrokingDate">
+      <wsdl:input message="tns:Get_Next_WrokingDateSoapIn" />
+      <wsdl:output message="tns:Get_Next_WrokingDateSoapOut" />
+    </wsdl:operation>
+    <wsdl:operation name="Get_Next_WorkingDate_ByCode">
+      <wsdl:input message="tns:Get_Next_WorkingDate_ByCodeSoapIn" />
+      <wsdl:output message="tns:Get_Next_WorkingDate_ByCodeSoapOut" />
+    </wsdl:operation>
+    <wsdl:operation name="GetAR">
+      <wsdl:input message="tns:GetARSoapIn" />
+      <wsdl:output message="tns:GetARSoapOut" />
+    </wsdl:operation>
+    <wsdl:operation name="GetAR_Detail">
+      <wsdl:input message="tns:GetAR_DetailSoapIn" />
+      <wsdl:output message="tns:GetAR_DetailSoapOut" />
+    </wsdl:operation>
+    <wsdl:operation name="GetAR_Detail_New">
+      <wsdl:input message="tns:GetAR_Detail_NewSoapIn" />
+      <wsdl:output message="tns:GetAR_Detail_NewSoapOut" />
+    </wsdl:operation>
+    <wsdl:operation name="GetAR_SO">
+      <wsdl:input message="tns:GetAR_SOSoapIn" />
+      <wsdl:output message="tns:GetAR_SOSoapOut" />
+    </wsdl:operation>
+    <wsdl:operation name="GetMaterialStatusCost">
+      <wsdl:input message="tns:GetMaterialStatusCostSoapIn" />
+      <wsdl:output message="tns:GetMaterialStatusCostSoapOut" />
+    </wsdl:operation>
+    <wsdl:operation name="AR_DueDate_Inquiry">
+      <wsdl:input message="tns:AR_DueDate_InquirySoapIn" />
+      <wsdl:output message="tns:AR_DueDate_InquirySoapOut" />
+    </wsdl:operation>
+    <wsdl:operation name="GetCustAP">
+      <wsdl:input message="tns:GetCustAPSoapIn" />
+      <wsdl:output message="tns:GetCustAPSoapOut" />
+    </wsdl:operation>
+    <wsdl:operation name="GetCustomerAP">
+      <wsdl:input message="tns:GetCustomerAPSoapIn" />
+      <wsdl:output message="tns:GetCustomerAPSoapOut" />
+    </wsdl:operation>
+    <wsdl:operation name="GetMultiATP_New">
+      <wsdl:input message="tns:GetMultiATP_NewSoapIn" />
+      <wsdl:output message="tns:GetMultiATP_NewSoapOut" />
+    </wsdl:operation>
+    <wsdl:operation name="GetMultiATP_ACN">
+      <wsdl:input message="tns:GetMultiATP_ACNSoapIn" />
+      <wsdl:output message="tns:GetMultiATP_ACNSoapOut" />
+    </wsdl:operation>
+    <wsdl:operation name="GetMultiATP_New_US">
+      <wsdl:input message="tns:GetMultiATP_New_USSoapIn" />
+      <wsdl:output message="tns:GetMultiATP_New_USSoapOut" />
+    </wsdl:operation>
+    <wsdl:operation name="GetMultiATP_New2">
+      <wsdl:input message="tns:GetMultiATP_New2SoapIn" />
+      <wsdl:output message="tns:GetMultiATP_New2SoapOut" />
+    </wsdl:operation>
+    <wsdl:operation name="GetSingleATP">
+      <wsdl:input message="tns:GetSingleATPSoapIn" />
+      <wsdl:output message="tns:GetSingleATPSoapOut" />
+    </wsdl:operation>
+    <wsdl:operation name="GetSingleATP_New">
+      <wsdl:input message="tns:GetSingleATP_NewSoapIn" />
+      <wsdl:output message="tns:GetSingleATP_NewSoapOut" />
+    </wsdl:operation>
+    <wsdl:operation name="GetMultiDueDate_New">
+      <wsdl:input message="tns:GetMultiDueDate_NewSoapIn" />
+      <wsdl:output message="tns:GetMultiDueDate_NewSoapOut" />
+    </wsdl:operation>
+    <wsdl:operation name="GetMultiDueDate">
+      <wsdl:input message="tns:GetMultiDueDateSoapIn" />
+      <wsdl:output message="tns:GetMultiDueDateSoapOut" />
+    </wsdl:operation>
+    <wsdl:operation name="GetMultiDueDate_SpecialATP">
+      <wsdl:input message="tns:GetMultiDueDate_SpecialATPSoapIn" />
+      <wsdl:output message="tns:GetMultiDueDate_SpecialATPSoapOut" />
+    </wsdl:operation>
+    <wsdl:operation name="GetMultiDueDate_RDQ">
+      <wsdl:input message="tns:GetMultiDueDate_RDQSoapIn" />
+      <wsdl:output message="tns:GetMultiDueDate_RDQSoapOut" />
+    </wsdl:operation>
+    <wsdl:operation name="GET_CUSTOMER_COUNTRYPOSTAL_CODE">
+      <wsdl:input message="tns:GET_CUSTOMER_COUNTRYPOSTAL_CODESoapIn" />
+      <wsdl:output message="tns:GET_CUSTOMER_COUNTRYPOSTAL_CODESoapOut" />
+    </wsdl:operation>
+    <wsdl:operation name="GetMaterialSingle">
+      <wsdl:input message="tns:GetMaterialSingleSoapIn" />
+      <wsdl:output message="tns:GetMaterialSingleSoapOut" />
+    </wsdl:operation>
+    <wsdl:operation name="Get_Material_Detail">
+      <wsdl:input message="tns:Get_Material_DetailSoapIn" />
+      <wsdl:output message="tns:Get_Material_DetailSoapOut" />
+    </wsdl:operation>
+    <wsdl:operation name="GET_MATERIAL_WEIGHT_VOLUME">
+      <wsdl:input message="tns:GET_MATERIAL_WEIGHT_VOLUMESoapIn" />
+      <wsdl:output message="tns:GET_MATERIAL_WEIGHT_VOLUMESoapOut" />
+    </wsdl:operation>
+    <wsdl:operation name="GET_CTOS_DOCUMENTINFO">
+      <wsdl:input message="tns:GET_CTOS_DOCUMENTINFOSoapIn" />
+      <wsdl:output message="tns:GET_CTOS_DOCUMENTINFOSoapOut" />
+    </wsdl:operation>
+    <wsdl:operation name="GET_EXCHANGE_RATE">
+      <wsdl:input message="tns:GET_EXCHANGE_RATESoapIn" />
+      <wsdl:output message="tns:GET_EXCHANGE_RATESoapOut" />
+    </wsdl:operation>
+    <wsdl:operation name="GET_CREDITLIMIT_USED_PERCENTAGE">
+      <wsdl:input message="tns:GET_CREDITLIMIT_USED_PERCENTAGESoapIn" />
+      <wsdl:output message="tns:GET_CREDITLIMIT_USED_PERCENTAGESoapOut" />
+    </wsdl:operation>
+    <wsdl:operation name="GET_ORDER_SCHEDULE">
+      <wsdl:input message="tns:GET_ORDER_SCHEDULESoapIn" />
+      <wsdl:output message="tns:GET_ORDER_SCHEDULESoapOut" />
+    </wsdl:operation>
+    <wsdl:operation name="SALESORDER_GETSTATUS">
+      <wsdl:input message="tns:SALESORDER_GETSTATUSSoapIn" />
+      <wsdl:output message="tns:SALESORDER_GETSTATUSSoapOut" />
+    </wsdl:operation>
+    <wsdl:operation name="SALESORDER_GETSTATUS_Test">
+      <wsdl:input message="tns:SALESORDER_GETSTATUS_TestSoapIn" />
+      <wsdl:output message="tns:SALESORDER_GETSTATUS_TestSoapOut" />
+    </wsdl:operation>
+    <wsdl:operation name="GetMultiATP">
+      <wsdl:input message="tns:GetMultiATPSoapIn" />
+      <wsdl:output message="tns:GetMultiATPSoapOut" />
+    </wsdl:operation>
+    <wsdl:operation name="GetMutiPrice_EQuote">
+      <wsdl:input message="tns:GetMutiPrice_EQuoteSoapIn" />
+      <wsdl:output message="tns:GetMutiPrice_EQuoteSoapOut" />
+    </wsdl:operation>
+    <wsdl:operation name="GetMultiPrice">
+      <wsdl:input message="tns:GetMultiPriceSoapIn" />
+      <wsdl:output message="tns:GetMultiPriceSoapOut" />
+    </wsdl:operation>
+    <wsdl:operation name="GetMPrice">
+      <wsdl:input message="tns:GetMPriceSoapIn" />
+      <wsdl:output message="tns:GetMPriceSoapOut" />
+    </wsdl:operation>
+    <wsdl:operation name="GetMultiPrice_old">
+      <wsdl:input message="tns:GetMultiPrice_oldSoapIn" />
+      <wsdl:output message="tns:GetMultiPrice_oldSoapOut" />
+    </wsdl:operation>
+    <wsdl:operation name="GetPriceRFC">
+      <wsdl:input message="tns:GetPriceRFCSoapIn" />
+      <wsdl:output message="tns:GetPriceRFCSoapOut" />
+    </wsdl:operation>
+    <wsdl:operation name="GetPriceRFC_old">
+      <wsdl:input message="tns:GetPriceRFC_oldSoapIn" />
+      <wsdl:output message="tns:GetPriceRFC_oldSoapOut" />
+    </wsdl:operation>
+    <wsdl:operation name="GetVendorList">
+      <wsdl:input message="tns:GetVendorListSoapIn" />
+      <wsdl:output message="tns:GetVendorListSoapOut" />
+    </wsdl:operation>
+    <wsdl:operation name="GetVendorDetail">
+      <wsdl:input message="tns:GetVendorDetailSoapIn" />
+      <wsdl:output message="tns:GetVendorDetailSoapOut" />
+    </wsdl:operation>
+    <wsdl:operation name="SO_Delete">
+      <wsdl:input message="tns:SO_DeleteSoapIn" />
+      <wsdl:output message="tns:SO_DeleteSoapOut" />
+    </wsdl:operation>
+    <wsdl:operation name="SO_Change">
+      <wsdl:input message="tns:SO_ChangeSoapIn" />
+      <wsdl:output message="tns:SO_ChangeSoapOut" />
+    </wsdl:operation>
+    <wsdl:operation name="SO_CREATE">
+      <wsdl:input message="tns:SO_CREATESoapIn" />
+      <wsdl:output message="tns:SO_CREATESoapOut" />
+    </wsdl:operation>
+    <wsdl:operation name="SO_CREATE_Nada">
+      <wsdl:input message="tns:SO_CREATE_NadaSoapIn" />
+      <wsdl:output message="tns:SO_CREATE_NadaSoapOut" />
+    </wsdl:operation>
+    <wsdl:operation name="SO_CREATE_NEW">
+      <wsdl:input message="tns:SO_CREATE_NEWSoapIn" />
+      <wsdl:output message="tns:SO_CREATE_NEWSoapOut" />
+    </wsdl:operation>
+    <wsdl:operation name="SO_CREATE2">
+      <wsdl:input message="tns:SO_CREATE2SoapIn" />
+      <wsdl:output message="tns:SO_CREATE2SoapOut" />
+    </wsdl:operation>
+    <wsdl:operation name="SO_CREATE_TEST">
+      <wsdl:input message="tns:SO_CREATE_TESTSoapIn" />
+      <wsdl:output message="tns:SO_CREATE_TESTSoapOut" />
+    </wsdl:operation>
+    <wsdl:operation name="GetInvoice">
+      <wsdl:input message="tns:GetInvoiceSoapIn" />
+      <wsdl:output message="tns:GetInvoiceSoapOut" />
+    </wsdl:operation>
+    <wsdl:operation name="HelloKitty">
+      <wsdl:input message="tns:HelloKittySoapIn" />
+      <wsdl:output message="tns:HelloKittySoapOut" />
+    </wsdl:operation>
+    <wsdl:operation name="SapXmlAbapDynSql">
+      <wsdl:input message="tns:SapXmlAbapDynSqlSoapIn" />
+      <wsdl:output message="tns:SapXmlAbapDynSqlSoapOut" />
+    </wsdl:operation>
+    <wsdl:operation name="SapAbapDynSql">
+      <wsdl:input message="tns:SapAbapDynSqlSoapIn" />
+      <wsdl:output message="tns:SapAbapDynSqlSoapOut" />
+    </wsdl:operation>
+    <wsdl:operation name="Get_Billing_Detail_AEU">
+      <wsdl:input message="tns:Get_Billing_Detail_AEUSoapIn" />
+      <wsdl:output message="tns:Get_Billing_Detail_AEUSoapOut" />
+    </wsdl:operation>
+    <wsdl:operation name="Get_Component_Comsume">
+      <wsdl:input message="tns:Get_Component_ComsumeSoapIn" />
+      <wsdl:output message="tns:Get_Component_ComsumeSoapOut" />
+    </wsdl:operation>
+    <wsdl:operation name="Get_Material_History">
+      <wsdl:input message="tns:Get_Material_HistorySoapIn" />
+      <wsdl:output message="tns:Get_Material_HistorySoapOut" />
+    </wsdl:operation>
+    <wsdl:operation name="Get_Serial_No">
+      <wsdl:input message="tns:Get_Serial_NoSoapIn" />
+      <wsdl:output message="tns:Get_Serial_NoSoapOut" />
+    </wsdl:operation>
+    <wsdl:operation name="Get_Serial_No_By_Po">
+      <wsdl:input message="tns:Get_Serial_No_By_PoSoapIn" />
+      <wsdl:output message="tns:Get_Serial_No_By_PoSoapOut" />
+    </wsdl:operation>
+    <wsdl:operation name="Get_Serial_No_By_DN">
+      <wsdl:input message="tns:Get_Serial_No_By_DNSoapIn" />
+      <wsdl:output message="tns:Get_Serial_No_By_DNSoapOut" />
+    </wsdl:operation>
+  </wsdl:portType>
+  <wsdl:binding name="B2B_AEU_WSSoap" type="tns:B2B_AEU_WSSoap">
+    <soap:binding transport="http://schemas.xmlsoap.org/soap/http" />
+    <wsdl:operation name="Get_Serial_No_By_GUI">
+      <soap:operation soapAction="http://tempuri.org/b2baeu_SAP_WS/Service1/Get_Serial_No_By_GUI" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="Get_Billing_From_SO">
+      <soap:operation soapAction="http://tempuri.org/b2baeu_SAP_WS/Service1/Get_Billing_From_SO" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="Get_So_From_Billing_No">
+      <soap:operation soapAction="http://tempuri.org/b2baeu_SAP_WS/Service1/Get_So_From_Billing_No" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="Get_ExchangeRate">
+      <soap:operation soapAction="http://tempuri.org/b2baeu_SAP_WS/Service1/Get_ExchangeRate" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="Get_Standard_Cost_4_Digit">
+      <soap:operation soapAction="http://tempuri.org/b2baeu_SAP_WS/Service1/Get_Standard_Cost_4_Digit" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="Quotation_CREATE">
+      <soap:operation soapAction="http://tempuri.org/b2baeu_SAP_WS/Service1/Quotation_CREATE" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="ZGET_WHERE_UESD_BOM_RFC">
+      <soap:operation soapAction="http://tempuri.org/b2baeu_SAP_WS/Service1/ZGET_WHERE_UESD_BOM_RFC" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="ZSD_SPA_INSERT">
+      <soap:operation soapAction="http://tempuri.org/b2baeu_SAP_WS/Service1/ZSD_SPA_INSERT" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="SOC_Create">
+      <soap:operation soapAction="http://tempuri.org/b2baeu_SAP_WS/Service1/SOC_Create" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="ConvertToExCurrencyValue">
+      <soap:operation soapAction="http://tempuri.org/b2baeu_SAP_WS/Service1/ConvertToExCurrencyValue" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="GetAdvantechStockPrice">
+      <soap:operation soapAction="http://tempuri.org/b2baeu_SAP_WS/Service1/GetAdvantechStockPrice" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="GetAdvantechStockPriceInt">
+      <soap:operation soapAction="http://tempuri.org/b2baeu_SAP_WS/Service1/GetAdvantechStockPriceInt" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="UpdateSOWarrantyFlag">
+      <soap:operation soapAction="http://tempuri.org/b2baeu_SAP_WS/Service1/UpdateSOWarrantyFlag" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="UpdateSOWarrantyFlag_TEST">
+      <soap:operation soapAction="http://tempuri.org/b2baeu_SAP_WS/Service1/UpdateSOWarrantyFlag_TEST" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="GetRMAStatus">
+      <soap:operation soapAction="http://tempuri.org/b2baeu_SAP_WS/Service1/GetRMAStatus" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="GetCreditBalance_New">
+      <soap:operation soapAction="http://tempuri.org/b2baeu_SAP_WS/Service1/GetCreditBalance_New" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="GetCreditBalance">
+      <soap:operation soapAction="http://tempuri.org/b2baeu_SAP_WS/Service1/GetCreditBalance" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="eBizAEU_SAPDYNSQL">
+      <soap:operation soapAction="http://tempuri.org/b2baeu_SAP_WS/Service1/eBizAEU_SAPDYNSQL" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="SAP_DynSql">
+      <soap:operation soapAction="http://tempuri.org/b2baeu_SAP_WS/Service1/SAP_DynSql" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="ReadSAPTable">
+      <soap:operation soapAction="http://tempuri.org/b2baeu_SAP_WS/Service1/ReadSAPTable" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="ReadSAPTable2">
+      <soap:operation soapAction="http://tempuri.org/b2baeu_SAP_WS/Service1/ReadSAPTable2" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="ReadSAPTable3">
+      <soap:operation soapAction="http://tempuri.org/b2baeu_SAP_WS/Service1/ReadSAPTable3" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="CustomerInquiry">
+      <soap:operation soapAction="http://tempuri.org/b2baeu_SAP_WS/Service1/CustomerInquiry" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="B2BValidation">
+      <soap:operation soapAction="http://tempuri.org/b2baeu_SAP_WS/Service1/B2BValidation" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="SerialNumberInquiry">
+      <soap:operation soapAction="http://tempuri.org/b2baeu_SAP_WS/Service1/SerialNumberInquiry" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="TrackingInfoInquiry">
+      <soap:operation soapAction="http://tempuri.org/b2baeu_SAP_WS/Service1/TrackingInfoInquiry" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="Salesorder_Getlist">
+      <soap:operation soapAction="http://tempuri.org/b2baeu_SAP_WS/Service1/Salesorder_Getlist" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="Bapi_Salesorder_Getlist">
+      <soap:operation soapAction="http://tempuri.org/b2baeu_SAP_WS/Service1/Bapi_Salesorder_Getlist" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="GetOrderHistory">
+      <soap:operation soapAction="http://tempuri.org/b2baeu_SAP_WS/Service1/GetOrderHistory" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="GetBackOrder_Track">
+      <soap:operation soapAction="http://tempuri.org/b2baeu_SAP_WS/Service1/GetBackOrder_Track" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="GetBackOrderList">
+      <soap:operation soapAction="http://tempuri.org/b2baeu_SAP_WS/Service1/GetBackOrderList" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="GetBackOrderItem">
+      <soap:operation soapAction="http://tempuri.org/b2baeu_SAP_WS/Service1/GetBackOrderItem" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="Get_Customer_AEU">
+      <soap:operation soapAction="http://tempuri.org/b2baeu_SAP_WS/Service1/Get_Customer_AEU" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="Get_Next_WrokingDate">
+      <soap:operation soapAction="http://tempuri.org/b2baeu_SAP_WS/Service1/Get_Next_WrokingDate" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="Get_Next_WorkingDate_ByCode">
+      <soap:operation soapAction="http://tempuri.org/b2baeu_SAP_WS/Service1/Get_Next_WorkingDate_ByCode" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="GetAR">
+      <soap:operation soapAction="http://tempuri.org/b2baeu_SAP_WS/Service1/GetAR" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="GetAR_Detail">
+      <soap:operation soapAction="http://tempuri.org/b2baeu_SAP_WS/Service1/GetAR_Detail" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="GetAR_Detail_New">
+      <soap:operation soapAction="http://tempuri.org/b2baeu_SAP_WS/Service1/GetAR_Detail_New" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="GetAR_SO">
+      <soap:operation soapAction="http://tempuri.org/b2baeu_SAP_WS/Service1/GetAR_SO" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="GetMaterialStatusCost">
+      <soap:operation soapAction="http://tempuri.org/b2baeu_SAP_WS/Service1/GetMaterialStatusCost" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="AR_DueDate_Inquiry">
+      <soap:operation soapAction="http://tempuri.org/b2baeu_SAP_WS/Service1/AR_DueDate_Inquiry" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="GetCustAP">
+      <soap:operation soapAction="http://tempuri.org/b2baeu_SAP_WS/Service1/GetCustAP" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="GetCustomerAP">
+      <soap:operation soapAction="http://tempuri.org/b2baeu_SAP_WS/Service1/GetCustomerAP" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="GetMultiATP_New">
+      <soap:operation soapAction="http://tempuri.org/b2baeu_SAP_WS/Service1/GetMultiATP_New" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="GetMultiATP_ACN">
+      <soap:operation soapAction="http://tempuri.org/b2baeu_SAP_WS/Service1/GetMultiATP_ACN" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="GetMultiATP_New_US">
+      <soap:operation soapAction="http://tempuri.org/b2baeu_SAP_WS/Service1/GetMultiATP_New_US" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="GetMultiATP_New2">
+      <soap:operation soapAction="http://tempuri.org/b2baeu_SAP_WS/Service1/GetMultiATP_New2" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="GetSingleATP">
+      <soap:operation soapAction="http://tempuri.org/b2baeu_SAP_WS/Service1/GetSingleATP" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="GetSingleATP_New">
+      <soap:operation soapAction="http://tempuri.org/b2baeu_SAP_WS/Service1/GetSingleATP_New" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="GetMultiDueDate_New">
+      <soap:operation soapAction="http://tempuri.org/b2baeu_SAP_WS/Service1/GetMultiDueDate_New" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="GetMultiDueDate">
+      <soap:operation soapAction="http://tempuri.org/b2baeu_SAP_WS/Service1/GetMultiDueDate" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="GetMultiDueDate_SpecialATP">
+      <soap:operation soapAction="http://tempuri.org/b2baeu_SAP_WS/Service1/GetMultiDueDate_SpecialATP" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="GetMultiDueDate_RDQ">
+      <soap:operation soapAction="http://tempuri.org/b2baeu_SAP_WS/Service1/GetMultiDueDate_RDQ" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="GET_CUSTOMER_COUNTRYPOSTAL_CODE">
+      <soap:operation soapAction="http://tempuri.org/b2baeu_SAP_WS/Service1/GET_CUSTOMER_COUNTRYPOSTAL_CODE" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="GetMaterialSingle">
+      <soap:operation soapAction="http://tempuri.org/b2baeu_SAP_WS/Service1/GetMaterialSingle" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="Get_Material_Detail">
+      <soap:operation soapAction="http://tempuri.org/b2baeu_SAP_WS/Service1/Get_Material_Detail" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="GET_MATERIAL_WEIGHT_VOLUME">
+      <soap:operation soapAction="http://tempuri.org/b2baeu_SAP_WS/Service1/GET_MATERIAL_WEIGHT_VOLUME" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="GET_CTOS_DOCUMENTINFO">
+      <soap:operation soapAction="http://tempuri.org/b2baeu_SAP_WS/Service1/GET_CTOS_DOCUMENTINFO" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="GET_EXCHANGE_RATE">
+      <soap:operation soapAction="http://tempuri.org/b2baeu_SAP_WS/Service1/GET_EXCHANGE_RATE" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="GET_CREDITLIMIT_USED_PERCENTAGE">
+      <soap:operation soapAction="http://tempuri.org/b2baeu_SAP_WS/Service1/GET_CREDITLIMIT_USED_PERCENTAGE" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="GET_ORDER_SCHEDULE">
+      <soap:operation soapAction="http://tempuri.org/b2baeu_SAP_WS/Service1/GET_ORDER_SCHEDULE" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="SALESORDER_GETSTATUS">
+      <soap:operation soapAction="http://tempuri.org/b2baeu_SAP_WS/Service1/SALESORDER_GETSTATUS" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="SALESORDER_GETSTATUS_Test">
+      <soap:operation soapAction="http://tempuri.org/b2baeu_SAP_WS/Service1/SALESORDER_GETSTATUS_Test" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="GetMultiATP">
+      <soap:operation soapAction="http://tempuri.org/b2baeu_SAP_WS/Service1/GetMultiATP" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="GetMutiPrice_EQuote">
+      <soap:operation soapAction="http://tempuri.org/b2baeu_SAP_WS/Service1/GetMutiPrice_EQuote" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="GetMultiPrice">
+      <soap:operation soapAction="http://tempuri.org/b2baeu_SAP_WS/Service1/GetMultiPrice" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="GetMPrice">
+      <soap:operation soapAction="http://tempuri.org/b2baeu_SAP_WS/Service1/GetMPrice" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="GetMultiPrice_old">
+      <soap:operation soapAction="http://tempuri.org/b2baeu_SAP_WS/Service1/GetMultiPrice_old" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="GetPriceRFC">
+      <soap:operation soapAction="http://tempuri.org/b2baeu_SAP_WS/Service1/GetPriceRFC" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="GetPriceRFC_old">
+      <soap:operation soapAction="http://tempuri.org/b2baeu_SAP_WS/Service1/GetPriceRFC_old" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="GetVendorList">
+      <soap:operation soapAction="http://tempuri.org/b2baeu_SAP_WS/Service1/GetVendorList" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="GetVendorDetail">
+      <soap:operation soapAction="http://tempuri.org/b2baeu_SAP_WS/Service1/GetVendorDetail" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="SO_Delete">
+      <soap:operation soapAction="http://tempuri.org/b2baeu_SAP_WS/Service1/SO_Delete" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="SO_Change">
+      <soap:operation soapAction="http://tempuri.org/b2baeu_SAP_WS/Service1/SO_Change" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="SO_CREATE">
+      <soap:operation soapAction="http://tempuri.org/b2baeu_SAP_WS/Service1/SO_CREATE" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="SO_CREATE_Nada">
+      <soap:operation soapAction="http://tempuri.org/b2baeu_SAP_WS/Service1/SO_CREATE_Nada" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="SO_CREATE_NEW">
+      <soap:operation soapAction="http://tempuri.org/b2baeu_SAP_WS/Service1/SO_CREATE_NEW" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="SO_CREATE2">
+      <soap:operation soapAction="http://tempuri.org/b2baeu_SAP_WS/Service1/SO_CREATE2" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="SO_CREATE_TEST">
+      <soap:operation soapAction="http://tempuri.org/b2baeu_SAP_WS/Service1/SO_CREATE_TEST" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="GetInvoice">
+      <soap:operation soapAction="http://tempuri.org/b2baeu_SAP_WS/Service1/GetInvoice" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="HelloKitty">
+      <soap:operation soapAction="http://tempuri.org/b2baeu_SAP_WS/Service1/HelloKitty" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="SapXmlAbapDynSql">
+      <soap:operation soapAction="http://tempuri.org/b2baeu_SAP_WS/Service1/SapXmlAbapDynSql" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="SapAbapDynSql">
+      <soap:operation soapAction="http://tempuri.org/b2baeu_SAP_WS/Service1/SapAbapDynSql" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="Get_Billing_Detail_AEU">
+      <soap:operation soapAction="http://tempuri.org/b2baeu_SAP_WS/Service1/Get_Billing_Detail_AEU" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="Get_Component_Comsume">
+      <soap:operation soapAction="http://tempuri.org/b2baeu_SAP_WS/Service1/Get_Component_Comsume" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="Get_Material_History">
+      <soap:operation soapAction="http://tempuri.org/b2baeu_SAP_WS/Service1/Get_Material_History" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="Get_Serial_No">
+      <soap:operation soapAction="http://tempuri.org/b2baeu_SAP_WS/Service1/Get_Serial_No" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="Get_Serial_No_By_Po">
+      <soap:operation soapAction="http://tempuri.org/b2baeu_SAP_WS/Service1/Get_Serial_No_By_Po" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="Get_Serial_No_By_DN">
+      <soap:operation soapAction="http://tempuri.org/b2baeu_SAP_WS/Service1/Get_Serial_No_By_DN" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+  </wsdl:binding>
+  <wsdl:binding name="B2B_AEU_WSSoap12" type="tns:B2B_AEU_WSSoap">
+    <soap12:binding transport="http://schemas.xmlsoap.org/soap/http" />
+    <wsdl:operation name="Get_Serial_No_By_GUI">
+      <soap12:operation soapAction="http://tempuri.org/b2baeu_SAP_WS/Service1/Get_Serial_No_By_GUI" style="document" />
+      <wsdl:input>
+        <soap12:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap12:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="Get_Billing_From_SO">
+      <soap12:operation soapAction="http://tempuri.org/b2baeu_SAP_WS/Service1/Get_Billing_From_SO" style="document" />
+      <wsdl:input>
+        <soap12:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap12:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="Get_So_From_Billing_No">
+      <soap12:operation soapAction="http://tempuri.org/b2baeu_SAP_WS/Service1/Get_So_From_Billing_No" style="document" />
+      <wsdl:input>
+        <soap12:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap12:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="Get_ExchangeRate">
+      <soap12:operation soapAction="http://tempuri.org/b2baeu_SAP_WS/Service1/Get_ExchangeRate" style="document" />
+      <wsdl:input>
+        <soap12:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap12:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="Get_Standard_Cost_4_Digit">
+      <soap12:operation soapAction="http://tempuri.org/b2baeu_SAP_WS/Service1/Get_Standard_Cost_4_Digit" style="document" />
+      <wsdl:input>
+        <soap12:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap12:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="Quotation_CREATE">
+      <soap12:operation soapAction="http://tempuri.org/b2baeu_SAP_WS/Service1/Quotation_CREATE" style="document" />
+      <wsdl:input>
+        <soap12:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap12:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="ZGET_WHERE_UESD_BOM_RFC">
+      <soap12:operation soapAction="http://tempuri.org/b2baeu_SAP_WS/Service1/ZGET_WHERE_UESD_BOM_RFC" style="document" />
+      <wsdl:input>
+        <soap12:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap12:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="ZSD_SPA_INSERT">
+      <soap12:operation soapAction="http://tempuri.org/b2baeu_SAP_WS/Service1/ZSD_SPA_INSERT" style="document" />
+      <wsdl:input>
+        <soap12:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap12:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="SOC_Create">
+      <soap12:operation soapAction="http://tempuri.org/b2baeu_SAP_WS/Service1/SOC_Create" style="document" />
+      <wsdl:input>
+        <soap12:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap12:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="ConvertToExCurrencyValue">
+      <soap12:operation soapAction="http://tempuri.org/b2baeu_SAP_WS/Service1/ConvertToExCurrencyValue" style="document" />
+      <wsdl:input>
+        <soap12:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap12:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="GetAdvantechStockPrice">
+      <soap12:operation soapAction="http://tempuri.org/b2baeu_SAP_WS/Service1/GetAdvantechStockPrice" style="document" />
+      <wsdl:input>
+        <soap12:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap12:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="GetAdvantechStockPriceInt">
+      <soap12:operation soapAction="http://tempuri.org/b2baeu_SAP_WS/Service1/GetAdvantechStockPriceInt" style="document" />
+      <wsdl:input>
+        <soap12:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap12:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="UpdateSOWarrantyFlag">
+      <soap12:operation soapAction="http://tempuri.org/b2baeu_SAP_WS/Service1/UpdateSOWarrantyFlag" style="document" />
+      <wsdl:input>
+        <soap12:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap12:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="UpdateSOWarrantyFlag_TEST">
+      <soap12:operation soapAction="http://tempuri.org/b2baeu_SAP_WS/Service1/UpdateSOWarrantyFlag_TEST" style="document" />
+      <wsdl:input>
+        <soap12:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap12:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="GetRMAStatus">
+      <soap12:operation soapAction="http://tempuri.org/b2baeu_SAP_WS/Service1/GetRMAStatus" style="document" />
+      <wsdl:input>
+        <soap12:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap12:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="GetCreditBalance_New">
+      <soap12:operation soapAction="http://tempuri.org/b2baeu_SAP_WS/Service1/GetCreditBalance_New" style="document" />
+      <wsdl:input>
+        <soap12:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap12:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="GetCreditBalance">
+      <soap12:operation soapAction="http://tempuri.org/b2baeu_SAP_WS/Service1/GetCreditBalance" style="document" />
+      <wsdl:input>
+        <soap12:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap12:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="eBizAEU_SAPDYNSQL">
+      <soap12:operation soapAction="http://tempuri.org/b2baeu_SAP_WS/Service1/eBizAEU_SAPDYNSQL" style="document" />
+      <wsdl:input>
+        <soap12:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap12:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="SAP_DynSql">
+      <soap12:operation soapAction="http://tempuri.org/b2baeu_SAP_WS/Service1/SAP_DynSql" style="document" />
+      <wsdl:input>
+        <soap12:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap12:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="ReadSAPTable">
+      <soap12:operation soapAction="http://tempuri.org/b2baeu_SAP_WS/Service1/ReadSAPTable" style="document" />
+      <wsdl:input>
+        <soap12:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap12:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="ReadSAPTable2">
+      <soap12:operation soapAction="http://tempuri.org/b2baeu_SAP_WS/Service1/ReadSAPTable2" style="document" />
+      <wsdl:input>
+        <soap12:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap12:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="ReadSAPTable3">
+      <soap12:operation soapAction="http://tempuri.org/b2baeu_SAP_WS/Service1/ReadSAPTable3" style="document" />
+      <wsdl:input>
+        <soap12:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap12:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="CustomerInquiry">
+      <soap12:operation soapAction="http://tempuri.org/b2baeu_SAP_WS/Service1/CustomerInquiry" style="document" />
+      <wsdl:input>
+        <soap12:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap12:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="B2BValidation">
+      <soap12:operation soapAction="http://tempuri.org/b2baeu_SAP_WS/Service1/B2BValidation" style="document" />
+      <wsdl:input>
+        <soap12:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap12:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="SerialNumberInquiry">
+      <soap12:operation soapAction="http://tempuri.org/b2baeu_SAP_WS/Service1/SerialNumberInquiry" style="document" />
+      <wsdl:input>
+        <soap12:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap12:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="TrackingInfoInquiry">
+      <soap12:operation soapAction="http://tempuri.org/b2baeu_SAP_WS/Service1/TrackingInfoInquiry" style="document" />
+      <wsdl:input>
+        <soap12:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap12:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="Salesorder_Getlist">
+      <soap12:operation soapAction="http://tempuri.org/b2baeu_SAP_WS/Service1/Salesorder_Getlist" style="document" />
+      <wsdl:input>
+        <soap12:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap12:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="Bapi_Salesorder_Getlist">
+      <soap12:operation soapAction="http://tempuri.org/b2baeu_SAP_WS/Service1/Bapi_Salesorder_Getlist" style="document" />
+      <wsdl:input>
+        <soap12:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap12:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="GetOrderHistory">
+      <soap12:operation soapAction="http://tempuri.org/b2baeu_SAP_WS/Service1/GetOrderHistory" style="document" />
+      <wsdl:input>
+        <soap12:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap12:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="GetBackOrder_Track">
+      <soap12:operation soapAction="http://tempuri.org/b2baeu_SAP_WS/Service1/GetBackOrder_Track" style="document" />
+      <wsdl:input>
+        <soap12:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap12:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="GetBackOrderList">
+      <soap12:operation soapAction="http://tempuri.org/b2baeu_SAP_WS/Service1/GetBackOrderList" style="document" />
+      <wsdl:input>
+        <soap12:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap12:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="GetBackOrderItem">
+      <soap12:operation soapAction="http://tempuri.org/b2baeu_SAP_WS/Service1/GetBackOrderItem" style="document" />
+      <wsdl:input>
+        <soap12:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap12:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="Get_Customer_AEU">
+      <soap12:operation soapAction="http://tempuri.org/b2baeu_SAP_WS/Service1/Get_Customer_AEU" style="document" />
+      <wsdl:input>
+        <soap12:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap12:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="Get_Next_WrokingDate">
+      <soap12:operation soapAction="http://tempuri.org/b2baeu_SAP_WS/Service1/Get_Next_WrokingDate" style="document" />
+      <wsdl:input>
+        <soap12:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap12:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="Get_Next_WorkingDate_ByCode">
+      <soap12:operation soapAction="http://tempuri.org/b2baeu_SAP_WS/Service1/Get_Next_WorkingDate_ByCode" style="document" />
+      <wsdl:input>
+        <soap12:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap12:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="GetAR">
+      <soap12:operation soapAction="http://tempuri.org/b2baeu_SAP_WS/Service1/GetAR" style="document" />
+      <wsdl:input>
+        <soap12:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap12:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="GetAR_Detail">
+      <soap12:operation soapAction="http://tempuri.org/b2baeu_SAP_WS/Service1/GetAR_Detail" style="document" />
+      <wsdl:input>
+        <soap12:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap12:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="GetAR_Detail_New">
+      <soap12:operation soapAction="http://tempuri.org/b2baeu_SAP_WS/Service1/GetAR_Detail_New" style="document" />
+      <wsdl:input>
+        <soap12:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap12:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="GetAR_SO">
+      <soap12:operation soapAction="http://tempuri.org/b2baeu_SAP_WS/Service1/GetAR_SO" style="document" />
+      <wsdl:input>
+        <soap12:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap12:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="GetMaterialStatusCost">
+      <soap12:operation soapAction="http://tempuri.org/b2baeu_SAP_WS/Service1/GetMaterialStatusCost" style="document" />
+      <wsdl:input>
+        <soap12:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap12:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="AR_DueDate_Inquiry">
+      <soap12:operation soapAction="http://tempuri.org/b2baeu_SAP_WS/Service1/AR_DueDate_Inquiry" style="document" />
+      <wsdl:input>
+        <soap12:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap12:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="GetCustAP">
+      <soap12:operation soapAction="http://tempuri.org/b2baeu_SAP_WS/Service1/GetCustAP" style="document" />
+      <wsdl:input>
+        <soap12:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap12:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="GetCustomerAP">
+      <soap12:operation soapAction="http://tempuri.org/b2baeu_SAP_WS/Service1/GetCustomerAP" style="document" />
+      <wsdl:input>
+        <soap12:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap12:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="GetMultiATP_New">
+      <soap12:operation soapAction="http://tempuri.org/b2baeu_SAP_WS/Service1/GetMultiATP_New" style="document" />
+      <wsdl:input>
+        <soap12:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap12:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="GetMultiATP_ACN">
+      <soap12:operation soapAction="http://tempuri.org/b2baeu_SAP_WS/Service1/GetMultiATP_ACN" style="document" />
+      <wsdl:input>
+        <soap12:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap12:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="GetMultiATP_New_US">
+      <soap12:operation soapAction="http://tempuri.org/b2baeu_SAP_WS/Service1/GetMultiATP_New_US" style="document" />
+      <wsdl:input>
+        <soap12:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap12:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="GetMultiATP_New2">
+      <soap12:operation soapAction="http://tempuri.org/b2baeu_SAP_WS/Service1/GetMultiATP_New2" style="document" />
+      <wsdl:input>
+        <soap12:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap12:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="GetSingleATP">
+      <soap12:operation soapAction="http://tempuri.org/b2baeu_SAP_WS/Service1/GetSingleATP" style="document" />
+      <wsdl:input>
+        <soap12:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap12:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="GetSingleATP_New">
+      <soap12:operation soapAction="http://tempuri.org/b2baeu_SAP_WS/Service1/GetSingleATP_New" style="document" />
+      <wsdl:input>
+        <soap12:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap12:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="GetMultiDueDate_New">
+      <soap12:operation soapAction="http://tempuri.org/b2baeu_SAP_WS/Service1/GetMultiDueDate_New" style="document" />
+      <wsdl:input>
+        <soap12:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap12:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="GetMultiDueDate">
+      <soap12:operation soapAction="http://tempuri.org/b2baeu_SAP_WS/Service1/GetMultiDueDate" style="document" />
+      <wsdl:input>
+        <soap12:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap12:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="GetMultiDueDate_SpecialATP">
+      <soap12:operation soapAction="http://tempuri.org/b2baeu_SAP_WS/Service1/GetMultiDueDate_SpecialATP" style="document" />
+      <wsdl:input>
+        <soap12:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap12:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="GetMultiDueDate_RDQ">
+      <soap12:operation soapAction="http://tempuri.org/b2baeu_SAP_WS/Service1/GetMultiDueDate_RDQ" style="document" />
+      <wsdl:input>
+        <soap12:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap12:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="GET_CUSTOMER_COUNTRYPOSTAL_CODE">
+      <soap12:operation soapAction="http://tempuri.org/b2baeu_SAP_WS/Service1/GET_CUSTOMER_COUNTRYPOSTAL_CODE" style="document" />
+      <wsdl:input>
+        <soap12:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap12:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="GetMaterialSingle">
+      <soap12:operation soapAction="http://tempuri.org/b2baeu_SAP_WS/Service1/GetMaterialSingle" style="document" />
+      <wsdl:input>
+        <soap12:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap12:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="Get_Material_Detail">
+      <soap12:operation soapAction="http://tempuri.org/b2baeu_SAP_WS/Service1/Get_Material_Detail" style="document" />
+      <wsdl:input>
+        <soap12:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap12:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="GET_MATERIAL_WEIGHT_VOLUME">
+      <soap12:operation soapAction="http://tempuri.org/b2baeu_SAP_WS/Service1/GET_MATERIAL_WEIGHT_VOLUME" style="document" />
+      <wsdl:input>
+        <soap12:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap12:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="GET_CTOS_DOCUMENTINFO">
+      <soap12:operation soapAction="http://tempuri.org/b2baeu_SAP_WS/Service1/GET_CTOS_DOCUMENTINFO" style="document" />
+      <wsdl:input>
+        <soap12:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap12:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="GET_EXCHANGE_RATE">
+      <soap12:operation soapAction="http://tempuri.org/b2baeu_SAP_WS/Service1/GET_EXCHANGE_RATE" style="document" />
+      <wsdl:input>
+        <soap12:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap12:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="GET_CREDITLIMIT_USED_PERCENTAGE">
+      <soap12:operation soapAction="http://tempuri.org/b2baeu_SAP_WS/Service1/GET_CREDITLIMIT_USED_PERCENTAGE" style="document" />
+      <wsdl:input>
+        <soap12:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap12:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="GET_ORDER_SCHEDULE">
+      <soap12:operation soapAction="http://tempuri.org/b2baeu_SAP_WS/Service1/GET_ORDER_SCHEDULE" style="document" />
+      <wsdl:input>
+        <soap12:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap12:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="SALESORDER_GETSTATUS">
+      <soap12:operation soapAction="http://tempuri.org/b2baeu_SAP_WS/Service1/SALESORDER_GETSTATUS" style="document" />
+      <wsdl:input>
+        <soap12:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap12:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="SALESORDER_GETSTATUS_Test">
+      <soap12:operation soapAction="http://tempuri.org/b2baeu_SAP_WS/Service1/SALESORDER_GETSTATUS_Test" style="document" />
+      <wsdl:input>
+        <soap12:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap12:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="GetMultiATP">
+      <soap12:operation soapAction="http://tempuri.org/b2baeu_SAP_WS/Service1/GetMultiATP" style="document" />
+      <wsdl:input>
+        <soap12:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap12:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="GetMutiPrice_EQuote">
+      <soap12:operation soapAction="http://tempuri.org/b2baeu_SAP_WS/Service1/GetMutiPrice_EQuote" style="document" />
+      <wsdl:input>
+        <soap12:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap12:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="GetMultiPrice">
+      <soap12:operation soapAction="http://tempuri.org/b2baeu_SAP_WS/Service1/GetMultiPrice" style="document" />
+      <wsdl:input>
+        <soap12:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap12:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="GetMPrice">
+      <soap12:operation soapAction="http://tempuri.org/b2baeu_SAP_WS/Service1/GetMPrice" style="document" />
+      <wsdl:input>
+        <soap12:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap12:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="GetMultiPrice_old">
+      <soap12:operation soapAction="http://tempuri.org/b2baeu_SAP_WS/Service1/GetMultiPrice_old" style="document" />
+      <wsdl:input>
+        <soap12:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap12:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="GetPriceRFC">
+      <soap12:operation soapAction="http://tempuri.org/b2baeu_SAP_WS/Service1/GetPriceRFC" style="document" />
+      <wsdl:input>
+        <soap12:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap12:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="GetPriceRFC_old">
+      <soap12:operation soapAction="http://tempuri.org/b2baeu_SAP_WS/Service1/GetPriceRFC_old" style="document" />
+      <wsdl:input>
+        <soap12:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap12:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="GetVendorList">
+      <soap12:operation soapAction="http://tempuri.org/b2baeu_SAP_WS/Service1/GetVendorList" style="document" />
+      <wsdl:input>
+        <soap12:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap12:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="GetVendorDetail">
+      <soap12:operation soapAction="http://tempuri.org/b2baeu_SAP_WS/Service1/GetVendorDetail" style="document" />
+      <wsdl:input>
+        <soap12:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap12:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="SO_Delete">
+      <soap12:operation soapAction="http://tempuri.org/b2baeu_SAP_WS/Service1/SO_Delete" style="document" />
+      <wsdl:input>
+        <soap12:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap12:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="SO_Change">
+      <soap12:operation soapAction="http://tempuri.org/b2baeu_SAP_WS/Service1/SO_Change" style="document" />
+      <wsdl:input>
+        <soap12:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap12:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="SO_CREATE">
+      <soap12:operation soapAction="http://tempuri.org/b2baeu_SAP_WS/Service1/SO_CREATE" style="document" />
+      <wsdl:input>
+        <soap12:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap12:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="SO_CREATE_Nada">
+      <soap12:operation soapAction="http://tempuri.org/b2baeu_SAP_WS/Service1/SO_CREATE_Nada" style="document" />
+      <wsdl:input>
+        <soap12:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap12:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="SO_CREATE_NEW">
+      <soap12:operation soapAction="http://tempuri.org/b2baeu_SAP_WS/Service1/SO_CREATE_NEW" style="document" />
+      <wsdl:input>
+        <soap12:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap12:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="SO_CREATE2">
+      <soap12:operation soapAction="http://tempuri.org/b2baeu_SAP_WS/Service1/SO_CREATE2" style="document" />
+      <wsdl:input>
+        <soap12:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap12:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="SO_CREATE_TEST">
+      <soap12:operation soapAction="http://tempuri.org/b2baeu_SAP_WS/Service1/SO_CREATE_TEST" style="document" />
+      <wsdl:input>
+        <soap12:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap12:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="GetInvoice">
+      <soap12:operation soapAction="http://tempuri.org/b2baeu_SAP_WS/Service1/GetInvoice" style="document" />
+      <wsdl:input>
+        <soap12:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap12:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="HelloKitty">
+      <soap12:operation soapAction="http://tempuri.org/b2baeu_SAP_WS/Service1/HelloKitty" style="document" />
+      <wsdl:input>
+        <soap12:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap12:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="SapXmlAbapDynSql">
+      <soap12:operation soapAction="http://tempuri.org/b2baeu_SAP_WS/Service1/SapXmlAbapDynSql" style="document" />
+      <wsdl:input>
+        <soap12:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap12:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="SapAbapDynSql">
+      <soap12:operation soapAction="http://tempuri.org/b2baeu_SAP_WS/Service1/SapAbapDynSql" style="document" />
+      <wsdl:input>
+        <soap12:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap12:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="Get_Billing_Detail_AEU">
+      <soap12:operation soapAction="http://tempuri.org/b2baeu_SAP_WS/Service1/Get_Billing_Detail_AEU" style="document" />
+      <wsdl:input>
+        <soap12:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap12:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="Get_Component_Comsume">
+      <soap12:operation soapAction="http://tempuri.org/b2baeu_SAP_WS/Service1/Get_Component_Comsume" style="document" />
+      <wsdl:input>
+        <soap12:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap12:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="Get_Material_History">
+      <soap12:operation soapAction="http://tempuri.org/b2baeu_SAP_WS/Service1/Get_Material_History" style="document" />
+      <wsdl:input>
+        <soap12:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap12:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="Get_Serial_No">
+      <soap12:operation soapAction="http://tempuri.org/b2baeu_SAP_WS/Service1/Get_Serial_No" style="document" />
+      <wsdl:input>
+        <soap12:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap12:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="Get_Serial_No_By_Po">
+      <soap12:operation soapAction="http://tempuri.org/b2baeu_SAP_WS/Service1/Get_Serial_No_By_Po" style="document" />
+      <wsdl:input>
+        <soap12:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap12:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="Get_Serial_No_By_DN">
+      <soap12:operation soapAction="http://tempuri.org/b2baeu_SAP_WS/Service1/Get_Serial_No_By_DN" style="document" />
+      <wsdl:input>
+        <soap12:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap12:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+  </wsdl:binding>
+  <wsdl:service name="B2B_AEU_WS">
+    <wsdl:port name="B2B_AEU_WSSoap" binding="tns:B2B_AEU_WSSoap">
+      <soap:address location="http://172.21.34.44:9000/B2B_SAP_WS.asmx" />
+    </wsdl:port>
+    <wsdl:port name="B2B_AEU_WSSoap12" binding="tns:B2B_AEU_WSSoap12">
+      <soap12:address location="http://172.21.34.44:9000/B2B_SAP_WS.asmx" />
+    </wsdl:port>
+  </wsdl:service>
+</wsdl:definitions>

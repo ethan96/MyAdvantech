@@ -1,0 +1,108 @@
+﻿<%@ Page Title="" Language="VB" MasterPageFile="~/Includes/MyMaster.master" %>
+
+<script runat="server">
+
+    Protected Sub Page_Load(sender As Object, e As System.EventArgs)
+        'select a.PART_NO, c.PRODUCT_LINE, a.LIST_PRICE, cast(cast((1-(a.UNIT_PRICE/a.LIST_PRICE))*100 as numeric(10,0)) as varchar(4))+'%' as Disc, a.UNIT_PRICE, c.PRODUCT_GROUP, 
+        'a.COMPANY_ID, b.COMPANY_NAME, b.SALESGROUP, b.SALESOFFICE, b.SAP_SALESNAME, b.SAP_SALESCODE  
+        'from eQuotation.dbo.PRICE_ANALYSIS_20130610 a inner join SAP_DIMCOMPANY b on a.ORG_ID=b.ORG_ID and a.COMPANY_ID=b.COMPANY_ID inner join SAP_PRODUCT c on a.PART_NO=c.PART_NO 
+        'where a.LIST_PRICE>0 and a.UNIT_PRICE>0
+        'order by a.COMPANY_ID, a.PART_NO
+        
+        Dim dtERPID As DataTable = dbUtil.dbGetDataTable("MY", "select COMPANY_ID from SAP_DIMCOMPANY where ORG_ID='EU10' and COMPANY_TYPE='Z001' and SALESGROUP=321 and SALESOFFICE=3200 and COMPANY_ID not in (select distinct COMPANY_ID  from eQuotation.dbo.PRICE_ANALYSIS_20130610 )")
+        Dim PnDt As DataTable = GetPNList("EU10")
+        
+        For Each rERPId As DataRow In dtERPID.Rows
+            Dim pricingDate As Date = Now
+            Dim strERPID As String = rERPId.Item("COMPANY_ID")
+            Dim tmpPnDt As DataTable = PnDt.Clone()
+            Dim priceDt As New DataTable
+            Dim offSet As Integer = 499, idx As Integer = 0
+            While True
+                For i As Integer = idx To idx + offSet
+                    If i < PnDt.Rows.Count Then
+                        tmpPnDt.ImportRow(PnDt.Rows(i))
+                    Else
+                        Exit For
+                    End If
+                Next
+                If tmpPnDt.Rows.Count > 0 Then
+                    Dim retDt As DataTable = GetMultiEUPrice(strERPID, "EU10", tmpPnDt)
+                    If retDt IsNot Nothing Then priceDt.Merge(retDt)
+                    'Console.WriteLine("merged " + retDt.Rows.Count.ToString())
+                End If
+                idx = idx + offSet + 1
+                tmpPnDt.Rows.Clear()
+                If idx >= PnDt.Rows.Count Then Exit While
+            End While
+            For Each r As DataRow In priceDt.Rows
+                If CDbl(r.Item("Kzwi1")) < CDbl(r.Item("Netwr")) Then
+                    r.Item("Kzwi1") = CDbl(r.Item("Netwr"))
+                End If
+            Next
+            priceDt.Columns.Add("PRICING_DATE", GetType(DateTime))
+            priceDt.Columns.Add("COMPANY_ID")
+            For Each r As DataRow In priceDt.Rows
+                r.Item("PRICING_DATE") = pricingDate
+                r.Item("COMPANY_ID") = strERPID
+            Next
+            
+            Dim bk As New SqlClient.SqlBulkCopy(ConfigurationManager.ConnectionStrings("EQ").ConnectionString)
+            bk.DestinationTableName = "PRICE_ANALYSIS_20130610"
+            bk.WriteToServer(priceDt)
+        Next
+        
+       
+       
+        'gv1.DataSource = priceDt
+        'gv1.DataBind()
+    End Sub
+    
+    Public Function GetMultiEUPrice(ByVal kunnr As String, ByVal org As String, ByVal PartNumbers As DataTable) As DataTable
+        Dim eup As New Z_SD_EUPRICEINQUERY.Z_SD_EUPRICEINQUERY
+        Dim pin As New Z_SD_EUPRICEINQUERY.ZSSD_01_EUTable, pout As New Z_SD_EUPRICEINQUERY.ZSSD_02_EUTable
+        For Each p As DataRow In PartNumbers.Rows
+            Dim prec As New Z_SD_EUPRICEINQUERY.ZSSD_01_EU
+            With prec
+                .Kunnr = kunnr : .Mandt = "168" : .Matnr = Global_Inc.Format2SAPItem(Trim(UCase(p.Item("part_no")))) : .Mglme = 1
+                .Prsdt = Now.ToString("yyyyMMdd") : .Vkorg = org
+            End With
+            pin.Add(prec)
+        Next
+        eup.Connection = New SAP.Connector.SAPConnection(ConfigurationManager.AppSettings("SAP_PRD"))
+        eup.Connection.Open()
+        Try
+            eup.Z_Sd_Eupriceinquery("1", pin, pout)
+        Catch ex As Exception
+            eup.Connection.Close() : Return Nothing
+        End Try
+        eup.Connection.Close()
+        Dim pdt As DataTable = pout.ToADODataTable()
+        pdt.Columns.Remove("Mandt") : pdt.Columns.Remove("Kunnr") : pdt.Columns.Remove("Mglme")
+        pdt.TableName = "EUPriceTable"
+        Return pdt
+    End Function
+    
+    Function GetPNList(ByVal Org As String) As DataTable
+        Dim sb As New System.Text.StringBuilder
+        With sb
+            .AppendLine(String.Format(" select distinct top 99999 a.PART_NO   "))
+            .AppendLine(String.Format("   from SAP_PRODUCT a inner join SAP_PRODUCT_ORG b on a.PART_NO=b.PART_NO  "))
+            .AppendLine(String.Format("   inner join SAP_PRODUCT_STATUS c on b.PART_NO=c.PART_NO and b.ORG_ID=c.SALES_ORG  "))
+            .AppendLine(String.Format("   where b.ORG_ID='{0}' and c.PRODUCT_STATUS in ('A','N','H','M1') and a.material_group in ('PRODUCT','ES','ODM','T') " + _
+                                      " and left(a.PART_NO,1) not in ('1','2','3','4','5','6','7','8','9') and a.PART_NO  not like '#%'  ", Org))
+            .AppendLine(String.Format("   order by a.PART_NO  "))
+        End With
+        Dim sqlconn As New SqlClient.SqlConnection(ConfigurationManager.ConnectionStrings("MY").ConnectionString)
+        Dim ap As New SqlClient.SqlDataAdapter(sb.ToString(), sqlconn)
+        Dim dt As New DataTable
+        ap.Fill(dt)
+        sqlconn.Close()
+        Return dt
+    End Function
+    
+</script>
+
+<asp:Content ID="Content1" ContentPlaceHolderID="_main" Runat="Server">
+    <asp:GridView runat="server" ID="gv1" />
+</asp:Content>

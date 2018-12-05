@@ -1,0 +1,115 @@
+﻿<%@ Page Language="VB" %>
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<script runat="server">
+
+    Protected Sub Page_Load(sender As Object, e As System.EventArgs)
+        
+        Dim dtDefaultAddrTable As SAPDAL.SalesOrder.PartnerAddressesDataTable = SAPDAL.SAPDAL.GetSAPPartnerAddressesTableByKunnr("ULTR00001", True)
+        Me.GV1.DataSource = dtDefaultAddrTable
+        Me.GV1.DataBind()
+        
+        'Dim _dt As DataTable = GetMultiEUPrice("ELVE001", "TW01", "ARK-5260F-D5A1E")
+        'Me.GV1.DataSource = _dt
+        'Me.GV1.DataBind()
+    End Sub
+    
+    Dim eup As Z_SD_EUPRICEINQUERY.Z_SD_EUPRICEINQUERY = Nothing
+    
+    Public Function GetMultiEUPrice(ByVal kunnr As String, ByVal org As String, ByVal PartNumbers As String) As DataTable
+        Dim pin As New Z_SD_EUPRICEINQUERY.ZSSD_01_EUTable, pout As New Z_SD_EUPRICEINQUERY.ZSSD_02_EUTable
+        'For Each p As DataRow In PartNumbers.Rows
+        For i As Integer = 0 To 30
+            
+            Dim prec As New Z_SD_EUPRICEINQUERY.ZSSD_01_EU
+            With prec
+                .Kunnr = kunnr : .Mandt = "168" : .Matnr = Format2SAPItem(Trim(UCase(PartNumbers))) : .Mglme = 1
+                '.Vkorg = org : .Prsdt = DateAdd(DateInterval.Month, -i, Now).ToString("yyyyMMdd")
+                .Vkorg = org : .Prsdt = DateAdd(DateInterval.Day, -i, Now).ToString("yyyyMMdd")
+                '.Prsdt = Now.ToString("yyyyMMdd") : .Vkorg = org
+                
+            End With
+            pin.Add(prec)
+        Next
+        Try
+            
+            eup = New Z_SD_EUPRICEINQUERY.Z_SD_EUPRICEINQUERY
+            eup.Connection = New SAP.Connector.SAPConnection(ConfigurationManager.AppSettings("SAP_PRD"))
+            eup.Connection.Open()
+            
+            eup.Z_Sd_Eupriceinquery("1", pin, pout)
+            
+        Catch ex As Exception
+            Return Nothing
+        End Try
+        Dim pdt As DataTable = pout.ToADODataTable()
+        pdt.Columns.Remove("Mandt") : pdt.Columns.Remove("Kunnr") : pdt.Columns.Remove("Mglme")
+        For Each r As DataRow In pdt.Rows
+            r.Item("Matnr") = DeletePreZeros(r.Item("Matnr"))
+        Next
+        pdt.TableName = "EUPriceTable"
+        
+        eup.Connection.Close()
+        
+        Return pdt
+    End Function
+
+    Public Function DeletePreZeros(ByVal str As String) As String
+        If Not str.StartsWith("0") Then Return str
+        While str.StartsWith("0") And str.Length > 1
+            str = str.Substring(1)
+        End While
+        Return str
+    End Function
+    
+    
+    Public Function Format2SAPItem(ByVal Part_No As String) As String
+
+        Try
+            If IsNumericItem(Part_No) And Not Part_No.Substring(0, 1).Equals("0") Then
+                Dim zeroLength As Integer = 18 - Part_No.Length
+                For i As Integer = 0 To zeroLength - 1
+                    Part_No = "0" & Part_No
+                Next
+                Return Part_No
+            Else
+                Return Part_No
+            End If
+        Catch ex As Exception
+            Return Part_No
+        End Try
+
+    End Function
+
+    Public Function IsNumericItem(ByVal part_no As String) As Boolean
+
+        Dim pChar() As Char = part_no.ToCharArray()
+
+        For i As Integer = 0 To pChar.Length - 1
+            If Not IsNumeric(pChar(i)) Then
+                Return False
+                Exit Function
+            End If
+        Next
+
+        Return True
+    End Function
+    
+    
+    
+</script>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head runat="server">
+    <title></title>
+</head>
+<body>
+    <form id="form1" runat="server">
+    <div>
+        <asp:GridView ID="GV1" runat="server">
+        </asp:GridView>
+    </div>
+    </form>
+</body>
+</html>

@@ -1,0 +1,104 @@
+﻿<%@ Page Title="Create Survey" Language="VB" MasterPageFile="~/Includes/MyMaster.master" ValidateRequest="false" %>
+<%@ Register TagPrefix="ed" Namespace="OboutInc.Editor" Assembly="obout_Editor" %>
+
+<script runat="server">
+
+    Protected Sub btnCreate_Click(sender As Object, e As System.EventArgs)
+        Dim row_id As String = NewId()
+        dbUtil.dbGetDataTable("MyLocal", String.Format("insert into survey_master (row_id, survey_title, survey_desc, created_by) values ('{0}',N'{1}',N'{2}','{3}')", row_id, txtSurveyTitle.Text.Replace("'", "''").Trim, txtSurveyDesc.Content.Replace("'", "''").Replace(ControlChars.Lf, "<br/>").Trim, Session("user_id")))
+        lblMsg.Text = "This new survey is created."
+    End Sub
+    
+    Private Shared Function NewId() As String
+        Dim tmpRowId As String = ""
+        Do While True
+            tmpRowId = System.Guid.NewGuid.ToString().Replace("-", "").Substring(0, 10)
+            If CInt( _
+              dbUtil.dbExecuteScalar("MYLocal", String.Format("select count(row_id) as counts from SURVEY_MASTER where row_id='{0}'", tmpRowId)) _
+               ) = 0 Then
+                Exit Do
+            End If
+        Loop
+        Return tmpRowId
+    End Function
+</script>
+
+<asp:Content ID="Content1" ContentPlaceHolderID="_main" Runat="Server">
+    <table width="100%">
+        <tr>
+            <td width="10%"></td>
+            <td width="80%">
+                <table width="100%" border="0">
+                    <tr><td height="40"></td></tr>
+                    <tr><th align="left"><font size="5">Create Survey</font></th></tr>
+                    <tr><td height="5"></td></tr>
+                    <tr>
+                        <td>
+                            <table width="100%" style="border-bottom:1px solid #d7d0d0;border-top:1px solid #d7d0d0; border-left:1px solid #d7d0d0; border-right:1px solid #d7d0d0">
+                                <tr>
+                                    <td height="300" width="100%" valign="top">
+                                        <asp:UpdatePanel runat="server" ID="up1">
+                                            <ContentTemplate>
+                                                <table width="100%">
+                                                    <tr>
+                                                        <td>
+                                                            <table>
+                                                                <tr>
+                                                                    <td width="10"></td>
+                                                                    <td>
+                                                                        <table>
+                                                                            <tr>
+                                                                                <th>Title: </th><td><asp:TextBox runat="server" ID="txtSurveyTitle" Width="500px" /></td>
+                                                                            </tr>
+                                                                            <tr><td height="10"></td></tr>
+                                                                            <tr>
+                                                                                <th valign="top">Description: </th>
+                                                                                <td>
+                                                                                    <ed:Editor runat="server" ID="txtSurveyDesc" Appearance="custom" ShowQuickFormat="false" Submit="false" NoScript="true" Width="600" Height="250">
+                                                                                        <Buttons>
+                                                                                            <ed:Method Name="Undo"/>
+                                                                                            <ed:Method Name="Redo"/>
+                                                                                            <ed:HorizontalSeparator/>
+                                                                                            <ed:Toggle Name="Bold"/>
+                                                                                            <ed:Toggle Name="Italic"/>
+                                                                                            <ed:Toggle Name="Underline"/>
+                                                                                            <ed:HorizontalSeparator/>
+                                                                                            <ed:Method Name="ClearStyles"/>
+                                                                                            <ed:HorizontalSeparator/>
+                                                                                            <ed:Method Name="Paragraph"/>
+                                                                                            <ed:Method Name="JustifyLeft"/>
+                                                                                            <ed:Method Name="JustifyCenter"/>
+                                                                                            <ed:Method Name="JustifyRight"/>
+                                                                                            <ed:Method Name="JustifyFull"/>
+                                                                                            <ed:Method Name="RemoveAlignment"/>
+                                                                                            <ed:HorizontalSeparator/>
+                                                                                            <ed:Method Name="ForeColor" />
+                                                                                        </Buttons>
+                                                                                    </ed:Editor>
+                                                                                </td>
+                                                                            </tr>
+                                                                        </table>
+                                                                    </td>
+                                                                    <td width="10"></td>
+                                                                </tr>
+                                                            </table>
+                                                        </td>
+                                                    </tr>
+                                                    <tr><td height="10"></td></tr>
+                                                    <tr><td valign="bottom"><asp:Button runat="server" ID="btnCreate" Text="Submit" BorderWidth="1" BorderStyle="Ridge" BackColor="#3EBCFF" ForeColor="White" Font-Bold="true" Font-Size="Small" Width="110" Height="30" OnClick="btnCreate_Click" /></td></tr>
+                                                    <tr><td><asp:Label runat="server" ID="lblMsg" ForeColor="Red" /></td></tr>
+                                                </table>
+                                            </ContentTemplate>
+                                        </asp:UpdatePanel>
+                                    </td>
+                                </tr>
+                            </table>
+                        </td>
+                    </tr>
+                </table>
+            </td>
+            <td width="10%"></td>
+        </tr>
+    </table>
+</asp:Content>
+

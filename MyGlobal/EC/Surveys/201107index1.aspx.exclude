@@ -1,0 +1,1309 @@
+﻿<%@ Page Language="VB" ValidateRequest="false" %>
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<script runat="server">
+
+    Protected Sub btnClear_Click(sender As Object, e As System.Web.UI.ImageClickEventArgs)
+        txtTel17.Value = "" : txtTel18.Value = "" : txtTel19.Value = "" : txtTel20.Value = "" : txtTel21.Value = "" : txtTel22.Value = ""
+        txtTel23.Value = "" : txtTel24.Value = "" : txtTel25.Value = "" : txtTel26.Value = "" : txtTel27.Value = "" : txtTel28.Value = ""
+        txtTel29.Value = "" : txtTel30.Value = "" : txtTel31.Value = "" : txtTel32.Value = ""
+    End Sub
+
+    Protected Sub btnSend_Click(sender As Object, e As System.Web.UI.ImageClickEventArgs)
+        If Validation() Then
+            
+            Try
+                Dim iName As String = Replace(txtTel29.Value.Trim(), "'", "''")
+                Dim iCompany As String = Replace(txtTel31.Value.Trim(), "'", "''")
+                Dim iTel As String = Replace(txtTel32.Value.Trim(), "'", "''")
+                Dim iEmail As String = Replace(txtTel30.Value.Trim(), "'", "''")
+                Dim iReqBro As Integer = 0
+                Dim sb As New System.Text.StringBuilder
+                With sb
+                    .AppendLine(String.Format(" INSERT INTO CAMPAIGN_SURVEYS "))
+                    .AppendLine(String.Format(" (CAMP_ID, CONTACT_NAME, CONTACT_COMPANY, CONTACT_TEL, CONTACT_EMAIL,  "))
+                    .AppendLine(String.Format(" INTERESTED_COURSES, REQ_BROCHURE, SUBMIT_TIME, CLIENT_ADDR, UID) "))
+                    .AppendLine(String.Format(" VALUES ('" + hd_CampId.Value + "', N'" + iName + "', N'" + iCompany + "', N'" + iTel + "', " + _
+                                              " N'" + iEmail + "', '', " + iReqBro.ToString() + ", GETDATE(), '" + Util.GetClientIP() + "', N'" + hd_UID.Value + "') "))
+                
+                End With
+            
+                Dim sb1 As New StringBuilder
+                With sb1
+                    If txtTel17.Value.Trim <> "" AndAlso txtTel18.Value.Trim <> "" AndAlso txtTel19.Value.Trim <> "" AndAlso txtTel20.Value.Trim <> "" Then
+                        .AppendFormat(" INSERT INTO CAMPAIGN_SURVEYS_CONTACT ")
+                        .AppendFormat(" (CONTACT_EMAIL, TO_NAME, TO_EMAIL, TO_COMPANY, TO_TEL) ")
+                        .AppendFormat(" VALUES (N'{0}',N'{1}',N'{2}',N'{3}',N'{4}'); ", iName, txtTel17.Value.Trim.Replace("'", "''"), txtTel18.Value.Trim.Replace("'", "''"), txtTel19.Value.Trim.Replace("'", "''"), txtTel20.Value.Trim.Replace("'", "''"))
+                    End If
+                    If txtTel21.Value.Trim <> "" AndAlso txtTel22.Value.Trim <> "" AndAlso txtTel23.Value.Trim <> "" AndAlso txtTel24.Value.Trim <> "" Then
+                        .AppendFormat(" INSERT INTO CAMPAIGN_SURVEYS_CONTACT ")
+                        .AppendFormat(" (CONTACT_EMAIL, TO_NAME, TO_EMAIL, TO_COMPANY, TO_TEL) ")
+                        .AppendFormat(" VALUES (N'{0}',N'{1}',N'{2}',N'{3}',N'{4}'); ", iName, txtTel21.Value.Trim.Replace("'", "''"), txtTel22.Value.Trim.Replace("'", "''"), txtTel23.Value.Trim.Replace("'", "''"), txtTel24.Value.Trim.Replace("'", "''"))
+                    End If
+                    If txtTel25.Value.Trim <> "" AndAlso txtTel26.Value.Trim <> "" AndAlso txtTel27.Value.Trim <> "" AndAlso txtTel28.Value.Trim <> "" Then
+                        .AppendFormat(" INSERT INTO CAMPAIGN_SURVEYS_CONTACT ")
+                        .AppendFormat(" (CONTACT_EMAIL, TO_NAME, TO_EMAIL, TO_COMPANY, TO_TEL) ")
+                        .AppendFormat(" VALUES (N'{0}',N'{1}',N'{2}',N'{3}',N'{4}') ", iName, txtTel25.Value.Trim.Replace("'", "''"), txtTel26.Value.Trim.Replace("'", "''"), txtTel27.Value.Trim.Replace("'", "''"), txtTel28.Value.Trim.Replace("'", "''"))
+                    End If
+                End With
+                
+                If dbUtil.dbExecuteNoQuery("MYLOCAL", sb.ToString()) = 1 AndAlso dbUtil.dbExecuteNoQuery("MYLOCAL", sb1.ToString()) > 0 Then
+                    lbMsg.Text = "謝謝您，我們已收到您的資料"
+                    SenEmail()
+                Else
+                
+                End If
+            Catch ex As Exception
+                Throw New Exception("201107index1.aspx error:" + ex.ToString())
+            End Try
+           
+        End If
+    End Sub
+    
+    Private Sub SenEmail()
+        Dim iName As String = Replace(txtTel29.Value.Trim(), "'", "''")
+        Dim iCompany As String = Replace(txtTel31.Value.Trim(), "'", "''")
+        Dim iTel As String = Replace(txtTel32.Value.Trim(), "'", "''")
+        Dim iEmail As String = Replace(txtTel30.Value.Trim(), "'", "''")
+        Dim sb As New StringBuilder
+        With sb
+            .AppendFormat("<table>")
+            .AppendFormat("<tr><td>Dear Barbara,</td></tr>")
+            .AppendFormat("<tr><td height='15'></td></tr>")
+            .AppendFormat("<tr><td><table border='1'>")
+            .AppendFormat("<tr><td align='left'>名字</td><td align='left'>公司</td><td align='left'>E-mail</td><td align='left'>電話</td></tr>")
+            If txtTel17.Value.Trim <> "" AndAlso txtTel18.Value.Trim <> "" AndAlso txtTel19.Value.Trim <> "" AndAlso txtTel20.Value.Trim <> "" Then
+                .AppendFormat("<tr><th align='left'>{0}</th><th align='left'>{1}</th><th align='left'>{2}</th><th align='left'>{3}</th></tr>", txtTel17.Value.Trim.Replace("'", "''"), txtTel18.Value.Trim.Replace("'", "''"), txtTel19.Value.Trim.Replace("'", "''"), txtTel20.Value.Trim.Replace("'", "''"))
+            End If
+            If txtTel21.Value.Trim <> "" AndAlso txtTel22.Value.Trim <> "" AndAlso txtTel23.Value.Trim <> "" AndAlso txtTel24.Value.Trim <> "" Then
+                .AppendFormat("<tr><th align='left'>{0}</th><th align='left'>{1}</th><th align='left'>{2}</th><th align='left'>{3}</th></tr>", txtTel21.Value.Trim.Replace("'", "''"), txtTel22.Value.Trim.Replace("'", "''"), txtTel23.Value.Trim.Replace("'", "''"), txtTel24.Value.Trim.Replace("'", "''"))
+            End If
+            If txtTel25.Value.Trim <> "" AndAlso txtTel26.Value.Trim <> "" AndAlso txtTel27.Value.Trim <> "" AndAlso txtTel28.Value.Trim <> "" Then
+                .AppendFormat("<tr><th align='left'>{0}</th><th align='left'>{1}</th><th align='left'>{2}</th><th align='left'>{3}</th></tr>", txtTel25.Value.Trim.Replace("'", "''"), txtTel26.Value.Trim.Replace("'", "''"), txtTel27.Value.Trim.Replace("'", "''"), txtTel28.Value.Trim.Replace("'", "''"))
+            End If
+            .AppendFormat("</table></td></tr>")
+            .AppendFormat("<tr><td height='10'></td></tr>")
+            .AppendFormat("<tr><th align='left'>推薦人資訊</th></tr>")
+            .AppendFormat("<tr><td><table border='1'>")
+            .AppendFormat("<tr><td align='right'>姓名</td><th align='left'>{0}</th></tr>", iName)
+            .AppendFormat("<tr><td align='right'>E-mail</td><th align='left'>{0}</th></tr>", iEmail)
+            .AppendFormat("<tr><td align='right'>公司</td><th align='left'>{0}</th></tr>", iCompany)
+            .AppendFormat("<tr><td align='right'>電話</td><th align='left'>{0}</th></tr>", iTel)
+            .AppendFormat("</table></td></tr>")
+            .AppendFormat("<tr><td height='15'></td></tr>")
+            .AppendFormat("<tr></td>Best Regards</td></tr>")
+            .AppendFormat("</table>")
+        End With
+        Util.SendEmail("barbara.sun@advantech.com.tw", "ebiz.aeu@advantech.eu", "百萬亞當歡樂慶 好康回饋大方送 - 註冊資料", sb.ToString, True, "", "")
+    End Sub
+    
+    Protected Sub Page_Load(ByVal sender As Object, ByVal e As System.EventArgs)
+        If Not Page.IsPostBack Then
+            If Request("campid") IsNot Nothing AndAlso Request("campid").ToString().Trim() <> "" Then
+                hd_CampId.Value = Request("campid").ToString().Trim()
+            End If
+            If Request("uid") IsNot Nothing AndAlso Request("uid").ToString().Trim() <> "" Then
+                hd_UID.Value = Request("uid").ToString().Trim()
+            End If
+            If hd_CampId.Value = "" Then hd_CampId.Value = "Million Adam 2011 July"
+            'If hd_CampId.Value = "" Or hd_UID.Value = "" Then Response.Redirect("http://www.advantech.com.tw")
+        End If
+    End Sub
+    
+    Function Validation() As Boolean
+        lbMsg.Text = ""
+        If txtTel29.Value.Trim() = "" Then
+            lbMsg.Text = "請輸入姓名" : Return False
+        End If
+        If txtTel30.Value.Trim() = "" Then
+            lbMsg.Text = "請輸入Email" : Return False
+        End If
+        If txtTel31.Value.Trim() = "" Then
+            lbMsg.Text = "請輸入公司" : Return False
+        End If
+        If txtTel32.Value.Trim() = "" Then
+            lbMsg.Text = "請輸入電話" : Return False
+        End If
+        If Util.IsValidEmailFormat(txtTel30.Value.Trim()) = False Then
+            lbMsg.Text = "請輸入正確Email格式" : Return False
+        End If
+        If AllEmpty() Then lbMsg.Text = "請輸入至少一位好友資訊" : Return False
+        If txtTel17.Value.Trim <> "" Or txtTel18.Value.Trim <> "" Or txtTel19.Value.Trim <> "" Or txtTel20.Value.Trim <> "" Then
+            If txtTel17.Value.Trim = "" Then
+                lbMsg.Text = "請輸入好友姓名" : Return False
+            End If
+            If txtTel18.Value.Trim = "" Then
+                lbMsg.Text = "請輸入好友公司" : Return False
+            End If
+            If txtTel19.Value.Trim = "" Then
+                lbMsg.Text = "請輸入好友Email" : Return False
+            End If
+            If Util.IsValidEmailFormat(txtTel19.Value.Trim()) = False Then
+                lbMsg.Text = "請輸入正確Email格式" : Return False
+            End If
+            If txtTel20.Value.Trim = "" Then
+                lbMsg.Text = "請輸入好友電話" : Return False
+            End If
+        End If
+        If txtTel21.Value.Trim <> "" Or txtTel22.Value.Trim <> "" Or txtTel23.Value.Trim <> "" Or txtTel24.Value.Trim <> "" Then
+            If txtTel21.Value.Trim = "" Then
+                lbMsg.Text = "請輸入好友姓名" : Return False
+            End If
+            If txtTel22.Value.Trim = "" Then
+                lbMsg.Text = "請輸入好友公司" : Return False
+            End If
+            If txtTel23.Value.Trim = "" Then
+                lbMsg.Text = "請輸入好友Email" : Return False
+            End If
+            If Util.IsValidEmailFormat(txtTel23.Value.Trim()) = False Then
+                lbMsg.Text = "請輸入正確Email格式" : Return False
+            End If
+            If txtTel24.Value.Trim = "" Then
+                lbMsg.Text = "請輸入好友電話" : Return False
+            End If
+        End If
+        If txtTel25.Value.Trim <> "" Or txtTel26.Value.Trim <> "" Or txtTel27.Value.Trim <> "" Or txtTel28.Value.Trim <> "" Then
+            If txtTel25.Value.Trim = "" Then
+                lbMsg.Text = "請輸入好友姓名" : Return False
+            End If
+            If txtTel26.Value.Trim = "" Then
+                lbMsg.Text = "請輸入好友公司" : Return False
+            End If
+            If txtTel27.Value.Trim = "" Then
+                lbMsg.Text = "請輸入好友Email" : Return False
+            End If
+            If Util.IsValidEmailFormat(txtTel27.Value.Trim()) = False Then
+                lbMsg.Text = "請輸入正確Email格式" : Return False
+            End If
+            If txtTel28.Value.Trim = "" Then
+                lbMsg.Text = "請輸入好友電話" : Return False
+            End If
+        End If
+        Return True
+    End Function
+    
+    Private Function AllEmpty() As Boolean
+        If txtTel17.Value.Trim = "" And txtTel18.Value.Trim = "" And txtTel19.Value.Trim = "" And txtTel20.Value.Trim = "" _
+            And txtTel21.Value.Trim = "" And txtTel22.Value.Trim = "" And txtTel23.Value.Trim = "" And txtTel24.Value.Trim = "" _
+            And txtTel25.Value.Trim = "" And txtTel26.Value.Trim = "" And txtTel27.Value.Trim = "" And txtTel28.Value.Trim = "" Then
+            Return True
+        Else
+            Return False
+        End If
+    End Function
+
+    Protected Sub btnS_Click(sender As Object, e As System.EventArgs)
+        Response.Redirect("http://www.advantech.tw/util/emailpage.aspx?title=百萬亞當歡樂慶 好康回饋大方送" + "&PageURL=http://my.advantech.com/EC/Surveys/201107index1.aspx")
+    End Sub
+</script>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+<HTML xmlns="http://www.w3.org/1999/xhtml"><HEAD><TITLE>百萬亞當歡樂慶</TITLE>
+<META http-equiv=Content-Type content="text/html; charset=utf-8">
+<META 
+content="Advantech marine display, marine monitor, marine solutions, navigation displays, panel pc,touch panel pc,panel pc,panel computer,fanless panel pc,industrial panel pc,flat panel monitor,industrial flat panel monitor" 
+name=keywords>
+<META 
+content=" Advantech's Transflective Marine-Grade Monitors with DNV &amp; PiP,Electronic Chart Display and Information Systems (ECDIS) are computer-based navigation systems that integrate information from GPS and automatic identification systems (AIS). Advantech's ECDIS solution provides transflective marine-grade monitors with DNV 2.4 certification and PiP (picture in picture) technology to create a reliable navigation solution for marine vessels of all kinds.Advantech marine display, marine monitor, marine solutions, navigation displays, panel pc,touch panel pc,panel pc,panel computer,fanless panel pc,industrial panel pc,flat panel monitor,industrial flat panel monitor" 
+name=Description>
+<STYLE type=text/css>.t12black {
+	FONT-SIZE: 14px; COLOR: #000000; LINE-HEIGHT: 18px; FONT-FAMILY: Arial, Helvetica, sans-serif; TEXT-DECORATION: none
+}
+.t12tit {
+	FONT-WEIGHT: bold; FONT-SIZE: 12px; COLOR: #004b85; LINE-HEIGHT: 18px; FONT-FAMILY: Arial, Helvetica, sans-serif; TEXT-DECORATION: none
+}
+.icontxt {
+	FONT-SIZE: 9px; COLOR: #084076; LINE-HEIGHT: 11px; FONT-FAMILY: Arial, Helvetica, sans-serif; TEXT-DECORATION: none
+}
+.t6 {
+	FONT-SIZE: 7px; COLOR: #636363; LINE-HEIGHT: 10px
+}
+.txt {
+	FONT-SIZE: 12px; COLOR: #0082d1; LINE-HEIGHT: 18px; FONT-FAMILY: Arial, Helvetica, sans-serif
+}
+.txt:link {
+	FONT-SIZE: 12px; COLOR: #0082d1; LINE-HEIGHT: 18px; FONT-FAMILY: Arial, Helvetica, sans-serif; TEXT-DECORATION: underline
+}
+.txt:visited {
+	FONT-SIZE: 12px; COLOR: #0082d1; LINE-HEIGHT: 18px; FONT-FAMILY: Arial, Helvetica, sans-serif; TEXT-DECORATION: underline
+}
+A.txt:hover {
+	FONT-SIZE: 12px; COLOR: #0082d1; LINE-HEIGHT: 18px; FONT-FAMILY: Arial, Helvetica, sans-serif; TEXT-DECORATION: underline
+}
+.txt:active {
+	FONT-SIZE: 12px; COLOR: #0082d1; LINE-HEIGHT: 18px; FONT-FAMILY: Arial, Helvetica, sans-serif; TEXT-DECORATION: underline
+}
+.box {
+	BORDER-RIGHT: #1b75bc 1px solid; BORDER-TOP: #1b75bc 1px solid; BORDER-LEFT: #1b75bc 1px solid; BORDER-BOTTOM: #1b75bc 1px solid
+}
+.copyright {
+	FONT-SIZE: 10px; COLOR: #ffffff; LINE-HEIGHT: 18px; FONT-FAMILY: Verdana, Arial, Helvetica, sans-serif; TEXT-DECORATION: none
+}
+.copyright:link {
+	FONT-SIZE: 10px; COLOR: #ffffff; LINE-HEIGHT: 18px; FONT-FAMILY: Arial, Helvetica, sans-serif; TEXT-DECORATION: none
+}
+A.copyright:hover {
+	FONT-SIZE: 10px; COLOR: #cccccc; LINE-HEIGHT: 18px; FONT-FAMILY: Arial, Helvetica, sans-serif; TEXT-DECORATION: underline
+}
+.copyright:visited {
+	FONT-SIZE: 10px; COLOR: #ffffff; LINE-HEIGHT: 18px; FONT-FAMILY: Arial, Helvetica, sans-serif; TEXT-DECORATION: none
+}
+.copyright:active {
+	FONT-SIZE: 10px; COLOR: #cccccc; LINE-HEIGHT: 18px; FONT-FAMILY: Arial, Helvetica, sans-serif; TEXT-DECORATION: underline
+}
+.t11 {
+	FONT-SIZE: 11px; COLOR: #333333; FONT-FAMILY: Arial, Helvetica, sans-serif; TEXT-DECORATION: none
+}
+.ending {
+	FONT-SIZE: 11px; COLOR: #0082d1; LINE-HEIGHT: 14px; FONT-FAMILY: Arial, Helvetica, sans-serif; TEXT-DECORATION: none
+}
+.ending:link {
+	FONT-SIZE: 11px; COLOR: #0082d1; LINE-HEIGHT: 14px; FONT-FAMILY: Arial, Helvetica, sans-serif; TEXT-DECORATION: underline
+}
+.ending:visited {
+	FONT-SIZE: 11px; COLOR: #0082d1; LINE-HEIGHT: 14px; FONT-FAMILY: Arial, Helvetica, sans-serif; TEXT-DECORATION: underline
+}
+A.ending:hover {
+	FONT-SIZE: 11px; COLOR: #0082d1; LINE-HEIGHT: 14px; FONT-FAMILY: Arial, Helvetica, sans-serif; TEXT-DECORATION: underline
+}
+.ending:active {
+	FONT-SIZE: 11px; COLOR: #0082d1; LINE-HEIGHT: 14px; FONT-FAMILY: Arial, Helvetica, sans-serif; TEXT-DECORATION: underline
+}
+.tabletxt {
+	FONT-SIZE: 11px; COLOR: #636363; LINE-HEIGHT: 14px; FONT-FAMILY: Arial, Helvetica, sans-serif; TEXT-DECORATION: none
+}
+.tabletxt:link {
+	FONT-SIZE: 11px; COLOR: #0082d1; LINE-HEIGHT: 14px; FONT-FAMILY: Arial, Helvetica, sans-serif; TEXT-DECORATION: underline
+}
+.tabletxt:visited {
+	FONT-SIZE: 11px; COLOR: #0082d1; LINE-HEIGHT: 14px; FONT-FAMILY: Arial, Helvetica, sans-serif; TEXT-DECORATION: underline
+}
+A.tabletxt:hover {
+	FONT-SIZE: 11px; COLOR: #0082d1; LINE-HEIGHT: 14px; FONT-FAMILY: Arial, Helvetica, sans-serif; TEXT-DECORATION: underline
+}
+.tabletxt:active {
+	FONT-SIZE: 11px; COLOR: #0082d1; LINE-HEIGHT: 14px; FONT-FAMILY: Arial, Helvetica, sans-serif; TEXT-DECORATION: underline
+}
+.tableColor01 {
+	PADDING-RIGHT: 3px; PADDING-LEFT: 3px; FONT-WEIGHT: bold; FONT-SIZE: 12px; PADDING-BOTTOM: 3px; BORDER-LEFT: #ffffff 1px solid; COLOR: #084076; LINE-HEIGHT: 22px; PADDING-TOP: 3px; BORDER-BOTTOM: #ffffff 1px solid; FONT-FAMILY: Arial, Helvetica, sans-serif; BACKGROUND-COLOR: #dedede; TEXT-DECORATION: none
+}
+.tableColor02 {
+	BORDER-RIGHT: #dedede 1px solid; PADDING-RIGHT: 3px; PADDING-LEFT: 3px; PADDING-BOTTOM: 3px; BORDER-LEFT: #ffffff 1px solid; PADDING-TOP: 3px; BORDER-BOTTOM: #ffffff 1px solid; BACKGROUND-COLOR: #eef4f4
+}
+.tableColor03 {
+	BORDER-RIGHT: #dedede 1px solid; PADDING-RIGHT: 3px; PADDING-LEFT: 3px; FONT-SIZE: 11px; PADDING-BOTTOM: 3px; COLOR: #084076; LINE-HEIGHT: 14px; PADDING-TOP: 3px; BORDER-BOTTOM: #ffffff 1px solid; FONT-FAMILY: Arial, Helvetica, sans-serif; BACKGROUND-COLOR: #dee9e9
+}
+.tableColor04 {
+	PADDING-RIGHT: 10px; PADDING-LEFT: 10px; FONT-WEIGHT: bold; FONT-SIZE: 12px; PADDING-BOTTOM: 3px; BORDER-LEFT: #ffffff 1px solid; COLOR: #084076; LINE-HEIGHT: 22px; PADDING-TOP: 3px; BORDER-BOTTOM: #ffffff 1px solid; FONT-FAMILY: Arial, Helvetica, sans-serif; BACKGROUND-COLOR: #dedede; TEXT-DECORATION: none
+}
+.tableColor05 {
+	PADDING-RIGHT: 10px; PADDING-LEFT: 10px; PADDING-BOTTOM: 3px; BORDER-LEFT: #ffffff 1px solid; PADDING-TOP: 3px; BORDER-BOTTOM: #ffffff 1px solid; BACKGROUND-COLOR: #eef4f4
+}
+.boxdot {
+	BORDER-RIGHT: #959595 1px dotted; BORDER-TOP: #959595 1px dotted; BORDER-LEFT: #959595 1px dotted; BORDER-BOTTOM: #959595 1px dotted
+}
+.style1 {
+	FONT-SIZE: 11px; FONT-FAMILY: Arial, Helvetica, sans-serif; TEXT-DECORATION: none
+}
+A:link {
+	COLOR: #0082d1; TEXT-DECORATION: underline
+}
+A:visited {
+	COLOR: #0082d1; TEXT-DECORATION: none
+}
+A:hover {
+	COLOR: #0082d1; TEXT-DECORATION: underline
+}
+A:active {
+	COLOR: #0082d1; TEXT-DECORATION: underline
+}
+.tableColor031 {
+	BORDER-RIGHT: #dedede 1px solid; FONT-SIZE: 11px; COLOR: #084076; LINE-HEIGHT: 14px; BORDER-BOTTOM: #ffffff 1px solid; FONT-FAMILY: Arial, Helvetica, sans-serif; BACKGROUND-COLOR: #dee9e9
+}
+BODY {
+	BACKGROUND-COLOR: #b5d2ea
+}
+.boxdot {
+	BORDER-RIGHT: #959595 1px dotted; BORDER-TOP: #959595 1px dotted; BORDER-LEFT: #959595 1px dotted; BORDER-BOTTOM: #959595 1px dotted
+}
+.t12black11 {
+	FONT-SIZE: 11px; COLOR: #000000; LINE-HEIGHT: 18px; FONT-FAMILY: Arial, Helvetica, sans-serif; TEXT-DECORATION: none
+}
+.t12black1 {
+	FONT-SIZE: 14px; COLOR: #000000; LINE-HEIGHT: 18px; FONT-FAMILY: Arial, Helvetica, sans-serif; TEXT-DECORATION: none
+}
+.style8 {
+	FONT-FAMILY: Verdana, Arial, Helvetica, sans-serif
+}
+.style10 {
+	FONT-SIZE: 12px; LINE-HEIGHT: 16px; FONT-FAMILY: "細明體"
+}
+.style12 {
+	FONT-SIZE: 12px; COLOR: #000; LINE-HEIGHT: 22px; FONT-FAMILY: Verdana, Arial, Helvetica, sans-serif
+}
+.form {
+	BORDER-RIGHT: #fff 2px dotted; BORDER-TOP: #fff 2px dotted; BORDER-LEFT: #fff 2px dotted; BORDER-BOTTOM: #fff 2px dotted
+}
+BODY {
+	COLOR: #000000; FONT-FAMILY: "微軟正黑體", "HelveticaNeue LT 55 Roman"
+}
+TD {
+	COLOR: #000000; FONT-FAMILY: "微軟正黑體", "HelveticaNeue LT 55 Roman"
+}
+TH {
+	COLOR: #000000; FONT-FAMILY: "微軟正黑體", "HelveticaNeue LT 55 Roman"
+}
+.style23 {
+	FONT-WEIGHT: bold; FONT-SIZE: 12px; COLOR: #ffffff; FONT-FAMILY: Verdana, Arial, Helvetica, sans-serif
+}
+.style24 {
+	FONT-SIZE: 12px
+}
+.style25 {
+	FONT-SIZE: 12px; COLOR: #000000
+}
+.style29 {
+	COLOR: #636363
+}
+A {
+	FONT-SIZE: 13px; COLOR: #636363; FONT-FAMILY: Verdana, Arial, Helvetica, sans-serif
+}
+.style31 {
+	FONT-SIZE: 11px
+}
+.style32 {
+	FONT-SIZE: 12px; COLOR: #000000; FONT-FAMILY: Verdana, Arial, Helvetica, sans-serif
+}
+.style51 {
+	FONT-WEIGHT: bold; COLOR: #006633
+}
+.style63 {
+	FONT-WEIGHT: bold; COLOR: #c30; FONT-FAMILY: Arial, Helvetica, sans-serif
+}
+.style66 {
+	FONT-WEIGHT: bold; COLOR: #ffffff
+}
+.style71 {
+	COLOR: #666666
+}
+.style75 {
+	FONT-WEIGHT: bold; FONT-SIZE: 12px; COLOR: #006633
+}
+.style77 {
+	FONT-WEIGHT: bold; FONT-SIZE: 12px
+}
+.style11 {
+	FONT-SIZE: 12px; COLOR: #666; LINE-HEIGHT: 16px; FONT-FAMILY: "細明體"
+}
+.style12-2 {
+	FONT-SIZE: 13px; COLOR: #000; LINE-HEIGHT: 18px; FONT-FAMILY: Verdana, Arial, Helvetica, sans-serif
+}
+.style23Copy {
+	FONT-SIZE: 12px; COLOR: #ffffff; FONT-FAMILY: Verdana, Arial, Helvetica, sans-serif
+}
+.style101 {
+	FONT-SIZE: 12px; LINE-HEIGHT: 16px; FONT-FAMILY: "細明體"
+}
+.top {
+	FONT-SIZE: 12px; COLOR: #0082d1; LINE-HEIGHT: 18px; FONT-FAMILY: Arial, Helvetica, sans-serif
+}
+.boxdot02 {
+	BORDER-RIGHT: #999999 1px dotted; BORDER-TOP: #999999 1px dotted; BORDER-LEFT: #999999 1px dotted; BORDER-BOTTOM: #999999 1px dotted
+}
+.footericn {
+	FONT-SIZE: 12px; COLOR: #0082d1; LINE-HEIGHT: 20px
+}
+.footertit {
+	FONT-WEIGHT: bold; FONT-SIZE: 12px; COLOR: #0082d1; LINE-HEIGHT: 18px; FONT-FAMILY: Arial, Helvetica, sans-serif; TEXT-DECORATION: none
+}
+.content {
+	FONT-SIZE: 12px; COLOR: #000000; LINE-HEIGHT: 20px; FONT-FAMILY: Arial, Helvetica, sans-serif
+}
+.tiltle01 {
+	FONT-WEIGHT: bold; FONT-SIZE: 14px; COLOR: #01528a; LINE-HEIGHT: 20px; FONT-FAMILY: Arial, Helvetica, sans-serif
+}
+.pcont {
+	FONT-SIZE: 11px; COLOR: #666666; LINE-HEIGHT: 14px; FONT-FAMILY: Arial, Helvetica, sans-serif
+}
+.picn {
+	FONT-SIZE: 11px; COLOR: #0082d1; LINE-HEIGHT: 14px; FONT-FAMILY: Arial, Helvetica, sans-serif
+}
+.ptit {
+	FONT-WEIGHT: bold; FONT-SIZE: 12px; COLOR: #ffffff; LINE-HEIGHT: 18px; FONT-FAMILY: Arial, Helvetica, sans-serif
+}
+.tab01 {
+	BORDER-RIGHT: #d3d7d9 1px solid; BORDER-LEFT: #d3d7d9 1px solid; BACKGROUND-COLOR: #fafbfb
+}
+.t12tit11 {
+	FONT-WEIGHT: bold; FONT-SIZE: 17px; COLOR: #004b85; LINE-HEIGHT: 18px; FONT-FAMILY: "微軟正黑體"; TEXT-DECORATION: none
+}
+.t12tit2 {
+	FONT-WEIGHT: bold; FONT-SIZE: 13px; COLOR: #2d75c6; LINE-HEIGHT: 18px; FONT-FAMILY: Arial, Helvetica, sans-serif; TEXT-DECORATION: none
+}
+.contenttit2 {
+	FONT-WEIGHT: bold; FONT-SIZE: 16px; COLOR: #072e67; LINE-HEIGHT: 15px; FONT-FAMILY: Arial, Helvetica, sans-serif
+}
+.contenttit21 {
+	FONT-WEIGHT: bold; FONT-SIZE: 15px; COLOR: #072e67; LINE-HEIGHT: 15px; FONT-FAMILY: Arial, Helvetica, sans-serif
+}
+.t12black2 {
+	FONT-SIZE: 15px; COLOR: #000000; LINE-HEIGHT: 22px; TEXT-DECORATION: none
+}
+</STYLE>
+
+<META content="MSHTML 6.00.6000.17063" name=GENERATOR></HEAD>
+<body>
+    <form id="form1" runat="server">
+    <div>
+    <ajaxToolkit:ToolkitScriptManager runat="server" ID="tlsm1" AsyncPostBackTimeout="600"
+        EnableScriptGlobalization="true" EnableScriptLocalization="true" EnablePageMethods="true"
+        ScriptMode="Debug">
+    </ajaxToolkit:ToolkitScriptManager>
+    <asp:HiddenField runat="server" ID="hd_CampId" />
+    <asp:HiddenField runat="server" ID="hd_UID" />
+    <TABLE cellSpacing=10 cellPadding=0 width=750 align=center border=0>
+  <TBODY>
+  <TR>
+    <TD class=t11 align=middle><SPAN class=style2>您若無法閱讀以下內容，請按此 <A 
+      href="http://my.advantech.com/EC/Surveys/201107index1.aspx" 
+      target=_blank>連結</A> 於線上進行瀏覽</SPAN></TD></TR></TBODY></TABLE>
+<TABLE cellSpacing=0 cellPadding=0 align=center border=0>
+  <TBODY>
+  <TR>
+    <TD width=750 bgColor=#ffffff>
+      <TABLE cellSpacing=0 cellPadding=0 width=750 align=center border=0>
+        <TBODY>
+        <TR>
+          <TD bgColor=#ffffff>
+            <TABLE cellSpacing=0 cellPadding=0 width=750 align=center 
+            bgColor=#ffffff border=0>
+              <TBODY>
+              <TR>
+                <TD align=middle bgColor=#ffffff height=65>
+                  <TABLE cellSpacing=0 cellPadding=0>
+                    <TBODY>
+                    <TR>
+                      <TD width=11>&nbsp;</TD>
+                      <TD align=left width=261><A 
+                        href="http://www.advantech.tw/" target=_blank><IMG 
+                        height=41 alt="" 
+                        src="201107index1.files/logo_automation.gif" width=150 
+                        border=0></A></TD>
+                      <TD vAlign=bottom width=43><IMG height=31 alt="" 
+                        src="201107index1.files/icn_hotline.gif" width=34></TD>
+                      <TD class=top vAlign=bottom 
+                        width=195><STRONG>研華銷售服務熱線</STRONG>: 0800-777-111</TD>
+                      <TD class=top vAlign=bottom align=right width=45><IMG 
+                        height=25 alt="" hspace=3 
+                        src="201107index1.files/icn_email.gif" width=39></TD>
+                      <TD class=top vAlign=bottom 
+                        width=193><STRONG>E-mail:</STRONG> <A class=top 
+                        href="mailto:sales@advantech.com.tw" 
+                        target=_blank>sales@advantech.com.tw</A></TD></TR></TBODY></TABLE></TD></TR></TBODY></TABLE></TD></TR>
+        <TR>
+          <TD bgColor=#ffffff><IMG height=370 
+            src="201107index1.files/topbanner.jpg" width=750 border=0></TD></TR>
+        <TR>
+          <TD bgColor=#ffffff><IMG height=16 alt="" 
+            src="201107index1.files/shadow01.gif" width=750></TD></TR></TBODY></TABLE>
+      <TABLE cellSpacing=0 cellPadding=0 width="95%" align=center border=0>
+        <TBODY>
+        <TR>
+          <TD>
+            <TABLE cellSpacing=2 cellPadding=2 width="100%" border=0>
+              <TBODY>
+              <TR>
+                <TD>
+                  <TABLE cellSpacing=0 cellPadding=0 width="100%" border=0>
+                    <TBODY>
+                    <TR>
+                      <TD vAlign=top align=middle height=750>
+                        <TABLE cellSpacing=0 width=200 align=center>
+                          <TBODY>
+                          <TR>
+                            <TD align=middle>
+                              <TABLE cellSpacing=0 cellPadding=0 width=676 
+                              align=center border=0><!-- fwtable fwsrc="pic-FW.png" fwpage="頁面 1" fwbase="table.jpg" fwstyle="Dreamweaver" fwdocid = "805289934" fwnested="0" -->
+                                <TBODY>
+                                <TR>
+                                <TD width=10><IMG height=1 alt="" 
+                                src="201107index1.files/spacer.gif" width=10 
+                                border=0></TD>
+                                <TD width=13><IMG height=1 alt="" 
+                                src="201107index1.files/spacer.gif" width=13 
+                                border=0></TD>
+                                <TD width=290><IMG height=1 alt="" 
+                                src="201107index1.files/spacer.gif" width=290 
+                                border=0></TD>
+                                <TD width=11><IMG height=1 alt="" 
+                                src="201107index1.files/spacer.gif" width=11 
+                                border=0></TD>
+                                <TD width=26><IMG height=1 alt="" 
+                                src="201107index1.files/spacer.gif" width=26 
+                                border=0></TD>
+                                <TD width=163><IMG height=1 alt="" 
+                                src="201107index1.files/spacer.gif" width=163 
+                                border=0></TD>
+                                <TD width=158><IMG height=1 alt="" 
+                                src="201107index1.files/spacer.gif" width=158 
+                                border=0></TD>
+                                <TD width=10><IMG height=1 alt="" 
+                                src="201107index1.files/spacer.gif" width=1 
+                                border=0></TD></TR>
+                                <TR>
+                                <TD colSpan=7><IMG id=table_r1_c1 height=21 
+                                alt="" src="201107index1.files/table_r1_c1.jpg" 
+                                width=671 border=0 name=table_r1_c1></TD>
+                                <TD><IMG height=21 alt="" 
+                                src="201107index1.files/spacer.gif" width=1 
+                                border=0></TD></TR>
+                                <TR>
+                                <TD><IMG id=table_r2_c1 height=78 alt="" 
+                                src="201107index1.files/table_r2_c1.jpg" 
+                                width=10 border=0 name=table_r2_c1></TD>
+                                <TD class=t12black2 vAlign=top align=left 
+                                colSpan=5>研華為慶祝遠端資料擷取模組ADAM系列全球熱銷百萬顆，限時推出感恩專案，<SPAN 
+                                style="COLOR: red"><STRONG><U>即日起至2011年10月14日止</U></STRONG></SPAN></SPAN>，凡下單購買任何ADAM-4000及ADAM-6000系列產品，即可享有5年產品保固服務。立即購買，為您的荷包精打細算！</TD>
+                                <TD><A 
+                                href="http://www.advantech.com.tw/ia/newsletter/tw/sales/201107/story.html"><IMG 
+                                id=table_r2_c7 height=78 alt="" 
+                                src="201107index1.files/table_r2_c7.jpg" 
+                                width=158 border=0 name=table_r2_c7></A></TD>
+                                <TD><IMG height=78 alt="" 
+                                src="201107index1.files/spacer.gif" width=1 
+                                border=0></TD></TR>
+                                <TR>
+                                <TD colSpan=7>
+                                <TABLE cellSpacing=0 cellPadding=0 border=0>
+                                <TBODY>
+                                <TR>
+                                <TD colSpan=2><IMG id=table_r3_c1 height=74 
+                                alt="" src="201107index1.files/table_r3_c1.jpg" 
+                                width=671 border=0 name=table_r3_c1></TD></TR>
+                                <TR>
+                                <TD><IMG height=79 alt="" 
+                                src="201107index1.files/table_r4_c1.jpg" 
+                                width=324></TD>
+                                <TD><IMG height=79 alt="" 
+                                src="201107index1.files/table_r4_c5.jpg" 
+                                width=347></TD></TR>
+                                <TR>
+                                <TD colSpan=2>
+                                <TABLE cellSpacing=0 cellPadding=0 border=0>
+                                <TBODY>
+                                <TR>
+                                <TD><IMG id=table_r5_c2 height=63 alt="" 
+                                src="201107index1.files/table_r5_c1.jpg" 
+                                width=23 border=0 name=table_r5_c1></TD>
+                                <TD vAlign=bottom align=left width=290><SPAN 
+                                class=content>即日起至2011年10月14日止，凡下單購買任何<BR>ADAM-4000及ADAM-6000系列產品，即可享有5年產品保固服務</SPAN></TD>
+                                <TD><IMG id=table_r5_c3 height=63 alt="" 
+                                src="201107index1.files/table_r5_c4.jpg" 
+                                width=37 border=0 name=table_r5_c4></TD>
+                                <TD vAlign=bottom align=left width=321><SPAN 
+                                class=content>(活動申明)凡推薦非同公司好友參加本活動，經由研華專人連絡確認後，促成新朋友/客戶於2011年10月14日(五)前完成下單購買研華ADAM-4000及ADAM-6000系列產品，即可獲得限量ADAM 4G隨身碟1只，數量有限，趕快填入好友資訊</SPAN></TD></TR></TBODY></TABLE></TD></TR></TBODY></TABLE></TD>
+                                <TD><IMG height=79 alt="" 
+                                src="201107index1.files/spacer.gif" width=1 
+                                border=0></TD></TR>
+                                <TR>
+                                <TD colSpan=7><IMG id=table_r6_c1 height=39 
+                                alt="" src="201107index1.files/table_r6_c1.jpg" 
+                                width=671 useMap=#table_r6_c1Map border=0 
+                                name=table_r6_c1></TD>
+                                <TD><IMG height=39 alt="" 
+                                src="201107index1.files/spacer.gif" width=1 
+                                border=0></TD></TR></TBODY></TABLE><MAP 
+                              id=table_r6_c1Map name=table_r6_c1Map><AREA 
+                                shape=RECT coords=402,4,666,37 
+                                href="http://www.advantech.com.tw/ia/newsletter/tw/sales/201107/index1.html"></MAP></TD></TR>
+                          <TR>
+                            <TD align=middle>
+                            <asp:UpdatePanel runat="server" ID="up1">
+                                <ContentTemplate>
+                                    <TABLE class=style10 cellSpacing=4 cellPadding=0 width=659 align=center bgColor=#d9e8f4 border=0>
+                                        <TBODY>
+                                            <TR>
+                                                <TD width=651 height=30>
+                                                    <TABLE cellSpacing=0 cellPadding=0 border=0>
+                                                    <TBODY>
+                                                        <TR>
+                                                            <TD width=10><IMG height=20 alt="" src="201107index1.files/titles.gif" width=5></TD>
+                                                            <TD class=t12tit11>好康逗相報</TD>
+                                                        </TR>
+                                                    </TBODY>
+                                                    </TABLE>
+                                                </TD>
+                                            </TR>
+                                            <TR>
+                                                <TD align=left>
+                                                    <TABLE cellSpacing=4 cellPadding=0 width=647 border=0>
+                                                    <TBODY>
+                                                        <TR>
+                                                            <TD align=left width=50>&nbsp;</TD>
+                                                            <TD align=left width=111>名字</TD>
+                                                            <TD align=left width=127>公司</TD>
+                                                            <TD align=left width=194>E-mail</TD>
+                                                            <TD align=left width=141>電話</TD>
+                                                        </TR>
+                                                        <TR>
+                                                            <TD align=left width=50>好友1</TD>
+                                                            <TD align=left width=111><INPUT id=txtTel17 runat="server" 
+                                                            size=12 name=txtTel17></TD>
+                                                            <TD align=left width=127><INPUT id=txtTel18 runat="server" 
+                                                            size=15 name=txtTel17></TD>
+                                                            <TD align=left><INPUT id=txtTel19 runat="server" size=26 
+                                                            name=txtTel17></TD>
+                                                            <TD align=left><INPUT id=txtTel20 runat="server" size=15 
+                                                            name=txtTel17></TD>
+                                                        </TR>
+                                                        <TR>
+                                                            <TD align=left>好友2</TD>
+                                                            <TD align=left><INPUT id=txtTel21 size=12 runat="server" 
+                                                            name=txtTel17></TD>
+                                                            <TD align=left><INPUT id=txtTel22 size=15 runat="server" 
+                                                            name=txtTel17></TD>
+                                                            <TD align=left><INPUT id=txtTel23 size=26 runat="server" 
+                                                            name=txtTel17></TD>
+                                                            <TD align=left><INPUT id=txtTel24 size=15 runat="server" 
+                                                            name=txtTel17></TD>
+                                                        </TR>
+                                                        <TR>
+                                                            <TD align=left>好友3</TD>
+                                                            <TD align=left><INPUT id=txtTel25 size=12 runat="server" 
+                                                            name=txtTel17></TD>
+                                                            <TD align=left><INPUT id=txtTel26 size=15 runat="server" 
+                                                            name=txtTel17></TD>
+                                                            <TD align=left><INPUT id=txtTel27 size=26 runat="server" 
+                                                            name=txtTel17></TD>
+                                                            <TD align=left><INPUT id=txtTel28 size=15 runat="server" 
+                                                            name=txtTel17></TD>
+                                                         </TR>
+                                                    </TBODY>
+                                                    </TABLE>
+                                                </TD>
+                                            </TR>
+                                            <TR>
+                                                <TD class=t12tit align=left>推薦人資訊</TD>
+                                            </TR>
+                                            <TR>
+                                                <TD align=left>
+                                                    <TABLE cellSpacing=4 cellPadding=0 width=647 border=0>
+                                                    <TBODY>
+                                                        <TR>
+                                                            <TD width=50>姓名</TD>
+                                                            <TD width=117><INPUT id=txtTel29 size=15  runat="server" 
+                                                            name=txtTel17></TD>
+                                                            <TD width=54>E-mail</TD>
+                                                            <TD width=406><INPUT id=txtTel30 size=26 runat="server" 
+                                                            name=txtTel17></TD>
+                                                        </TR>
+                                                        <TR>
+                                                            <TD>公司</TD>
+                                                            <TD><INPUT id=txtTel31 size=15 runat="server" 
+                                                            name=txtTel17></TD>
+                                                            <TD>電話</TD>
+                                                            <TD><INPUT id=txtTel32 size=26 runat="server" 
+                                                            name=txtTel17></TD>
+                                                        </TR>
+                                                    </TBODY>
+                                                    </TABLE>
+                                                </TD>
+                                            </TR>
+                                            <TR>
+                                                <TD align=middle height=28>
+                                                    <asp:ImageButton runat="server" ID="btnSend" ImageUrl="201107index1.files/bt_sent.gif" OnClick="btnSend_Click" />
+                                                    <asp:ImageButton runat="server" ID="btnClear" ImageUrl="201107index1.files/bt_re.gif" OnClick="btnClear_Click" />
+                                                </TD>
+                                            </TR>
+                                            <tr>
+                                                <td align="center"><asp:label runat="server" ID="lbMsg" ForeColor="Red" /></td>
+                                            </tr>
+                                        </TBODY>
+                                        </TABLE>
+                                </ContentTemplate>
+                            </asp:UpdatePanel>
+                              
+                                
+                                </TD></TR>
+                          <TR>
+                            <TD align=middle>
+                              <TABLE cellSpacing=0 cellPadding=0 width=671 
+                              border=0><!-- fwtable fwsrc="pic-FW.png" fwpage="頁面 1" fwbase="table.jpg" fwstyle="Dreamweaver" fwdocid = "805289934" fwnested="0" -->
+                                <TBODY>
+                                <TR>
+                                <TD><IMG height=1 alt="" 
+                                src="201107index1.files/spacer.gif" width=10 
+                                border=0></TD>
+                                <TD><IMG height=1 alt="" 
+                                src="201107index1.files/spacer.gif" width=13 
+                                border=0></TD>
+                                <TD><IMG height=1 alt="" 
+                                src="201107index1.files/spacer.gif" width=290 
+                                border=0></TD>
+                                <TD><IMG height=1 alt="" 
+                                src="201107index1.files/spacer.gif" width=11 
+                                border=0></TD>
+                                <TD><IMG height=1 alt="" 
+                                src="201107index1.files/spacer.gif" width=26 
+                                border=0></TD>
+                                <TD><IMG height=1 alt="" 
+                                src="201107index1.files/spacer.gif" width=163 
+                                border=0></TD>
+                                <TD><IMG height=1 alt="" 
+                                src="201107index1.files/spacer.gif" width=158 
+                                border=0></TD>
+                                <TD><IMG height=1 alt="" 
+                                src="201107index1.files/spacer.gif" width=1 
+                                border=0></TD></TR>
+                                <TR>
+                                <TD colSpan=7><IMG id=table_r7_c1 height=29 
+                                alt="" src="201107index1.files/table_r7_c1.jpg" 
+                                width=671 border=0 name=table_r7_c1></TD>
+                                <TD><IMG height=29 alt="" 
+                                src="201107index1.files/spacer.gif" width=1 
+                                border=0></TD></TR>
+                                <TR>
+                                <TD colSpan=2 rowSpan=2><IMG id=table_r8_c1 
+                                height=89 alt="" 
+                                src="201107index1.files/table_r8_c1.jpg" 
+                                width=23 border=0 name=table_r8_c1></TD>
+                                <TD 
+                                background=201107index1.files/table_r8_c3.jpg 
+                                colSpan=5>
+                                <TABLE cellSpacing=0 cellPadding=0>
+                                <TBODY>
+                                <TR>
+                                <TD vAlign=center align=middle width=24><IMG 
+                                height=7 src="201107index1.files/icon_02.gif" 
+                                width=7></TD>
+                                <TD class=content align=left 
+                                width=622>參加者於參加本活動同時，即視為同意接受本活動規範，研華股份有限公司有權決定取消、終止、修改或暫停本活動</TD></TR>
+                                <TR>
+                                <TD vAlign=center align=middle><IMG height=7 
+                                alt="" src="201107index1.files/icon_02.gif" 
+                                width=7></TD>
+                                <TD class=content 
+                                align=left>本活動適用產品為ADAM-4000系列及ADAM-6000系列產品</TD></TR>
+                                <TR>
+                                <TD vAlign=center align=middle><IMG height=7 
+                                alt="" src="201107index1.files/icon_02.gif" 
+                                width=7></TD>
+                                <TD class=content align=left>本活動之ADAM 
+                                4G隨身碟分兩批次寄送：8/15(一)及10/31(一) 
+                                </TD></TR></TBODY></TABLE></TD>
+                                <TD><IMG height=66 alt="" 
+                                src="201107index1.files/spacer.gif" width=1 
+                                border=0></TD></TR>
+                                <TR>
+                                <TD colSpan=5><IMG id=table_r9_c3 height=23 
+                                alt="" src="201107index1.files/table_r9_c3.jpg" 
+                                width=648 border=0 name=table_r9_c3></TD>
+                                <TD><IMG height=23 alt="" 
+                                src="201107index1.files/spacer.gif" width=1 
+                                border=0></TD></TR></TBODY></TABLE></TD></TR></TBODY></TABLE></TD></TR></TBODY></TABLE></TD></TR></TBODY></TABLE></TD></TR>
+        <TR>
+          <TD>
+            <TABLE cellSpacing=0 cellPadding=0 border=0>
+              <TBODY>
+              <TR>
+                <TD vAlign=bottom bgColor=#f1f8fc height=40>
+                  <TABLE cellSpacing=0 cellPadding=0>
+                    <TBODY>
+                    <TR>
+                      <TD align=right width=31><IMG height=30 alt="" hspace=8 
+                        src="201107index1.files/grd_title.gif" width=6></TD>
+                      <TD class=t12tit11 
+                    width=486><STRONG>精選產品</STRONG></TD></TR></TBODY></TABLE></TD></TR>
+              <TR>
+                <TD vAlign=top bgColor=#f1f8fc height=10><STRONG 
+                  class=contenttit21><IMG height=1 alt="" hspace=17 
+                  src="201107index1.files/line02.gif" width=685 
+                  vspace=2></STRONG></TD></TR>
+              <TR>
+                <TD align=middle>
+                  <TABLE cellSpacing=0 cellPadding=0 width="100%" border=0>
+                    <TBODY>
+                    <TR>
+                      <TD align=middle width=18 bgColor=#f1f8fc>&nbsp;</TD>
+                      <TD vAlign=center align=left width=682 bgColor=#f1f8fc 
+                      height=29><SPAN class=content><SPAN class=tiltle01><IMG 
+                        height=16 src="201107index1.files/title-01.jpg" 
+                        width=278></SPAN></SPAN></TD></TR></TBODY></TABLE></TD></TR>
+              <TR>
+                <TD align=middle bgColor=#f1f8fc>
+                  <TABLE cellSpacing=0 cellPadding=0>
+                    <TBODY>
+                    <TR>
+                      <TD vAlign=top>
+                        <TABLE cellSpacing=0 cellPadding=0>
+                          <TBODY>
+                          <TR>
+                            <TD><IMG height=6 alt="" 
+                              src="201107index1.files/tab01_top.gif" 
+                            width=227></TD></TR>
+                          <TR>
+                            <TD class=tab01>
+                              <TABLE cellSpacing=0 cellPadding=3>
+                                <TBODY>
+                                <TR>
+                                <TD class=ptit align=middle bgColor=#0b5a92 
+                                height=15>ADAM-4117</TD></TR>
+                                <TR>
+                                <TD align=middle>
+                                <TABLE cellSpacing=2 cellPadding=0 border=0>
+                                <TBODY>
+                                <TR>
+                                <TD><IMG height=135 alt="" 
+                                src="201107index1.files/product1.jpg" 
+                                width=135></TD>
+                                <TD vAlign=bottom align=left>
+                                <TABLE cellSpacing=0 cellPadding=0 width=73>
+                                <TBODY>
+                                <TR>
+                                <TD align=middle width=21 height=20><IMG 
+                                height=17 alt="" 
+                                src="201107index1.files/icon_detail.gif" 
+                                width=15></TD>
+                                <TD width=50><A class=picn 
+                                href="http://downloadt.advantech.com/ProductFile/1-35KCPZ/ADAM-4117_DS.pdf" 
+                                target=_blank>產品規格</A></TD></TR></TBODY></TABLE></TD></TR></TBODY></TABLE></TD></TR>
+                                <TR>
+                                <TD class=content align=middle width=215 
+                                bgColor=#daecf8 height=46>
+                                <TABLE cellSpacing=2 cellPadding=0 border=0>
+                                <TBODY>
+                                <TR>
+                                <TD class=content 
+                                align=middle><STRONG>強固型8通道類比輸入模組<BR>(支援Modbus)</STRONG></TD></TR></TBODY></TABLE></TD></TR></TBODY></TABLE></TD></TR>
+                          <TR>
+                            <TD><IMG height=6 alt="" 
+                              src="201107index1.files/tab01_footer.gif" 
+                              width=227></TD></TR></TBODY></TABLE></TD>
+                      <TD width=8>&nbsp;</TD>
+                      <TD vAlign=top>
+                        <TABLE cellSpacing=0 cellPadding=0>
+                          <TBODY>
+                          <TR>
+                            <TD><IMG height=6 alt="" 
+                              src="201107index1.files/tab01_top.gif" 
+                            width=227></TD></TR>
+                          <TR>
+                            <TD class=tab01>
+                              <TABLE cellSpacing=0 cellPadding=3>
+                                <TBODY>
+                                <TR>
+                                <TD class=ptit align=middle bgColor=#0b5a92 
+                                height=15>ADAM-4024</TD></TR>
+                                <TR>
+                                <TD align=middle>
+                                <TABLE cellSpacing=2 cellPadding=0 border=0>
+                                <TBODY>
+                                <TR>
+                                <TD><IMG height=135 alt="" 
+                                src="201107index1.files/product2.jpg" 
+                                width=135></TD>
+                                <TD vAlign=bottom align=left>
+                                <TABLE cellSpacing=0 cellPadding=0 width=73>
+                                <TBODY>
+                                <TR>
+                                <TD align=middle width=21 height=20><IMG 
+                                height=17 alt="" 
+                                src="201107index1.files/icon_detail.gif" 
+                                width=15></TD>
+                                <TD width=50><A class=picn 
+                                href="http://downloadt.advantech.com/ProductFile/1-35KCJ1/ADAM-4024_DS.pdf" 
+                                target=_blank>產品規格</A></TD></TR></TBODY></TABLE></TD></TR></TBODY></TABLE></TD></TR>
+                                <TR>
+                                <TD class=content align=middle width=215 
+                                bgColor=#daecf8 height=46>
+                                <TABLE cellSpacing=2 cellPadding=0 border=0>
+                                <TBODY>
+                                <TR>
+                                <TD class=content 
+                                align=middle><STRONG>4通道類比輸出模組<BR>(支援Modbus)</STRONG></TD></TR></TBODY></TABLE></TD></TR></TBODY></TABLE></TD></TR>
+                          <TR>
+                            <TD><IMG height=6 alt="" 
+                              src="201107index1.files/tab01_footer.gif" 
+                              width=227></TD></TR></TBODY></TABLE></TD>
+                      <TD width=8>&nbsp;</TD>
+                      <TD vAlign=top>
+                        <TABLE cellSpacing=0 cellPadding=0>
+                          <TBODY>
+                          <TR>
+                            <TD><IMG height=6 alt="" 
+                              src="201107index1.files/tab01_top.gif" 
+                            width=227></TD></TR>
+                          <TR>
+                            <TD class=tab01>
+                              <TABLE cellSpacing=0 cellPadding=3>
+                                <TBODY>
+                                <TR>
+                                <TD class=ptit align=middle bgColor=#0b5a92 
+                                height=15>ADAM-4055</TD></TR>
+                                <TR>
+                                <TD align=middle>
+                                <TABLE cellSpacing=2 cellPadding=0 border=0>
+                                <TBODY>
+                                <TR>
+                                <TD><IMG height=135 alt="" 
+                                src="201107index1.files/product3.jpg" 
+                                width=135></TD>
+                                <TD vAlign=bottom align=left>
+                                <TABLE cellSpacing=0 cellPadding=0 width=73>
+                                <TBODY>
+                                <TR>
+                                <TD align=middle width=21 height=20><IMG 
+                                height=17 alt="" 
+                                src="201107index1.files/icon_detail.gif" 
+                                width=15></TD>
+                                <TD width=50><A class=picn 
+                                href="http://downloadt.advantech.com/ProductFile/1-35KCIL/ADAM-4055_DS.pdf" 
+                                target=_blank>產品規格</A></TD></TR></TBODY></TABLE></TD></TR></TBODY></TABLE></TD></TR>
+                                <TR>
+                                <TD class=content align=middle width=215 
+                                bgColor=#daecf8 height=45>
+                                <TABLE cellSpacing=2 cellPadding=0 border=0>
+                                <TBODY>
+                                <TR>
+                                <TD class=content 
+                                align=middle><STRONG>16通道隔離數位輸入/輸出模組 
+                                <BR>(支援Modbus)</STRONG></TD></TR></TBODY></TABLE></TD></TR></TBODY></TABLE></TD></TR>
+                          <TR>
+                            <TD><IMG height=6 alt="" 
+                              src="201107index1.files/tab01_footer.gif" 
+                              width=227></TD></TR></TBODY></TABLE></TD></TR></TBODY></TABLE></TD></TR>
+              <TR>
+                <TD>
+                  <TABLE cellSpacing=0 cellPadding=0 width="100%" border=0>
+                    <TBODY>
+                    <TR>
+                      <TD align=middle bgColor=#f1f8fc>&nbsp;</TD>
+                      <TD vAlign=bottom align=right bgColor=#f1f8fc height=25>
+                        <TABLE cellSpacing=3 cellPadding=3 width=188 border=0>
+                          <TBODY>
+                          <TR>
+                            <TD class=t12tit align=left><A 
+                              href="http://www.advantech.com/products/RS-485-I-O-Modules-ADAM-4000/sub_1-2MLKHT.aspx" 
+                              target=_blank>更多ADAM-4000系列產品</A></TD></TR></TBODY></TABLE></TD></TR>
+                    <TR>
+                      <TD align=middle width=18 bgColor=#f1f8fc>&nbsp;</TD>
+                      <TD vAlign=center align=left width=682 bgColor=#f1f8fc 
+                      height=29><SPAN class=content><SPAN class=tiltle01><IMG 
+                        height=16 alt="" src="201107index1.files/title-02.jpg" 
+                        width=288></SPAN></SPAN></TD></TR></TBODY></TABLE></TD></TR>
+              <TR>
+                <TD align=middle bgColor=#f1f8fc>
+                  <TABLE cellSpacing=0 cellPadding=0>
+                    <TBODY>
+                    <TR>
+                      <TD vAlign=top>
+                        <TABLE cellSpacing=0 cellPadding=0>
+                          <TBODY>
+                          <TR>
+                            <TD><IMG height=6 alt="" 
+                              src="201107index1.files/tab01_top.gif" 
+                            width=227></TD></TR>
+                          <TR>
+                            <TD class=tab01>
+                              <TABLE cellSpacing=0 cellPadding=3>
+                                <TBODY>
+                                <TR>
+                                <TD class=ptit align=middle bgColor=#0b5a92 
+                                height=15>ADAM-6017</TD></TR>
+                                <TR>
+                                <TD align=middle>
+                                <TABLE cellSpacing=2 cellPadding=0 border=0>
+                                <TBODY>
+                                <TR>
+                                <TD><IMG height=135 alt="" 
+                                src="201107index1.files/product4.jpg" 
+                                width=135></TD>
+                                <TD vAlign=bottom align=left>
+                                <TABLE cellSpacing=0 cellPadding=0 width=73>
+                                <TBODY>
+                                <TR>
+                                <TD align=middle width=21 height=20><IMG 
+                                height=17 alt="" 
+                                src="201107index1.files/icon_detail.gif" 
+                                width=15></TD>
+                                <TD width=50><A class=picn 
+                                href="http://downloadt.advantech.com/ProductFile/1-35KLCS/ADAM-6017_DS.pdf" 
+                                target=_blank>產品規格</A></TD></TR></TBODY></TABLE></TD></TR></TBODY></TABLE></TD></TR>
+                                <TR>
+                                <TD class=content align=middle width=215 
+                                bgColor=#daecf8 height=46>
+                                <TABLE cellSpacing=2 cellPadding=0 border=0>
+                                <TBODY>
+                                <TR>
+                                <TD class=content align=middle 
+                                height=40><STRONG>8通道隔離類比輸入及<BR>2通道數位輸出模組</STRONG></TD></TR></TBODY></TABLE></TD></TR></TBODY></TABLE></TD></TR>
+                          <TR>
+                            <TD><IMG height=6 alt="" 
+                              src="201107index1.files/tab01_footer.gif" 
+                              width=227></TD></TR></TBODY></TABLE></TD>
+                      <TD width=8>&nbsp;</TD>
+                      <TD vAlign=top>
+                        <TABLE cellSpacing=0 cellPadding=0>
+                          <TBODY>
+                          <TR>
+                            <TD><IMG height=6 alt="" 
+                              src="201107index1.files/tab01_top.gif" 
+                            width=227></TD></TR>
+                          <TR>
+                            <TD class=tab01>
+                              <TABLE cellSpacing=0 cellPadding=3>
+                                <TBODY>
+                                <TR>
+                                <TD class=ptit align=middle bgColor=#0b5a92 
+                                height=15>ADAM-6024</TD></TR>
+                                <TR>
+                                <TD align=middle>
+                                <TABLE cellSpacing=2 cellPadding=0 border=0>
+                                <TBODY>
+                                <TR>
+                                <TD><IMG height=135 alt="" 
+                                src="201107index1.files/product5.jpg" 
+                                width=135></TD>
+                                <TD vAlign=bottom align=left>
+                                <TABLE cellSpacing=0 cellPadding=0 width=73>
+                                <TBODY>
+                                <TR>
+                                <TD align=middle width=21 height=20><IMG 
+                                height=17 alt="" 
+                                src="201107index1.files/icon_detail.gif" 
+                                width=15></TD>
+                                <TD width=50><A class=picn 
+                                href="http://downloadt.advantech.com/ProductFile/1-35KLI4/ADAM-6024_DS.pdf" 
+                                target=_blank>產品規格</A></TD></TR></TBODY></TABLE></TD></TR></TBODY></TABLE></TD></TR>
+                                <TR>
+                                <TD align=middle width=215 bgColor=#daecf8 
+                                height=46>
+                                <TABLE cellSpacing=2 cellPadding=0 border=0>
+                                <TBODY>
+                                <TR>
+                                <TD class=content 
+                                align=left><STRONG>12通道隔離泛用型輸入/輸出模組</STRONG></TD></TR></TBODY></TABLE></TD></TR></TBODY></TABLE></TD></TR>
+                          <TR>
+                            <TD><IMG height=6 alt="" 
+                              src="201107index1.files/tab01_footer.gif" 
+                              width=227></TD></TR></TBODY></TABLE></TD>
+                      <TD width=8>&nbsp;</TD>
+                      <TD vAlign=top>
+                        <TABLE cellSpacing=0 cellPadding=0>
+                          <TBODY>
+                          <TR>
+                            <TD><IMG height=6 alt="" 
+                              src="201107index1.files/tab01_top.gif" 
+                            width=227></TD></TR>
+                          <TR>
+                            <TD class=tab01>
+                              <TABLE cellSpacing=0 cellPadding=3>
+                                <TBODY>
+                                <TR>
+                                <TD class=ptit align=middle bgColor=#0b5a92 
+                                height=15>ADAM-6060</TD></TR>
+                                <TR>
+                                <TD align=middle>
+                                <TABLE cellSpacing=2 cellPadding=0 border=0>
+                                <TBODY>
+                                <TR>
+                                <TD><IMG height=135 alt="" 
+                                src="201107index1.files/product6.jpg" 
+                                width=135></TD>
+                                <TD vAlign=bottom align=left>
+                                <TABLE cellSpacing=0 cellPadding=0 width=73>
+                                <TBODY>
+                                <TR>
+                                <TD align=middle width=21 height=20><IMG 
+                                height=17 alt="" 
+                                src="201107index1.files/icon_detail.gif" 
+                                width=15></TD>
+                                <TD width=50><A class=picn 
+                                href="http://downloadt.advantech.com/ProductFile/1-35KLIK/ADAM-6060_DS.pdf" 
+                                target=_blank>產品規格</A></TD></TR></TBODY></TABLE></TD></TR></TBODY></TABLE></TD></TR>
+                                <TR>
+                                <TD align=middle width=215 bgColor=#daecf8 
+                                height=45>
+                                <TABLE cellSpacing=2 cellPadding=0 border=0>
+                                <TBODY>
+                                <TR>
+                                <TD class=content 
+                                align=middle><STRONG>6通道數位輸入及<BR>6通道繼電器模組</STRONG></TD></TR></TBODY></TABLE></TD></TR></TBODY></TABLE></TD></TR>
+                          <TR>
+                            <TD><IMG height=6 alt="" 
+                              src="201107index1.files/tab01_footer.gif" 
+                              width=227></TD></TR></TBODY></TABLE></TD></TR></TBODY></TABLE></TD></TR>
+              <TR>
+                <TD>
+                  <TABLE cellSpacing=0 cellPadding=0 width="100%" border=0>
+                    <TBODY>
+                    <TR>
+                      <TD align=middle bgColor=#f1f8fc>&nbsp;</TD>
+                      <TD vAlign=bottom align=right bgColor=#f1f8fc height=25>
+                        <TABLE cellSpacing=3 cellPadding=3 width=188 border=0>
+                          <TBODY>
+                          <TR>
+                            <TD class=t12tit align=left><A 
+                              href="http://www.advantech.com/products/Ethernet-I-O-Modules-ADAM-6000/sub_GF-5197.aspx" 
+                              target=_blank>更多ADAM-6000系列產品</A></TD></TR></TBODY></TABLE></TD></TR>
+                    <TR>
+                      <TD align=middle width=18 bgColor=#f1f8fc>&nbsp;</TD>
+                      <TD vAlign=center align=left width=682 bgColor=#f1f8fc 
+                      height=29><SPAN class=content><SPAN class=tiltle01><IMG 
+                        height=16 alt="" src="201107index1.files/title-03.jpg" 
+                        width=145></SPAN></SPAN></TD></TR></TBODY></TABLE></TD></TR>
+              <TR>
+                <TD vAlign=top align=middle bgColor=#f1f8fc height=222>
+                  <TABLE cellSpacing=0 cellPadding=0>
+                    <TBODY>
+                    <TR>
+                      <TD vAlign=top>
+                        <TABLE cellSpacing=0 cellPadding=0>
+                          <TBODY>
+                          <TR>
+                            <TD><IMG height=6 alt="" 
+                              src="201107index1.files/tab01_top.gif" 
+                            width=227></TD></TR>
+                          <TR>
+                            <TD class=tab01>
+                              <TABLE cellSpacing=0 cellPadding=3>
+                                <TBODY>
+                                <TR>
+                                <TD class=ptit align=middle bgColor=#0b5a92 
+                                height=15>ADAM-4571</TD></TR>
+                                <TR>
+                                <TD align=middle>
+                                <TABLE cellSpacing=2 cellPadding=0 border=0>
+                                <TBODY>
+                                <TR>
+                                <TD><IMG height=135 alt="" 
+                                src="201107index1.files/product7.jpg" 
+                                width=135></TD>
+                                <TD vAlign=bottom align=left>
+                                <TABLE cellSpacing=0 cellPadding=0 width=73>
+                                <TBODY>
+                                <TR>
+                                <TD align=middle width=21 height=20><IMG 
+                                height=17 alt="" 
+                                src="201107index1.files/icon_detail.gif" 
+                                width=15></TD>
+                                <TD width=50><A class=picn 
+                                href="http://downloadt.advantech.com/ProductFile/PIS/ADAM-4571/Product%20-%20Datasheet/ADAM-4571_DS20110530171932.pdf" 
+                                target=_blank>產品規格</A></TD></TR></TBODY></TABLE></TD></TR></TBODY></TABLE></TD></TR>
+                                <TR>
+                                <TD class=content align=middle width=215 
+                                bgColor=#daecf8 height=30>
+                                <TABLE cellSpacing=2 cellPadding=0 border=0>
+                                <TBODY>
+                                <TR>
+                                <TD class=content 
+                                align=left><STRONG>1埠RS232/422/485串列設備伺服器</STRONG></TD></TR></TBODY></TABLE></TD></TR></TBODY></TABLE></TD></TR>
+                          <TR>
+                            <TD><IMG height=6 alt="" 
+                              src="201107index1.files/tab01_footer.gif" 
+                              width=227></TD></TR></TBODY></TABLE></TD>
+                      <TD width=8>&nbsp;</TD>
+                      <TD vAlign=top>
+                        <TABLE cellSpacing=0 cellPadding=0>
+                          <TBODY>
+                          <TR>
+                            <TD><IMG height=6 alt="" 
+                              src="201107index1.files/tab01_top.gif" 
+                            width=227></TD></TR>
+                          <TR>
+                            <TD class=tab01>
+                              <TABLE cellSpacing=0 cellPadding=3>
+                                <TBODY>
+                                <TR>
+                                <TD class=ptit align=middle bgColor=#0b5a92 
+                                height=15>ADAM-6520</TD></TR>
+                                <TR>
+                                <TD align=middle>
+                                <TABLE cellSpacing=2 cellPadding=0 border=0>
+                                <TBODY>
+                                <TR>
+                                <TD><IMG height=135 alt="" 
+                                src="201107index1.files/product8.jpg" 
+                                width=135></TD>
+                                <TD vAlign=bottom align=left>
+                                <TABLE cellSpacing=0 cellPadding=0 width=73>
+                                <TBODY>
+                                <TR>
+                                <TD align=middle width=21 height=20><IMG 
+                                height=17 alt="" 
+                                src="201107index1.files/icon_detail.gif" 
+                                width=15></TD>
+                                <TD width=50><A class=picn 
+                                href="http://downloadt.advantech.com/ProductFile/1-1VZ94A/ADAM-6520_DS.pdf" 
+                                target=_blank>產品規格</A></TD></TR></TBODY></TABLE></TD></TR></TBODY></TABLE></TD></TR>
+                                <TR>
+                                <TD align=middle width=215 bgColor=#daecf8 
+                                height=30>
+                                <TABLE cellSpacing=2 cellPadding=0 border=0>
+                                <TBODY>
+                                <TR>
+                                <TD class=content 
+                                align=left><STRONG>5埠非網管型乙太網路交換器</STRONG></TD></TR></TBODY></TABLE></TD></TR></TBODY></TABLE></TD></TR>
+                          <TR>
+                            <TD><IMG height=6 alt="" 
+                              src="201107index1.files/tab01_footer.gif" 
+                              width=227></TD></TR></TBODY></TABLE></TD>
+                      <TD width=8>&nbsp;</TD>
+                      <TD vAlign=top 
+              width=227>&nbsp;</TD></TR></TBODY></TABLE></TD></TR></TBODY></TABLE></TD></TR></TBODY></TABLE>
+      <TABLE cellSpacing=0 cellPadding=0 width=750 align=center bgColor=#ffffff 
+      border=0>
+        <TBODY>
+        <TR>
+          <TD vAlign=top align=middle bgColor=#ffffff>
+            <TABLE cellSpacing=0 cellPadding=0 width=712 border=0>
+              <TBODY>
+              <TR>
+                <TD align=middle height=20><IMG height=1 
+                  src="201107index1.files/line05.gif" width=700></TD></TR>
+              <TR>
+                <TD align=right>
+                  <TABLE cellSpacing=0 cellPadding=2 width="99%" align=right>
+                    <TBODY>
+                    <TR>
+                      <TD vAlign=top align=middle width="1%"><IMG height=26 
+                        alt="" src="201107index1.files/footer_icn01.gif" 
+                        width=24 border=0></TD>
+                      <TD class=footericn align=left><SPAN 
+                        class=footertit>聯絡研華：</SPAN>想更進一步瞭解研華ADAM系列產品或活動內容，請洽研華業務代表或 
+                        <A href="mailto:sales@advantech.com.tw" 
+                        target=_blank>sales@advantech.com.tw</A></TD></TR>
+                    <TR>
+                      <TD vAlign=top align=middle><IMG height=26 alt="" 
+                        src="201107index1.files/footer_icn02.gif" width=24 
+                        border=0></TD>
+                      <TD align=left><asp:LinkButton runat="server" ID="btnS" Text="轉寄好友：" Font-Underline="false" CssClass="footertit" OnClientClick="submit()" OnClick="btnS_Click" /><SPAN 
+                        class=footericn>免費轉寄與您的客戶、夥伴、親友分享</SPAN>
+                        <SCRIPT type="text/javascript">
+                            function submit() {
+                                //alert("hi");
+                                window.location = "http://www.advantech.tw/util/emailpage.aspx?title=" + escape("百萬亞當歡樂慶 好康回饋大方送") + "&PageURL=http://my.advantech.com/EC/Surveys/201107index1.aspx";
+                            }
+                        </SCRIPT>
+                         </TD></TR></TBODY></TABLE></TD></TR>
+              <TR>
+                <TD height=15></TD></TR></TBODY></TABLE></TD></TR>
+        <TR>
+          <TD align=middle bgColor=#828282 height=33>
+            <TABLE cellSpacing=5 cellPadding=0 width="98%" border=0>
+              <TBODY>
+              <TR>
+                <TD align=left width="58%"><SPAN class=copyright>Copyright © 
+                  1983-2011 Advantech Co., Ltd. All Rights Reserved.</SPAN></TD>
+                <TD align=right width="32%"><SPAN class=copyright>&gt;&gt; 
+                  </SPAN><A class=copyright 
+                  href="http://www.advantech.com/about/privacy.aspx" 
+                  target=_blank>隱私權政策</A></TD>
+                <TD class=copyright align=right width="10%">&gt;&gt; <A 
+                  class=copyright href="http://www.advantech.com.tw/rss/" 
+                  target=_blank>研華RSS</A></TD></TR></TBODY></TABLE></TD></TR></TBODY></TABLE></TD></TR></TBODY></TABLE>
+    </div>
+    </form>
+</body>
+</html>

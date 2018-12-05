@@ -1,0 +1,15 @@
+﻿<%@ Page Title="" Language="VB" MasterPageFile="~/Includes/MyMaster.master" %>
+
+<script runat="server">
+
+    Protected Sub Page_Load(sender As Object, e As System.EventArgs)
+        If Not Page.IsPostBack Then
+            If Request("UID") IsNot Nothing Then
+                Response.Redirect("http://eq.advantech.com/Quote/QuoteApproval.aspx?UID=" + Request("UID"))
+            End If
+        End If
+    End Sub
+</script>
+
+<asp:Content ID="Content1" ContentPlaceHolderID="_main" Runat="Server">
+</asp:Content>

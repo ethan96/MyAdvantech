@@ -1,0 +1,219 @@
+<?xml version="1.0" encoding="utf-8"?>
+<wsdl:definitions xmlns:http="http://schemas.xmlsoap.org/wsdl/http/" xmlns:soapenc="http://schemas.xmlsoap.org/soap/encoding/" xmlns:mime="http://schemas.xmlsoap.org/wsdl/mime/" xmlns:tns="eBizAEU" xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/" xmlns:tm="http://microsoft.com/wsdl/mime/textMatching/" xmlns:s="http://www.w3.org/2001/XMLSchema" xmlns:soap12="http://schemas.xmlsoap.org/wsdl/soap12/" targetNamespace="eBizAEU" xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/">
+  <wsdl:types>
+    <s:schema elementFormDefault="qualified" targetNamespace="eBizAEU">
+      <s:element name="HelloKitty">
+        <s:complexType />
+      </s:element>
+      <s:element name="HelloKittyResponse">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="HelloKittyResult" type="s:string" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="DataTable2Excel">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="dt">
+              <s:complexType>
+                <s:sequence>
+                  <s:any minOccurs="0" maxOccurs="unbounded" namespace="http://www.w3.org/2001/XMLSchema" processContents="lax" />
+                  <s:any minOccurs="1" namespace="urn:schemas-microsoft-com:xml-diffgram-v1" processContents="lax" />
+                </s:sequence>
+              </s:complexType>
+            </s:element>
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="DataTable2ExcelResponse">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="DataTable2ExcelResult" type="s:base64Binary" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="Excel2DataTable">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="path" type="s:string" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="Excel2DataTableResponse">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="Excel2DataTableResult">
+              <s:complexType>
+                <s:sequence>
+                  <s:any minOccurs="0" maxOccurs="unbounded" namespace="http://www.w3.org/2001/XMLSchema" processContents="lax" />
+                  <s:any minOccurs="1" namespace="urn:schemas-microsoft-com:xml-diffgram-v1" processContents="lax" />
+                </s:sequence>
+              </s:complexType>
+            </s:element>
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="MultiDataTable2Excel">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="dts" type="tns:ArrayOfDataTable" />
+            <s:element minOccurs="0" maxOccurs="1" name="fns" type="tns:ArrayOfString" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:complexType name="ArrayOfDataTable">
+        <s:sequence>
+          <s:element minOccurs="0" maxOccurs="unbounded" name="DataTable" nillable="true">
+            <s:complexType>
+              <s:sequence>
+                <s:any minOccurs="0" maxOccurs="unbounded" namespace="http://www.w3.org/2001/XMLSchema" processContents="lax" />
+                <s:any minOccurs="1" namespace="urn:schemas-microsoft-com:xml-diffgram-v1" processContents="lax" />
+              </s:sequence>
+            </s:complexType>
+          </s:element>
+        </s:sequence>
+      </s:complexType>
+      <s:complexType name="ArrayOfString">
+        <s:sequence>
+          <s:element minOccurs="0" maxOccurs="unbounded" name="string" nillable="true" type="s:string" />
+        </s:sequence>
+      </s:complexType>
+      <s:element name="MultiDataTable2ExcelResponse">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="MultiDataTable2ExcelResult" type="s:base64Binary" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+    </s:schema>
+  </wsdl:types>
+  <wsdl:message name="HelloKittySoapIn">
+    <wsdl:part name="parameters" element="tns:HelloKitty" />
+  </wsdl:message>
+  <wsdl:message name="HelloKittySoapOut">
+    <wsdl:part name="parameters" element="tns:HelloKittyResponse" />
+  </wsdl:message>
+  <wsdl:message name="DataTable2ExcelSoapIn">
+    <wsdl:part name="parameters" element="tns:DataTable2Excel" />
+  </wsdl:message>
+  <wsdl:message name="DataTable2ExcelSoapOut">
+    <wsdl:part name="parameters" element="tns:DataTable2ExcelResponse" />
+  </wsdl:message>
+  <wsdl:message name="Excel2DataTableSoapIn">
+    <wsdl:part name="parameters" element="tns:Excel2DataTable" />
+  </wsdl:message>
+  <wsdl:message name="Excel2DataTableSoapOut">
+    <wsdl:part name="parameters" element="tns:Excel2DataTableResponse" />
+  </wsdl:message>
+  <wsdl:message name="MultiDataTable2ExcelSoapIn">
+    <wsdl:part name="parameters" element="tns:MultiDataTable2Excel" />
+  </wsdl:message>
+  <wsdl:message name="MultiDataTable2ExcelSoapOut">
+    <wsdl:part name="parameters" element="tns:MultiDataTable2ExcelResponse" />
+  </wsdl:message>
+  <wsdl:portType name="ASPOSEUtilitySoap">
+    <wsdl:operation name="HelloKitty">
+      <wsdl:input message="tns:HelloKittySoapIn" />
+      <wsdl:output message="tns:HelloKittySoapOut" />
+    </wsdl:operation>
+    <wsdl:operation name="DataTable2Excel">
+      <wsdl:input message="tns:DataTable2ExcelSoapIn" />
+      <wsdl:output message="tns:DataTable2ExcelSoapOut" />
+    </wsdl:operation>
+    <wsdl:operation name="Excel2DataTable">
+      <wsdl:input message="tns:Excel2DataTableSoapIn" />
+      <wsdl:output message="tns:Excel2DataTableSoapOut" />
+    </wsdl:operation>
+    <wsdl:operation name="MultiDataTable2Excel">
+      <wsdl:input message="tns:MultiDataTable2ExcelSoapIn" />
+      <wsdl:output message="tns:MultiDataTable2ExcelSoapOut" />
+    </wsdl:operation>
+  </wsdl:portType>
+  <wsdl:binding name="ASPOSEUtilitySoap" type="tns:ASPOSEUtilitySoap">
+    <soap:binding transport="http://schemas.xmlsoap.org/soap/http" />
+    <wsdl:operation name="HelloKitty">
+      <soap:operation soapAction="eBizAEU/HelloKitty" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="DataTable2Excel">
+      <soap:operation soapAction="eBizAEU/DataTable2Excel" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="Excel2DataTable">
+      <soap:operation soapAction="eBizAEU/Excel2DataTable" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="MultiDataTable2Excel">
+      <soap:operation soapAction="eBizAEU/MultiDataTable2Excel" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+  </wsdl:binding>
+  <wsdl:binding name="ASPOSEUtilitySoap12" type="tns:ASPOSEUtilitySoap">
+    <soap12:binding transport="http://schemas.xmlsoap.org/soap/http" />
+    <wsdl:operation name="HelloKitty">
+      <soap12:operation soapAction="eBizAEU/HelloKitty" style="document" />
+      <wsdl:input>
+        <soap12:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap12:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="DataTable2Excel">
+      <soap12:operation soapAction="eBizAEU/DataTable2Excel" style="document" />
+      <wsdl:input>
+        <soap12:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap12:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="Excel2DataTable">
+      <soap12:operation soapAction="eBizAEU/Excel2DataTable" style="document" />
+      <wsdl:input>
+        <soap12:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap12:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="MultiDataTable2Excel">
+      <soap12:operation soapAction="eBizAEU/MultiDataTable2Excel" style="document" />
+      <wsdl:input>
+        <soap12:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap12:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+  </wsdl:binding>
+  <wsdl:service name="ASPOSEUtility">
+    <wsdl:port name="ASPOSEUtilitySoap" binding="tns:ASPOSEUtilitySoap">
+      <soap:address location="http://datamining.advantech.eu/Services/ASPOSEUtility.asmx" />
+    </wsdl:port>
+    <wsdl:port name="ASPOSEUtilitySoap12" binding="tns:ASPOSEUtilitySoap12">
+      <soap12:address location="http://datamining.advantech.eu/Services/ASPOSEUtility.asmx" />
+    </wsdl:port>
+  </wsdl:service>
+</wsdl:definitions>

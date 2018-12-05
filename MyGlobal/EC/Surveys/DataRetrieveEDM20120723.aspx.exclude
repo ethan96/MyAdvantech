@@ -1,0 +1,645 @@
+﻿<%@ Page Language="VB" ValidateRequest="false" %>
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<script runat="server">
+
+    Sub ResetAll()
+        
+        txtName.Text = "" : txtEmail.Text = "" : txtCompany.Text = "" : txtPhone.Text = ""
+        txtComment1.Text = "" : txtComment2.Text = ""
+        Me.CheckBoxAppDomain1.Checked = True
+        Me.CheckBoxAppDomain2.Checked = False
+        Me.CheckBoxAppDomain3.Checked = False
+        Me.CheckBoxAppDomain4.Checked = False
+        Me.CheckBoxAppDomain5.Checked = False
+
+        Me.CheckBoxCurrUseProd1.Checked = True
+        Me.CheckBoxCurrUseProd2.Checked = False
+        Me.CheckBoxCurrUseProd3.Checked = False
+        Me.CheckBoxCurrUseProd4.Checked = False
+        Me.CheckBoxCurrUseProd5.Checked = False
+
+        Me.RadioButtonBorrow1.SelectedIndex = 0
+        
+    End Sub
+
+    
+    Protected Sub ImageButton2_Click(sender As Object, e As System.Web.UI.ImageClickEventArgs)
+        ResetAll()
+
+    End Sub
+
+    Protected Sub ImageButton1_Click(sender As Object, e As System.Web.UI.ImageClickEventArgs)
+        If Validation() Then
+            Dim name As String = Replace(txtName.Text.Trim(), "'", "''")
+            Dim company As String = Replace(txtCompany.Text.Trim(), "'", "''")
+            Dim phone As String = Replace(txtPhone.Text.Trim(), "'", "''")
+            Dim sendto_email As String = Replace(txtEmail.Text.Trim(), "'", "''")
+
+            'current using product
+            Dim arrGroup As New ArrayList
+            For i As Integer = 1 To 4
+                Dim cb As CheckBox = CType(Me.up1.FindControl("CheckBoxCurrUseProd" + i.ToString), CheckBox)
+                If cb.Checked Then arrGroup.Add(cb.Text)
+            Next
+            If txtComment1.Text.Trim.Replace("'", "") <> "" Then arrGroup.Add("其他:" + txtComment1.Text.Trim.Replace("'", "''"))
+            Dim _usingproduct As String = String.Join("|", arrGroup.ToArray())
+            
+            'application domain
+            Dim arrGroup1 As New ArrayList
+            For i As Integer = 1 To 4
+                Dim cb As CheckBox = CType(Me.up1.FindControl("CheckBoxAppDomain" + i.ToString), CheckBox)
+                If cb.Checked Then arrGroup1.Add(cb.Text)
+            Next
+            If txtComment2.Text.Trim.Replace("'", "") <> "" Then arrGroup1.Add("其他:" + txtComment2.Text.Trim.Replace("'", "''"))
+            Dim _aplicationdomain As String = String.Join("|", arrGroup1.ToArray())
+
+            Dim _IsBorrow As String = ""
+            If Me.RadioButtonBorrow1.SelectedIndex > -1 Then _IsBorrow = Me.RadioButtonBorrow1.SelectedValue
+            
+            
+            Dim sb As New System.Text.StringBuilder
+            With sb
+                .AppendLine(String.Format(" INSERT INTO CAMPAIGN_SURVEYS "))
+                .AppendLine(String.Format(" (CAMP_ID, CONTACT_NAME, CONTACT_COMPANY, CONTACT_TEL, CONTACT_EMAIL,  "))
+                .AppendLine(String.Format(" INTERESTED_COURSES, REQ_BROCHURE, SUBMIT_TIME, CLIENT_ADDR, CONTACT_ADDRESS, PRODUCT) "))
+                .AppendLine(String.Format(" VALUES ('Data Retrieve Card Campaign', N'" + name + "', N'" + company + "', N'" + phone + "', " + _
+                                          " N'" + sendto_email + "', N'研華「動動筆得好禮」活動', '0', GETDATE(), '" + Util.GetClientIP() + "', N'', N'Data Retrieve Card') "))
+
+            End With
+            If dbUtil.dbExecuteNoQuery("MYLOCAL", sb.ToString()) = 1 Then
+                lbMsg.Text = "謝謝您，我們已收到您的資料"
+                Dim body As String = "<html><table>" + _
+                    "<tr><td>親愛的研華客戶 您好:</td></tr>" + _
+                    "<tr><td height='5'></td></tr>" + _
+                    "<tr><td>感謝您參與研華資料擷取卡支援LabVIEW「動動筆得好禮」活動，以下是您所填寫的問卷資料<br>" + _
+                    "收到您的資料後，近期內將會有專人和您做進一步的連絡，敬請耐心等候。</td></tr>" + _
+                    "<tr><td height='5'></td></tr>" + _
+                    "<tr><td height='5'>即日起至2012年9月30日止，研華兩款熱銷資料擷取PCI卡最低 $ 2,799起，歡迎來電洽詢0800-777-111或buy@advantech.tw</td></tr>" + _
+                    "<tr><td height='5'></td></tr>" + _
+                    "</table>" + _
+                    "<table>" + _
+                    "<tr><th align='right'>姓名: </th><td width='200'>" + name + "</td></tr>" + _
+                    "<tr><th align='right'>公司: </th><td width='200'>" + company + "</td></tr>" + _
+                    "<tr><th align='right'>電話: </th><td width='200'>" + phone + "</td></tr>" + _
+                    "<tr><th align='right'>Email: </th><td width='200'>" + sendto_email + "</td></tr>" + _
+                    "<tr><th align='right'>目前使用的卡片品牌: </th><td width='200'>" + _usingproduct + "</td></tr>" + _
+                    "<tr><th align='right'>卡片主要應用領域: </th><td width='200'>" + _aplicationdomain + "</td></tr>" + _
+                    "<tr><th align='right'>申請借測: </th><td width='200'>" + _IsBorrow + "</td></tr>" + _
+                    "</table>" + _
+                    "<table>" + _
+                    "<tr><td height='5'></td></tr>" + _
+                    "<tr><td>研華(股)公司 工業自動化事業群<br>台灣區行銷部<br>敬上</td></tr>" + _
+                    "</table></html>"
+                Dim _errmsg As String = String.Empty
+                Dim _from As String = "myadvanteh@advantech.com"
+                Dim htmlMessage As Net.Mail.MailMessage
+                htmlMessage = New Net.Mail.MailMessage(_from, sendto_email, "感謝您參與研華「動動筆得好禮」活動", body)
+                htmlMessage.IsBodyHtml = True
+                
+                'Send email to customer who interested with this event
+                'SendFromAmazon is not stable enought
+                'MailUtil.SendFromAmazon(htmlMessage, "myadvanteh@advantech.com", sendto_email, Nothing, _errmsg)
+                Call MailUtil.Utility_EMailPage(_from, sendto_email, "", "Barbara.Sun@advantech.com.tw;Frank.Chung@advantech.com.tw", "感謝您參與研華「動動筆得好禮」活動", Nothing, body)
+                
+                'Send email to event owner
+                Util.SendEmail("Barbara.Sun@advantech.com.tw", "ebiz.aeu@advantech.eu", sendto_email & "登記了研華「動動筆得好禮」活動", body, True, "", "")
+                'Util.SendEmail("Frank.Chung@advantech.com.tw", "ebiz.aeu@advantech.eu", sendto_email & "登記了研華「動動筆得好禮」活動", body, True, "", "")
+                
+                ResetAll()
+            End If
+        End If
+    End Sub
+    
+    
+    Function Validation() As Boolean
+        lbMsg.Text = ""
+        If txtName.Text.Trim() = "" Then
+            lbMsg.Text = "請輸入姓名" : Return False
+        End If
+        If txtCompany.Text.Trim() = "" Then
+            lbMsg.Text = "請輸入公司" : Return False
+        End If
+        If txtPhone.Text.Trim() = "" Then
+            lbMsg.Text = "請輸入電話" : Return False
+        End If
+        If txtEmail.Text.Trim() = "" Then
+            lbMsg.Text = "請輸入Email" : Return False
+        End If
+
+        If Util.IsValidEmailFormat(txtEmail.Text.Trim()) = False Then
+            lbMsg.Text = "請輸入正確Email格式" : Return False
+        End If
+        Dim TickAny1 As Boolean = False
+        Dim TickAny2 As Boolean = False
+        Dim cb As CheckBox = Nothing
+        '目前使用的卡片品牌
+        For i As Integer = 1 To 4
+            cb = CType(Me.up1.FindControl("CheckBoxCurrUseProd" + i.ToString), CheckBox)
+            If cb.Checked Then
+                TickAny1 = True
+                Exit For
+            End If
+        Next
+        If TickAny1 = False Then
+            
+            If Me.CheckBoxCurrUseProd5.Checked = False AndAlso txtComment1.Text.Trim.Replace("'", "") = "" Then
+                lbMsg.Text = "請選擇至少一項目前使用的卡片品牌" : Return False
+            End If
+
+            
+            If Me.CheckBoxCurrUseProd5.Checked AndAlso txtComment1.Text.Trim.Replace("'", "") = "" Then
+                lbMsg.Text = "請輸入目前使用的卡片品牌-其它選項的描述" : Return False
+            End If
+        End If
+            
+        'application domain
+        Dim arrGroup1 As New ArrayList
+        For i As Integer = 1 To 4
+            cb = CType(Me.up1.FindControl("CheckBoxAppDomain" + i.ToString), CheckBox)
+            If cb.Checked Then
+                TickAny2 = True
+                Exit For
+            End If
+        Next
+        If TickAny2 = False Then
+            
+            If Me.CheckBoxAppDomain5.Checked = False AndAlso txtComment2.Text.Trim.Replace("'", "") = "" Then
+                lbMsg.Text = "請選擇至少一項卡片主要應用領域" : Return False
+            End If
+            
+            If Me.CheckBoxAppDomain5.Checked AndAlso txtComment2.Text.Trim.Replace("'", "") = "" Then
+                lbMsg.Text = "請輸入卡片主要應用領域-其它選項的描述" : Return False
+            End If
+        End If
+
+
+        Return True
+    End Function
+    
+    Protected Sub ImageButton1_Command(sender As Object, e As System.Web.UI.WebControls.CommandEventArgs)
+
+    End Sub
+</script>
+<html>
+<head>
+    <title>研華資料擷取卡支援LabVIEW</title>
+    <meta content="text/html; charset=utf-8" http-equiv="Content-Type" />
+    <style type="text/css">
+        P
+        {
+            font: 12px/16px Arial;
+            color: #666;
+        }
+        DIV
+        {
+            font: 12px/16px Arial;
+            color: #666;
+        }
+        SPAN
+        {
+            font: 12px/16px Arial;
+            color: #666;
+        }
+        TD
+        {
+            font: 12px/16px Arial;
+            color: #666;
+        }
+        TH
+        {
+            font: 12px/16px Arial;
+            color: #666;
+        }
+        LI
+        {
+            font: 12px/16px Arial;
+            color: #666;
+        }
+        A:link
+        {
+            color: #0082d1;
+            text-decoration: none;
+        }
+        A:visited
+        {
+            color: #0082d1;
+            text-decoration: none;
+        }
+        A:hover
+        {
+            color: #0082d1;
+            text-decoration: underline;
+        }
+        A:active
+        {
+            color: #0082d1;
+            text-decoration: none;
+        }
+        .copyright
+        {
+            color: #ffffff;
+            font-size: 11px;
+            text-decoration: none;
+        }
+        .copyright A:link
+        {
+            color: #fff;
+            text-decoration: none;
+        }
+        .copyright A:visited
+        {
+            color: #fff;
+            text-decoration: none;
+        }
+        .copyright A:hover
+        {
+            color: #fff;
+            text-decoration: underline;
+        }
+        .copyright A:active
+        {
+            color: #fff;
+            text-decoration: none;
+        }
+        .color-blue
+        {
+            color: #0082d1;
+        }
+        .color-org
+        {
+            color: #ff6500;
+        }
+        .txbold
+        {
+            font-weight: bold;
+        }
+        .tiltle
+        {
+            line-height: 21px;
+            color: #ff6500;
+            font-size: 16px;
+            font-weight: bold;
+        }
+    </style>
+    <meta name="GENERATOR" content="MSHTML 9.00.8112.16447" />
+</head>
+<body leftmargin="0" topmargin="0" bgcolor="#b4d2eb" marginheight="0" marginwidth="0">
+    <form id="form1" runat="server">
+    <asp:ScriptManager runat="server" ID="sm1" />
+    <table cellspacing="0" cellpadding="0" width="750" align="center">
+        <tbody>
+            <tr>
+                <td class="color-blue" height="40" align="center">
+                    您若無法閱讀以下內容，請按此<a class="top" href="http://my.advantech.com/ec/surveys/DataRetrieveEDM20120723.aspx"
+                        target="_blank">連結</a>於線上進行瀏覽
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    <table cellspacing="0" cellpadding="0" bgcolor="#ffffff" align="center">
+                        <tbody>
+                            <tr>
+                                <td valign="middle" align="center">
+                                    <table cellspacing="0" cellpadding="0" width="730">
+                                        <tbody>
+                                            <tr>
+                                                <td width="187">
+                                                    <a href="http://buy.advantech.com.tw/" target="_blank">
+                                                        <img border="0" src="DataRetrieveEDM20120723.files/logo.gif" width="267" height="45"></a>
+                                                </td>
+                                                <td width="561" align="right">
+                                                    <table class="top1" border="0" cellspacing="0" cellpadding="5">
+                                                        <tbody>
+                                                            <tr>
+                                                                <td valign="middle">
+                                                                    <img src="DataRetrieveEDM20120723.files/icn_hotline.gif" width="34" height="31">
+                                                                </td>
+                                                                <td class="color-blue txbold " valign="middle">
+                                                                    研華在線：0800-777-111
+                                                                </td>
+                                                            </tr>
+                                                        </tbody>
+                                                    </table>
+                                                </td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <img src="DataRetrieveEDM20120723.files/banner.jpg" width="750" height="405">
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    &nbsp;
+                                </td>
+                            </tr>
+                            <tr>
+                                <td align="center">
+                                    <asp:UpdatePanel runat="server" ID="up1" UpdateMode="Conditional">
+                                        <ContentTemplate>
+                                            <table border="0" cellspacing="0" cellpadding="0" width="680">
+                                                <tbody>
+                                                    <tr>
+                                                        <td height="25" align="left">
+                                                            <span class="tiltle">凡於活動期間內填寫以下問題，就可以獲得$500 現金抵用券！還可以申請借測喔！</span><br>
+                                                        </td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td>
+                                                            &nbsp;
+                                                        </td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td>
+                                                            <table border="0" cellspacing="1" cellpadding="4" width="100%" bgcolor="#dbdbdb">
+                                                                <tbody align="left">
+                                                                    <tr>
+                                                                        <td bgcolor="#ffffff" width="118" align="left">
+                                                                            公司
+                                                                        </td>
+                                                                        <td bgcolor="#ffffff" width="268">
+                                                                            <asp:TextBox ID="txtCompany" runat="server" class="contentform" size="35" type="text"
+                                                                                Width="170px"></asp:TextBox>
+                                                                        </td>
+                                                                        <td bgcolor="#ffffff" width="48">
+                                                                            姓名
+                                                                        </td>
+                                                                        <td bgcolor="#ffffff" width="206">
+                                                                            <asp:TextBox ID="txtName" runat="server" class="contentform" size="35" type="text"
+                                                                                Width="170px"></asp:TextBox>
+                                                                        </td>
+                                                                    </tr>
+                                                                    <tr>
+                                                                        <td bgcolor="#ffffff">
+                                                                            電話
+                                                                        </td>
+                                                                        <td bgcolor="#ffffff">
+                                                                            <asp:TextBox ID="txtPhone" runat="server" class="contentform" size="35" type="text"
+                                                                                Width="170px"></asp:TextBox>
+                                                                        </td>
+                                                                        <td bgcolor="#ffffff">
+                                                                            Email
+                                                                        </td>
+                                                                        <td bgcolor="#ffffff">
+                                                                            <asp:TextBox ID="txtEmail" runat="server" class="contentform" size="35" type="text"
+                                                                                Width="170px"></asp:TextBox>
+                                                                        </td>
+                                                                    </tr>
+                                                                    <tr>
+                                                                        <td bgcolor="#ffffff">
+                                                                            目前使用的卡片品牌
+                                                                        </td>
+                                                                        <td bgcolor="#ffffff" colspan="3">
+                                                                            <table border="0" cellspacing="0" cellpadding="4">
+                                                                                <tbody>
+                                                                                    <tr>
+                                                                                        <td>
+                                                                                            <asp:CheckBox ID="CheckBoxCurrUseProd1" Text="研華" runat="server" Checked="True" />
+                                                                                        </td>
+                                                                                        <td>
+                                                                                            &nbsp;
+                                                                                        </td>
+                                                                                        <td>
+                                                                                            <asp:CheckBox ID="CheckBoxCurrUseProd2" Text="NI" runat="server" />
+                                                                                        </td>
+                                                                                        <td>
+                                                                                            &nbsp;
+                                                                                        </td>
+                                                                                        <td>
+                                                                                            <asp:CheckBox ID="CheckBoxCurrUseProd3" Text="凌華" runat="server" />
+                                                                                        </td>
+                                                                                        <td>
+                                                                                            &nbsp;
+                                                                                        </td>
+                                                                                        <td>
+                                                                                            <asp:CheckBox ID="CheckBoxCurrUseProd4" Text="泓格" runat="server" />
+                                                                                        </td>
+                                                                                        <td>
+                                                                                            &nbsp;
+                                                                                        </td>
+                                                                                        <td>
+                                                                                            <asp:CheckBox ID="CheckBoxCurrUseProd5" Text="其他" runat="server" />
+                                                                                        </td>
+                                                                                        <td>
+                                                                                            <asp:TextBox ID="txtComment1" runat="server"></asp:TextBox>
+                                                                                        </td>
+                                                                                    </tr>
+                                                                                </tbody>
+                                                                            </table>
+                                                                        </td>
+                                                                    </tr>
+                                                                    <tr>
+                                                                        <td bgcolor="#ffffff">
+                                                                            卡片主要應用領域
+                                                                        </td>
+                                                                        <td bgcolor="#ffffff" colspan="3">
+                                                                            <table border="0" cellspacing="0" cellpadding="4">
+                                                                                <tbody>
+                                                                                    <tr>
+                                                                                        <td>
+                                                                                            <asp:CheckBox ID="CheckBoxAppDomain1" Text="自動光學檢測AOI" runat="server" Checked="True" />
+                                                                                        </td>
+                                                                                        <td>
+                                                                                            &nbsp;
+                                                                                        </td>
+                                                                                        <td>
+                                                                                            <asp:CheckBox ID="CheckBoxAppDomain2" Text="學校/實驗室" runat="server" />
+                                                                                        </td>
+                                                                                        <td>
+                                                                                            &nbsp;
+                                                                                        </td>
+                                                                                        <td>
+                                                                                            <asp:CheckBox ID="CheckBoxAppDomain3" Text="量測儀器" runat="server" />
+                                                                                        </td>
+                                                                                        <td>
+                                                                                            &nbsp;
+                                                                                        </td>
+                                                                                        <td>
+                                                                                            <asp:CheckBox ID="CheckBoxAppDomain4" Text="工業用設備製造" runat="server" />
+                                                                                        </td>
+                                                                                    </tr>
+                                                                                </tbody>
+                                                                            </table>
+                                                                            <table border="0" cellspacing="0" cellpadding="4">
+                                                                                <tbody>
+                                                                                    <tr>
+                                                                                        <td>
+                                                                                            <asp:CheckBox ID="CheckBoxAppDomain5" Text="其他" runat="server" />
+                                                                                        </td>
+                                                                                        <td>
+                                                                                            <asp:TextBox ID="txtComment2" runat="server"></asp:TextBox>
+                                                                                        </td>
+                                                                                    </tr>
+                                                                                </tbody>
+                                                                            </table>
+                                                                        </td>
+                                                                    </tr>
+                                                                    <tr>
+                                                                        <td bgcolor="#ffffff">
+                                                                            申請借測
+                                                                        </td>
+                                                                        <td bgcolor="#ffffff" colspan="3">
+                                                                            <table border="0" cellspacing="0" cellpadding="4">
+                                                                                <tbody>
+                                                                                    <tr>
+                                                                                        <td>
+                                                                                            <asp:RadioButtonList ID="RadioButtonBorrow1" runat="server" RepeatDirection="Horizontal"
+                                                                                                Width="121px">
+                                                                                                <asp:ListItem Selected="True">是</asp:ListItem>
+                                                                                                <asp:ListItem>否</asp:ListItem>
+                                                                                            </asp:RadioButtonList>
+                                                                                        </td>
+                                                                                        <td>
+                                                                                            &nbsp;
+                                                                                        </td>
+                                                                                        <td>
+                                                                                            &nbsp;
+                                                                                        </td>
+                                                                                    </tr>
+                                                                                </tbody>
+                                                                            </table>
+                                                                        </td>
+                                                                    </tr>
+                                                                </tbody>
+                                                            </table>
+                                                        </td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td class="color-blue" height="50" valign="middle" align="center">
+                                                            <table border="0" cellspacing="0" cellpadding="0">
+                                                                <tbody>
+                                                                    <tr>
+                                                                        <td>
+                                                                            <asp:ImageButton ID="ImageButton1" ImageUrl="DataRetrieveEDM20120723.files/btn.gif"
+                                                                                runat="server" OnClick="ImageButton1_Click" OnCommand="ImageButton1_Command" />
+                                                                        </td>
+                                                                        <td width="25">
+                                                                            &nbsp;
+                                                                        </td>
+                                                                        <td>
+                                                                            <asp:ImageButton ID="ImageButton2" ImageUrl="DataRetrieveEDM20120723.files/btn2.gif"
+                                                                                runat="server" OnClick="ImageButton2_Click" />
+                                                                        </td>
+                                                                        <td>
+                                                                            <asp:UpdateProgress ID="UpdateProgress1" AssociatedUpdatePanelID="up1" runat="server">
+                                                                                <ProgressTemplate>
+                                                                                    <asp:Image ID="Image1" runat="server" ImageUrl="~/Images/LoadingRed.gif" />
+                                                                                </ProgressTemplate>
+                                                                            </asp:UpdateProgress>
+                                                                        </td>
+                                                                    </tr>
+                                                                </tbody>
+                                                            </table>
+                                                        </td>
+                                                    </tr>
+                                                    <tr style="height: 15px">
+                                                        <td align="center">
+                                                            <asp:Label runat="server" ID="lbMsg" Font-Bold="true" ForeColor="Tomato" />
+                                                        </td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td class="color-blue" align="left">
+                                                            $ 500現金抵用券使用說明:
+                                                        </td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td align="left">
+                                                            1. 凡持本抵用券，單筆消費研華產品滿5,000元，方可使用本券<br>
+                                                            2. 本券使用期限至2012年12月31日(逾期恕不受理)<br>
+                                                            3. 本券適用於研華資料擷取產品，包含PCI、PCI Express、USB模組<br>
+                                                            4. 本抵用券恕無法與其他優惠活動併用<br>
+                                                            5. 本券使用若有任何問題，請來電洽詢 0800-777-111<br>
+                                                            6. 若要使用本券，請於下單前事先告知您的AOnline業務窗口。事後告知恕不處理。
+                                                        </td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td>
+                                                            &nbsp;
+                                                        </td>
+                                                    </tr>
+                                                </tbody>
+                                            </table>
+                                        </ContentTemplate>
+                                    </asp:UpdatePanel>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td height="130" valign="top" align="center">
+                                    <table cellspacing="0" cellpadding="0" width="710">
+                                        <tbody>
+                                            <tr>
+                                                <td height="40">
+                                                    <img src="DataRetrieveEDM20120723.files/footer_icn03.gif" width="24" height="26">
+                                                </td>
+                                                <td class="footericn color-blue" align="left">
+                                                    參加者於參加本活動同時，即視為同意接受本活動規範，研華公司有權決定取消、終止、修改或暫停本活動
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td height="40" width="30">
+                                                    <img src="DataRetrieveEDM20120723.files/footer_icn01.gif" width="24" height="26">
+                                                </td>
+                                                <td class="footericn color-blue" align="left">
+                                                    聯絡研華<br>
+                                                    想更進一步瞭解研華LabVIEW Express VI 及資料擷取卡，請洽<strong>0800-777-111</strong>或 <a class="footericn"
+                                                        href="mailto:buy@advantech.tw"><strong>buy@advantech.tw</strong></a> .
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td height="40">
+                                                    <img src="DataRetrieveEDM20120723.files/footer_icn02.gif" width="24" height="26">
+                                                </td>
+                                                <td class="footericn color-blue" align="left">
+                                                    <a href="http://www.advantech.tw/util/emailpage.aspx?title=%E7%A0%94%E8%8F%AF%E8%B3%87%E6%96%99%E6%93%B7%E5%8F%96%E5%8D%A1%E6%94%AF%E6%8F%B4LabVIEW%20%E5%A4%A7%E6%AD%A5%E8%B7%A8%E8%B6%8A%E6%88%90%E6%9C%AC%E8%80%83%E9%87%8F&amp;PageURL=http://www.advantech.com.tw/promotion/Templates/eDM/01/"
+                                                        target="_blank">轉寄好友 </a>
+                                                    <br>
+                                                    免費轉寄與您的客戶、夥伴、親友分享
+                                                </td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td bgcolor="#87909a" height="35">
+                                    <table cellspacing="0" cellpadding="0">
+                                        <tbody>
+                                            <tr>
+                                                <td width="17">
+                                                </td>
+                                                <td class="copyright" width="520" align="left">
+                                                    Copyright © 1983-2012 Advantech Co., Ltd. All Rights Reserved.
+                                                </td>
+                                                <td class="copyright" width="102">
+                                                    <img hspace="5" src="DataRetrieveEDM20120723.files/footerarrow.gif" width="4" height="7"><a
+                                                        class="footer" href="http://www.advantech.com/privacy.asp" target="_blank">隱私權政策</a>
+                                                </td>
+                                                <td class="copyright">
+                                                    <img hspace="5" src="DataRetrieveEDM20120723.files/footerarrow.gif" width="4" height="7"><a
+                                                        class="footer" href="http://www.advantech.com.tw/rss/" target="_blank">研華 RSS</a>
+                                                </td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <img src="DataRetrieveEDM20120723.files/footer01.gif" width="750" height="9">
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+    <p>
+        &nbsp;</p>
+    </form>
+</body>
+</html>

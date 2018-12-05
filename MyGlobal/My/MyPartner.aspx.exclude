@@ -1,0 +1,12 @@
+﻿<%@ Page Language="VB" MasterPageFile="~/Includes/MyMaster.master" Title="Advantech Partner Locator" EnableEventValidation="false" %>
+<%@ Register Src="~/Includes/GoogleMapForASPNet.ascx" TagPrefix="uc1" TagName="GoogleMapForASPNet" %>
+
+<script runat="server">
+
+</script>
+
+<asp:Content ID="Content1" ContentPlaceHolderID="_main" Runat="Server">
+    <iframe src="http://my.advantech.eu/GMap/PartnerLocator.aspx" frameborder="0" 
+        height="1000px" width="1280px" marginheight="0" marginwidth="0" scrolling="no" />
+</asp:Content>
+

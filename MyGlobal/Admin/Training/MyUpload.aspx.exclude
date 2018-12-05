@@ -1,0 +1,119 @@
+﻿<%@ Page Title="MyAdvantech - My Uploaded Training Files" Language="VB" MasterPageFile="~/Includes/MyMaster.master" %>
+
+<script runat="server">
+    Public Sub Page_Load(sender As Object, e As EventArgs)
+        'If Not Page.IsPostBack Then
+        '    Session("user_id") = "tc.chen@advantech.com.tw"
+        'End If
+       
+    End Sub
+
+    Protected Sub cbRowAllContacts_CheckedChanged(sender As Object, e As System.EventArgs)
+        Dim cb As CheckBox = sender
+        Dim upid As String = CType(cb.NamingContainer.FindControl("hd_ROWUPID2"), HiddenField).Value
+        Dim panelPubDl As Panel = cb.NamingContainer.FindControl("panelPubDlLink")
+        dbUtil.dbExecuteNoQuery("BigFiles", String.Format("update TRAINING_FILES set TO_ALL={0}  where UPLOAD_ID='" + upid + "' ", IIf(cb.Checked, 1, 0)))
+        panelPubDl.Visible = cb.Checked
+    End Sub
+
+    Protected Sub gvMyUploads_RowDataBound(sender As Object, e As System.Web.UI.WebControls.GridViewRowEventArgs)
+        If e.Row.RowType = DataControlRowType.DataRow Then
+            Dim hy As HyperLink = e.Row.FindControl("hyPubDlLink")
+            Dim upid As String = CType(e.Row.FindControl("hd_ROWUPID2"), HiddenField).Value
+            Dim cbRowAllContacts As CheckBox = e.Row.FindControl("cbRowAllContacts")
+            Dim panelPubDl As Panel = e.Row.FindControl("panelPubDlLink")
+            panelPubDl.Visible = cbRowAllContacts.Checked
+            hy.NavigateUrl = String.Format("http://{0}{1}/My/Training/DlTrainingFiles.aspx?upid={2}", _
+                                           Request.ServerVariables("SERVER_NAME"), _
+                                           If(Request.ServerVariables("SERVER_PORT") = "80", "", ":" + Request.ServerVariables("SERVER_PORT")), _
+                                           upid)
+            hy.Text = hy.NavigateUrl
+        End If
+    End Sub
+</script>
+<asp:Content ID="Content1" ContentPlaceHolderID="_main" runat="Server">    
+    <h2>My Uploaded Files</h2><br />
+    <a href="UploadFiles.aspx">Upload New Files</a><br />
+    <asp:GridView runat="server" ID="gvMyUploads" AutoGenerateColumns="false" Width="100%"
+        AllowPaging="true" AllowSorting="true" DataSourceID="srcMyUploads" PagerSettings-Position="TopAndBottom"
+        PageSize="100" DataKeyNames="UPLOAD_ID" OnRowDataBound="gvMyUploads_RowDataBound">
+        <Columns>
+            <asp:TemplateField>
+                <ItemTemplate>
+                    <a href='UploadFiles.aspx?upid=<%#Eval("UPLOAD_ID") %>'>Upload/Delete Files</a><br />    
+                    <a href='FileAdmin.aspx?upid=<%#Eval("UPLOAD_ID") %>'>File Permission Admin</a>
+                </ItemTemplate>
+            </asp:TemplateField>
+            <asp:TemplateField HeaderText="Files">
+                <ItemTemplate>
+                    <asp:HiddenField runat="server" ID="hd_ROWUPID" Value='<%#Eval("UPLOAD_ID") %>' /> 
+                    <asp:GridView runat="server" ID="gvRowFiles" Width="100%" DataSourceID="srcRowFiles"
+                        DataKeyNames="FILE_ID" AutoGenerateColumns="false" ShowHeader="false">
+                        <Columns>
+                            <asp:TemplateField HeaderText="File Name">
+                                <ItemTemplate>
+                                    <a href='../../Includes/TrainingFiles/DlTrainingFile.ashx?upid=<%#Eval("UPLOAD_ID") %>&fid=<%#Eval("FILE_ID") %>'>
+                                        <%#Eval("FILE_NAME")%></a>
+                                </ItemTemplate>
+                            </asp:TemplateField>
+                        </Columns>
+                    </asp:GridView>
+                    <asp:SqlDataSource runat="server" ID="srcRowFiles" ConnectionString="<%$ConnectionStrings:BigFiles %>"
+                        SelectCommand="select UPLOAD_ID, FILE_NAME, FILE_ID, FILE_TYPE from TRAINING_FILES where UPLOAD_ID=@UPID order by FILE_ID ">
+                        <SelectParameters>
+                            <asp:ControlParameter ControlID="hd_ROWUPID" ConvertEmptyStringToNull="false" PropertyName="Value"
+                                Name="UPID" />
+                        </SelectParameters>
+                    </asp:SqlDataSource>
+                </ItemTemplate>
+            </asp:TemplateField>
+            <asp:TemplateField HeaderText="Who can download?">
+                <ItemTemplate>
+                    <asp:HiddenField runat="server" ID="hd_ROWUPID2" Value='<%#Eval("UPLOAD_ID") %>' />
+                    <asp:UpdatePanel runat="server" ID="upRowContacts" UpdateMode="Conditional">
+                        <ContentTemplate>
+                            <asp:Panel runat="server" ID="panelRowContacts" Width="100%" Height="100px" ScrollBars="Auto">
+                                <table width="100%">
+                                    <tr>
+                                        <td>
+                                            <asp:CheckBox runat="server" ID="cbRowAllContacts" Text="Can anyone download?" AutoPostBack="true"
+                                                OnCheckedChanged="cbRowAllContacts_CheckedChanged" Checked='<%#Eval("TO_ALL") %>' /><br />
+                                            <asp:Panel runat="server" ID="panelPubDlLink" Visible="false" Width="100%" ScrollBars="Horizontal">
+                                                <b>Public Download Link:</b>&nbsp;<asp:HyperLink Target="_blank" runat="server" ID="hyPubDlLink" />
+                                            </asp:Panel>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>                                            
+                                            <asp:GridView runat="server" ID="gvRowContacts" Width="100%" DataSourceID="srcRowContacts"
+                                                AutoGenerateColumns="false" ShowHeader="false">
+                                                <Columns>
+                                                    <asp:BoundField HeaderText="Email" DataField="EMAIL" SortExpression="EMAIL" />
+                                                </Columns>
+                                            </asp:GridView>
+                                            <asp:SqlDataSource runat="server" ID="srcRowContacts" ConnectionString="<%$ConnectionStrings:BigFiles %>"
+                                                SelectCommand="select UPLOAD_ID, EMAIL from TRAINING_FILE_PERMISSION where UPLOAD_ID=@UPID order by EMAIL ">
+                                                <SelectParameters>
+                                                    <asp:ControlParameter ControlID="hd_ROWUPID2" ConvertEmptyStringToNull="false" PropertyName="Value"
+                                                        Name="UPID" />
+                                                </SelectParameters>
+                                            </asp:SqlDataSource>
+                                        </td>
+                                    </tr>
+                                </table>
+                            </asp:Panel>
+                        </ContentTemplate>
+                    </asp:UpdatePanel>
+                </ItemTemplate>
+            </asp:TemplateField>
+            <asp:BoundField HeaderText="Uploaded Date" DataField="UPLOADED_DATE" SortExpression="UPLOADED_DATE" />
+        </Columns>
+    </asp:GridView>
+    <asp:SqlDataSource runat="server" ID="srcMyUploads" ConnectionString="<%$ConnectionStrings:BigFiles %>"
+        SelectCommand="select distinct UPLOAD_ID, dbo.DateOnly(UPLOADED_DATE) as UPLOADED_DATE, TO_ALL from TRAINING_FILES where UPLOADED_BY=@UID order by dbo.DateOnly(UPLOADED_DATE) desc">
+        <SelectParameters>
+            <asp:SessionParameter ConvertEmptyStringToNull="false" Name="UID" SessionField="user_id" />
+        </SelectParameters>
+    </asp:SqlDataSource>
+</asp:Content>
+

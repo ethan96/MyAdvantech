@@ -1,0 +1,196 @@
+﻿<%@ Page Language="VB" %>
+
+<script runat="server">
+    Dim strObject As String = ""
+    Dim strType As String = ""
+    Dim strPartNO As String = ""
+    Protected Sub Page_Load(ByVal sender As Object, ByVal e As System.EventArgs)
+        'Me.Global_inc1.ValidationStateCheck()
+        
+        strObject = Request("Element")
+        strType = Request("Type")
+        strPartNO = Request("PartNO")
+        'Response.Write(strObject + ":" + strType + ":" + strPartNO)
+        Dim Block_Select As String = ""
+        If strObject <> "" And strPartNO <> "" Then
+            If strType.ToUpper = "UPLOADORDER" Then
+                'Me.Global_inc1.dbGetDataTable("", "", "select distinct PART_NO, PRODUCT_DESC from product")
+                If strPartNO.Length >= 4 Then
+                    Dim i As Integer = 1
+                    Dim strWhere As String = " where (part_no like '%" & Left(strPartNO, 4) & "%'"
+                    
+                    If Not Util.IsAEUIT() And Not Util.IsInternalUser2() Then
+                       Block_Select = " and part_no not like 'T-%' and part_no not like 'W-%' and part_no not like '%-ES' and part_no not like 'ES-%' and MATERIAL_GROUP<>'T' "
+                    Else
+                       Block_Select = ""
+                    End If
+                
+                    strWhere = strWhere & " and part_no not like 'T-%' and part_no not like 'W-%' and part_no not like '%-ES' and part_no not like 'ES-%' and MATERIAL_GROUP<>'T' and product_type <> 'ZCTO' and product_type <> 'ZSRV') " & _
+                        " or (part_no like '%" & strPartNO & "%' and (part_no like 'P-%' or part_no like '96*') and IsNull(GENITEMCATGROUP,'1') <> 'ZPTD' and product_type <> 'ZCTO' and product_type <> 'ZSRV') " & _
+                        Block_Select & _
+                        " order by part_no"
+                    Me.SqlDataSource1.SelectCommand = "select distinct top 1000 PART_NO, PRODUCT_DESC from product " & strWhere
+                    ViewState("SqlCommand") = Me.SqlDataSource1.SelectCommand
+                Else
+                    Dim i As Integer = 1
+                    Dim strWhere As String = " where (part_no like '%" & strPartNO & "%'"
+                    
+                    If Not Util.IsAEUIT() And Not Util.IsInternalUser2() Then
+                        Block_Select = " and part_no not like 'T-%' and part_no not like 'W-%' and part_no not like '%-ES' and part_no not like 'ES-%' and MATERIAL_GROUP<>'T' "
+                    Else
+                        Block_Select = ""
+                    End If
+                
+                    strWhere = strWhere & " and part_no not like 'T-%' and part_no not like 'W-%' and part_no not like '%-ES' and part_no not like 'ES-%' and MATERIAL_GROUP<>'T' and product_type <> 'ZCTO' and product_type <> 'ZSRV') " & _
+                        " or (part_no like '%" & strPartNO & "%' and (part_no like 'P-%' or part_no like '96*') and IsNull(GENITEMCATGROUP,'1') <> 'ZPTD' and product_type <> 'ZCTO' and product_type <> 'ZSRV') " & _
+                        Block_Select & _
+                        " order by part_no"
+                    
+                    Me.SqlDataSource1.SelectCommand = "select distinct top 1000 PART_NO, PRODUCT_DESC from product " & strWhere
+                    ViewState("SqlCommand") = Me.SqlDataSource1.SelectCommand
+                End If
+            ElseIf strType.ToUpper = "CTOSCUSTOMER" Then
+                Dim sql As String = " select distinct top 1000 A.PART_NO, A.PRODUCT_DESC from sap_product A inner join dbo.SAP_PRODUCT_ORG B " & _
+                     "  on A.PART_NO = B.PART_NO  " & _
+                     "  where B.ORG_ID='" + Session("org_id") + "' AND (A.part_no like '%-CTOS%' and A.part_no not like 'T-%' and A.part_no not like 'W-%'" & _
+                     "    and A.part_no not like '%-ES' and A.part_no not like 'ES-%' " & _
+                     "    and A.MATERIAL_GROUP<>'T' and A.product_type = 'ZCTO' and A.product_type <> 'ZSRV') " & _
+                     "    or (A.part_no like '%-CTOS%' and (A.part_no like 'P-%' or A.part_no like '96*')   " & _
+                     "    and A.product_type = 'ZCTO' and A.product_type <> 'ZSRV') and A.part_no like '%" & strPartNO & "%'  order by A.part_no  "
+                Me.SqlDataSource1.SelectCommand = sql
+                'Response.Write(sql)
+                ViewState("SqlCommand") = Me.SqlDataSource1.SelectCommand
+            ElseIf strType.ToUpper = "CTOSNOTE" Then
+                Me.SqlDataSource1.SelectCommand = "select distinct top 1000 PART_NO, PRODUCT_DESC from product where part_no like 'CTOS-%-N_' "
+                ViewState("SqlCommand") = Me.SqlDataSource1.SelectCommand
+            Else
+                If Not Util.IsAEUIT() And Not Util.IsInternalUser2() Then
+                    Block_Select = " and part_no not like 'T-%' and part_no not like 'W-%' and part_no not like '%-ES' and part_no not like 'ES-%' and MATERIAL_GROUP<>'T' "
+                Else
+                    Block_Select = ""
+                End If
+                
+                Dim strWhere As String = " where (part_no like '%" & strPartNO & "%'"
+                strWhere = strWhere & " and part_no not like 'T-%' and part_no not like 'W-%' and part_no not like '%-ES' and part_no not like 'ES-%' and MATERIAL_GROUP<>'T' and product_type <> 'ZCTO' and product_type <> 'ZSRV') " & _
+                     " or (part_no like '%" & strPartNO & "%' and (part_no like 'P-%' or part_no like '96*') and IsNull(GENITEMCATGROUP,'1') <> 'ZPTD' and product_type <> 'ZCTO' and product_type <> 'ZSRV') " & _
+                     Block_Select & _
+                     " order by part_no"
+                Me.SqlDataSource1.SelectCommand = "select distinct top 1000 PART_NO, PRODUCT_DESC from product " & strWhere
+                ViewState("SqlCommand") = Me.SqlDataSource1.SelectCommand
+            End If                
+        Else
+            'Me.Global_inc1.dbGetDataTable("", "", "select distinct PART_NO, PRODUCT_DESC from product")
+            If Not Util.IsAEUIT() And Not Util.IsInternalUser2() Then
+                Block_Select = " and part_no not like 'T-%' and part_no not like 'W-%' and part_no not like '%-ES' and part_no not like 'ES-%' and MATERIAL_GROUP<>'T' "
+            Else
+                Block_Select = ""
+            End If
+                
+            Dim strWhere As String = " where (part_no like '%" & strPartNO & "%'"
+            If strType.ToUpper = "CTOSCUSTOMER" Then
+                strWhere = strWhere & " and part_no not like 'T-%' and part_no not like 'W-%' and part_no not like '%-ES' and part_no not like 'ES-%' and MATERIAL_GROUP<>'T' and product_type = 'ZCTO' and product_type <> 'ZSRV') " & _
+                     " or (part_no like '%" & strPartNO & "%' and (part_no like 'P-%' or part_no like '96*') and IsNull(GENITEMCATGROUP,'1') <> 'ZPTD' and product_type = 'ZCTO' and product_type <> 'ZSRV') " & _
+                     Block_Select & _
+                     " order by part_no"
+            Else
+                strWhere = strWhere & " and part_no not like 'T-%' and part_no not like 'W-%' and part_no not like '%-ES' and part_no not like 'ES-%' and MATERIAL_GROUP<>'T' and product_type <> 'ZCTO' and product_type <> 'ZSRV') " & _
+                     " or (part_no like '%" & strPartNO & "%' and (part_no like 'P-%' or part_no like '96*')  and product_type <> 'ZCTO' and product_type <> 'ZSRV') " & _
+                     Block_Select & _
+                     " order by part_no"
+            End If
+            Me.SqlDataSource1.SelectCommand = "select distinct PART_NO, PRODUCT_DESC from sap_product " & strWhere
+            ViewState("SqlCommand") = Me.SqlDataSource1.SelectCommand
+        End If
+        'Response.Write(Me.AdxDatagrid1.xSQL)
+        If Not Page.IsPostBack Then
+            gv1.DataBind()
+        End If
+        'e.Item.Attributes.Add("onclick", "javascript:window.returnValue="+returnVal+";window.close();");
+    End Sub
+    
+    Protected Sub SqlDataSource1_Load(ByVal sender As Object, ByVal e As System.EventArgs)
+        If ViewState("SqlCommand") = "" Then
+            gv1.EmptyDataText = ""
+        Else
+            SqlDataSource1.SelectCommand = ViewState("SqlCommand")
+            gv1.EmptyDataText = "No search results were found.<br /> Please try again or submit the feedback form to let us know what you need . "
+        End If
+    End Sub
+    
+    Protected Sub gv1_RowDataBound(ByVal sender As Object, ByVal e As System.Web.UI.WebControls.GridViewRowEventArgs)
+        If e.Row.RowType = DataControlRowType.DataRow Then
+            e.Row.Attributes.Add("onmouseover", "currentcolor=this.style.backgroundColor;this.style.backgroundColor='#FFEEAA'")
+            e.Row.Attributes.Add("onmouseout", "this.style.backgroundColor=currentcolor")
+            e.Row.Cells(1).Text = "<a href=""#"" onclick=" & Chr(34) & "Pick('" & strObject & "','" & e.Row.Cells(1).Text & "')" & Chr(34) & ">" & e.Row.Cells(1).Text & "</a>"
+            'Throw New Exception(e.Row.Cells(1).Text)
+        End If
+    End Sub
+</script>
+<script type="text/javascript" language="javascript">
+function Pick(xElement,xPart){
+//window.opener.aspnetForm.elements(xElement).value = xPart;
+eval("window.opener.document.aspnetForm."  + xElement).value = xPart
+self.close();
+}
+</script>
+<html xmlns="http://www.w3.org/1999/xhtml" >
+<head id="Head1" runat="server">
+    <title>Advantech B2B-Europe Online -- Product Inquiry</title>
+ <meta content="Microsoft Visual Studio .NET 7.1" name="GENERATOR"/>
+	<meta content="Visual Basic .NET 7.1" name="CODE_LANGUAGE"/>
+	<meta content="JavaScript" name="vs_defaultClientScript"/>
+	<meta content="http://schemas.microsoft.com/intellisense/ie5" name="vs_targetSchema"/>
+</head>
+<body>
+    <form id="form1" runat="server">
+    <div>
+    <table width="100%" border="0" cellspacing="0" cellpadding="0" ID="Table1">
+			<tr>
+				<td width="100%" valign="top" align="center" height="10">
+					&nbsp;
+				</td>
+			</tr>
+			<tr>
+				<!-- ******* center column (start) ********-->
+				<td width="100%" valign="top" align="center">
+                    <asp:GridView runat="server" ID="gv1" DataSourceID="SqlDataSource1" AutoGenerateColumns="false" AllowPaging="true" AllowSorting="true" PageSize="20" Width="100%"
+		                 EmptyDataRowStyle-Font-Size="Larger" EmptyDataRowStyle-Font-Bold="true" OnRowDataBound="gv1_RowDataBound" Font-Size="Smaller">
+		                <Columns>
+		                    <asp:TemplateField ItemStyle-Width="50px" ItemStyle-HorizontalAlign="Center">
+                                <headertemplate>
+                                    No.
+                                </headertemplate>
+                                <itemtemplate>
+                                    <%# Container.DataItemIndex + 1 %>
+                                </itemtemplate>
+                            </asp:TemplateField>
+		                    <asp:BoundField HeaderText="Part NO" DataField="PART_NO" SortExpression="PART_NO" />
+		                    <asp:BoundField HeaderText="Product Description" DataField="PRODUCT_DESC" />
+		                </Columns>
+		                <FooterStyle BackColor="#A4B5BD" ForeColor="White" Font-Bold="True" />
+                        <RowStyle BackColor="#F7F6F3" ForeColor="#333333" />
+                        <SelectedRowStyle BackColor="#E2DED6" Font-Bold="True" ForeColor="#333333" />
+                        <PagerStyle BackColor="#284775" ForeColor="White" HorizontalAlign="Justify"  />
+                        <HeaderStyle BackColor="#A4B5BD" Font-Bold="True" ForeColor="White" />
+                        <AlternatingRowStyle BackColor="White" ForeColor="#284775" />
+                        <PagerSettings PageButtonCount="10" Position="TopAndBottom" />
+		            </asp:GridView>
+		            <asp:SqlDataSource runat="server" ID="SqlDataSource1" ConnectionString="<%$ ConnectionStrings:B2B %>" SelectCommand="" OnLoad="SqlDataSource1_Load">
+		            </asp:SqlDataSource>
+                 </td>
+				<!-- ******* center column (end) ********-->
+			</tr>
+			<tr valign="middle">
+				<td align="center">
+					<!-- ******* page title (start) ********-->
+					&nbsp;&nbsp;<font color="red" size="2"><b>*HINT: Click 'Query' to input query string then 'Go'. Click 'Part No' to apply.</b></font>
+					<p></p>
+					<!-- ******* page title (end) ********-->
+				</td>
+			</tr>			
+		</table>
+    
+    </div>
+    </form>
+</body>
+</html>

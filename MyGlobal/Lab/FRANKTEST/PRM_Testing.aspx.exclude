@@ -1,0 +1,47 @@
+﻿<%@ Page Language="VB" %>
+
+<%@ Import Namespace="MyPRM" %>
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<script runat="server">
+
+    Protected Sub Page_Load(sender As Object, e As System.EventArgs)
+
+        Dim MyPrm1 As New MyPRM 'New a Web Reference of WS MyPRM
+        Dim ProductRecordList As New List(Of PartNoQtyReqDate)  'The required list of part number and qty
+        Dim ReturnedMessageObject1 As ReturnMessage = Nothing   'The object for getting web service response from WS MyPRM
+        Dim ContactId As String = "1-M37ZEB" 'pass a CP contact's contact row id. F7-D8SM's email is patrick.janowski@sphinxcomputer.de, company id:EDDESP03, permission CanPlaceOrder is ticked
+        Dim ProductRecord1 As New PartNoQtyReqDate
+        ProductRecord1.PartNo = "adam-4520-d2e" : ProductRecord1.Qty = 3 : ProductRecord1.RequiredDate = Now
+        ProductRecordList.Add(ProductRecord1)
+        Dim ProductRecord2 As New PartNoQtyReqDate
+        ProductRecord2.PartNo = "AIMB-762G2-00A1E" : ProductRecord2.Qty = 5 : ProductRecord2.RequiredDate = Now
+        ProductRecordList.Add(ProductRecord2)
+
+        MyPrm1.CreateRepOrderRequest(ContactId, ProductRecordList, ReturnedMessageObject1)
+        If ReturnedMessageObject1.IsSuccessful Then
+            'If IsSuccessful==true, use below URL to let CP login MyAdvantech to access shopping cart
+            Response.Write("<a href='http://my.advantech.com/Order/PRM_RepOrder2Cart.aspx?rid=" + ReturnedMessageObject1.RequestRowId + "'>Click to Enter MyAdvantech</a>")
+
+        Else
+            'If IsSuccessful==false, show the error reason. Error reason may be part number is phased out, part number invalid, or contact row id is not a CP with ordering permission
+            Response.Write("Error:" + ReturnedMessageObject1.ErrorMessage)
+        End If
+        
+        
+    End Sub
+</script>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head runat="server">
+    <title></title>
+</head>
+<body>
+    <form id="form1" runat="server">
+    <div>
+    
+    </div>
+    </form>
+</body>
+</html>

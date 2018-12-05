@@ -1,0 +1,106 @@
+﻿<%@ Page Language="VB" %>
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<script runat="server">
+    Dim SQLString As String = ""
+    Dim Original_Price As Decimal = 0
+    Protected Sub Page_Load(ByVal sender As Object, ByVal e As System.EventArgs)
+        Dim table As String = "", line_no As String = ""
+        If Request.QueryString("flg") = "quote" Then
+            table = "quotation_CATALOG_CATEGORY"
+        Else
+            table = "CONFIGURATION_CATALOG_CATEGORY"
+        End If
+        SQLString = "select CATEGORY_PRICE from " & table & " where CATEGORY_ID=" & "'" & Request("strCategory_Id") & "'" & " and CATALOG_ID=" & "'" & Request("strCatalog_Id") & "'" & " and CATALOGCFG_SEQ=" & Request("strCATALOGCFG_SEQ")
+        Dim cn As New System.Data.SqlClient.SqlConnection(ConfigurationManager.ConnectionStrings("B2B").ConnectionString)
+        cn.Open()
+        Dim dbCmd As New System.Data.SqlClient.SqlCommand(Me.SQLString, cn)
+        Dim rs As System.Data.SqlClient.SqlDataReader = dbCmd.ExecuteReader()
+        If rs.Read() Then
+            Original_Price = rs("CATEGORY_PRICE")
+        Else
+            Original_Price = 0
+        End If
+        SQLString = "update " & table & " set CATEGORY_PRICE=" & Replace(Request("strCategory_Value"), ",", "") & " where CATEGORY_ID=" & "'" & Request("strCategory_Id") & "'" & " and CATALOG_ID=" & "'" & Request("strCatalog_Id") & "'" & " and CATALOGCFG_SEQ=" & Request("strCATALOGCFG_SEQ")
+        
+        If Request.QueryString("flg") = "quote" Then
+            dbUtil.dbExecuteNoQuery("B2B", SQLString)
+            'Exit Sub
+        End If
+        '**** 191203e ****'
+        If InStr(Request("strCategory_Id"), "Visam") > 0 And InStr(Request("strCategory_Id"), "Assembly") > 0 Then
+            SQLString = "update " & table & " set CATEGORY_PRICE=" & Replace(Request("strCategory_Value"), ",", "") & " where CATEGORY_ID=" & "'Assembly Fee Visam'" & " and CATALOG_ID=" & "'" & Request("strCatalog_Id") & "'" & " and CATALOGCFG_SEQ=" & Request("strCATALOGCFG_SEQ")
+        End If
+        dbUtil.dbExecuteNoQuery("B2B", Me.SQLString)
+        If Request.QueryString("flg") <> "quote" Then
+            SQLString = "select line_no from cart_detail_btos where cart_id = " & "'" & Session("CART_ID") & "'" & " and CATEGORY_ID=" & "'" & Request("strCategory_Id") & "'" & " and CONFIG_ID=" & "'" & Request("strCatalog_Id") & "'" & " and CATALOGCFG_SEQ=" & Request("strCATALOGCFG_SEQ")
+            dbCmd.CommandText = SQLString
+            cn.Close() : cn.Open()
+            Dim rs1 As System.Data.SqlClient.SqlDataReader = dbCmd.ExecuteReader() 'g_adoConn.Execute(SQLString)
+            While rs1.Read()
+                line_no = rs1.Item("line_no")
+                If dbUtil.dbGetDataTable("B2B", "select * from cart_detail where cart_id='" & Session("cart_id") & "'").Rows.Count > 0 Then 'Not rs.eof Then
+                    SQLString = "update cart_detail set unit_price = " & Request("strCategory_Value") & ", update_price=1 where line_no =" & line_no & " and Cart_Id =" & "'" & Session("CART_ID") & "'"
+                    dbUtil.dbExecuteNoQuery("B2B", Me.SQLString)
+                End If
+            End While
+        End If
+        cn.Close()
+        cn = Nothing
+        
+        Dim NewTotalPrice_RS As Decimal = 0, NewEWPrice As Decimal = 0
+        Dim strNewTotalPriceSQL As String = "Select sum(CATEGORY_PRICE) as TotalPrice from " & table & " where CATALOG_ID = '" & Session("G_CATALOG_ID") & "' and CATEGORY_ID not like 'AGS-EW-%' " & _
+        "and CATEGORY_ID not in (select part_no " & _
+                    " from product where"
+        Dim strArr As String() = ConfigurationManager.AppSettings("MaterialGroup").Split(",")
+        Dim strSql As String = ""
+        For i As Integer = 0 To strArr.Length - 1
+            strSql &= " material_group='" & strArr(i) & "' or "
+        Next
+        strSql = Left(strSql, strSql.Length - 4) & ")"
+        strNewTotalPriceSQL &= strSql
+        If dbUtil.dbGetDataTable("B2B", strNewTotalPriceSQL).Rows.Count > 0 Then
+            NewTotalPrice_RS = CDbl(dbUtil.dbGetDataTable("B2B", strNewTotalPriceSQL).Rows(0).Item("TotalPrice"))
+        End If
+    	
+        Dim dt As DataTable = dbUtil.dbGetDataTable("B2B", "select Category_ID from " & table & " where CATALOG_ID = '" & Session("G_CATALOG_ID") & "' and CATEGORY_ID like 'AGS-EW-%' and CATEGORY_TYPE = 'Component'")
+        If dt.Rows.Count > 0 Then
+            Select Case Right(dt.Rows(0).Item("Category_ID"), 2)
+                Case "03"
+                    NewEWPrice = NewTotalPrice_RS * (2 / 100)
+                Case "06"
+                    NewEWPrice = NewTotalPrice_RS * (3.5 / 100)
+                Case "09"
+                    NewEWPrice = NewTotalPrice_RS * (5 / 100)
+                Case "12"
+                    NewEWPrice = NewTotalPrice_RS * (6 / 100)
+                Case "15"
+                    NewEWPrice = NewTotalPrice_RS * (7 / 100)
+                Case "24"
+                    NewEWPrice = NewTotalPrice_RS * (10 / 100)
+                Case "36"
+                    NewEWPrice = NewTotalPrice_RS * (15 / 100)
+            End Select
+            dbUtil.dbExecuteNoQuery("B2B", "Update " & table & " Set CATEGORY_PRICE = " & NewEWPrice & " where CATALOG_ID = '" & Session("G_CATALOG_ID") & "' and CATEGORY_ID like 'AGS-EW-%' and CATEGORY_TYPE = 'Component'")
+            
+            If Request.QueryString("flg") <> "quote" Then
+                dbUtil.dbExecuteNoQuery("B2B", "Update CART_DETAIL Set UNIT_PRICE = " & NewEWPrice & " where CART_ID = '" & Session("cart_ID") & "' and PART_NO like 'AGS-EW-%'")
+            End If
+        End If
+        'cn.Dispose()
+    End Sub
+</script>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head runat="server">
+    <title>Untitled Page</title>
+</head>
+<body>
+    <form id="form1" runat="server">
+    <div>
+    
+    </div>
+    </form>
+</body>
+</html>

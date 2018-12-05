@@ -1,0 +1,59 @@
+﻿<%@ Page Title="MyAdvantech - User Log" Language="VB" MasterPageFile="~/Includes/MyMaster.master" %>
+
+<script runat="server">
+
+    Protected Sub btnGo_Click(ByVal sender As Object, ByVal e As System.EventArgs)
+        gv1.PageIndex = 0 : src1.SelectCommand = GetSql()
+    End Sub
+    
+    Function GetSql() As String
+        Dim sb As New System.Text.StringBuilder
+        With sb
+            .AppendFormat("select top 5000 * from {0} where 1=1 ", rblOption.SelectedValue)
+            If txtUid.Text.Trim() <> "" Then .AppendFormat(" and userid like '%{0}%'  ", txtUid.Text.Trim().Replace("*", "%"))
+            If txtUrl.Text.Trim() <> "" Then .AppendFormat(" and url like N'%{0}%'  ", txtUrl.Text.Trim().Replace("*", "%"))
+            .AppendLine(" order by timestamp desc ")
+        End With
+        Return sb.ToString()
+    End Function
+
+    Protected Sub Page_Init(ByVal sender As Object, ByVal e As System.EventArgs)
+        If Not Page.IsPostBack Then
+            If Util.IsAEUIT() = False Then Response.End()
+            src1.SelectCommand = GetSql()
+        End If
+    End Sub
+
+    Protected Sub gv1_PageIndexChanging(ByVal sender As Object, ByVal e As System.Web.UI.WebControls.GridViewPageEventArgs)
+        src1.SelectCommand = GetSql()
+    End Sub
+
+    Protected Sub gv1_Sorting(ByVal sender As Object, ByVal e As System.Web.UI.WebControls.GridViewSortEventArgs)
+        src1.SelectCommand = GetSql()
+    End Sub
+
+    Protected Sub btnClearAEUITLog_Click(ByVal sender As Object, ByVal e As System.EventArgs)
+        dbUtil.dbExecuteNoQuery("MY", "delete from user_log where userid in ('tc.chen@advantech.com.tw','rudy.wang@advantech.com.tw','nada.liu@advantech.com.cn','ming.zhao@advantech.com.cn','ADVANTECH\tc.chen','ADVANTECH\Rudy.Wang')")
+        gv1.PageIndex = 0 : src1.SelectCommand = GetSql()
+    End Sub
+</script>
+
+<asp:Content ID="Content1" ContentPlaceHolderID="_main" Runat="Server">
+    <asp:RadioButtonList runat="server" ID="rblOption">
+        <asp:ListItem Value="USER_LOG" Selected="True" />
+        <asp:ListItem Value="DIM_USER_LOG" />
+    </asp:RadioButtonList>
+    Url:<asp:TextBox runat="server" ID="txtUrl" Width="200px" /><br />
+    Userid:<asp:TextBox runat="server" ID="txtUid" /><br />
+    <asp:Button runat="server" ID="btnGo" Text="Go" OnClick="btnGo_Click" /><br />
+    <asp:Button runat="server" ID="btnClearAEUITLog" Text="Clear AEUIT Log" OnClick="btnClearAEUITLog_Click" />
+    <asp:UpdatePanel runat="server" ID="up1" UpdateMode="Conditional">
+        <ContentTemplate>
+            <asp:GridView runat="server" ID="gv1" Width="99%" DataSourceID="src1" PageSize="100" PagerSettings-Position="TopAndBottom" AllowPaging="true" AllowSorting="true" OnPageIndexChanging="gv1_PageIndexChanging" OnSorting="gv1_Sorting"></asp:GridView>
+            <asp:SqlDataSource runat="server" ID="src1" ConnectionString="<%$ConnectionStrings:MY %>" />
+        </ContentTemplate>
+        <Triggers>
+            <asp:AsyncPostBackTrigger ControlID="btnGo" EventName="Click" />
+        </Triggers>
+    </asp:UpdatePanel>
+</asp:Content>

@@ -1,0 +1,199 @@
+﻿<%@ Page Title="MyAdvantech - AENC CP Product Selection Admin" Language="VB" MasterPageFile="~/Includes/MyMaster.master" %>
+
+<script runat="server">
+    
+    <Services.WebMethod(enablesession:=True)> _
+    <Web.Script.Services.ScriptMethod()> _
+    Public Shared Function GetPartNo(ByVal prefixText As String, ByVal count As Integer) As String()
+        Dim dt As DataTable = Nothing
+        prefixText = Replace(Replace(Trim(prefixText), "'", "''"), "*", "%")
+        dt = dbUtil.dbGetDataTable("MY", String.Format( _
+        "select distinct top 20 a.part_no from SAP_PRODUCT_ORG a where a.part_no like '{0}%' order by a.part_no", prefixText))
+        If dt.Rows.Count > 0 Then
+            Dim str(dt.Rows.Count - 1) As String
+            For i As Integer = 0 To dt.Rows.Count - 1
+                str(i) = dt.Rows(i).Item(0)
+            Next
+            Return str
+        End If
+        Return Nothing
+    End Function
+    
+    Function GetQPNSql() As String
+        Dim sb As New System.Text.StringBuilder
+        With sb
+            .AppendLine(String.Format(" select top 1000 a.PART_NO, a.PRODUCT_LINE, PRODUCT_HIERARCHY, a.STATUS, case a.ROHS_FLAG when 1 then 'Y' else 'N' end as ROHS_FLAG, a.MATERIAL_GROUP, a.CREATE_DATE    "))
+            .AppendLine(String.Format("  from SAP_PRODUCT a inner join SAP_PRODUCT_ORG b on a.PART_NO=b.PART_NO  "))
+            .AppendLine(String.Format("  where b.ORG_ID='US01' and a.part_no not in (select z.part_no from MYADVANTECH_PRODUCT_PROMOTION z) "))
+            If txtQPN.Text.Trim() <> "" Then
+                .AppendLine(String.Format(" and a.part_no like '%{0}%' ", txtQPN.Text.Trim().Replace("'", "").Replace("*", "%")))
+            End If
+            .AppendLine(String.Format("  order by a.PART_NO "))
+        End With
+        Return sb.ToString()
+    End Function
+    
+    Function GetAddedPNSql() As String
+        Dim sb As New System.Text.StringBuilder
+        With sb
+            .AppendLine(String.Format(" select top 10000 a.PART_NO, a.ADDED_BY, a.ADDED_DATE "))
+            .AppendLine(String.Format(" from MYADVANTECH_PRODUCT_PROMOTION a  "))
+            .AppendLine(String.Format(" where a.RBU='AENC' "))
+            .AppendLine(String.Format(" order by a.PART_NO "))
+        End With
+        Return sb.ToString()
+    End Function
+
+    Protected Sub Page_Load(ByVal sender As Object, ByVal e As System.EventArgs)
+        If Not Page.IsPostBack Then
+            If Util.IsInternalUser(Session("user_id")) = False Then
+                Response.Redirect("../../home.aspx", False)
+            End If
+            Me.SrcQPN.SelectCommand = GetQPNSql() : Me.SrcAddedPN.SelectCommand = GetAddedPNSql()
+        End If
+    End Sub
+
+    Protected Sub btnQPN_Click(ByVal sender As Object, ByVal e As System.EventArgs)
+        gvSelPN.PageIndex = 0
+        Me.SrcQPN.SelectCommand = GetQPNSql()
+    End Sub
+
+    Protected Sub btnAddPN_Click(ByVal sender As Object, ByVal e As System.EventArgs)
+        Dim uid As String = Session("user_id")
+        For Each r As GridViewRow In gvSelPN.Rows
+            Dim cb As CheckBox = r.FindControl("item")
+            If cb IsNot Nothing AndAlso cb.Checked Then
+                Dim tmpSelPN As String = gvSelPN.DataKeys(r.RowIndex).Values("part_no").ToString().Replace("'", "")
+                dbUtil.dbExecuteNoQuery("MY", _
+                                        String.Format( _
+                                        " delete from MYADVANTECH_PRODUCT_PROMOTION where part_no='{0}'; " + _
+                                        " INSERT INTO MYADVANTECH_PRODUCT_PROMOTION (PART_NO, ADDED_BY) VALUES (N'{0}', N'{1}') ", tmpSelPN, uid))
+            End If
+        Next
+        Me.SrcQPN.SelectCommand = GetQPNSql() : Me.SrcAddedPN.SelectCommand = GetAddedPNSql()
+    End Sub
+
+    Protected Sub btnDelSelectedPN_Click(ByVal sender As Object, ByVal e As System.EventArgs)
+        For Each r As GridViewRow In gvAddedPN.Rows
+            Dim cb As CheckBox = r.FindControl("item")
+            If cb IsNot Nothing AndAlso cb.Checked Then
+                Dim tmpSelPN As String = gvAddedPN.DataKeys(r.RowIndex).Values("part_no").ToString().Replace("'", "")
+                dbUtil.dbExecuteNoQuery("MY", _
+                                        String.Format( _
+                                        " delete from MYADVANTECH_PRODUCT_PROMOTION where part_no='{0}'; ", tmpSelPN))
+            End If
+        Next
+        Me.SrcQPN.SelectCommand = GetQPNSql() : Me.SrcAddedPN.SelectCommand = GetAddedPNSql()
+    End Sub
+
+    Protected Sub gvAddedPN_PageIndexChanging(ByVal sender As Object, ByVal e As System.Web.UI.WebControls.GridViewPageEventArgs)
+        Me.SrcAddedPN.SelectCommand = GetAddedPNSql()
+    End Sub
+
+    Protected Sub gvAddedPN_Sorting(ByVal sender As Object, ByVal e As System.Web.UI.WebControls.GridViewSortEventArgs)
+        Me.SrcAddedPN.SelectCommand = GetAddedPNSql()
+    End Sub
+
+    Protected Sub gvSelPN_PageIndexChanging(ByVal sender As Object, ByVal e As System.Web.UI.WebControls.GridViewPageEventArgs)
+        Me.SrcQPN.SelectCommand = GetQPNSql()
+    End Sub
+
+    Protected Sub gvSelPN_Sorting(ByVal sender As Object, ByVal e As System.Web.UI.WebControls.GridViewSortEventArgs)
+        Me.SrcQPN.SelectCommand = GetQPNSql()
+    End Sub
+</script>
+
+<asp:Content ID="Content1" ContentPlaceHolderID="_main" Runat="Server">
+    <table width="100%">
+        <tr style="background-color:Gray">
+            <th>Search & Pick Products</th><th>Picked Products</th>
+        </tr>
+        <tr valign="top">
+            <td style="width:50%">
+                <table width="100%">
+                    <tr>
+                        <th align="left">Product No.</th>
+                        <td>
+                            <ajaxToolkit:AutoCompleteExtender runat="server" ID="acext1" TargetControlID="txtQPN" 
+                                MinimumPrefixLength="1" CompletionInterval="100" ServiceMethod="GetPartNo" />
+                            <asp:TextBox runat="server" ID="txtQPN" Width="150px" />&nbsp;<asp:Button runat="server" ID="btnQPN" Text="Search" OnClick="btnQPN_Click" />
+                        </td>
+                    </tr>
+                    <tr>
+                        <td colspan="2">
+                            <asp:UpdatePanel runat="server" ID="upQPN" UpdateMode="Conditional">
+                                <ContentTemplate>
+                                    <asp:Button runat="server" ID="btnAddPN" Text="Add Picked Product(s)" OnClick="btnAddPN_Click" />
+                                    <sgv:SmartGridView runat="server" ID="gvSelPN" Width="98%" AutoGenerateColumns="false" DataSourceID="SrcQPN" 
+                                        AllowPaging="true" AllowSorting="true" PagerSettings-Position="TopAndBottom" PageSize="50" DataKeyNames="part_no" OnPageIndexChanging="gvSelPN_PageIndexChanging" OnSorting="gvSelPN_Sorting">
+                                        <Columns>
+                                            <asp:TemplateField ItemStyle-Width="50px" ItemStyle-HorizontalAlign="Center">
+                                                <headertemplate>
+                                                    <asp:CheckBox ID="all" runat="server" />
+                                                </headertemplate>
+                                                <itemtemplate>                                                                
+                                                    <asp:CheckBox ID="item" runat="server"/>                                                  
+                                                </itemtemplate>
+                                            </asp:TemplateField>
+                                            <asp:HyperLinkField HeaderText="Part No." DataNavigateUrlFields="part_no" 
+                                                DataNavigateUrlFormatString="~/DM/ProductDashboard.aspx?PN={0}" DataTextField="part_no" Target="_blank" />
+                                            <asp:BoundField HeaderText="Product Hierarchy" DataField="product_hierarchy" SortExpression="product_hierarchy" />
+                                            <asp:BoundField HeaderText="Material Group" DataField="material_group" SortExpression="material_group" ItemStyle-HorizontalAlign="Center" />
+                                            <asp:BoundField HeaderText="Status" DataField="Status" SortExpression="Status" ItemStyle-HorizontalAlign="Center" />
+                                            <asp:BoundField HeaderText="RoHS Flag" DataField="rohs_flag" SortExpression="rohs_flag" ItemStyle-HorizontalAlign="Center" />
+                                        </Columns>
+                                        <CascadeCheckboxes>
+                                            <sgv:CascadeCheckbox ChildCheckboxID="item" ParentCheckboxID="all" />
+                                        </CascadeCheckboxes>
+                                    </sgv:SmartGridView>
+                                    <asp:SqlDataSource runat="server" ID="SrcQPN" ConnectionString="<%$ConnectionStrings:MY %>" />
+                                </ContentTemplate>
+                                <Triggers>
+                                    <asp:AsyncPostBackTrigger ControlID="btnQPN" EventName="Click" />
+                                    <asp:AsyncPostBackTrigger ControlID="btnDelSelectedPN" EventName="Click" />
+                                </Triggers>
+                            </asp:UpdatePanel>                            
+                        </td>
+                    </tr>
+                </table>
+            </td>
+            <td style="width:50%">
+                <table width="100%">
+                    <tr>
+                        <td>
+                            <asp:UpdatePanel runat="server" ID="upAddedPN" UpdateMode="Conditional">
+                                <ContentTemplate>
+                                    <asp:Button runat="server" ID="btnDelSelectedPN" Text="Remove Picked Product(s)" OnClick="btnDelSelectedPN_Click" />
+                                    <sgv:SmartGridView runat="server" ID="gvAddedPN" Width="98%" AutoGenerateColumns="false" DataSourceID="SrcAddedPN" 
+                                        AllowPaging="true" AllowSorting="true" PagerSettings-Position="TopAndBottom" PageSize="50" DataKeyNames="part_no" OnPageIndexChanging="gvAddedPN_PageIndexChanging" OnSorting="gvAddedPN_Sorting">
+                                        <Columns>
+                                            <asp:TemplateField ItemStyle-Width="50px" ItemStyle-HorizontalAlign="Center">
+                                                <headertemplate>
+                                                    <asp:CheckBox ID="all" runat="server" />
+                                                </headertemplate>
+                                                <itemtemplate>                                                                
+                                                    <asp:CheckBox ID="item" runat="server"/>                                                  
+                                                </itemtemplate>
+                                            </asp:TemplateField>
+                                            <asp:HyperLinkField HeaderText="Part No." DataNavigateUrlFields="part_no" 
+                                                DataNavigateUrlFormatString="~/DM/ProductDashboard.aspx?PN={0}" DataTextField="part_no" Target="_blank" />
+                                            <asp:BoundField HeaderText="Added Date" DataField="added_date" SortExpression="added_date" />
+                                            <asp:BoundField HeaderText="Added By" DataField="added_by" SortExpression="added_by" />
+                                        </Columns>
+                                        <CascadeCheckboxes>
+                                            <sgv:CascadeCheckbox ChildCheckboxID="item" ParentCheckboxID="all" />
+                                        </CascadeCheckboxes>
+                                    </sgv:SmartGridView>
+                                    <asp:SqlDataSource runat="server" ID="SrcAddedPN" ConnectionString="<%$ConnectionStrings:MY %>" />
+                                </ContentTemplate>
+                                <Triggers>
+                                    <asp:AsyncPostBackTrigger ControlID="btnAddPN" EventName="Click" />
+                                </Triggers>
+                            </asp:UpdatePanel>
+                        </td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+    </table>
+</asp:Content>

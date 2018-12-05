@@ -1,0 +1,1322 @@
+﻿<html xmlns="http://www.w3.org/1999/xhtml">
+<head id="ctl00_Head1">
+    <link id="ctl00_ebizCss" href="../../Includes/ebiz.aeu.style.css" rel="stylesheet"
+        type="text/css">
+    <link href="http://my.advantech.com/Includes/global.css" rel="Stylesheet" type="text/css">
+    <link href="http://my.advantech.com/Includes/base.css" rel="Stylesheet" type="text/css">
+    <link href="http://my.advantech.com/Includes/third.css" rel="Stylesheet" type="text/css">
+    <style type="text/css">
+        .divCMSContent.Title
+        {
+            font-weight: bold;
+            font-size: 18px;
+            color: #cc3300;
+        }
+        
+        .divCMSContent.Code
+        {
+            border: #8b4513 1px solid;
+            padding-right: 5px;
+            padding-left: 5px;
+            color: #000066;
+            font-family: 'Courier New' , Monospace;
+            background-color: #ff9933;
+        }
+        
+        .ratingStar
+        {
+            font-size: 0pt;
+            width: 13px;
+            height: 12px;
+            margin: 0px;
+            padding: 0px;
+            cursor: pointer;
+            display: block;
+            background-repeat: no-repeat;
+        }
+        
+        .filledRatingStar
+        {
+            background-image: url(http://my.advantech.com/Images/FilledStar.png);
+        }
+        
+        .emptyRatingStar
+        {
+            background-image: url(http://my.advantech.com/Images/EmptyStar.png);
+        }
+        
+        .savedRatingStar
+        {
+            background-image: url(http://my.advantech.com/Images/SavedStar.png);
+        }
+        .box
+        {
+            background: #fff;
+        }
+        .boxholder
+        {
+            clear: both;
+            padding: 5px;
+            background: #E5E6F4;
+        }
+        .tab
+        {
+            float: left;
+            height: 32px;
+            width: 102px;
+            margin: 0 1px 0 0;
+            text-align: center;
+            background: #E5E6F4;
+        }
+        .tabtxt
+        {
+            margin: 0;
+            color: #fff;
+            font-size: 12px;
+            font-weight: bold;
+            padding: 9px 0 0 0;
+        }
+        BODY
+        {
+            color: #333333;
+            font-size: 12px;
+            font-family: Arial, Helvetica, sans-serif;
+            line-height: 18px;
+        }
+        SELECT
+        {
+            font: 99% arial,helvetica,clean,sans-serif;
+        }
+        INPUT
+        {
+            font: 99% arial,helvetica,clean,sans-serif;
+        }
+        TEXTAREA
+        {
+            font: 99% arial,helvetica,clean,sans-serif;
+        }
+        PRE
+        {
+            font: 100% monospace;
+        }
+        CODE
+        {
+            font: 100% monospace;
+        }
+        H1
+        {
+            padding-right: 0px;
+            padding-left: 0px;
+            padding-bottom: 0px;
+            margin: 0px;
+            padding-top: 0px;
+        }
+        H2
+        {
+            padding-right: 0px;
+            padding-left: 0px;
+            padding-bottom: 0px;
+            margin: 0px;
+            padding-top: 0px;
+        }
+        H3
+        {
+            padding-right: 0px;
+            padding-left: 0px;
+            padding-bottom: 0px;
+            margin: 0px;
+            padding-top: 0px;
+        }
+        H4
+        {
+            padding-right: 0px;
+            padding-left: 0px;
+            padding-bottom: 0px;
+            margin: 0px;
+            padding-top: 0px;
+        }
+        H5
+        {
+            padding-right: 0px;
+            padding-left: 0px;
+            padding-bottom: 0px;
+            margin: 0px;
+            padding-top: 0px;
+        }
+        H6
+        {
+            padding-right: 0px;
+            padding-left: 0px;
+            padding-bottom: 0px;
+            margin: 0px;
+            padding-top: 0px;
+        }
+        UL
+        {
+            padding-right: 0px;
+            padding-left: 0px;
+            padding-bottom: 0px;
+            margin: 0px;
+            padding-top: 0px;
+        }
+        OL
+        {
+            padding-right: 0px;
+            padding-left: 0px;
+            padding-bottom: 0px;
+            margin: 0px;
+            padding-top: 0px;
+        }
+        LI
+        {
+            padding-right: 0px;
+            padding-left: 0px;
+            padding-bottom: 0px;
+            margin: 0px;
+            padding-top: 0px;
+        }
+        DL
+        {
+            padding-right: 0px;
+            padding-left: 0px;
+            padding-bottom: 0px;
+            margin: 0px;
+            padding-top: 0px;
+        }
+        DT
+        {
+            padding-right: 0px;
+            padding-left: 0px;
+            padding-bottom: 0px;
+            margin: 0px;
+            padding-top: 0px;
+        }
+        DD
+        {
+            padding-right: 0px;
+            padding-left: 0px;
+            padding-bottom: 0px;
+            margin: 0px;
+            padding-top: 0px;
+        }
+        P
+        {
+            padding-right: 0px;
+            padding-left: 0px;
+            padding-bottom: 0px;
+            margin: 0px;
+            padding-top: 0px;
+        }
+        FORM
+        {
+            padding-right: 0px;
+            padding-left: 0px;
+            padding-bottom: 0px;
+            margin: 0px;
+            padding-top: 0px;
+        }
+        FIELDSET
+        {
+            padding-right: 0px;
+            padding-left: 0px;
+            padding-bottom: 0px;
+            margin: 0px;
+            padding-top: 0px;
+        }
+        LEGEND
+        {
+            padding-right: 0px;
+            padding-left: 0px;
+            padding-bottom: 0px;
+            margin: 0px;
+            padding-top: 0px;
+        }
+        INPUT
+        {
+            padding-right: 0px;
+            padding-left: 0px;
+            padding-bottom: 0px;
+            margin: 0px;
+            padding-top: 0px;
+        }
+        IMG
+        {
+            padding-right: 0px;
+            padding-left: 0px;
+            padding-bottom: 0px;
+            margin: 0px;
+            padding-top: 0px;
+        }
+        IMG
+        {
+            border-right: 0px;
+            border-top: 0px;
+            border-left: 0px;
+            border-bottom: 0px;
+        }
+        FIELDSET
+        {
+            border-right: 0px;
+            border-top: 0px;
+            border-left: 0px;
+            border-bottom: 0px;
+        }
+        LEGEND
+        {
+            font-size: 0px;
+            height: 0px;
+        }
+        LABEL
+        {
+            cursor: hand;
+        }
+        INPUT
+        {
+            outline: none;
+        }
+        CITE
+        {
+            font: 85% verdana;
+        }
+        EM
+        {
+            font-style: normal;
+        }
+        CITE SPAN
+        {
+            font-weight: bold;
+        }
+        A
+        {
+            color: #004181;
+            text-decoration: none;
+        }
+        A:link
+        {
+            text-decoration: none;
+        }
+        A:visited
+        {
+            text-decoration: none;
+        }
+        A:hover
+        {
+            text-decoration: underline;
+        }
+        .on A:hover
+        {
+            text-decoration: none;
+        }
+    </style>
+    <link id="ctl00_Style1" rel="stylesheet" href="http://my.advantech.com/includes/style-General.css"
+        type="text/css">
+    <style type="text/css">
+        .ajax__tab_yuitabview-theme .ajax__tab_outer
+        {
+        }
+        .ajax__tab_yuitabview-theme .ajax__tab_inner
+        {
+        }
+        .ajax__tab_yuitabview-theme .ajax__tab_header
+        {
+            border-bottom: solid 2px #DCDCDC;
+        }
+        .ajax__tab_yuitabview-theme .ajax__tab_header .ajax__tab_outer
+        {
+            background: url(http://my.advantech.com/Images/gray_right.gif) no-repeat right;
+        }
+        .ajax__tab_yuitabview-theme .ajax__tab_header .ajax__tab_inner
+        {
+            background: url(http://my.advantech.com/Images/gray_left.gif) no-repeat left;
+        }
+        .ajax__tab_yuitabview-theme .ajax__tab_header .ajax__tab_tab
+        {
+            margin-right: 0px;
+            background: url(http://my.advantech.com/Images/gray_bg1.gif);
+            width: 208px;
+            padding: 9px 0px 3px 0px;
+            text-align: center;
+            color: #4D6D94;
+            font-size: 12px;
+            display: block;
+            font-weight: bold;
+            font-family: Arial;
+        }
+        .ajax__tab_yuitabview-theme .ajax__tab_active .ajax__tab_tab
+        {
+            padding: 6px 0px 3px 0px;
+            background: url(http://my.advantech.com/images/fold_blue_bg1.gif);
+            height: 18px;
+            color: #FFFFFF;
+            font-size: 12px;
+            font-weight: bold;
+            font-family: Arial;
+        }
+        .ajax__tab_yuitabview-theme .ajax__tab_active .ajax__tab_outer
+        {
+        }
+        .ajax__tab_yuitabview-theme .ajax__tab_body
+        {
+            font-family: verdana,tahoma,helvetica;
+            font-size: 10pt;
+            padding: 0.25em 0.5em;
+            border: solid 1px #DCDCDC;
+            border-top-width: 0px;
+            color: #4D6D94;
+        }
+        
+        .ajax__tab_yuitabview-theme-new .ajax__tab_outer
+        {
+        }
+        .ajax__tab_yuitabview-theme-new .ajax__tab_inner
+        {
+        }
+        .ajax__tab_yuitabview-theme-new .ajax__tab_header
+        {
+            border-bottom: solid 2px #DCDCDC;
+        }
+        .ajax__tab_yuitabview-theme-new .ajax__tab_header .ajax__tab_outer
+        {
+            background: url(http://my.advantech.com/Images/gray_right.gif) no-repeat right;
+        }
+        .ajax__tab_yuitabview-theme-new .ajax__tab_header .ajax__tab_inner
+        {
+            background: url(http://my.advantech.com/Images/gray_left.gif) no-repeat left;
+        }
+        .ajax__tab_yuitabview-theme-new .ajax__tab_header .ajax__tab_tab
+        {
+            margin-right: 0px;
+            background: url(http://my.advantech.com/Images/gray_bg11.gif);
+            width: 145px;
+            padding: 9px 0px 3px 0px;
+            text-align: center;
+            color: #4D6D94;
+            font-size: 12px;
+            display: block;
+            font-weight: bold;
+            font-family: Arial;
+        }
+        .ajax__tab_yuitabview-theme-new .ajax__tab_active .ajax__tab_tab
+        {
+            padding: 6px 0px 3px 0px;
+            background: url(http://my.advantech.com/images/fold_blue_bg11.gif);
+            height: 18px;
+            width: 146px;
+            color: #FFFFFF;
+            font-size: 12px;
+            font-weight: bold;
+            font-family: Arial;
+        }
+        .ajax__tab_yuitabview-theme-new .ajax__tab_active .ajax__tab_outer
+        {
+        }
+        .ajax__tab_yuitabview-theme-new .ajax__tab_body
+        {
+            font-family: verdana,tahoma,helvetica;
+            font-size: 10pt;
+            padding: 0.25em 0.5em;
+            border: solid 1px #DCDCDC;
+            border-top-width: 0px;
+            color: #4D6D94;
+        }
+        
+        
+        
+        .modalBackground
+        {
+            background-color: Gray;
+            filter: alpha(opacity=70);
+            opacity: 0.7;
+        }
+        
+        .modalPopup
+        {
+            background-color: #ffffdd;
+            border-width: 3px;
+            border-style: solid;
+            border-color: Gray;
+            padding: 3px;
+            width: 550px;
+        }
+        
+        .sampleStyleA
+        {
+            background-color: #FFF;
+        }
+        
+        .sampleStyleB
+        {
+            background-color: #FFF;
+            font-family: monospace;
+            font-size: 10pt;
+            font-weight: bold;
+        }
+        
+        .sampleStyleC
+        {
+            background-color: #ddffdd;
+            font-family: sans-serif;
+            font-size: 10pt;
+            font-style: italic;
+        }
+        
+        .sampleStyleD
+        {
+            background-color: Blue;
+            color: White;
+            font-family: Arial;
+            font-size: 10pt;
+        }
+        .autocomplete
+        {
+            background: #E0E0E0;
+            position: absolute;
+            border: solid 1px;
+            overflow-y: scroll;
+            overflow-x: auto;
+            height: 100px;
+            display: none;
+        }
+        
+        a.accordionContent:link
+        {
+            color: #ff0000;
+        }
+        a.accordionContent:visited
+        {
+            color: #0000ff;
+        }
+        a.accordionContent:hover
+        {
+            background: #66ff66;
+        }
+    </style>
+    <title>MyAdvantech - Check ACN Price by Customer Condition Group </title>
+</head>
+<body onload="goforit()" style="height: 100%; background-color: rgb(255, 255, 255);
+    margin-left: 0px; margin-top: 0px;">
+    <form name="aspnetForm" method="post" action="ProductPriceByGrade.aspx" id="aspnetForm">
+    <div>
+        <input type="hidden" name="ctl00_tlsm1_HiddenField" id="ctl00_tlsm1_HiddenField"
+            value=";;AjaxControlToolkit, Version=4.1.40412.0, Culture=neutral, PublicKeyToken=28f01b0e84b6d53e:zh-TW:acfc7575-cdee-46af-964f-5d85d9cdcf92:f2c8e708:de1feab2:720a52bf:f9cec9bc:589eaa30:698129cf:7a92f56c:1a2a8638">
+        <input type="hidden" name="__EVENTTARGET" id="__EVENTTARGET" value="">
+        <input type="hidden" name="__EVENTARGUMENT" id="__EVENTARGUMENT" value="">
+        <input type="hidden" name="__VIEWSTATE" id="__VIEWSTATE" value="/wEPDwUKMTE2NzE3NDM4OQ9kFgJmD2QWAgIED2QWAgIBD2QWAmYPZBYCZg9kFgZmD2QWAmYPZBYCZg9kFg4CAw8PFgIeBFRleHQFPHRjLmNoZW5AYWR2YW50ZWNoLmNvbS50dyAoQWR2YW50ZWNoIENvLiBTaW5nYXBvcmUgUHRlIEx0ZC4gKWRkAgUPFgIeB1Zpc2libGVnZAIHD2QWAmYPZBYCAgEPEGRkFgBkAhEPFgIfAWdkAhMPFgIfAWdkAhkPFgIfAWdkAhsPFgIfAWdkAgEPZBYCZg9kFgQCAQ9kFgQCBQ8PFgQfAAUJKEFTUEEwMDEpHgtOYXZpZ2F0ZVVybAUpfi9ETS9DdXN0b21lckRhc2hib2FyZC5hc3B4P0VSUElEPUFTUEEwMDFkZAIHDw8WAh8ABQUoQUNMKWRkAgQPZBYCAgEPZBYCAgEPFgIeDVNlcnZpY2VNZXRob2QFF0dldFNlYXJjaFN1Z2dlc3Rpb25LZXlzZAICD2QWAgIBD2QWAmYPZBYCAgEPZBYCZg8WBB4NVXNlQ29udGV4dEtleWceCkNvbnRleHRLZXkFBFRXMDFkGAIFHl9fQ29udHJvbHNSZXF1aXJlUG9zdEJhY2tLZXlfXxYdBSNjdGwwMCRMb2dpblZpZXczJExvZ2luU3RhdHVzMSRjdGwwMQUjY3RsMDAkTG9naW5WaWV3MyRMb2dpblN0YXR1czEkY3RsMDMFImN0bDAwJEZseW91dExpdFR5cGUkY2JsTGl0U2VhcmNoJDAFImN0bDAwJEZseW91dExpdFR5cGUkY2JsTGl0U2VhcmNoJDEFImN0bDAwJEZseW91dExpdFR5cGUkY2JsTGl0U2VhcmNoJDIFImN0bDAwJEZseW91dExpdFR5cGUkY2JsTGl0U2VhcmNoJDMFImN0bDAwJEZseW91dExpdFR5cGUkY2JsTGl0U2VhcmNoJDQFImN0bDAwJEZseW91dExpdFR5cGUkY2JsTGl0U2VhcmNoJDUFImN0bDAwJEZseW91dExpdFR5cGUkY2JsTGl0U2VhcmNoJDYFImN0bDAwJEZseW91dExpdFR5cGUkY2JsTGl0U2VhcmNoJDcFImN0bDAwJEZseW91dExpdFR5cGUkY2JsTGl0U2VhcmNoJDgFImN0bDAwJEZseW91dExpdFR5cGUkY2JsTGl0U2VhcmNoJDkFI2N0bDAwJEZseW91dExpdFR5cGUkY2JsTGl0U2VhcmNoJDEwBSNjdGwwMCRGbHlvdXRMaXRUeXBlJGNibExpdFNlYXJjaCQxMQUjY3RsMDAkRmx5b3V0TGl0VHlwZSRjYmxMaXRTZWFyY2gkMTIFI2N0bDAwJEZseW91dExpdFR5cGUkY2JsTGl0U2VhcmNoJDEzBSNjdGwwMCRGbHlvdXRMaXRUeXBlJGNibExpdFNlYXJjaCQxNAUjY3RsMDAkRmx5b3V0TGl0VHlwZSRjYmxMaXRTZWFyY2gkMTUFI2N0bDAwJEZseW91dExpdFR5cGUkY2JsTGl0U2VhcmNoJDE2BSNjdGwwMCRGbHlvdXRMaXRUeXBlJGNibExpdFNlYXJjaCQxNwUjY3RsMDAkRmx5b3V0TGl0VHlwZSRjYmxMaXRTZWFyY2gkMTgFI2N0bDAwJEZseW91dExpdFR5cGUkY2JsTGl0U2VhcmNoJDE5BSNjdGwwMCRGbHlvdXRMaXRUeXBlJGNibExpdFNlYXJjaCQyMAUjY3RsMDAkRmx5b3V0TGl0VHlwZSRjYmxMaXRTZWFyY2gkMjEFI2N0bDAwJEZseW91dExpdFR5cGUkY2JsTGl0U2VhcmNoJDIyBSNjdGwwMCRGbHlvdXRMaXRUeXBlJGNibExpdFNlYXJjaCQyMwUjY3RsMDAkRmx5b3V0TGl0VHlwZSRjYmxMaXRTZWFyY2gkMjMFD2N0bDAwJGJ0blNlYXJjaAUUY3RsMDAkX21haW4kaW1nVG9YbHMFEGN0bDAwJExvZ2luVmlldzMPD2QCAWROZ6se8IlC59tv0nmue4y29RfNUQ==">
+    </div>
+    <script type="text/javascript">
+//<![CDATA[
+        var theForm = document.forms['aspnetForm'];
+        if (!theForm) {
+            theForm = document.aspnetForm;
+        }
+        function __doPostBack(eventTarget, eventArgument) {
+            if (!theForm.onsubmit || (theForm.onsubmit() != false)) {
+                theForm.__EVENTTARGET.value = eventTarget;
+                theForm.__EVENTARGUMENT.value = eventArgument;
+                theForm.submit();
+            }
+        }
+//]]> </script>
+    <script src="/MyGlobal/WebResource.axd?d=fF-df5oVcPSzZBPBUI0o5a64BwriHyg0Lk0NxYrhiNF_MXhxfljOxLUYaVxNYPyb_aOCVFeCpxIaak94nQuzG4XSonk1&amp;t=634773912100000000"
+        type="text/javascript"></script>
+    <script src="/MyGlobal/ScriptResource.axd?d=5MbyPBSlyA4wnAdBU8Tw3DtBDWaiHaNixS-GL9zqjBJlvMtHyf27lEFIt_jbKvQPVTU96VKxaEt7GzPp-AvUgYscaMCFJmsNEpZV1WcWLfDYyfH48hlgw9UjDK9wg8RD9UZgZg2&amp;t=f2cd5c5"
+        type="text/javascript"></script>
+    <script type="text/javascript">
+//<![CDATA[
+        if (typeof (Sys) === 'undefined') throw new Error('ASP.NET Ajax client-side framework failed to load.');
+//]]> </script>
+    <script src="/MyGlobal/ScriptResource.axd?d=kv5t1vdY9r71sQivjuVMiDlZddZmQ3NNNzjm9WcffrhPqiEnzSDhRxdLJ_pMq3wsKoK8aDHhdA_Wh9Se2IAgmR1ll1pnX3WPMeGcM0xqr5EBnMXUHbLFfltpfqLBVDYHo7-EBS3U4erbsqEJcJXtgqcny7Q1&amp;t=f2cd5c5"
+        type="text/javascript"></script>
+    <script src="/MyGlobal/Admin/PIS/ProductPriceByGrade.aspx?_TSM_HiddenField_=ctl00_tlsm1_HiddenField&amp;_TSM_CombinedScripts_=%3b%3bAjaxControlToolkit%2c+Version%3d4.1.40412.0%2c+Culture%3dneutral%2c+PublicKeyToken%3d28f01b0e84b6d53e%3azh-TW%3aacfc7575-cdee-46af-964f-5d85d9cdcf92%3af2c8e708%3ade1feab2%3a720a52bf%3af9cec9bc%3a589eaa30%3a698129cf%3a7a92f56c%3a1a2a8638"
+        type="text/javascript"></script>
+    <script type="text/javascript">
+//<![CDATA[
+        var PageMethods = function () {
+            PageMethods.initializeBase(this);
+            this._timeout = 0;
+            this._userContext = null;
+            this._succeeded = null;
+            this._failed = null;
+        }
+        PageMethods.prototype = {
+            _get_path: function () {
+                var p = this.get_path();
+                if (p) return p;
+                else return PageMethods._staticInstance.get_path();
+            },
+            VerifyPN: function (PartNo, succeededCallback, failedCallback, userContext) {
+                /// <param name="PartNo" type="String">System.String</param>
+                /// <param name="succeededCallback" type="Function" optional="true" mayBeNull="true"></param>
+                /// <param name="failedCallback" type="Function" optional="true" mayBeNull="true"></param>
+                /// <param name="userContext" optional="true" mayBeNull="true"></param>
+                return this._invoke(this._get_path(), 'VerifyPN', false, { PartNo: PartNo }, succeededCallback, failedCallback, userContext);
+            },
+            GetPartNo: function (prefixText, count, contextKey, succeededCallback, failedCallback, userContext) {
+                /// <param name="prefixText" type="String">System.String</param>
+                /// <param name="count" type="Number">System.Int32</param>
+                /// <param name="contextKey" type="String">System.String</param>
+                /// <param name="succeededCallback" type="Function" optional="true" mayBeNull="true"></param>
+                /// <param name="failedCallback" type="Function" optional="true" mayBeNull="true"></param>
+                /// <param name="userContext" optional="true" mayBeNull="true"></param>
+                return this._invoke(this._get_path(), 'GetPartNo', false, { prefixText: prefixText, count: count, contextKey: contextKey }, succeededCallback, failedCallback, userContext);
+            },
+            GetPriceByGrade: function (PartNo, OrgId, succeededCallback, failedCallback, userContext) {
+                /// <param name="PartNo" type="String">System.String</param>
+                /// <param name="OrgId" type="String">System.String</param>
+                /// <param name="succeededCallback" type="Function" optional="true" mayBeNull="true"></param>
+                /// <param name="failedCallback" type="Function" optional="true" mayBeNull="true"></param>
+                /// <param name="userContext" optional="true" mayBeNull="true"></param>
+                return this._invoke(this._get_path(), 'GetPriceByGrade', false, { PartNo: PartNo, OrgId: OrgId }, succeededCallback, failedCallback, userContext);
+            }
+        }
+        PageMethods.registerClass('PageMethods', Sys.Net.WebServiceProxy);
+        PageMethods._staticInstance = new PageMethods();
+        PageMethods.set_path = function (value) {
+            PageMethods._staticInstance.set_path(value);
+        }
+        PageMethods.get_path = function () {
+            /// <value type="String" mayBeNull="true">The service url.</value>
+            return PageMethods._staticInstance.get_path();
+        }
+        PageMethods.set_timeout = function (value) {
+            PageMethods._staticInstance.set_timeout(value);
+        }
+        PageMethods.get_timeout = function () {
+            /// <value type="Number">The service timeout.</value>
+            return PageMethods._staticInstance.get_timeout();
+        }
+        PageMethods.set_defaultUserContext = function (value) {
+            PageMethods._staticInstance.set_defaultUserContext(value);
+        }
+        PageMethods.get_defaultUserContext = function () {
+            /// <value mayBeNull="true">The service default user context.</value>
+            return PageMethods._staticInstance.get_defaultUserContext();
+        }
+        PageMethods.set_defaultSucceededCallback = function (value) {
+            PageMethods._staticInstance.set_defaultSucceededCallback(value);
+        }
+        PageMethods.get_defaultSucceededCallback = function () {
+            /// <value type="Function" mayBeNull="true">The service default succeeded callback.</value>
+            return PageMethods._staticInstance.get_defaultSucceededCallback();
+        }
+        PageMethods.set_defaultFailedCallback = function (value) {
+            PageMethods._staticInstance.set_defaultFailedCallback(value);
+        }
+        PageMethods.get_defaultFailedCallback = function () {
+            /// <value type="Function" mayBeNull="true">The service default failed callback.</value>
+            return PageMethods._staticInstance.get_defaultFailedCallback();
+        }
+        PageMethods.set_enableJsonp = function (value) { PageMethods._staticInstance.set_enableJsonp(value); }
+        PageMethods.get_enableJsonp = function () {
+            /// <value type="Boolean">Specifies whether the service supports JSONP for cross domain calling.</value>
+            return PageMethods._staticInstance.get_enableJsonp();
+        }
+        PageMethods.set_jsonpCallbackParameter = function (value) { PageMethods._staticInstance.set_jsonpCallbackParameter(value); }
+        PageMethods.get_jsonpCallbackParameter = function () {
+            /// <value type="String">Specifies the parameter name that contains the callback function name for a JSONP request.</value>
+            return PageMethods._staticInstance.get_jsonpCallbackParameter();
+        }
+        PageMethods.set_path("ProductPriceByGrade.aspx");
+        PageMethods.VerifyPN = function (PartNo, onSuccess, onFailed, userContext) {
+            /// <param name="PartNo" type="String">System.String</param>
+            /// <param name="succeededCallback" type="Function" optional="true" mayBeNull="true"></param>
+            /// <param name="failedCallback" type="Function" optional="true" mayBeNull="true"></param>
+            /// <param name="userContext" optional="true" mayBeNull="true"></param>
+            PageMethods._staticInstance.VerifyPN(PartNo, onSuccess, onFailed, userContext);
+        }
+        PageMethods.GetPartNo = function (prefixText, count, contextKey, onSuccess, onFailed, userContext) {
+            /// <param name="prefixText" type="String">System.String</param>
+            /// <param name="count" type="Number">System.Int32</param>
+            /// <param name="contextKey" type="String">System.String</param>
+            /// <param name="succeededCallback" type="Function" optional="true" mayBeNull="true"></param>
+            /// <param name="failedCallback" type="Function" optional="true" mayBeNull="true"></param>
+            /// <param name="userContext" optional="true" mayBeNull="true"></param>
+            PageMethods._staticInstance.GetPartNo(prefixText, count, contextKey, onSuccess, onFailed, userContext);
+        }
+        PageMethods.GetPriceByGrade = function (PartNo, OrgId, onSuccess, onFailed, userContext) {
+            /// <param name="PartNo" type="String">System.String</param>
+            /// <param name="OrgId" type="String">System.String</param>
+            /// <param name="succeededCallback" type="Function" optional="true" mayBeNull="true"></param>
+            /// <param name="failedCallback" type="Function" optional="true" mayBeNull="true"></param>
+            /// <param name="userContext" optional="true" mayBeNull="true"></param>
+            PageMethods._staticInstance.GetPriceByGrade(PartNo, OrgId, onSuccess, onFailed, userContext);
+        }
+//]]> </script>
+    <script type="text/javascript">
+//<![CDATA[
+        Sys.WebForms.PageRequestManager._initialize('ctl00$tlsm1', 'aspnetForm', [], [], [], 600, 'ctl00');
+//]]> </script>
+    <script type="text/javascript">
+        var prm = Sys.WebForms.PageRequestManager.getInstance();
+        prm.add_beginRequest(beginRequest);
+        function beginRequest() {
+            prm._scrollPosition = null;
+        }
+        function ShowHideLitType() {
+            if (document.getElementById('ctl00_dlSearchOption').selectedIndex == 1) {
+                document.getElementById('ctl00_LitTypeLabel').style.display = 'block';
+            }
+            else {
+                document.getElementById('ctl00_LitTypeLabel').style.display = 'none';
+            }
+        }
+        var dayarray = new Array("Sunday", "Monday", "Tuesday", "Wednesday",
+               "Thursday", "Friday", "Saturday")
+
+        var montharray = new Array("January", "February", "March", "April", "May", "June",
+               "July", "August", "September", "October", "November", "December")
+
+        function getthedate() {
+            var mydate = new Date()
+            var year = mydate.getYear()
+            if (year < 1000)
+                year += 1900
+            var day = mydate.getDay()
+            var month = mydate.getMonth()
+            var daym = mydate.getDate()
+            if (daym < 10)
+                daym = "0" + daym
+            var hours = mydate.getHours()
+            var minutes = mydate.getMinutes()
+            var seconds = mydate.getSeconds()
+            if (minutes <= 9)
+                minutes = "0" + minutes
+            if (seconds <= 9)
+                seconds = "0" + seconds
+            //Hire change font size
+
+            var cdate = hours + ":" + minutes + ":" + seconds + " " + daym + " " + montharray[month] + ", " + year;
+
+            if (document.all) {
+                //Frank 2012/03/14 : If login user is GA, then clock object will be hidden. Therefore the document.all.clock is null.
+                //So that I add this IF to prevent java script error.
+                if (document.all.clock) {
+                    document.all.clock.innerHTML = "<font size='1px'>" + cdate + "</font>"
+                }
+            } else if (document.getElementById) {
+                document.getElementById("clock").innerHTML = "<font size='1px'>" + cdate + "</font>"
+            } else {
+                document.write("<font size='1px'>" + cdate + "</font>")
+            }
+        }
+        if (!document.all && !document.getElementById)
+            getthedate()
+        function goforit() {
+            if (document.all || document.getElementById)
+                setInterval("getthedate()", 1000)
+        }
+    </script>
+    <table id="ctl00_tableBase" width="100%" align="center" border="0" cellpadding="0"
+        cellspacing="0">
+        <tbody>
+            <tr>
+                <td align="center">
+                    <table id="ctl00_table1" width="900px" align="center" border="0" cellpadding="0"
+                        cellspacing="0">
+                        <tbody>
+                            <tr>
+                                <td align="center">
+                                    <table width="100%" border="0" cellpadding="0" cellspacing="0">
+                                        <tbody>
+                                            <tr valign="top">
+                                                <td align="left">
+                                                    <a id="ctl00_hlHomeLogo" href="../../Home.aspx">
+                                                        <img src="../../Images/logo2.jpg" alt="" style="border-width: 0px;"></a>
+                                                </td>
+                                                <td valign="bottom" align="left">
+                                                    <table width="100%" style="font-family: Arial, Helvetica, sans-serif; font-weight: bold;
+                                                        color: #838181;">
+                                                        <tbody>
+                                                            <tr valign="top">
+                                                                <td align="right">
+                                                                    <span id="ctl00_lblUserInfo">tc.chen@advantech.com.tw (Advantech Co. Singapore Pte Ltd.
+                                                                        )</span>
+                                                                </td>
+                                                            </tr>
+                                                            <tr>
+                                                                <td id="ctl00_LoginView6">
+                                                                    <table>
+                                                                        <tbody>
+                                                                            <tr align="left" valign="middle">
+                                                                                <th align="left" style="color: Gray">
+                                                                                </th>
+                                                                                <td>
+                                                                                </td>
+                                                                            </tr>
+                                                                        </tbody>
+                                                                    </table>
+                                                                </td>
+                                                            </tr>
+                                                            <tr>
+                                                                <td valign="bottom">
+                                                                    <table width="100%">
+                                                                        <tbody>
+                                                                            <tr>
+                                                                                <td width="15%" align="center">
+                                                                                    <a id="ctl00_hyMyHome" href="../../home.aspx">Home</a>
+                                                                                </td>
+                                                                                <td width="4%" align="center">
+                                                                                    <img id="ctl00_Image2_home" alt="" src="../../Images/fenceline.jpg" style="height: 10px;
+                                                                                        width: 1px; border-width: 0px;">
+                                                                                </td>
+                                                                                <td width="15%" align="center">
+                                                                                    <a id="ctl00_hyHome" href="http://www.advantech.com">advantech.com</a>
+                                                                                </td>
+                                                                                <td width="4%" align="center">
+                                                                                    <img id="ctl00_Image2" alt="" src="../../Images/fenceline.jpg" style="height: 10px;
+                                                                                        width: 1px; border-width: 0px;">
+                                                                                </td>
+                                                                                <td id="ctl00_ADMIN1_TR" width="7%" align="center">
+                                                                                    <a id="ctl00_hyAdmin" href="../b2b_admin_portal.aspx">Admin</a>
+                                                                                </td>
+                                                                                <td id="ctl00_ADMIN2_TR" width="4%" align="center">
+                                                                                    <img id="ctl00_Image6" alt="" src="../../Images/fenceline.jpg" style="height: 10px;
+                                                                                        width: 1px; border-width: 0px;">
+                                                                                </td>
+                                                                                <td id="ctl00_tdeQuotation" width="7%" align="center">
+                                                                                    <a id="ctl00_hyeQuotation" href="http://eq.advantech.com/Home.aspx">eQuotation</a>
+                                                                                </td>
+                                                                                <td id="ctl00_tdeQuotation1" width="4%" align="center">
+                                                                                    <img id="ctl00_Image9" alt="" src="../../Images/fenceline.jpg" style="height: 10px;
+                                                                                        width: 1px; border-width: 0px;">
+                                                                                </td>
+                                                                                <td width="14%" align="center">
+                                                                                    <a id="ctl00_hyProduct" href="../../Product/Product_Line_New.aspx">Product</a>
+                                                                                </td>
+                                                                                <td width="4%" align="center">
+                                                                                    <img id="ctl00_Image3" alt="" src="../../Images/fenceline.jpg" style="height: 10px;
+                                                                                        width: 1px; border-width: 0px;">
+                                                                                </td>
+                                                                                <td width="15%" align="center">
+                                                                                    <a id="ctl00_hyRec" href="http://support.advantech.com/OnlineResources/index.aspx"
+                                                                                        target="_blank">Resources</a>
+                                                                                </td>
+                                                                                <td width="4%" align="center">
+                                                                                    <img id="ctl00_Image4" alt="" src="../../Images/fenceline.jpg" style="height: 10px;
+                                                                                        width: 1px; border-width: 0px;">
+                                                                                </td>
+                                                                                <td width="10%" align="center">
+                                                                                    <a id="ctl00_hySupport" href="http://support.advantech.com.tw/">Support</a>
+                                                                                </td>
+                                                                                <td width="4%" align="center">
+                                                                                    <img id="ctl00_Image5" src="../../Images/fenceline.jpg" style="height: 10px; width: 1px;
+                                                                                        border-width: 0px;">
+                                                                                </td>
+                                                                                <td width="20%" align="center" nowrap="nowrap">
+                                                                                    <a id="ctl00_hyContactUs" href="http://www.advantech.com/contact/">Contact Us</a>
+                                                                                </td>
+                                                                            </tr>
+                                                                        </tbody>
+                                                                    </table>
+                                                                </td>
+                                                            </tr>
+                                                        </tbody>
+                                                    </table>
+                                                </td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <table id="ctl00_table2" width="900px" align="center" class="day" border="0">
+                        <tbody>
+                            <tr>
+                                <td width="2">
+                                </td>
+                                <td width="510" valign="middle" align="left">
+                                    <table width="100%">
+                                        <tbody>
+                                            <tr>
+                                                <td id="ctl00_tdTime" width="160">
+                                                    <span class="testh1" id="clock"><font size="1px">8:58:34 28 June, 2013</font></span>
+                                                </td>
+                                                <td id="ctl00_tdRole">
+                                                    <span id="ctl00_lblRole"></span>
+                                                </td>
+                                                <td>
+                                                    <a id="ctl00_hyCompanyId" href="../../DM/CustomerDashboard.aspx?ERPID=ASPA001" style="font-weight: bold;">
+                                                        (ASPA001)</a>
+                                                </td>
+                                                <td>
+                                                    <span id="ctl00_lbRBU" style="font-weight: bold;">(ACL)</span>
+                                                </td>
+                                                <td>
+                                                    <table width="100%">
+                                                        <tbody>
+                                                            <tr>
+                                                                <td>
+                                                                    <input id="ctl00_LoginView3_LoginStatus1" type="image" name="ctl00$LoginView3$LoginStatus1$ctl01"
+                                                                        src="../../Images/logout.jpg" alt="Logout" style="border-width: 0px;">
+                                                                </td>
+                                                                <td>
+                                                                    <a id="ctl00_LoginView3_hlMyProfile" href="../../My/MyProfile.aspx">
+                                                                        <img src="../../Images/Profile.JPG" alt="" style="border-width: 0px;"></a>
+                                                                </td>
+                                                            </tr>
+                                                        </tbody>
+                                                    </table>
+                                                </td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </td>
+                                <td width="50" valign="middle" align="left">
+                                    <span class="testh1">SEARCH</span>
+                                </td>
+                                <td valign="middle" width="100" align="left">
+                                    <select name="ctl00$dlSearchOption" id="ctl00_dlSearchOption" onchange="ShowHideLitType();"
+                                        style="height: 20px;">
+                                        <option selected="selected" value="Product">Product</option>
+                                        <option value="Material">Marketing material &amp; Support</option>
+                                        <option value="Websites">Websites</option>
+                                    </select>
+                                </td>
+                                <td valign="middle" width="80" align="left">
+                                    <div id="ctl00_PanelSearch" onkeypress="javascript:return WebForm_FireDefaultButton(event, 'ctl00_btnSearch')">
+                                        <input name="ctl00$txtSearchKey" type="text" id="ctl00_txtSearchKey" autocomplete="off">
+                                    </div>
+                                </td>
+                                <td align="left" width="30">
+                                    <a href="javascript:void(0);" id="ctl00_LitTypeLabel" style="display: none; background-color: #004576;
+                                        color: White;">Type</a>
+                                    <!-- obout Flyout v.2.0.5.1  http://www.obout.com  -->
+                                    <div id="ctl00_FlyoutLitType_contentbox">
+                                        <iframe src="javascript:'<html></html>'" frameborder="0" scrolling="no" id="ctl00_FlyoutLitTypeLitTypeLabel_if"
+                                            style="position: absolute; background-color: white; overflow: hidden; opacity: 0;
+                                            width: 165px; height: 530px; z-index: 999; display: none;"></iframe>
+                                        <div id="ctl00_FlyoutLitTypeLitTypeLabel_pv" style="position: absolute; background-color: transparent;
+                                            width: 165px; height: 530px; z-index: 1000; display: none;">
+                                            <div id="ctl00_FlyoutLitTypeLitTypeLabel_e" style="background-color: transparent;
+                                                width: 165px; height: 530px;">
+                                                <div id="ctl00_FlyoutLitTypeLitTypeLabel_ct" style="">
+                                                    <div id="ctl00_FlyoutLitType_LitTypePanel" style="background-color: #EBEBEB; text-align: left;">
+                                                        <table id="ctl00_FlyoutLitType_cblLitSearch" border="0">
+                                                            <tbody>
+                                                                <tr>
+                                                                    <td>
+                                                                        <input id="ctl00_FlyoutLitType_cblLitSearch_0" type="checkbox" name="ctl00$FlyoutLitType$cblLitSearch$0"><label
+                                                                            for="ctl00_FlyoutLitType_cblLitSearch_0">Advertisement</label>
+                                                                    </td>
+                                                                </tr>
+                                                                <tr>
+                                                                    <td>
+                                                                        <input id="ctl00_FlyoutLitType_cblLitSearch_1" type="checkbox" name="ctl00$FlyoutLitType$cblLitSearch$1"><label
+                                                                            for="ctl00_FlyoutLitType_cblLitSearch_1">Banner</label>
+                                                                    </td>
+                                                                </tr>
+                                                                <tr>
+                                                                    <td>
+                                                                        <input id="ctl00_FlyoutLitType_cblLitSearch_2" type="checkbox" name="ctl00$FlyoutLitType$cblLitSearch$2"><label
+                                                                            for="ctl00_FlyoutLitType_cblLitSearch_2">Brochure</label>
+                                                                    </td>
+                                                                </tr>
+                                                                <tr>
+                                                                    <td>
+                                                                        <input id="ctl00_FlyoutLitType_cblLitSearch_3" type="checkbox" name="ctl00$FlyoutLitType$cblLitSearch$3"><label
+                                                                            for="ctl00_FlyoutLitType_cblLitSearch_3">Case Study</label>
+                                                                    </td>
+                                                                </tr>
+                                                                <tr>
+                                                                    <td>
+                                                                        <input id="ctl00_FlyoutLitType_cblLitSearch_4" type="checkbox" name="ctl00$FlyoutLitType$cblLitSearch$4"><label
+                                                                            for="ctl00_FlyoutLitType_cblLitSearch_4">Catalogue</label>
+                                                                    </td>
+                                                                </tr>
+                                                                <tr>
+                                                                    <td>
+                                                                        <input id="ctl00_FlyoutLitType_cblLitSearch_5" type="checkbox" name="ctl00$FlyoutLitType$cblLitSearch$5"><label
+                                                                            for="ctl00_FlyoutLitType_cblLitSearch_5">Certificate Logo</label>
+                                                                    </td>
+                                                                </tr>
+                                                                <tr>
+                                                                    <td>
+                                                                        <input id="ctl00_FlyoutLitType_cblLitSearch_6" type="checkbox" name="ctl00$FlyoutLitType$cblLitSearch$6"><label
+                                                                            for="ctl00_FlyoutLitType_cblLitSearch_6">Datasheet</label>
+                                                                    </td>
+                                                                </tr>
+                                                                <tr>
+                                                                    <td>
+                                                                        <input id="ctl00_FlyoutLitType_cblLitSearch_7" type="checkbox" name="ctl00$FlyoutLitType$cblLitSearch$7"><label
+                                                                            for="ctl00_FlyoutLitType_cblLitSearch_7">DM</label>
+                                                                    </td>
+                                                                </tr>
+                                                                <tr>
+                                                                    <td>
+                                                                        <input id="ctl00_FlyoutLitType_cblLitSearch_8" type="checkbox" name="ctl00$FlyoutLitType$cblLitSearch$8"><label
+                                                                            for="ctl00_FlyoutLitType_cblLitSearch_8">eDM</label>
+                                                                    </td>
+                                                                </tr>
+                                                                <tr>
+                                                                    <td>
+                                                                        <input id="ctl00_FlyoutLitType_cblLitSearch_9" type="checkbox" name="ctl00$FlyoutLitType$cblLitSearch$9"><label
+                                                                            for="ctl00_FlyoutLitType_cblLitSearch_9">Event Poster</label>
+                                                                    </td>
+                                                                </tr>
+                                                                <tr>
+                                                                    <td>
+                                                                        <input id="ctl00_FlyoutLitType_cblLitSearch_10" type="checkbox" name="ctl00$FlyoutLitType$cblLitSearch$10"><label
+                                                                            for="ctl00_FlyoutLitType_cblLitSearch_10">Event Presentation</label>
+                                                                    </td>
+                                                                </tr>
+                                                                <tr>
+                                                                    <td>
+                                                                        <input id="ctl00_FlyoutLitType_cblLitSearch_11" type="checkbox" name="ctl00$FlyoutLitType$cblLitSearch$11"><label
+                                                                            for="ctl00_FlyoutLitType_cblLitSearch_11">Market Intelligence</label>
+                                                                    </td>
+                                                                </tr>
+                                                                <tr>
+                                                                    <td>
+                                                                        <input id="ctl00_FlyoutLitType_cblLitSearch_12" type="checkbox" name="ctl00$FlyoutLitType$cblLitSearch$12"><label
+                                                                            for="ctl00_FlyoutLitType_cblLitSearch_12">News</label>
+                                                                    </td>
+                                                                </tr>
+                                                                <tr>
+                                                                    <td>
+                                                                        <input id="ctl00_FlyoutLitType_cblLitSearch_13" type="checkbox" name="ctl00$FlyoutLitType$cblLitSearch$13"><label
+                                                                            for="ctl00_FlyoutLitType_cblLitSearch_13">Photo</label>
+                                                                    </td>
+                                                                </tr>
+                                                                <tr>
+                                                                    <td>
+                                                                        <input id="ctl00_FlyoutLitType_cblLitSearch_14" type="checkbox" name="ctl00$FlyoutLitType$cblLitSearch$14"><label
+                                                                            for="ctl00_FlyoutLitType_cblLitSearch_14">Podcast</label>
+                                                                    </td>
+                                                                </tr>
+                                                                <tr>
+                                                                    <td>
+                                                                        <input id="ctl00_FlyoutLitType_cblLitSearch_15" type="checkbox" name="ctl00$FlyoutLitType$cblLitSearch$15"><label
+                                                                            for="ctl00_FlyoutLitType_cblLitSearch_15">Press Release</label>
+                                                                    </td>
+                                                                </tr>
+                                                                <tr>
+                                                                    <td>
+                                                                        <input id="ctl00_FlyoutLitType_cblLitSearch_16" type="checkbox" name="ctl00$FlyoutLitType$cblLitSearch$16"><label
+                                                                            for="ctl00_FlyoutLitType_cblLitSearch_16">Product Roadmap</label>
+                                                                    </td>
+                                                                </tr>
+                                                                <tr>
+                                                                    <td>
+                                                                        <input id="ctl00_FlyoutLitType_cblLitSearch_17" type="checkbox" name="ctl00$FlyoutLitType$cblLitSearch$17"><label
+                                                                            for="ctl00_FlyoutLitType_cblLitSearch_17">Sales Kit</label>
+                                                                    </td>
+                                                                </tr>
+                                                                <tr>
+                                                                    <td>
+                                                                        <input id="ctl00_FlyoutLitType_cblLitSearch_18" type="checkbox" name="ctl00$FlyoutLitType$cblLitSearch$18"><label
+                                                                            for="ctl00_FlyoutLitType_cblLitSearch_18">Video</label>
+                                                                    </td>
+                                                                </tr>
+                                                                <tr>
+                                                                    <td>
+                                                                        <input id="ctl00_FlyoutLitType_cblLitSearch_19" type="checkbox" name="ctl00$FlyoutLitType$cblLitSearch$19"><label
+                                                                            for="ctl00_FlyoutLitType_cblLitSearch_19">White Papers</label>
+                                                                    </td>
+                                                                </tr>
+                                                                <tr>
+                                                                    <td>
+                                                                        <input id="ctl00_FlyoutLitType_cblLitSearch_20" type="checkbox" name="ctl00$FlyoutLitType$cblLitSearch$20"><label
+                                                                            for="ctl00_FlyoutLitType_cblLitSearch_20">Webcast</label>
+                                                                    </td>
+                                                                </tr>
+                                                                <tr>
+                                                                    <td>
+                                                                        <input id="ctl00_FlyoutLitType_cblLitSearch_21" type="checkbox" name="ctl00$FlyoutLitType$cblLitSearch$21"><label
+                                                                            for="ctl00_FlyoutLitType_cblLitSearch_21">eCatalog</label>
+                                                                    </td>
+                                                                </tr>
+                                                                <tr>
+                                                                    <td>
+                                                                        <input id="ctl00_FlyoutLitType_cblLitSearch_22" type="checkbox" name="ctl00$FlyoutLitType$cblLitSearch$22"><label
+                                                                            for="ctl00_FlyoutLitType_cblLitSearch_22">Presentation (For CP Only)</label>
+                                                                    </td>
+                                                                </tr>
+                                                                <tr>
+                                                                    <td>
+                                                                        <input id="ctl00_FlyoutLitType_cblLitSearch_23" type="checkbox" name="ctl00$FlyoutLitType$cblLitSearch$23"><label
+                                                                            for="ctl00_FlyoutLitType_cblLitSearch_23">Poster</label>
+                                                                    </td>
+                                                                </tr>
+                                                            </tbody>
+                                                        </table>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td width="15" valign="middle" align="left">
+                                    <input type="image" name="ctl00$btnSearch" id="ctl00_btnSearch" src="../../images/go_btn.jpg"
+                                        alt="Search" style="height: 16px; width: 34px; border-width: 0px;">
+                                </td>
+                                <td height="5" valign="middle" align="left">
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <table id="ctl00_table3" align="center" width="900px" border="0" cellpadding="0"
+                        cellspacing="0">
+                        <tbody>
+                            <tr>
+                                <td height="5">
+                                </td>
+                            </tr>
+                            <tr>
+                                <td align="left">
+                                    <script type="text/javascript" src="../../EC/jquery-latest.min.js"></script>
+                                    <script type="text/javascript" src="../../EC/jquery-ui.js"></script>
+                                    <script type="text/javascript" src="../../EC/json2.js"></script>
+                                    <script type="text/javascript">
+                                        $(document).ready(function () {
+                                            $("#ctl00__main_dlOrgId").change(function () { setOrgIdInContext(); });
+                                        }
+        );
+
+                                        function verifyPN(btn) {
+                                            $("#tdMsg").text(""); $("#tbResult").empty();
+                                            $("#ctl00__main_imgToXls").css("display", "none");
+                                            var pn = $("#ctl00__main_txtPN").val();
+                                            var postData = JSON.stringify({ PartNo: pn });
+                                            $.ajax({
+                                                type: "POST",
+                                                url: "ProductPriceByGrade.aspx/VerifyPN",
+                                                data: postData,
+                                                contentType: "application/json; charset=utf-8",
+                                                dataType: "json",
+                                                success: function (retData) {
+                                                    //console.log(retData);
+                                                    if (retData.d == true) {
+                                                        getPrice();
+                                                    }
+                                                    else {
+                                                        $("#tdMsg").text("Part Number is invalid");
+                                                    }
+                                                },
+                                                error: function (msg) {
+                                                    $("#tdMsg").text("Server error:" + msg.d);
+                                                }
+                                            });
+
+                                        }
+                                        function getPrice() {
+                                            busyMode(true);
+                                            var pn = $("#ctl00__main_txtPN").val();
+                                            var postData = JSON.stringify({ PartNo: pn, OrgId: $("#ctl00__main_dlOrgId option:selected").val() });
+                                            $.ajax({
+                                                type: "POST",
+                                                url: "ProductPriceByGrade.aspx/GetPriceByGrade",
+                                                data: postData,
+                                                contentType: "application/json; charset=utf-8",
+                                                dataType: "json",
+                                                success: function (retData) {
+                                                    //console.log(retData);
+                                                    var priceRecords = $.parseJSON(retData.d);
+                                                    var tbResult = $("#tbResult");
+                                                    if (retData.length == 0) { $("#tdMsg").text("No data"); }
+                                                    else {
+                                                        $("#ctl00__main_imgToXls").css("display", "block");
+                                                        $.each(priceRecords, function (idx, item) {
+                                                            var trData = "<tr>";
+                                                            trData += "<td align='right'>" + item.Price + "</td>";
+                                                            trData += "<td align='center'>" + item.Cond1 + "</td>";
+                                                            trData += "<td align='center'>" + item.Cond2 + "</td>";
+                                                            trData += "<td align='center'>" + item.Cond3 + "</td>";
+                                                            trData += "<td align='center'>" + item.Cond4 + "</td>";
+                                                            trData += "<td align='center'>" + item.Cond5 + "</td>";
+                                                            trData += "</tr>";
+                                                            tbResult.append(trData);
+                                                        }
+                        );
+                                                    }
+                                                    busyMode(false);
+                                                },
+                                                error: function (msg) {
+                                                    $("#tdMsg").text("Server error:" + msg.d); busyMode(false);
+                                                }
+                                            });
+                                        }
+
+                                        function busyMode(mode) {
+                                            (mode == true) ? $("#ctl00_UpdateProgress2").css("visibility", "visible") : $("#ctl00_UpdateProgress2").css("visibility", "hidden");
+                                        }
+
+                                        function setOrgIdInContext() {
+                                            var selectedOrgId = $("#ctl00__main_dlOrgId option:selected").val();
+                                            $find('AutoCompleteBehavior').set_contextKey(selectedOrgId);
+                                            //console.log("selectedOrgId:"+selectedOrgId);
+                                        }
+                                    </script>
+                                    <table width="100%">
+                                        <tbody>
+                                            <tr>
+                                                <td>
+                                                    <div onkeypress="javascript:return WebForm_FireDefaultButton(event, 'btnCheckPN')">
+                                                        <table>
+                                                            <tbody>
+                                                                <tr>
+                                                                    <th align="left">
+                                                                        Part No:
+                                                                    </th>
+                                                                    <td>
+                                                                        <input name="ctl00$_main$txtPN" type="text" id="ctl00__main_txtPN" style="width: 150px;"
+                                                                            autocomplete="off">
+                                                                    </td>
+                                                                    <td>
+                                                                        <select name="ctl00$_main$dlOrgId" id="ctl00__main_dlOrgId">
+                                                                            <option selected="selected" value="TW01">TW01</option>
+                                                                            <option value="US01">US01</option>
+                                                                            <option value="EU10">EU10</option>
+                                                                            <option value="CN10">CN10</option>
+                                                                        </select>
+                                                                    </td>
+                                                                    <td>
+                                                                        <input id="btnCheckPN" type="button" value="Query" onclick="verifyPN(this);">
+                                                                    </td>
+                                                                </tr>
+                                                                <tr style="height: 20px">
+                                                                    <td colspan="3" id="tdMsg" style="font-weight: bold; color: Red">
+                                                                    </td>
+                                                                </tr>
+                                                            </tbody>
+                                                        </table>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                            <tr valign="top">
+                                                <td>
+                                                    <input type="image" name="ctl00$_main$imgToXls" id="ctl00__main_imgToXls" src="../../Images/excel.gif"
+                                                        alt="Download Excel" style="border-width: 0px;">
+                                                    <div id="ctl00__main_panel1" style="height: 400px; width: 100%; overflow: auto;">
+                                                        <table width="99%">
+                                                            <thead>
+                                                                <tr>
+                                                                    <th align="left" style="width: 10%">
+                                                                        Price
+                                                                    </th>
+                                                                    <th align="left" style="width: 15%">
+                                                                        Condition Grp1
+                                                                    </th>
+                                                                    <th align="left" style="width: 15%">
+                                                                        Condition Grp2
+                                                                    </th>
+                                                                    <th align="left" style="width: 15%">
+                                                                        Condition Grp3
+                                                                    </th>
+                                                                    <th align="left" style="width: 15%">
+                                                                        Condition Grp4
+                                                                    </th>
+                                                                    <th align="left" style="width: 15%">
+                                                                        Condition Grp5
+                                                                    </th>
+                                                                </tr>
+                                                            </thead>
+                                                            <tbody id="tbResult">
+                                                            </tbody>
+                                                        </table>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td height="5">
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <div class="footer">
+                        <table width="890" border="0" cellpadding="0" cellspacing="0">
+                            <tbody>
+                                <tr>
+                                    <td>
+                                        <table width="890">
+                                            <tbody>
+                                                <tr>
+                                                    <td align="left">
+                                                        Copyright © 1983-2013 Advantech Co., Ltd. All Rights Reserved
+                                                    </td>
+                                                    <td align="right" width="10">
+                                                        <img id="ctl00_Image1" src="../../Images/arrow_black2.jpg" style="border-width: 0px;">
+                                                    </td>
+                                                    <td width="120">
+                                                        <a href="http://www.advantech.com.tw/rss/" style="color: Black" target="_blank">RSS
+                                                            &amp; Subscription</a>
+                                                    </td>
+                                                    <td align="right" width="10">
+                                                        <img id="ctl00_Image7" src="../../Images/arrow_black2.jpg" style="border-width: 0px;">
+                                                    </td>
+                                                    <td width="50">
+                                                        <a href="http://www.advantech.com.tw/sitemap/" style="color: Black" target="_blank">
+                                                            Site Map</a>
+                                                    </td>
+                                                    <td align="right" width="10">
+                                                        <img id="ctl00_Image8" src="../../Images/arrow_black2.jpg" style="border-width: 0px;">
+                                                    </td>
+                                                    <td width="75">
+                                                        <a href="http://www.advantech.com.tw/about/privacy.aspx" style="color: Black" target="_blank">
+                                                            Privacy Policy</a>
+                                                    </td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+    <div id="ctl00_UpdateProgress2" style="visibility: hidden; display: block; left: 657px;
+        top: 0px; position: fixed;" role="status" aria-hidden="true">
+        <div class="Progress">
+            <img id="ctl00_imgMasterLoad" src="../../Images/LoadingRed.gif" style="border-width: 0px;">
+            <b>Loading ...</b>
+        </div>
+    </div>
+    <div id="ctl00_ErroPL" style="left: 711px; top: 0px; position: fixed;">
+        <span id="ctl00_lbErroMessage" style="color: Red; background-color: #EEEEEE; font-size: X-Large;">
+        </span>
+    </div>
+    <div>
+        <input type="hidden" name="__EVENTVALIDATION" id="__EVENTVALIDATION" value="/wEdACXcNKr3YbvECYLmehTAC0TjNw4kzUg3mlvG8L6PehI7P9Eyf58zGoJKYxy6kPmsnFOp+qrTzpf0lHH5qiEX4dww60RQKVoM2I/c6kNGyC3Vq1EpUPfWGywIrOK87lfn+b6625KeUnvcdpgdQo7IrQuT+3ZscvvGIg6LRabDcpFHdrxbt5PNHuL4UFbAHg5zyZWuIORh6tDKPvLfeqRo1wHNCsXs7b6i3iK+IXRRNzBlwSeinekUFG0hxpG/iFhBJtubUgl+2HEFBnMgX6SuhqILPNBil6PGKbST36CW7sWcelyCTIOMYN23EASgsTDPs24HdySregLKRnK7Wq5ceQhuf0t8bNlRQ90sOOpWwPO5uwD58Kok2Q/u4WBS5jW7BpuOTXyfZYHXxSEf18RMVRrqIG81uy3XXpooNYcaOTvtjhSZ9k/f//mCErZ4x1TBkUAfjmv2XQzuZZtC22rv8zxUgfXr8ErLfNyctdYNwVclQ33k0AI71555vN/iaGp5Z28DewmgNqO/j93cXgDhPy1j7Brhm6+WMCAZbA5fKge0/g0KNZyw4OenhEVuBaicRQuSRravDZNJQkYm7R4VB6O5zpn+CqX/etmcLlspXx085csMPf+qv6tEUNFkt0XIk09VekZAH7n66iWui6apxhYL18v6QMniuRlUKTuG7CnALCk9BAqZrxZ+0Oy1Kt6pX11j8qyGKHZ+0emwEEmEb0CDh8diXGWNElTf8Ll4KDRuI2rAq5UZl41YEVLwK6ds0IR6D7Ebm0a6VbBBEjRYfBZeU/SBVueQHbHpN+wbW18KabRybV4=">
+    </div>
+    <script type="text/javascript">
+//<![CDATA[
+        (function () { var fn = function () { $get("ctl00_tlsm1_HiddenField").value = ''; Sys.Application.remove_init(fn); }; Sys.Application.add_init(fn); })(); Sys.Application.add_init(function () {
+            $create(Sys.Extended.UI.AutoCompleteBehavior, { "delimiterCharacters": "", "firstRowSelected": true, "id": "ctl00_ace1", "minimumPrefixLength": 1, "serviceMethod": "GetSearchSuggestionKeys", "servicePath": "../../Services/AutoComplete.asmx" }, null, null, $get("ctl00_txtSearchKey"));
+        });
+//]]> </script>
+    <script type="text/javascript" src="/MyGlobal/WebResource.axd?d=Y-D8APfJ8MONcLlgSHc0e6tox4C7PwBezcifgcUjScpDMD7pmIzABvndHUMHFpGgGESx54C8nKfUYSlYR_J0rHy_1Mjq5DyVd65s_9j9_TE7GFcoRnPhXEl7uPZbVNgCjgZ6JLS31TxWhcMrEqz_N__Fo9E1&amp;t=635079432308434999"></script>
+    <script type="text/javascript">        var ctl00_FlyoutLitTypeLitTypeLabel; function initctl00_FlyoutLitTypeLitTypeLabel(attempt) { try { ctl00_FlyoutLitTypeLitTypeLabel = new Flyout2('ctl00_FlyoutLitTypeLitTypeLabel', 'ctl00_LitTypeLabel', '', 'ctl00_FlyoutLitType_content', 'ABSOLUTE', 'MIDDLE', 'ONCLICK', 'ONMOUSEOUT', 200, 200, 200, 10, -35, 25, 100, 999, true, true, false, false, '#DDDDDD', 25); if (ctl00_FlyoutLitTypeLitTypeLabel.removeOCB != null) { ctl00_FlyoutLitTypeLitTypeLabel.registerOpenEffect(new FlyingEffect('MIDDLE_CENTER')); ctl00_FlyoutLitTypeLitTypeLabel.registerCloseEffect(new FlyingEffect('MIDDLE_CENTER')); } } catch (e) { alert("Failed to initialize [FlyoutLitType] \n.Error:" + e + "\nPlease contact support@obout.com for support."); } } initctl00_FlyoutLitTypeLitTypeLabel(1);</script>
+    <script type="text/javascript">
+//<![CDATA[
+        Sys.Application.add_init(function () {
+            $create(Sys.Extended.UI.AutoCompleteBehavior, { "completionInterval": 100, "contextKey": "TW01", "delimiterCharacters": "", "id": "AutoCompleteBehavior", "minimumPrefixLength": 1, "serviceMethod": "GetPartNo", "servicePath": "/MyGlobal/Admin/PIS/ProductPriceByGrade.aspx", "useContextKey": true }, null, null, $get("ctl00__main_txtPN"));
+        });
+        Sys.Application.add_init(function () {
+            $create(Sys.UI._UpdateProgress, { "associatedUpdatePanelId": null, "displayAfter": 500, "dynamicLayout": false }, null, null, $get("ctl00_UpdateProgress2"));
+        });
+        Sys.Application.add_init(function () {
+            $create(Sys.Extended.UI.AlwaysVisibleControlBehavior, { "HorizontalSide": 1, "id": "ctl00_AlwaysVisibleControlExtender1" }, null, null, $get("ctl00_UpdateProgress2"));
+        });
+        Sys.Application.add_init(function () {
+            $create(Sys.Extended.UI.AlwaysVisibleControlBehavior, { "HorizontalSide": 1, "ScrollEffectDuration": 1, "id": "ctl00_AlwaysVisibleControlExtenderError" }, null, null, $get("ctl00_ErroPL"));
+        });
+//]]> </script>
+    <input type="hidden" value="1" id="hiddenInputToUpdateATBuffer_CommonToolkitScripts"
+        name="hiddenInputToUpdateATBuffer_CommonToolkitScripts"></form>
+    <ul id="ctl00_ace1_completionListElem" style="text-align: left; visibility: hidden;
+        cursor: default; list-style: none; padding: 0px; border: 1px solid gray; background-color: white;
+        color: black; position: absolute;">
+    </ul>
+    <ul id="AutoCompleteBehavior_completionListElem" style="text-align: left; visibility: hidden;
+        cursor: default; list-style: none; padding: 0px; border: 1px solid gray; background-color: white;
+        color: black; position: absolute;">
+    </ul>
+</body>
+</html>

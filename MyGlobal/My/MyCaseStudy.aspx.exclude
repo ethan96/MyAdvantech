@@ -1,0 +1,205 @@
+﻿<%@ Page Title="MyAdvantech - Submit My Case Study" Language="VB" MasterPageFile="~/Includes/MyMaster.master" %>
+
+<script runat="server">
+
+    Protected Sub btnSubmit_Click(ByVal sender As Object, ByVal e As System.EventArgs)
+        lbMsg.Text = ""
+        If RadioButtonList1.SelectedIndex < 0 Then
+            lbMsg.Text = "Please select one account type" : Exit Sub
+        End If
+        If RadioButtonList2.SelectedIndex < 0 Then
+            lbMsg.Text = "Please select one business application area" : Exit Sub
+        End If
+        If txtCSSubject.Text = "" Then
+            lbMsg.Text = "Please enter case study subject" : Exit Sub
+        End If
+        If EditorContent.Content = "" Then
+            lbMsg.Text = "Please input case study content" : Exit Sub
+        End If
+        Dim strHtml As String = GetEmailHtml()
+        Util.SendEmail("ema.chen@advantech.com.tw", "ebusiness.aeu@advantech.eu", "Customer " + Session("user_id") + " submitted a case study", strHtml, True, "ebusiness.aeu@advantech.eu", "")
+        lbMsg.Text = "Your Case Study has been submitted, thank you."
+        Util.AjaxRedirect(Me.upMsg, "../home.aspx")
+    End Sub
+
+    Protected Sub Page_Load(ByVal sender As Object, ByVal e As System.EventArgs)
+        If Not Page.IsPostBack Then
+            
+        End If
+    End Sub
+    
+    Function GetEmailHtml() As String
+        Dim sb As New System.Text.StringBuilder
+        With sb
+            .AppendLine(String.Format("Dear Ema,<br /><br />"))
+            .AppendLine(String.Format("{0} submitted a case study:<br />", Session("user_id")))
+            .AppendLine(String.Format("<table>"))
+            .AppendLine(String.Format(" <tr><th align='left'>Account Type</th><td>{0}</td></tr>", RadioButtonList1.SelectedValue))
+            .AppendLine(String.Format(" <tr><th align='left'>BAA</th><td>{0}</td></tr>", RadioButtonList2.SelectedValue))
+            .AppendLine(String.Format(" <tr><th align='left'>Subject</th><td>{0}</td></tr>", txtCSSubject.Text))
+            .AppendLine(String.Format(" <tr><th align='left'>Content</th><td>{0}</td></tr>", EditorContent.Content))
+            .AppendLine(String.Format("</table>"))
+            .AppendLine(String.Format("<br />"))
+            .AppendLine(String.Format("Best regards,<br />"))
+            .AppendLine(String.Format("eBusiness Europe IT Team"))
+        End With
+        Return sb.ToString()
+    End Function
+</script>
+
+<asp:Content ID="Content1" ContentPlaceHolderID="_main" Runat="Server">
+    
+    <table width="1000px">
+        <tr><td colspan="2" style="height:10px">&nbsp;</td></tr>
+        <tr>
+            <th colspan="2">
+                <h1>Submit Your Case Study</h1>
+            </th>
+        </tr>
+        <tr><td colspan="2" style="height:10px">&nbsp;</td></tr>
+        <tr>
+            <td style="width:20px">&nbsp;</td>
+            <th align="left" style="background-color:#EEEEEE; font-size:larger;">Account Type</th>
+        </tr>
+        <tr>
+            <td style="width:20px">&nbsp;</td>
+            <td>
+                <asp:RadioButtonList runat="server" ID="RadioButtonList1" RepeatDirection="Horizontal" RepeatColumns="5" Width="100%">
+                    <asp:ListItem Value="End user - General" />
+                    <asp:ListItem Value="SI / VAR" />
+                    <asp:ListItem Value="Others" />
+                    <asp:ListItem Value="OEM" />
+                    <asp:ListItem Value="Distributor" />
+                    <asp:ListItem Value="OEM/ODM" />
+                    <asp:ListItem Value="Machine Manufactor" />
+                    <asp:ListItem Value="End user - eStore" />
+                    <asp:ListItem Value="Trader Import/Export" />
+                    <asp:ListItem Value="Consultant" />
+                    <asp:ListItem Value="End user - Education" />
+                    <asp:ListItem Value="SMA" />
+                    <asp:ListItem Value="SYS" />
+                    <asp:ListItem Value="End user - Government" />
+                    <asp:ListItem Value="End User - Medical" />
+                    <asp:ListItem Value="End user - Military" />
+                    <asp:ListItem Value="Focused Channel Partner" />
+                    <asp:ListItem Value="Alliance Partner" />
+                    <asp:ListItem Value="Representative" />
+                    <asp:ListItem Value="Solution Partner" />
+                    <asp:ListItem Value="Press-Printed Media" />
+                    <asp:ListItem Value="Construction Engineering" />
+                    <asp:ListItem Value="ODM" />
+                    <asp:ListItem Value="Internal Division" />
+                </asp:RadioButtonList>
+            </td>
+        </tr>
+        <tr>
+            <td style="width:20px">&nbsp;</td>
+            <th align="left" style="background-color:#EEEEEE; font-size:larger;">Business Application Area</th>
+        </tr>
+        <tr>
+            <td style="width:20px">&nbsp;</td>
+            <td>
+                <asp:RadioButtonList runat="server" ID="RadioButtonList2" RepeatDirection="Horizontal" RepeatColumns="4" Width="100%">
+                    <asp:ListItem Value="Factory Automation" />
+                    <asp:ListItem Value="Consulting/Engineering/System Integrator" />
+                    <asp:ListItem Value="Others" />
+                    <asp:ListItem Value="Pharmaceutical/Medical/Healthcare" />
+                    <asp:ListItem Value="Factory/ Machine Automation" />
+                    <asp:ListItem Value="ECG/US Account" />
+                    <asp:ListItem Value="Test/Measurement/Instrumentation" />
+                    <asp:ListItem Value="IAG/US Account" />
+                    <asp:ListItem Value="Power & Energy" />
+                    <asp:ListItem Value="Industrial Equipment Manufacturing" />
+                    <asp:ListItem Value="Digi Signage/Info Display/Narrow Casting/Streaming" />
+                    <asp:ListItem Value="Telecommunications" />
+                    <asp:ListItem Value="Transportation" />
+                    <asp:ListItem Value="Aircraft/aerospace" />
+                    <asp:ListItem Value="Machine Automation" />
+                    <asp:ListItem Value="Security & Video Surveillance" />
+                    <asp:ListItem Value="Remote Monitoring & Control" />
+                    <asp:ListItem Value="Building Automation" />
+                    <asp:ListItem Value="Embedded Computing." />
+                    <asp:ListItem Value="Automotive" />
+                </asp:RadioButtonList>
+            </td>
+        </tr>
+        <tr>
+            <td style="width:20px">&nbsp;</td>
+            <th align="left" style="background-color:#EEEEEE; font-size:larger;">Case Study Subject</th>
+        </tr>
+        <tr>
+            <td style="width:20px">&nbsp;</td>
+            <td>
+                <asp:TextBox runat="server" ID="txtCSSubject" Width="300px" />
+            </td>
+        </tr>
+        <tr>
+            <td style="width:20px">&nbsp;</td>
+            <th align="left" style="background-color:#EEEEEE; font-size:larger;">Case Study Content</th>
+        </tr>
+        <tr>
+            <td style="width:20px">&nbsp;</td>
+            <td>
+                <ajaxToolkit:Editor runat="server" ID="EditorContent" Width="800px" Height="350px" />
+            </td>
+        </tr>
+        <tr>
+            <td style="width:20px">&nbsp;</td>
+            <th align="left" style="background-color:#EEEEEE; font-size:larger;">System Structure Picture</th>
+        </tr>
+        <tr>
+            <td style="width:20px">&nbsp;</td>
+            <td style="width:100%">
+                <ajaxToolkit:AsyncFileUpload runat="server" ID="afupSysPic" Width="800px" 
+                    ThrobberID="imgUploadingSysStruct" 
+                    OnClientUploadError="uploadError" OnClientUploadStarted="StartUpload" 
+                    OnClientUploadComplete="UploadComplete" 
+                    CompleteBackColor="Lime" UploaderStyle="Modern" 
+                    ErrorBackColor="Red" UploadingBackColor="#66CCFF" />&nbsp;<asp:Image runat="server" ID="imgUploadingSysStruct" ImageUrl="~/Images/loading2.gif" AlternateText="Loading..." />                
+            </td>
+        </tr>
+        <tr>
+            <td></td><td id="div_UpSysImgStatus"></td>
+        </tr>
+        <tr><td colspan="2" style="height:10px">&nbsp;</td></tr>
+        <tr>
+            <td colspan="2" align="center">
+                <asp:Button runat="server" ID="btnSubmit" Text="Submit" OnClick="btnSubmit_Click" />                
+            </td>
+        </tr>
+        <tr>
+            <td style="width:20px">&nbsp;</td>
+            <td>
+                <asp:UpdatePanel runat="server" ID="upMsg" UpdateMode="Conditional">
+                    <ContentTemplate>
+                        <asp:Label runat="server" ID="lbMsg" Font-Bold="true" Font-Size="Larger" ForeColor="Tomato" />
+                    </ContentTemplate>
+                    <Triggers>
+                        <asp:AsyncPostBackTrigger ControlID="btnSubmit" EventName="Click" />
+                    </Triggers>
+                </asp:UpdatePanel>
+            </td>
+        </tr>
+        <tr><td colspan="2" style="height:10px">&nbsp;</td></tr>
+    </table>    
+    <script type="text/javascript" language="javascript">       
+        function uploadError(sender, args) {
+            document.getElementById('div_UpSysImgStatus').innerHTML = args.get_fileName(),
+	        "<span style='color:red;'>" + args.get_errorMessage() + "</span>";
+        }
+
+        function StartUpload(sender, args) {
+            document.getElementById('div_UpSysImgStatus').innerHTML = 'Uploading Started.';
+        }
+
+        function UploadComplete(sender, args) {
+            var filename = args.get_fileName();
+            var contentType = args.get_contentType();
+            var text = "Size of " + filename + " is " + args.get_length() + " bytes";
+            if (contentType.length > 0) {
+                text += " and content type is '" + contentType + "'.";
+            }
+            document.getElementById('div_UpSysImgStatus').innerHTML = text;
+        }
+    </script>
+</asp:Content>

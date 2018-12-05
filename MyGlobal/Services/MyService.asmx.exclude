@@ -1,0 +1,25 @@
+﻿<%@ WebService Language="VB" Class="MyService" %>
+
+Imports System.Web
+Imports System.Web.Services
+Imports System.Web.Services.Protocols
+
+' To allow this Web Service to be called from script, using ASP.NET AJAX, uncomment the following line.
+' <System.Web.Script.Services.ScriptService()> _
+<WebService(Namespace:="eBizAEU")> _
+<WebServiceBinding(ConformsTo:=WsiProfiles.BasicProfile1_1)> _
+Public Class MyService
+    Inherits System.Web.Services.WebService
+    
+    <WebMethod()> _
+    Public Function IsCP(ByVal email As String) As Boolean
+        Dim i As Integer = dbUtil.dbExecuteScalar("RFM", _
+        String.Format("select count(row_id) from siebel_contact where email_address='{0}' and account_status in ('01-Platinum Channel Partner','02-Gold Channel Partner','03-Certified Channel Partner','03-Premier Key Account','04-Premier Key Account','05-D&Ms PKA','06G-Golden Key Account(ACN)','06-Key Account') ", email.Replace("'", "")))
+        If i > 0 Then
+            Return True
+        Else
+            Return False
+        End If
+    End Function
+
+End Class

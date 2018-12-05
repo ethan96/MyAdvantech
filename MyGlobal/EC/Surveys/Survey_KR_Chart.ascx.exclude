@@ -1,0 +1,128 @@
+﻿<%@ Control Language="VB" ClassName="Survey_KR_Chart" %>
+
+<script runat="server">
+    Private _Rowid As String  
+    Public Property Rowid() As String
+        Get
+            Return _Rowid
+        End Get
+        Set(ByVal value As String)
+            _Rowid = value
+        End Set
+    End Property
+
+    Private Function GetColor(ByVal OptionNum As Integer) As Integer()
+        Select Case OptionNum
+            Case 2
+                Return {&H66AAEE, &HEEBB22}
+            Case 3
+                Return {&H66AAEE, &HEEBB22, &HBBBBBB}
+            Case 4
+                Return {&H66AAEE, &HEEBB22, &HBBBBBB, &H8844FF}
+            Case 5
+                Return {&H66AAEE, &HEEBB22, &HBBBBBB, &H8844FF, &HDD2222}
+            Case 6
+                Return {&H66AAEE, &HEEBB22, &HBBBBBB, &H8844FF, &HDD2222, &H9900}
+        End Select
+        Return Nothing
+    End Function
+    Private Function GetData(ByVal rowid As String, ByRef data As Double(), ByRef labels As String(), ByRef title As String, ColorNum As Integer) As Integer
+        If True OrElse rowid = "Q1" Then
+            Dim values_ORI() As Double = Nothing
+            Dim labels_ORI() As String = Nothing
+            'data = {21, 18, 15, 20, 34}
+            'labels = {"IPC, PPC,ARK, UNO, 네트워크 장비등 시스템 제품군 ", "SOM, SBC, AIMB, CPU 카드등 산업용 보드 제품군", _
+            '"각종 카드 및 확장 모듈 제품군", "DTOS(Design to Order Service), OEM/ODM Service", "Microsoft Embedded OS외 기타 제품군"}
+            title = rowid '"귀하께서는 2011년도 어드밴텍의 제품 및 서비스를 구매하신 경험이 있으십니까?"
+            Select Case rowid
+                Case "Q1"
+                    title = rowid + " 귀하께서는 2011년도 어드밴텍의 제품 및 서비스를 구매하신 경험이 있으십니까?"
+                Case "Q2"
+                    title = rowid + " 2011년도 어드밴텍 제품 및 서비스를 구매하셨다면 주로 어떤 제품 및 서비스를 구매하셨습니까? "
+                Case "Q3"
+                    title = rowid + " 어드밴텍 제품 및 서비스를 구매 결정을 하신 가장 주된 요인은 무엇입니까?  "
+                Case "Q4"
+                    title = rowid + " 귀하께서는 어드밴텍의 제품 및 서비스를 구매 결정을 포기하시는 가장 주된 원인은 무엇입니까? "
+                Case "Q5"
+                    title = rowid + " 귀하께서는 추후에 어드밴텍 제품을 사용하실 의향은 있으십니까? "
+                Case "Q6"
+                    title = rowid + " 귀하께서는 이후 어드밴텍 담당 영업사원이 배치되어 제품의 기술 교육 및 데모 소개 위해 ...?"
+                Case "Q7_1"
+                    title = rowid + " 제품 성능"
+                Case "Q7_2"
+                    title = rowid + " 제품의 납기 및 배송"
+                Case "Q7_3"
+                    title = rowid + " 제품 품질 및 내구성 "
+                Case "Q7_4"
+                    title = rowid + " 제품 및 서비스 가격"
+                Case "Q7_5"
+                    title = rowid + " 제품의 출시 시기"
+                Case "Q8_1"
+                    title = rowid + " 상담시 친철도"
+                Case "Q8_2"
+                    title = rowid + " 웹 서비스 지원 (웹정보,회원가입,로그인 등)"
+                Case "Q8_3"
+                    title = rowid + " 기술지원 및 A/S"
+                Case "Q8_4"
+                    title = rowid + " 영업 사원의 숙련도 "
+                Case "Q9"
+                    title = rowid + " 소식지에 항상 열람하십니까? "
+                Case "Q10"
+                    title = rowid + " 소식지에 대한 내용에 만족하십니까?  "
+                Case "Q11"
+                    title = rowid + " 어드밴텍에서 제공하는 아래 정보지 중 가장 도움이 된다고 생각하시는 것을 선택해 주세요.  "
+                Case "Q12"
+                    title = rowid + " 2012년도 국내 자동화 산업을 어떻게 전망하십니까? "
+                Case "Q13"
+                    title = rowid + " 경기 회복한다면 그 시기는 언제 정도일 것으로 예상하십니까? "
+            End Select
+                
+            Dim dt As DataTable = dbUtil.dbGetDataTable("MyLocal", _
+                    String.Format("select {0} AS label ,COUNT(ROWID) as c from Survey_KR_eStore WHERE {0} IS NOT NULL AND {0} <> ''  and {0} <> ' | ' group by ({0})", rowid))
+            ReDim values_ORI(dt.Rows.Count - 1)
+            ReDim labels_ORI(dt.Rows.Count - 1)
+            For i As Integer = 0 To dt.Rows.Count - 1
+                values_ORI(i) = Double.Parse(dt.Rows(i).Item("c"))
+                labels_ORI(i) = dt.Rows(i).Item("label")
+            Next
+            ColorNum = dt.Rows.Count
+            data = values_ORI
+            labels = labels_ORI
+        End If
+        Return 1
+    End Function
+    Protected Sub Page_Load(sender As Object, e As System.EventArgs)
+        If Not IsPostBack AndAlso Rowid <> "" Then
+            Dim data() As Double = Nothing '{21, 18, 15, 20, 34}
+            Dim labels() As String = Nothing '
+            Dim title As String = "", ColorNum As Integer = 0
+            GetData(Rowid, data, labels, title, ColorNum)
+            Dim colors() As Integer = GetColor(5)
+            Dim c As PieChart = New PieChart(970, 320)
+            c.setBackground(c.linearGradientColor(0, 0, 0, 100, &H99CCFF, &HFFFFFF), &H888888)
+            c.setRoundedFrame()
+            c.addTitle(title, "Times New Roman Bold Italic", 14).setMargin2(0, 0, 16, 0)
+            c.setPieSize(160, 165, 110)
+            c.set3D(25)
+            c.setData(data, labels)
+            c.setColors2(Chart.DataColor, colors)
+            c.setLabelLayout(Chart.SideLayout, 16)
+            c.setLabelFormat("{={sector}+1}")
+            c.setLabelStyle("Arial Bold", 10).setBackground(Chart.Transparent, &H444444)
+            Dim b As LegendBox = c.addLegend(330, 175, True, "Arial Bold Italic", 10)
+            b.setAlignment(Chart.Left)
+            b.setBackground(Chart.Transparent, &H444444)
+            b.setRoundedCorners()
+            b.setMargin(16)
+            b.setKeySpacing(0, 5)
+            b.setKeyBorder(Chart.SameAsMainColor)
+            b.setText( _
+                "<*block,valign=top*>{={sector}+1}.<*advanceTo=22*><*block,width=470*>" & _
+                "{label}<*/*><*block,width=48,halign=right*>{percent}<*/*>%")
+            WebChartViewer1.Image = c.makeWebImage(Chart.PNG)
+            WebChartViewer1.ImageMap = c.getHTMLImageMap("", "", _
+                "title='{label}: {value} been chosen  ({percent}%)'")
+        End If
+    End Sub
+</script>
+ <chartdir:WebChartViewer ID="WebChartViewer1" runat="server" /><br />

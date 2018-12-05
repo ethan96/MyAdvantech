@@ -1,0 +1,180 @@
+.iplanet_online_product_Other{
+  clear:both;
+  margin-top:12px;
+  border:1px solid #c7c7c7; 
+  height:145px;
+  background-repeat:no-repeat;
+  background-color:#ebebeb;
+}
+
+.iplanet_online_product_Other ul{
+  padding:0;
+  list-style-type:none;
+  font-size:11px;
+  color:#666;
+  margin:5px 0 0 0;
+  
+}
+
+.iplanet_online_product_help02{
+  border-right:1px solid #c7c7c7; 
+  width:178px;
+  height:128px;
+  font-size:10px;
+  padding-top:16px;
+  padding-left:5px;
+  float:left;
+  background-color:#fff;
+}
+
+
+.iplanet_online_product_service{
+  float:left;
+  width:130px;
+  height:120px;
+  padding:10px 10px 15px 14px;
+  
+  height:130px\9; /* IE Only */
+}
+
+.iplanet_online_product_service li{
+ line-height:13px; 
+}
+
+.iplanet_online_right{
+   float:left;
+   width:180px;
+   margin-left:12px;
+   margin-top:5px;
+}
+
+.iplanet_online_order{
+    float:right;
+    color:#666;
+}
+.text_mini{
+    clear:both;
+	font-size:10px;
+	color:#000;
+}
+
+
+
+/* MyAdvantech
+--------------------------------------------------------- */
+h3.title-orange {
+	margin:0;
+	padding-bottom:8px;
+	border-bottom:dotted #CCC 1px;
+	color:#F90;
+	text-transform:uppercase;
+}
+ul.plussign {
+	list-style: none;
+	margin: 0;
+	padding: 0;
+	display: block;
+}
+ul.plussign li {
+	display: block;
+	background: none;
+	margin: 0;
+	padding: 0;
+	line-height: normal;
+}
+ul.plussign li a {
+	display: block;
+	outline: none;
+	padding: 4px 12px;
+	margin: 0;
+	text-decoration: none;
+	color: #3399FF;
+	background: url(../images/plus.png) no-repeat 2px 8px;
+}
+ul.plussign li a:hover, ul.plussign li a:active, ul.plussign li a:focus {
+	color: #CC0000;
+	text-decoration: none;
+	background: url(../images/plus-on.png) no-repeat 2px 8px #F7F7F7;
+}
+ul.plussign li.active a {
+	font-weight: bold;
+	background: url(../images/plus-active.png) no-repeat 2px 8px #F7F7F7;
+	color: #CC0000;
+}
+/* MyAdvantech Login
+--------------------------------------------------------- */
+div.module_gray {
+	background:#999999;
+	border:1px solid #7c7c7c;
+	margin-top:0;
+}
+div.module_gray div {
+	padding:4px 0;
+}
+div.module_gray label {
+	padding:0 2px;;
+	color:#dddddd;
+}
+
+#fm-uid, #fm-pwd {
+	width:90%;
+	color:#333;
+	border: 1px solid #CCC;
+	background:#FFFFFF;
+	padding: 5px;
+}
+
+#fm-rememberme {
+	border: 1px solid #CCC;
+	background:#FFFFFF;
+
+}
+
+.fm-login {
+	background: url(../images/btn-login.gif) no-repeat top #333333;
+	border: none;
+	color: #FFFFFF;
+	cursor: pointer;
+	font-size: 12px;
+	font-weight: bold;
+	margin: 0;
+	height: 40px;
+	width: 95px;
+	display:block;
+	text-transform:uppercase;
+	text-align:left;
+	padding: 0 0 2px 30px;
+}
+.fm-login:hover, .fm-login:active {
+	background: url(../images/btn-login.gif) no-repeat bottom #666666;
+	color: #000;
+}
+h3.title-login {
+	margin:0;
+	padding-bottom:8px;
+	color:#DDDDDD;
+	text-transform:uppercase;
+}
+h3.title-login span {
+	color:#FFF;
+}
+
+/* MyAdvantech Login
+--------------------------------------------------------- */
+
+
+div.at-list1 h3 {
+	font-size:100%;
+	border-bottom:1px solid #333;
+	font-weight:bold;
+	padding:0 0 10px;
+	margin:0 0 10px;
+	color:#333;
+}
+div.at-list1 img {
+	border:1px solid #E1E1E1;
+	padding:3px;
+	margin-right:10px
+}
+.hide {      display:none;
+}

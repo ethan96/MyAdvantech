@@ -1,0 +1,92 @@
+﻿<%@ Page Title="MyAdvantech - SBU Campaign Overview" Language="VB" MasterPageFile="~/Includes/MyMaster.master" %>
+
+<script runat="server">
+
+    Protected Sub gvCampaigns_RowDataBound(sender As Object, e As System.Web.UI.WebControls.GridViewRowEventArgs)
+        If e.Row.RowType = DataControlRowType.DataRow Then
+            CType(e.Row.FindControl("srcRowCMS"), SqlDataSource).SelectParameters("UCID").DefaultValue = CType(e.Row.FindControl("hdUCID"), HiddenField).Value
+        End If
+    End Sub
+
+    Protected Sub Page_Load(ByVal sender As Object, ByVal e As System.EventArgs)
+        Response.Redirect("UNICA_SBU_Campaigns_New.aspx")
+        If Request("CMSID") IsNot Nothing Then
+            Dim CWS As New CorpAdminWS.AdminWebService
+            Dim strUrl As String = ""
+            Try
+                strUrl = CWS.Get_EDM_Source_File_By_CMD_ID(Request("CMSID"))
+                If String.IsNullOrEmpty(strUrl) Then
+                    Response.Clear()
+                    Response.Write("Cannot find URL for CMS ID:" + Request("CMSID"))
+                    Response.End()
+                Else
+                    Response.Redirect(strUrl)
+                End If
+            Catch ex As Exception
+
+            End Try
+        End If
+    End Sub
+</script>
+
+<asp:Content ID="Content1" ContentPlaceHolderID="_main" Runat="Server">
+    <h2>SBU Campaign Overview</h2><br />
+    <asp:HyperLink runat="server" ID="hyMyCampaigns" NavigateUrl="~/My/Campaign/CampaignList.aspx" Text="My Campaigns" />
+    <asp:GridView runat="server" ID="gvCampaigns" Width="100%" AutoGenerateColumns="false" DataSourceID="srcCampaigns" OnRowDataBound="gvCampaigns_RowDataBound">
+        <Columns>
+            <asp:BoundField HeaderText="Campaign ID" DataField="CampaignCode" SortExpression="CampaignCode" />
+            <asp:BoundField HeaderText="Campaign Name" DataField="CampaignName" ItemStyle-CssClass="Tnowrap"  SortExpression="CampaignName" />
+            <asp:TemplateField HeaderText="Campaign Period" ItemStyle-CssClass="Tnowrap" >
+                <ItemTemplate>
+                    <%#CDate(Eval("StartDate")).ToString("MM-dd-yyyy")%>~<%#CDate(Eval("EndDate")).ToString("MM-dd-yyyy")%>
+                </ItemTemplate>
+            </asp:TemplateField>
+            <asp:BoundField HeaderText="Theme/Slogan" DataField="Description" SortExpression="Description" />
+            <asp:BoundField HeaderText="Sector/Industry" DataField="TargetSolution" SortExpression="TargetSolution" />
+            <asp:BoundField HeaderText="Key Product/Solution" DataField="ProductGroup" SortExpression="ProductGroup" />
+            <asp:BoundField HeaderText="SBU Owner" DataField="Creator" SortExpression="Creator" />
+            <asp:TemplateField HeaderText="Campaign Packages">
+                <ItemTemplate>
+                    <asp:HiddenField runat="server" ID="hdUCID" Value='<%#Eval("CampaignID") %>' />
+                    <asp:GridView runat="server" ID="gvCMSPackages"  AutoGenerateColumns="false" DataSourceID="srcRowCMS" ShowHeader="false">
+                        <Columns>
+                            <asp:TemplateField>
+                                <ItemTemplate>
+                                    <a target="_blank" href='UNICA_SBU_Campaigns.aspx?CMSID=<%#Eval("CMS_Content_Id")%>'><%#Eval("Name")%></a>
+                                </ItemTemplate>
+                            </asp:TemplateField>
+                        </Columns>
+                    </asp:GridView>
+                    <asp:SqlDataSource runat="server" ID="srcRowCMS" ConnectionString="<%$ConnectionStrings:MY %>" 
+                        SelectCommand="select b.Name, b.OfferCode1+'-'+b.OfferCode2+'-'+b.OfferCode3+'-'+b.OfferCode4+'-'+b.OfferCode5 as CMS_Content_Id
+                        from UNICADBP.dbo.UA_CampToOffer a inner join UNICADBP.dbo.UA_Offer b on a.OfferID=b.OfferID 
+                        where a.CampaignID=@UCID
+                        order by b.Name">
+                        <SelectParameters>
+                            <asp:Parameter ConvertEmptyStringToNull="false" Name="UCID" />
+                        </SelectParameters>
+                    </asp:SqlDataSource>
+                </ItemTemplate>
+            </asp:TemplateField>
+              <asp:TemplateField HeaderText="Campaign Request" ItemStyle-HorizontalAlign="Center" HeaderStyle-HorizontalAlign="Center">
+                <ItemTemplate>
+                    <asp:HyperLink ID="HLRequest" Target="_blank" runat="server" NavigateUrl='<%# Eval("CampaignID", "../Campaign/CampaignRequest.aspx?CampaignID={0}") %>'>
+                                 Request
+                    </asp:HyperLink>
+                </ItemTemplate>
+            </asp:TemplateField>
+        </Columns>
+    </asp:GridView>
+    <asp:SqlDataSource runat="server" ID="srcCampaigns" ConnectionString="<%$ConnectionStrings:MY %>" 
+    SelectCommand=" select a.CampaignID, a.CampaignCode, a.Name as CampaignName, a.Description,  c.NAME as Creator, d.NAME as LastUpdBy,
+     IsNull((select top 1 z.StringValue from UNICADBP.dbo.UA_CampAttribute z where z.CampaignID=a.CampaignID and z.AttributeID=100),'') as ProductGroup,
+     IsNull((select top 1 z.StringValue from UNICADBP.dbo.UA_CampAttribute z where z.CampaignID=a.CampaignID and z.AttributeID=101),'') as TargetSolution,
+     IsNull((select top 1 z.StringValue from UNICADBP.dbo.UA_CampAttribute z where z.CampaignID=a.CampaignID and z.AttributeID=102),'') as ParentCampaignCode,
+     b.Name as SBU_Name, a.CreateDate, a.StartDate, a.EndDate 
+     from UNICADBP.dbo.UA_Campaign a inner join UNICADBP.dbo.UA_Folder b on a.FolderID=b.FolderID inner join UNICAMPP.dbo.USM_USER c on a.CreateBy=c.ID
+     inner join UNICAMPP.dbo.USM_USER d on a.UpdateBy=d.ID
+     where b.NAME like 'SBU%' 
+     order by a.StartDate, a.EndDate ">
+    </asp:SqlDataSource>    
+</asp:Content>
+

@@ -1,0 +1,188 @@
+﻿<%@ Page Language="VB" MasterPageFile="~/Includes/MyMaster.master" Title="MyAdvantech - Customize My Homepage" %>
+
+<script runat="server">
+    Function GetSql() As String
+        Dim sb As New System.Text.StringBuilder
+        With sb
+            .AppendLine(String.Format(" select block_id,  "))
+            .AppendLine(String.Format(" case block_id   "))
+            .AppendLine(String.Format(" 	when 'tr_MyLeads' then 'My Sales Leads' "))
+            .AppendLine(String.Format(" 	when 'tr_MyCal' then 'My Calendar' "))
+            .AppendLine(String.Format(" 	when 'tr_MyKASrv' then 'My Product Service' "))
+            .AppendLine(String.Format(" 	when 'tr_MyQuoteDraft' then 'My Quotation' "))
+            .AppendLine(String.Format(" 	when 'tr_MySalesBackOrder' then 'Sales Back Order' "))
+            .AppendLine(String.Format(" 	when 'tr_PtnrLocator' then 'Partner Locator' "))
+            .AppendLine(String.Format(" 	when 'tr_MyPerf' then 'My Performance' "))
+            .AppendLine(String.Format(" 	when 'tr_MyBO' then 'My Back Order' "))
+            .AppendLine(String.Format(" 	when 'tr_MyRMA' then 'My RMA' "))
+            .AppendLine(String.Format(" 	when 'tr_MySR' then 'My Service Request' "))
+            .AppendLine(String.Format(" 	when 'tr_MyEDM' then 'My eNewsletter' "))
+            .AppendLine(String.Format(" 	when 'tr_LiveChat' then 'Live Chat' "))
+            .AppendLine(String.Format(" end as block_name "))
+            .AppendLine(String.Format(" from my_home_blocks  "))
+            .AppendLine(String.Format(" where userid='{0}' and is_hide=1 ", Session("user_id")))
+        End With
+        Return sb.ToString()
+    End Function
+    
+    <Services.WebMethod()> _
+    <Web.Script.Services.ScriptMethod()> _
+    Public Shared Sub OpenFuncBlock(ByVal blockid As String)
+        If CInt(dbUtil.dbExecuteScalar("MY", String.Format("select count(*) from my_home_blocks where userid='{0}' and block_id='{1}' and is_hide=1", HttpContext.Current.Session("user_id"), blockid.Replace("'", "").Trim()))) > 0 Then
+            dbUtil.dbExecuteNoQuery("MY", String.Format("delete from MY_HOME_BLOCKS where userid='{0}' and block_id='{1}'  and is_hide=1 ", HttpContext.Current.Session("user_id"), blockid.Replace("'", "").Trim()))
+        End If
+    End Sub
+    
+    Protected Sub Page_Load(ByVal sender As Object, ByVal e As System.EventArgs)
+        If Not Page.IsPostBack Then
+            srcMyBlock.SelectCommand = GetSql()
+            If Global_Inc.IsCanPlaceOrder(Session("user_id")) = False Then
+                If cblMyLinks.Items.FindByValue("/Order/Cart_List.aspx") IsNot Nothing Then
+                    cblMyLinks.Items.Remove(cblMyLinks.Items.FindByValue("/Order/Cart_List.aspx"))
+                End If
+            End If
+            CheckMyLinks()
+        End If
+    End Sub
+    
+    Sub CheckMyLinks()
+        HideInternalLinks()
+        Dim dt As DataTable = dbUtil.dbGetDataTable("MY", "select lnk from my_home_links where userid='" + Session("user_id") + "'")
+        For Each r As DataRow In dt.Rows
+            If cblMyLinks.Items.FindByValue(r.Item("lnk").ToString()) IsNot Nothing Then
+                cblMyLinks.Items.FindByValue(r.Item("lnk").ToString()).Selected = True
+            End If
+        Next
+    End Sub
+
+    Sub HideInternalLinks()
+        If (Not Util.IsAEUIT()) And (Not Util.IsInternalUser2()) Then
+            Dim intfunc() As String = {"/eQuotation/price_bylevel.aspx", "/eQuotation/Quotation_History.aspx", _
+                                       "/eQuotation/Quotation_Draft.aspx", "/eQuotation/MyTeamsQuotationRequest.aspx"}
+            For Each funcvalue As String In intfunc
+                If cblMyLinks.Items.FindByValue(funcvalue) IsNot Nothing Then cblMyLinks.Items.Remove(cblMyLinks.Items.FindByValue(funcvalue))
+            Next
+        End If
+    End Sub
+    
+    Protected Sub btnUpdateMyLinks_Click(ByVal sender As Object, ByVal e As System.EventArgs)
+        Dim hdoc As New HtmlAgilityPack.HtmlDocument
+        For Each li As ListItem In cblMyLinks.Items
+            If li.Selected Then
+                If CInt(dbUtil.dbExecuteScalar("MY", _
+                                               String.Format("select count(lnk) from my_home_links where userid='{0}' and lnk='{1}'", Session("user_id"), li.Value.Replace("'", "''")))) = 0 Then
+                    hdoc.LoadHtml(li.Text)
+                    dbUtil.dbExecuteNoQuery("MY", String.Format("insert into my_home_links (userid, lnk, lnk_name) values ('{0}', '{1}', N'{2}')", Session("user_id"), li.Value.Replace("'", "''"), hdoc.DocumentNode.InnerText.Replace("'", "''")))
+                End If
+            Else
+                dbUtil.dbExecuteNoQuery("MY", String.Format("delete from my_home_links where userid='{0}' and lnk='{1}'", Session("user_id"), li.Value.Replace("'", "''")))
+            End If
+        Next
+        Me.lbMyLnkMsg.Text = "Updated"
+    End Sub
+</script>
+
+<asp:Content ID="Content1" ContentPlaceHolderID="_main" Runat="Server">
+    <table width="100%">
+        <tr>
+            <td>
+                <table width="100%">
+                    <tr>
+                        <th align="left" style="font-size:medium; color:Navy;">My Function Blocks</th>
+                    </tr>
+                    <tr>
+                        <td>
+                            <asp:GridView EmptyDataText="All Function Blocks are enabled" runat="server" ID="gvMyBlock" Width="500px" AutoGenerateColumns="false" DataSourceID="srcMyBlock" ShowHeader="false">
+                                <Columns>
+                                    <asp:TemplateField>
+                                        <ItemTemplate>
+                                            <table width="100%">
+                                                <tr>
+                                                    <th align="left" style="width:80%"><asp:Label runat="server" ID="lbBlockName" Text='<%#Eval("block_name") %>' /></th>
+                                                    <td style="width:20%">
+                                                        <a style="font-weight:bold;" href="javascript:void(0);" 
+                                                            id='a_close_<%#Eval("block_id") %>' 
+                                                            onclick="OpenBlock('<%#Eval("block_id") %>','a_close_<%#Eval("block_id") %>');">Enable</a>
+                                                    </td>
+                                                </tr>
+                                            </table>
+                                        </ItemTemplate>
+                                    </asp:TemplateField>
+                                </Columns>
+                            </asp:GridView>
+                            <asp:SqlDataSource runat="server" ID="srcMyBlock" ConnectionString="<%$ConnectionStrings:MY %>" />
+                        </td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <table width="100%">
+                    <tr>
+                        <th align="left" style="font-size:medium; color:Navy;" colspan="1">My Shortcuts</th>
+                    </tr>
+                    <tr>
+                        <td colspan="1">
+                            <asp:CheckBoxList runat="server" ID="cblMyLinks" RepeatColumns="4" RepeatDirection="Horizontal" Width="80%">    
+                                <asp:ListItem Text="My Back Order" Value="/Order/BO_BackOrderInquiry.aspx"><a target="_blank" href="/Order/BO_BackOrderInquiry.aspx">My Back Order</a></asp:ListItem>   
+                                <asp:ListItem Text="My Invoice" Value="/order/BO_invoiceinquiry.aspx"><a target="_blank" href="/order/BO_invoiceinquiry.aspx">My Invoice</a></asp:ListItem> 
+                                <asp:ListItem Text="My Account Payable" Value="/order/ARInquiry_WS.aspx"><a target="_blank" href="/order/ARInquiry_WS.aspx">My Account Payable</a></asp:ListItem>
+                                <asp:ListItem Text="Serial Number Inquiry" Value="/order/BO_serialinquiry.aspx"><a target="_blank" href="/order/BO_serialinquiry.aspx">Serial Number Inquiry</a></asp:ListItem>                                                              
+                                <asp:ListItem Text="Forwarder Number Tracking" Value="/order/BO_forwardertracking.aspx"><a target="_blank" href="/order/BO_forwardertracking.aspx">Forwarder Number Tracking</a></asp:ListItem>
+                                <asp:ListItem Text="Check ACL Availability" Value="/Order/QueryACLATP.aspx"><a target="_blank" href="/Order/QueryACLATP.aspx">Check ACL Availability</a></asp:ListItem>                                 
+                                <asp:ListItem Text="Shopping Cart" Value="/Order/Cart_List.aspx"><a target="_blank" href="/Order/Cart_List.aspx">Shopping Cart</a></asp:ListItem>
+                                <asp:ListItem Text="Place BTOS/CTOS Orders" Value="/order/btos_portal.aspx"><a target="_blank" href="/order/btos_portal.aspx">Place BTOS/CTOS Orders</a></asp:ListItem> 
+                                <asp:ListItem Text="Product Search" Value="/Product/ProductSearch.aspx"><a target="_blank" href="/Product/ProductSearch.aspx">Product Search</a></asp:ListItem> 
+                                <asp:ListItem Text="Marketing Material Search" Value="/Product/LiteratureSearch.aspx"><a target="_blank" href="/Product/LiteratureSearch.aspx">Marketing Material Search</a></asp:ListItem> 
+                                <asp:ListItem Text="Support Search" Value="/Product/SupportSearch.aspx"><a target="_blank" href="/Product/SupportSearch.aspx">Support Search</a></asp:ListItem> 
+                                <asp:ListItem Text="Configuration History" Value="/order/BtosHistory_List.aspx"><a target="_blank" href="/order/BtosHistory_List.aspx">Configuration History</a></asp:ListItem> 
+                                <asp:ListItem Text="Product Phase In/Out" Value="/Product/Product_PhaseInOut.aspx"><a target="_blank" href="/Product/Product_PhaseInOut.aspx">Product Phase In/Out</a></asp:ListItem> 
+                                <asp:ListItem Text="Warranty Lookup" Value="/Order/MyWarrantyExpireItems.aspx"><a target="_blank" href="/Order/MyWarrantyExpireItems.aspx">Warranty Lookup</a></asp:ListItem> 
+                                <asp:ListItem Text="My RMA Orders" Value="/Order/MyRMA.aspx"><a target="_blank" href="/Order/MyRMA.aspx">My RMA Orders</a></asp:ListItem> 
+                                <asp:ListItem Text="Download Price List" Value="/Order/Price_List.aspx"><a target="_blank" href="/Order/Price_List.aspx">Download Price List</a></asp:ListItem> 
+                                <asp:ListItem Text="New Product Highlight" Value="/Product/New_Product.aspx"><a target="_blank" href="/Product/New_Product.aspx">New Product Highlight</a></asp:ListItem> 
+                                <asp:ListItem Text="Dx Price Inquiry" Value="/eQuotation/price_bylevel.aspx" />
+                                <asp:ListItem Text="My Quotation History" Value="/eQuotation/Quotation_History.aspx" />
+                                <asp:ListItem Text="Quotation Draft List" Value="/eQuotation/Quotation_Draft.aspx" />
+                                <asp:ListItem Text="My Team's Quotation List" Value="/eQuotation/MyTeamsQuotationRequest.aspx" />                                
+                            </asp:CheckBoxList>
+                        </td>                        
+                    </tr>  
+                    <tr>
+                        <td>
+                            <table width="200px">
+                                <tr>
+                                    <td><asp:Button runat="server" ID="btnUpdateMyLinks" Text="Update" OnClick="btnUpdateMyLinks_Click" /> </td>
+                                    <td>
+                                        <asp:UpdatePanel runat="server" ID="upMyLnkMsg" UpdateMode="Conditional">
+                                            <ContentTemplate>
+                                                <asp:Label runat="server" ID="lbMyLnkMsg" Font-Bold="true" ForeColor="Tomato" />
+                                            </ContentTemplate>
+                                            <Triggers>
+                                                <asp:AsyncPostBackTrigger ControlID="btnUpdateMyLinks" EventName="Click" />
+                                            </Triggers>
+                                        </asp:UpdatePanel>
+                                    </td>
+                                </tr>
+                            </table>                    
+                        </td>
+                    </tr> 
+                </table> 
+            </td>
+        </tr>
+    </table>
+    <script type="text/javascript">
+        function OpenBlock(bid, cid){                        
+            document.getElementById(cid).parentNode.parentNode.parentNode.parentNode.parentNode.parentNode.style.display='none';  
+            PageMethods.OpenFuncBlock(bid,
+                function(pagedResult, eleid, methodName) {
+                    //alert('done');                               
+                },
+                function(error, userContext, methodName) {                    
+                    //alert(error.get_message());
+                    //document.getElementById('div_myrecentitems').innerHTML="";
+                });
+        }
+    </script>
+</asp:Content>

@@ -1,0 +1,472 @@
+﻿<%@ Page Language="VB" MasterPageFile="~/Includes/MyMaster.master" Title="My Project" %>
+<%@ Register src="../Includes/ChangeCompany.ascx" tagname="ChangeCompany" tagprefix="uc1" %>
+<%@ Register Src="~/Includes/OptyUpdDraft.ascx" TagPrefix="uc1" TagName="OptyUpdDraft" %>
+<script runat="server">
+    
+    Protected Sub dlRowProb_DataBinding(ByVal sender As Object, ByVal e As System.EventArgs)
+        Dim tmpDl As DropDownList = CType(sender, DropDownList)
+        Dim tmpGr As GridViewRow = CType(tmpDl.NamingContainer, GridViewRow)
+        tmpDl.SelectedValue = gv1.DataKeys(tmpGr.RowIndex).Values("SUM_WIN_PROB").ToString()
+    End Sub
+    
+    Protected Sub dlRowStatus_DataBinding(ByVal sender As Object, ByVal e As System.EventArgs)
+        Dim tmpDl As DropDownList = CType(sender, DropDownList)
+        Dim tmpGr As GridViewRow = CType(tmpDl.NamingContainer, GridViewRow)
+        tmpDl.SelectedValue = gv1.DataKeys(tmpGr.RowIndex).Values(1).ToString()
+    End Sub
+    
+    Private Function GetSql() As String
+        Dim dt As DataTable = dbUtil.dbGetDataTable("RFM", _
+          String.Format("select distinct row_id from siebel_account where erp_id='{0}' and row_id is not null ", Session("company_id")))
+        If dt.Rows.Count > 0 Then
+            Dim rid As New ArrayList
+            For Each r As DataRow In dt.Rows
+                rid.Add("'" + r.Item("row_id") + "'")
+            Next
+            Dim strRid As String = "(" + String.Join(",", CType(rid.ToArray(GetType(String)), String())) + ")"
+            Dim sb As New System.Text.StringBuilder
+            With sb
+                .AppendFormat(" select A.ROW_ID, A.CREATED, A.PR_DEPT_OU_ID as ACCOUNT_ROW_ID, ")
+                .AppendFormat(" A.NAME, cast(A.SUM_REVN_AMT as numeric(18,2)) as SUM_REVN_AMT, cast(A.SUM_WIN_PROB as int) as SUM_WIN_PROB, ")
+                .AppendFormat(" A.CURR_STG_ID, IsNull(B.NAME,'') as STAGE_NAME, A.SALES_METHOD_ID, A.PR_DEPT_OU_ID, ")
+                .AppendFormat(" IsNull((select SM.NAME from S_SALES_METHOD SM where SM.ROW_ID=A.SALES_METHOD_ID),'') as SALES_METHOD_NAME, ")
+                .AppendFormat(" IsNull(X.ATTRIB_06,'') as BusinessGroup, ")
+                .AppendFormat(" IsNull(X.X_ATTRIB_54,0) as Product_Revenue, IsNull(X.ATTRIB_42,0) as Profile_Revenue, ")
+                .AppendFormat(" IsNull(X.ATTRIB_14,0) as Quantity, IsNull(A.CHANNEL_TYPE_CD,'') as Channel, ")
+                .AppendFormat(" A.BU_ID, C.NAME as BU_NAME, E.LOGIN as CREATED_BY_LOGIN, ")
+                .AppendFormat(" (select G.FST_NAME + ' ' + G.LAST_NAME  from S_CONTACT G where G.ROW_ID = E.ROW_ID) as CREATED_BY_NAME, ")
+                .AppendFormat(" A.CURCY_CD, IsNull(A.DESC_TEXT,'') as DESC_TEXT, A.LAST_UPD, F.LOGIN as LAST_UPD_BY_LOGIN, ")
+                .AppendFormat(" (select H.FST_NAME + ' ' + H.LAST_NAME  from  S_CONTACT H where H.ROW_ID = F.ROW_ID) as LAST_UPD_BY_NAME, ")
+                .AppendFormat(" A.PR_POSTN_ID, D.POSTN_TYPE_CD, D.PR_EMP_ID, IsNull(A.PR_PROD_ID,'') as PR_PROD_ID, ")
+                .AppendFormat(" IsNull(A.REASON_WON_LOST_CD,'') as REASON_WON_LOST_CD, A.STATUS_CD, IsNull(A.STG_NAME,'') as STG_NAME, ")
+                .AppendFormat(" I.LOGIN as SALES_TEAM_LOGIN, ")
+                .AppendFormat(" (select J.FST_NAME + ' ' + J.LAST_NAME  from  S_CONTACT J where J.ROW_ID = I.ROW_ID) as SALES_TEAM_NAME, A.MODIFICATION_NUM, A.SUM_EFFECTIVE_DT, ")
+                .AppendFormat(" IsNull(A.PAR_OPTY_ID,'') as PAR_OPTY_ID, ")
+                .AppendFormat(" EXPECT_VAL = (case when isnull(A.SUM_WIN_PROB,0)= 0 then A.SUM_REVN_AMT*(A.SUM_WIN_PROB/100) else 0 end), ")
+                .AppendFormat(" IsNull((select convert(varchar(300),SCT.CRIT_SUCC_FACTORS) from  S_OPTY_T SCT where SCT.ROW_ID = SC.ROW_ID),'') as FACTOR, ")
+                .AppendFormat(" IsNull((select CN.FST_NAME + ' ' + CN.LAST_NAME from  S_CONTACT CN where CN.ROW_ID = CON.PER_ID),'') as CONTACT, ")
+                .AppendFormat(" CON.PER_ID as CONTACT_ROW_ID, A.PR_PRTNR_ID, X.ATTRIB_46 ")
+                .AppendFormat(" from  S_OPTY A left join S_OPTY_X X on A.ROW_ID=X.ROW_ID ")
+                .AppendFormat(" left outer join  S_STG B on A.CURR_STG_ID = B.ROW_ID left outer join  S_BU C on A.BU_ID = C.ROW_ID ")
+                .AppendFormat(" left outer join  S_POSTN D on A.PR_POSTN_ID = D.ROW_ID left outer join  S_USER E on A.CREATED_BY = E.ROW_ID ")
+                .AppendFormat(" left outer join  S_USER F on A.LAST_UPD_BY = F.ROW_ID left outer join  S_USER I on D.PR_EMP_ID = I.ROW_ID ")
+                .AppendFormat(" left outer join  S_OPTY_T SC on SC.PAR_ROW_ID = A.ROW_ID left outer join  S_OPTY_CON CON on CON.OPTY_ID = A.ROW_ID ")
+                .AppendFormat(" where A.PR_DEPT_OU_ID in {0} ", strRid)
+                .AppendFormat(" and A.SUM_WIN_PROB between 0 and 100 ")
+                'If Not Session("user_id") Like "*@*advantech*" Then
+                '    .AppendFormat(" and X.ATTRIB_46 in (select G.ROW_ID from S_CONTACT G where G.EMAIL_ADDR='{0}') ", Session("user_id").ToString.Replace("'", "''"))
+                'End If
+                .AppendFormat(" order by A.CREATED desc,A.ROW_ID ")
+            End With
+            Util.SendEmail("tc.chen@advantech.eu", "ebiz.aeu@advantech.eu", "MyPrj by " + Session("user_id"), sb.ToString(), False, "", "")
+            Return sb.ToString()
+        End If
+        Return ""
+    End Function
+    
+    Protected Sub gv1_SelectedIndexChanging(ByVal sender As Object, ByVal e As System.Web.UI.WebControls.GridViewSelectEventArgs)
+        src1.SelectCommand = GetSql()
+    End Sub
+
+    Protected Sub gv1_PageIndexChanging(ByVal sender As Object, ByVal e As System.Web.UI.WebControls.GridViewPageEventArgs)
+        src1.SelectCommand = GetSql()
+    End Sub
+
+    Protected Sub gv1_Sorting(ByVal sender As Object, ByVal e As System.Web.UI.WebControls.GridViewSortEventArgs)
+        src1.SelectCommand = GetSql()
+    End Sub
+    
+    Private Function DateOnly(ByVal strDate As String) As String
+        If Date.TryParse(strDate, Now) Then
+            Return CDate(strDate).ToString("yyyy/MM/dd")
+        End If
+        Return strDate
+    End Function
+    
+    Protected Sub Page_Load(ByVal sender As Object, ByVal e As System.EventArgs)
+        If Not Page.IsPostBack And Request("ERPID") IsNot Nothing Then
+            If Session("company_id") <> Trim(Request("ERPID")) Then
+                If Me.chgcompanypanel1.FindControl("ChangeCompany1") IsNot Nothing Then
+                    Dim chg As ChangeCompany = Me.chgcompanypanel1.FindControl("ChangeCompany1")
+                    chg.ChangeToERPIDNow = Trim(Request("ERPID"))
+                End If
+            End If
+        End If
+        'For placing order for one opportunity
+        If Request("OPTYID") IsNot Nothing Then
+            Dim dt As DataTable = dbUtil.dbGetDataTable("RFM", _
+            String.Format("select distinct row_id from siebel_account where erp_id='{0}' and row_id is not null ", Session("company_id")))
+            If dt.Rows.Count > 0 Then
+                Dim rid As New ArrayList
+                For Each r As DataRow In dt.Rows
+                    rid.Add("'" + r.Item("row_id") + "'")
+                Next
+                Dim strRid As String = "(" + String.Join(",", rid.ToArray(GetType(String))) + ")"
+                Dim c As Object = dbUtil.dbExecuteScalar("CRMDB75", _
+                String.Format("select count(A.ROW_ID) as OPTYCount from S_OPTY A where A.PR_DEPT_OU_ID in {0} and A.ROW_ID='{1}' ", strRid, Trim(Request("OPTYID")).Replace("'", "''")))
+                If c IsNot Nothing AndAlso CInt(c) = 1 Then
+                    Session("OptyId") = Trim(Request("OPTYID"))
+                    Response.Redirect("/Order/Cart_List.aspx")
+                End If
+            End If
+        End If
+    End Sub
+    
+    Protected Sub Page_Init(ByVal sender As Object, ByVal e As System.EventArgs)
+        If Not Page.IsPostBack Then          
+            If Util.IsInternalUser(Session("user_id")) OrElse Util.IsAEUIT() Then
+                chgcompanypanel1.Visible = True
+            End If
+            src1.SelectCommand = GetSql()
+            Try
+                If HttpContext.Current.User.Identity.Name = "gary.chen@advantech.com.tw" _
+                OrElse HttpContext.Current.User.Identity.Name = "kander.kan@advantech.com.tw" _
+                OrElse Request.ServerVariables("REMOTE_ADDR") = "172.16.7.48" _
+                OrElse Request.ServerVariables("REMOTE_ADDR") = "172.16.2.208" _
+                OrElse Request.ServerVariables("REMOTE_ADDR") = "59.115.129.139" _
+                OrElse Request.ServerVariables("REMOTE_ADDR") = "59.124.232.162" Then
+                    Response.End()
+                End If
+            Catch ex As Exception
+                Response.End()
+            End Try
+        End If
+    End Sub
+
+    Protected Sub gv1_RowUpdating(ByVal sender As Object, ByVal e As System.Web.UI.WebControls.GridViewUpdateEventArgs)
+        src1.SelectCommand = GetSql()
+    End Sub
+
+    Protected Sub gv1_RowEditing(ByVal sender As Object, ByVal e As System.Web.UI.WebControls.GridViewEditEventArgs)
+        src1.SelectCommand = GetSql()
+    End Sub
+
+    Private Sub SendOptyUpdInfo(ByVal AccountId As String, ByVal OptyID As String, _
+                                   ByVal OptyName As String, ByVal Desc As String, _
+                                   ByVal NewStatus As String, ByVal NewProb As String, _
+                                   ByVal NewAmt As Double, ByVal newCloseDate As Date, _
+                                   ByVal RequestBy As String)
+        Dim AccountInfo As DataTable = dbUtil.dbGetDataTable("RFM", _
+        String.Format("select top 1 account_name, primary_sales_email, erp_id from siebel_account " + _
+                      " where row_id='{0}' and erp_id<>'' and primary_sales_email like '%@%.%'", AccountId))
+        Dim OptyDetail As DataTable = GetOptyDetail(OptyID)
+        If AccountInfo.Rows.Count = 0 Then
+            'If there is no primary sales then use eBusiness.AEU as the sales email
+            AccountInfo = dbUtil.dbGetDataTable("RFM", _
+            String.Format("select top 1 account_name, 'eBusiness.AEU@advantech.eu' as primary_sales_email, erp_id from siebel_account " + _
+                    " where row_id='{0}' and erp_id<>'' ", AccountId))
+        End If
+        If AccountInfo.Rows.Count = 1 And OptyDetail.Rows.Count > 0 Then
+            Dim oName As String = OptyDetail.Rows(0).Item("NAME"), oDesc As String = OptyDetail.Rows(0).Item("DESC_TEXT")
+            Dim oStatus As String = OptyDetail.Rows(0).Item("STATUS_CD"), oProb As Integer = OptyDetail.Rows(0).Item("SUM_WIN_PROB")
+            Dim oAmt As Double = OptyDetail.Rows(0).Item("SUM_REVN_AMT"), oCloseDate As Date = OptyDetail.Rows(0).Item("SUM_EFFECTIVE_DT")
+            Dim sb As New System.Text.StringBuilder
+            With sb
+                .AppendFormat("Dears,<br/>" + vbCrLf)
+                .AppendFormat("Account <b>{0}</b> Contact <b>{1}</b> just updated project {2}, detail:<br/>" + vbCrLf, AccountInfo.Rows(0).Item("account_name"), RequestBy, OptyDetail.Rows(0).Item("NAME"))
+                If oName <> OptyName Then
+                    .AppendFormat("Name from {0} to {1}", oName, OptyName) : .AppendLine("<br/>")
+                End If
+                If oDesc <> Desc Then
+                    .AppendFormat("Description from {0} to {1}", oDesc, Desc) : .AppendLine("<br/>")
+                End If
+                If oStatus <> NewStatus Then
+                    .AppendFormat("Status from {0} to {1}", oStatus, NewStatus) : .AppendLine("<br/>")
+                End If
+                If oProb <> CInt(NewProb) Then
+                    .AppendFormat("Probability from {0} to {1}", oProb.ToString(), NewProb) : .AppendLine("<br/>")
+                End If
+                If oAmt <> NewAmt Then
+                    .AppendFormat("Amount from {0} to {1}", oAmt.ToString(), NewAmt.ToString()) : .AppendLine("<br/>")
+                End If
+                If oCloseDate <> newCloseDate Then
+                    .AppendFormat("Close Date from {0} to {1}", oCloseDate.ToString("yyyy/MM/dd"), newCloseDate.ToString("yyyy/MM/dd")) : .AppendLine("<br/>")
+                End If
+                .AppendFormat("Please visit <a href='http://my.advantech.eu/My/MyProject.aspx?ERPID={0}'>MyAdvantech</a>", AccountInfo.Rows(0).Item("erp_id"))
+            End With
+            Dim SAInfo As DataTable = dbUtil.dbGetDataTable("RFM", _
+            String.Format(" select distinct b.email from sap_company_employee a inner join sap_employee b on a.sales_code=b.sales_code " + _
+                          " where a.company_id='{0}' and a.sales_org='EU10' and b.email like '%@%advantech%' and a.partner_function in ('Z2','ZM')", AccountInfo.Rows(0).Item("erp_id")))
+            Dim strCC As String = ""
+            If SAInfo.Rows.Count > 0 Then
+                Dim arrCC As New ArrayList
+                For Each sar As DataRow In SAInfo.Rows
+                    arrCC.Add(sar.Item("email"))
+                Next
+                strCC = String.Join(",", arrCC.ToArray(GetType(String)))
+            End If
+            '********Mark this after release!*********************
+            strCC = ""
+            '*****************************************************
+            Dim strTitle As String = String.Format("{0} request to update {1}", AccountInfo.Rows(0).Item("account_name"), OptyDetail.Rows(0).Item("NAME"))
+            Util.SendEmail(AccountInfo.Rows(0).Item("primary_sales_email"), "eBusiness.AEU@advantech.eu", strTitle, sb.ToString, True, strCC, "eBusiness.AEU@advantech.eu")
+        End If
+    End Sub
+    
+    'Private Sub SendOptyUpdRequest(ByVal AccountId As String, ByVal OptyID As String, _
+    '                               ByVal OptyName As String, ByVal Desc As String, _
+    '                               ByVal NewStatus As String, ByVal NewProb As String, _
+    '                               ByVal NewAmt As Double, ByVal newCloseDate As Date, _
+    '                               ByVal RequestBy As String)
+    '    Dim AccountInfo As DataTable = dbUtil.dbGetDataTable("RFM", _
+    '    String.Format("select top 1 account_name, primary_sales_email, erp_id from siebel_account where row_id='{0}' and erp_id<>'' and primary_sales_email like '%@%.%'", AccountId))
+    '    Dim OptyDetail As DataTable = dbUtil.dbGetDataTable("RFM", String.Format("select * from siebel_opportunity where row_id='{0}'", OptyID))
+    '    If AccountInfo.Rows.Count = 1 And OptyDetail.Rows.Count > 0 Then
+    '        Dim sb As New System.Text.StringBuilder
+    '        With sb
+    '            .AppendFormat("Dears,<br/>" + vbCrLf)
+    '            .AppendFormat("Account <b>{0}</b> Contact <b>{1}</b> request to update opportunity {2}, detail:<br/>" + vbCrLf, AccountInfo.Rows(0).Item("account_name"), RequestBy, OptyDetail.Rows(0).Item("NAME"))
+    '            .AppendFormat("<table>")
+    '            .AppendFormat("<tr><th>Name</th><td>{0}</td></tr>", OptyName)
+    '            .AppendFormat("<tr><th>Description</th><td>{0}</td></tr>", Desc)
+    '            .AppendFormat("<tr><th>Status</th><td>{0}</td></tr>", NewStatus)
+    '            .AppendFormat("<tr><th>Probability</th><td>{0}</td></tr>", NewProb)
+    '            .AppendFormat("<tr><th>Amount</th><td>{0}</td></tr>", NewAmt.ToString())
+    '            .AppendFormat("<tr><th>Close Date</th><td>{0}</td></tr>", newCloseDate.ToString("dd/MM/yyyy"))
+    '            .AppendFormat("</table>")
+    '            .AppendFormat("Please visit <a href='http://my.advantech.eu/My/MyProject.aspx?ERPID={0}'>MyAdvantech</a>", AccountInfo.Rows(0).Item("erp_id"))
+    '        End With
+    '        Dim SAInfo As DataTable = dbUtil.dbGetDataTable("RFM", _
+    '        String.Format(" select distinct b.email from sap_company_employee a inner join sap_employee b on a.sales_code=b.sales_code " + _
+    '                      " where a.company_id='{0}' and a.sales_org='EU10' and b.email like '%@%advantech%' and a.partner_function in ('Z2','ZM')", AccountInfo.Rows(0).Item("erp_id")))
+    '        Dim strCC As String = ""
+    '        If SAInfo.Rows.Count > 0 Then
+    '            Dim arrCC As New ArrayList
+    '            For Each sar As DataRow In SAInfo.Rows
+    '                arrCC.Add(sar.Item("email"))
+    '            Next
+    '            strCC = String.Join(",", arrCC.ToArray(GetType(String)))
+    '        End If
+    '        Dim strTitle As String = String.Format("{0} request to update {1}", AccountInfo.Rows(0).Item("account_name"), OptyDetail.Rows(0).Item("NAME"))
+    '        Util.SendEmail(AccountInfo.Rows(0).Item("primary_sales_email"), "eBusiness.AEU@advantech.eu", strTitle, sb.ToString, True, strCC, "eBusiness.AEU@advantech.eu")
+    '    End If
+    'End Sub
+    
+    Protected Sub src1_Updating(ByVal sender As Object, ByVal e As System.Web.UI.WebControls.SqlDataSourceCommandEventArgs)
+        Dim ws As New aeu_eai2000.Siebel_WS, gr As GridViewRow = gv1.Rows(gv1.EditIndex)
+        ws.UseDefaultCredentials = True
+        Dim optyId As String = gv1.DataKeys(gr.RowIndex).Values("ROW_ID").ToString()
+        Dim AccountId As String = gv1.DataKeys(gr.RowIndex).Values("ACCOUNT_ROW_ID").ToString()
+        Dim newName As String = gv1.DataKeys(gr.RowIndex).Values("NAME").ToString()
+        Dim newStatus As String = CType(gr.FindControl("dlRowStatus"), DropDownList).SelectedValue
+        Dim newDesc As String = HttpUtility.HtmlEncode(CType(gr.FindControl("txtRowDesc"), TextBox).Text).Replace(vbCrLf, vbCrLf)
+        Dim newAmt As String = HttpUtility.HtmlEncode(CType(gr.FindControl("txtRowAmt"), TextBox).Text)
+        Dim newCloseDate As Date = HttpUtility.HtmlEncode(CDate(CType(gr.FindControl("txtRowCloseDate"), TextBox).Text))
+        Dim newProb As String = CType(gr.FindControl("dlRowProb"), DropDownList).SelectedValue
+        Dim newCurCd As String = gv1.DataKeys(gr.RowIndex).Values("CURCY_CD").ToString()
+        If  False Then
+            'dbUtil.dbExecuteNoQuery("MY", String.Format("delete from CP_FEEDBACK_LEADS where row_id='{0}' and approval_status='UPDATING'", optyId))
+            'Dim sb As New System.Text.StringBuilder
+            'With sb
+            '    .AppendFormat(" INSERT INTO CP_FEEDBACK_LEADS ")
+            '    .AppendFormat(" (PROJECT_NAME, DESCRIPTION, STATUS, ")
+            '    .AppendFormat("  PROBABILITY, REVENUE, CURRENCY, CLOSE_DATE, CREATE_DATE,  ")
+            '    .AppendFormat("  CREATE_BY, LAST_UPD_BY, LAST_UPD_DATE, ROW_ID, ACCOUNT_ROW_ID) ")
+            '    .AppendFormat(" VALUES (N'{0}', N'{1}', N'{2}', {3}, {4}, N'{5}', '{6}', " + _
+            '                  " getdate(), N'{7}', N'{7}', getdate(), N'{8}', '{9}') ", _
+            '                  newName.Replace("'", "''"), _
+            '                  newDesc.Replace("'", "''"), newStatus, newProb, _
+            '                  newAmt.ToString(), newCurCd, newCloseDate.ToString("yyyy-MM-dd"), Session("user_id"), optyId, AccountId)
+            'End With
+            'dbUtil.dbExecuteNoQuery("MY", sb.ToString())
+            'SendOptyUpdRequest(AccountId, optyId, newName, newDesc, newStatus, newProb, newAmt, newCloseDate, Session("user_id"))
+        Else
+            Dim b As Boolean = ws.UpdateOpportunityStatusAmtCloseDateProb(optyId, newStatus, newDesc, newAmt, newCloseDate, newProb)
+            If Not b Then
+                Util.AjaxJSAlert(up1, "Error updating opportunity status to Siebel")
+            Else
+                SendOptyUpdInfo(AccountId, optyId, newName, newDesc, newStatus, newProb, newAmt, newCloseDate, Session("user_id"))
+                UpdateLocalOptyTable(optyId, newStatus, newDesc, newAmt, newCloseDate)
+            End If
+            Dim err1 As String = ""
+        End If
+        e.Cancel = True : Exit Sub
+    End Sub
+    
+    Public Function UpdateLocalOptyTable(ByVal OptyId As String, ByVal OptyStatus As String, ByVal OptyDesc As String, ByVal OptyAmt As String, ByVal OptyCloseDate As Date) As Boolean
+        Dim sql As New StringBuilder
+        With sql
+            .AppendFormat("update siebel_opportunity set status_cd='{0}', desc_text='{1}', SUM_REVN_AMT='{2}', SUM_EFFECTIVE_DT='{3}' ", _
+                          OptyStatus, OptyDesc.Replace("'", "''"), CDbl(OptyAmt), OptyCloseDate)
+            If OptyStatus = "Won" Then .AppendFormat(", STAGE_NAME='100% Won-PO Input in SAP' ")
+            If OptyStatus = "Lost" Then .AppendFormat(", STAGE_NAME='0% Lost' ")
+            .AppendFormat(" where row_id='{0}' ", OptyId)
+        End With
+        If dbUtil.dbExecuteNoQuery("RFM", sql.ToString) > 0 Then
+            Return True
+        End If
+        Return False
+    End Function
+    
+    Protected Sub gv1_RowCancelingEdit(ByVal sender As Object, ByVal e As System.Web.UI.WebControls.GridViewCancelEditEventArgs)
+        src1.SelectCommand = GetSql()
+    End Sub
+
+    Protected Sub OptyUpdDraft1_OptyUpdatedEvent()
+        src1.SelectCommand = GetSql() : gv1.DataBind() : up1.Update()
+    End Sub
+   
+    Protected Sub ChangeCompany1_ChangeCompleted()
+        src1.SelectCommand = GetSql()
+    End Sub
+    
+    Protected Sub dlLeadFuncGrp_SelectedIndexChanged(ByVal sender As Object, ByVal e As System.EventArgs)
+        Response.Redirect(dlLeadFuncGrp.SelectedValue, False)
+    End Sub
+    
+    Public Function GetOptyDetail(ByVal RowID As String) As DataTable
+        Dim sb As New System.Text.StringBuilder
+        With sb
+            .AppendFormat(" SELECT     NAME, SUM_REVN_AMT, SUM_WIN_PROB, STAGE_NAME, BU_NAME, CURCY_CD, DESC_TEXT, REASON_WON_LOST_CD, STATUS_CD, STG_NAME, ")
+            .AppendFormat("                       SALES_TEAM_LOGIN, SALES_TEAM_NAME, SUM_EFFECTIVE_DT, EXPECT_VAL, FACTOR, CONTACT, CONTACT_ROW_ID, SALES_METHOD_NAME, ")
+            .AppendFormat("                       Assign_To_Partner, BusinessGroup, Incentive_For_RBU, Quantity, Channel, PR_EMP_ID, PR_DEPT_OU_ID, CREATE_YEAR, PR_PRTNR_ID, ")
+            .AppendFormat("                       PART_NO, ChannelContact, Primary_Opty_BAA ")
+            .AppendFormat(" FROM         SIEBEL_OPPORTUNITY ")
+            .AppendFormat(" WHERE     (ROW_ID = '{0}') ", RowID)
+        End With
+        Return dbUtil.dbGetDataTable("RFM", sb.ToString())
+    End Function
+</script>
+
+<asp:Content ID="Content1" ContentPlaceHolderID="_main" Runat="Server">
+    <table width="100%">
+        <tr>            
+            <th align="left" style="font-size:large; color:Navy; width:150px">My Projects</th>
+            <td align="right">
+                <table>
+                    <tr>
+                        <td>
+                            <asp:Panel runat="server" ID="chgcompanypanel1" Visible="false" Width="250px" ScrollBars="Auto" BorderWidth="1px" HorizontalAlign="Left">
+                                <%--<asp:LoginView runat="server" ID="ChangeCompanyView">
+                                    <RoleGroups>
+                                        <asp:RoleGroup Roles="Logistics,Administrator">
+                                            <ContentTemplate>--%>
+                                                <b>Change Company:</b><uc1:ChangeCompany ID="ChangeCompany1" runat="server" OnChangeCompleted="ChangeCompany1_ChangeCompleted" />
+                                           <%-- </ContentTemplate>
+                                        </asp:RoleGroup>
+                                    </RoleGroups>
+                                </asp:LoginView>--%>
+                            </asp:Panel>  
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>        
+                            <asp:DropDownList runat="server" ID="dlLeadFuncGrp" Width="150px" AutoPostBack="true" 
+                                OnSelectedIndexChanged="dlLeadFuncGrp_SelectedIndexChanged" Visible="true">
+                                <asp:ListItem Text="My Leads" Value="/My/MyLeads.aspx" />
+                                <asp:ListItem Text="My Projects" Value="/My/MyProject.aspx" Selected="True" />
+                                <asp:ListItem Text="Feedback Leads" Value="/My/FeedbackPrj.aspx" />
+                            </asp:DropDownList>                        
+                        </td>
+                    </tr>
+                </table>                              
+            </td>
+        </tr>
+        <tr>
+            <td colspan="2">
+                <asp:UpdatePanel runat="server" ID="up1" UpdateMode="Conditional">
+                    <ContentTemplate>
+                        <asp:GridView runat="server" ID="gv1" AutoGenerateColumns="false" Width="95%" DataSourceID="src1"
+                            DataKeyNames="ROW_ID,STATUS_CD,NAME,SALES_TEAM_LOGIN,DESC_TEXT,SUM_REVN_AMT,SUM_WIN_PROB,CURCY_CD,ACCOUNT_ROW_ID" 
+                            AllowPaging="true" AllowSorting="true" PageSize="10" PagerSettings-Position="TopAndBottom" 
+                            OnSelectedIndexChanging="gv1_SelectedIndexChanging" OnPageIndexChanging="gv1_PageIndexChanging" 
+                            OnSorting="gv1_Sorting" OnRowUpdating="gv1_RowUpdating" OnRowEditing="gv1_RowEditing" OnRowCancelingEdit="gv1_RowCancelingEdit">
+                            <Columns>
+                                <asp:CommandField HeaderText="Actions" ShowEditButton="true" EditText="Edit" ItemStyle-HorizontalAlign="Center" />  
+                                <asp:TemplateField HeaderText="Order" SortExpression="ROW_ID" ItemStyle-HorizontalAlign="Center">
+                                    <ItemTemplate>
+                                        <a href='MyProject.aspx?OPTYID=<%# Eval("ROW_ID") %>'>Go</a> 
+                                    </ItemTemplate>
+                                </asp:TemplateField>                               
+                                <asp:TemplateField HeaderText="Status" SortExpression="STATUS_CD" ItemStyle-HorizontalAlign="Center">
+                                    <ItemTemplate>
+                                        <asp:Label runat="server" ID="lbRowStatus" Text='<%# Eval("STATUS_CD") %>'/>
+                                    </ItemTemplate>
+                                    <EditItemTemplate>
+                                        <asp:DropDownList runat="server" ID="dlRowStatus" OnDataBinding="dlRowStatus_DataBinding">
+                                            <asp:ListItem Text="Accepted" Value="Accepted" />
+                                            <asp:ListItem Text="Lost" Value="Lost" />
+                                            <asp:ListItem Text="Pending" Value="Pending" />
+                                            <asp:ListItem Text="Rejected" Value="Rejected" />
+                                            <asp:ListItem Text="Won" Value="Won" />
+                                        </asp:DropDownList>
+                                    </EditItemTemplate>
+                                </asp:TemplateField>                                
+                                <asp:BoundField DataField="ROW_ID" HeaderText="ROW ID" ReadOnly="True" SortExpression="ROW_ID" Visible="false" />
+                                <asp:BoundField DataField="NAME" HeaderText="Name" SortExpression="NAME" ReadOnly="true" /> 
+                                <asp:BoundField DataField="CURCY_CD" HeaderText="Currency" SortExpression="CURCY_CD" ReadOnly="true" ItemStyle-HorizontalAlign="Center" />                               
+                                <asp:TemplateField HeaderText="Amount" SortExpression="SUM_REVN_AMT" ItemStyle-HorizontalAlign="Right">
+                                    <ItemTemplate>
+                                        <asp:Label runat="server" ID="lbRowAmt" Text='<%#Eval("SUM_REVN_AMT") %>' />
+                                    </ItemTemplate>
+                                    <EditItemTemplate>
+                                        <asp:TextBox runat="server" ID="txtRowAmt" Text='<%#Eval("SUM_REVN_AMT") %>' />
+                                        <ajaxToolkit:FilteredTextBoxExtender runat="server" ID="ftbeRowAmt" FilterMode="ValidChars" FilterType="Custom,Numbers" TargetControlID="txtRowAmt" ValidChars="." />
+                                    </EditItemTemplate>
+                                </asp:TemplateField>
+                                <asp:TemplateField HeaderText="Probability" SortExpression="SUM_WIN_PROB" ItemStyle-HorizontalAlign="Right">
+                                    <ItemTemplate>
+                                        <asp:Label runat="server" ID="lbProb" Text='<%# Eval("SUM_WIN_PROB") %>'/>
+                                    </ItemTemplate>
+                                    <EditItemTemplate>
+                                        <asp:DropDownList runat="server" ID="dlRowProb" OnDataBinding="dlRowProb_DataBinding">
+                                            <asp:ListItem Text="0" />
+                                            <asp:ListItem Text="10" />
+                                            <asp:ListItem Text="25" />
+                                            <asp:ListItem Text="50" />
+                                            <asp:ListItem Text="75" />
+                                            <asp:ListItem Text="100" />
+                                        </asp:DropDownList>
+                                    </EditItemTemplate>
+                                </asp:TemplateField>                                                              
+                                <asp:BoundField DataField="CURR_STG_ID" HeaderText="Current Stage" Visible="false" SortExpression="CURR_STG_ID" />
+                                <asp:BoundField DataField="STAGE_NAME" HeaderText="Current Stage" Visible="false" ReadOnly="True" SortExpression="STAGE_NAME" />
+                                <asp:BoundField DataField="BU_ID" HeaderText="BU_ID" SortExpression="BU_ID" Visible="false" />
+                                <asp:BoundField DataField="BU_NAME" HeaderText="BU NAME" SortExpression="BU_NAME" Visible="false" ReadOnly="true" />
+                                <asp:TemplateField HeaderText="Create Date" SortExpression="CREATED" ItemStyle-HorizontalAlign="Center" 
+                                    ItemStyle-Width="80px" HeaderStyle-Width="80px">
+                                    <ItemTemplate>
+                                        <asp:Label runat="server" ID="lbCDate1" Text='<%#DateOnly(Eval("CREATED")) %>' />
+                                    </ItemTemplate>
+                                    <EditItemTemplate>
+                                        <asp:Label runat="server" ID="lbCDate2" Text='<%#DateOnly(Eval("CREATED")) %>' />
+                                    </EditItemTemplate>
+                                </asp:TemplateField> 
+                                <asp:TemplateField HeaderText="Close Date" SortExpression="SUM_EFFECTIVE_DT" ItemStyle-HorizontalAlign="Center" ItemStyle-Width="80px" HeaderStyle-Width="80px">
+                                    <ItemTemplate>
+                                        <asp:Label runat="server" ID="lbRowCloseDate" Text='<%#DateOnly(Eval("SUM_EFFECTIVE_DT")) %>' />
+                                    </ItemTemplate>
+                                    <EditItemTemplate>
+                                        <asp:TextBox runat="server" ID="txtRowCloseDate" Text='<%#DateOnly(Eval("SUM_EFFECTIVE_DT")) %>' />
+                                        <ajaxToolkit:CalendarExtender runat="server" ID="ceRowCloseDate" TargetControlID="txtRowCloseDate" Format="yyyy/MM/dd" />
+                                    </EditItemTemplate>
+                                </asp:TemplateField>
+                                <asp:TemplateField HeaderText="Description" SortExpression="DESC_TEXT">
+                                    <ItemTemplate>
+                                        <asp:Label runat="server" ID="lblRowDesc" Text='<%#Eval("DESC_TEXT") %>' />
+                                    </ItemTemplate>
+                                    <EditItemTemplate>
+                                        <asp:TextBox runat="server" ID="txtRowDesc" Text='<%#Eval("DESC_TEXT") %>' Width="300px" TextMode="MultiLine" />
+                                    </EditItemTemplate>
+                                </asp:TemplateField>
+                                <asp:BoundField DataField="SALES_TEAM_NAME" HeaderText="Sales Team" ReadOnly="True" SortExpression="SALES_TEAM_NAME" />
+                                <asp:BoundField DataField="EXPECT_VAL" HeaderText="Expected Value" ReadOnly="True" SortExpression="EXPECT_VAL" Visible="false" ItemStyle-HorizontalAlign="Right" />                                                                 
+                                <asp:TemplateField HeaderText="Customer Update Request" ItemStyle-Width="500px" Visible="false">
+                                    <ItemTemplate>
+                                        <asp:UpdatePanel runat="server" ID="tmpUpOpty" UpdateMode="Conditional">
+                                            <ContentTemplate>
+                                                <uc1:OptyUpdDraft runat="server" ID="OptyUpdDraft1" OptyRowId='<%#Eval("ROW_ID") %>' OnOptyUpdatedEvent="OptyUpdDraft1_OptyUpdatedEvent" />
+                                            </ContentTemplate>
+                                        </asp:UpdatePanel>                                        
+                                    </ItemTemplate>
+                                </asp:TemplateField>
+                            </Columns>
+                        </asp:GridView>
+                        <asp:SqlDataSource runat="server" ID="src1" ConnectionString="<%$ ConnectionStrings:CRMDB75 %>" SelectCommand="" UpdateCommand="select getdate()" OnUpdating="src1_Updating">                            
+                        </asp:SqlDataSource>
+                    </ContentTemplate>
+                </asp:UpdatePanel>
+            </td>
+        </tr>
+    </table>
+</asp:Content>

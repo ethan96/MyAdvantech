@@ -1,0 +1,282 @@
+﻿<%@ Page Language="VB" %>
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<script runat="server">
+    Protected Sub Page_Load(ByVal sender As Object, ByVal e As System.EventArgs) Handles Me.Load
+        'IAG Mobile Sales專用，請勿刪除
+        Me.form.Controls.Clear()
+        Dim CH As String = String.Empty
+        Dim lt As New Literal()
+        Dim content As String = String.Empty
+        Dim val As String = String.Empty
+        Dim startI As Integer = 0, endI As Integer = 0
+        
+        If Not Request.QueryString("CH") Is Nothing Then
+            CH = Request.QueryString("CH").ToString
+        Else
+            CH = ""
+        End If
+        
+        
+        Select Case CH
+            Case "0"
+                startI = 23
+                endI = 34
+            Case "1"
+                startI = 35
+                endI = 60
+            Case "2"
+                startI = 61
+                endI = 78
+            Case "3"
+                startI = 79
+                endI = 96
+            Case "4"
+                startI = 97
+                endI = 106
+            Case "5"
+                startI = 107
+                endI = 130
+            Case "6"
+                startI = 131
+                endI = 162
+            Case "7"
+                startI = 163
+                endI = 204
+            Case "8"
+                startI = 205
+                endI = 230
+            Case "9"
+                startI = 231
+                endI = 242
+            Case "10"
+                startI = 243
+                endI = 282
+            Case "11"
+                startI = 283
+                endI = 294
+            Case "12"
+                startI = 295
+                endI = 308
+            Case "13"
+                startI = 309
+                endI = 336
+            Case "14"
+                startI = 337
+                endI = 382
+            Case "15"
+                startI = 383
+                endI = 396
+            Case "16"
+                startI = 397
+                endI = 406
+            Case "17"
+                startI = 407
+                endI = 426
+            Case "18"
+                startI = 427
+                endI = 444
+            Case "19"
+                startI = 445
+                endI = 496
+            Case "20"
+                startI = 497
+                endI = 510
+            Case "21"
+                startI = 511
+                endI = 524
+            Case Else
+                startI = 0
+                endI = 0
+        End Select
+
+        
+        
+        
+        For i As Integer = startI To endI
+            val = "00" & i
+            val = Right(val, 3)
+            content += "<img src=""http://My.advantech.com/eBook/2013_D_C_Master_Catalog_000" & val & ".jpg"" alt=""#"" /><br />"
+
+        Next
+
+        lt.Text = content
+
+        form.Controls.Add(lt)
+
+    End Sub
+
+    'Protected Sub Button1_Click(sender As Object, e As System.EventArgs) Handles Button1.Click
+    '    Dim strFPath As String = HttpContext.Current.Server.MapPath("~/Files/Aspose.Total.lic")
+    '    Dim lic As New License() : lic.SetLicense("D:\websites\Aspose.Total.lic")
+    '    Dim viewer As New Aspose.Pdf.Kit.PdfViewer
+
+    '    If FileUpload1.PostedFile.FileName = "" Then
+    '        Label1.Text = "FileUpload is empty!"
+    '    Else
+    '        Dim PdfPath As String = FileUpload1.PostedFile.FileName
+    '        viewer.OpenPdfFile(PdfPath)
+    '        Dim bm As Drawing.Bitmap = Nothing
+    '        Dim newbm As Drawing.Bitmap = Nothing
+    '        Dim my_ebook As String = "D:\eBook\"
+
+
+    '        If Not Directory.Exists(my_ebook) Then
+    '            Directory.CreateDirectory(my_ebook) '不存在目錄就創建目錄
+    '        Else
+    '            '存在就刪除掉裡面所有的檔案
+    '            Dim fileList() As String = Directory.GetFileSystemEntries(my_ebook)
+    '            For Each FileName As String In fileList
+
+    '                ' 直接Delete文件    
+    '                File.Delete(my_ebook + Path.GetFileName(FileName))
+
+    '            Next
+
+    '        End If
+
+
+    '        For i = 1 To viewer.PageCount
+    '            Try
+    '                bm = viewer.DecodePage(i)
+    '                If bm.Width > 1000 Or bm.Height > 1000 Then
+    '                    newbm = New System.Drawing.Bitmap(bm, bm.Width * 0.9, bm.Height * 0.9)
+    '                Else
+    '                    newbm = bm
+    '                End If
+
+    '                newbm.Save(my_ebook & i & ".jpg", System.Drawing.Imaging.ImageFormat.Jpeg)
+
+    '            Catch ex As System.OutOfMemoryException
+    '                Label1.Text = ex.ToString : Exit Sub
+    '            End Try
+    '        Next
+    '    End If
+
+    '    Label1.Text = "Upload is Done!"
+    'End Sub
+</script>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head runat="server">
+    <title></title>
+ <%--<link rel="stylesheet" href="css/jquery.mobile-1.0a4.1.css" />
+	<link href="css/photoswipe.css" type="text/css" rel="stylesheet" />
+	<style type="text/css">
+		div.gallery-row:after { clear: both; content: "."; display: block; height: 0; visibility: hidden; }
+		div.gallery-item { float: left; width: 33.333333%; }
+		div.gallery-item a { display: block; margin: 5px; border: 1px solid #3c3c3c; }
+		div.gallery-item img { display: block; width: 100%; height: auto; }
+		#Gallery1 .ui-content, #Gallery2 .ui-content { overflow: hidden; }
+
+	</style>
+	<script type="text/javascript" src="js/code.photoswipe-3.0.5.js"></script>
+	<script type="text/javascript" src="js/jquery.transit.js"></script>
+	<script type="text/javascript" src="js/hammer.js"></script>
+	<script type="text/javascript" src="js/jquery.hammer.js"></script>
+
+	<script type="text/javascript" src="js/jquery-1.11.1.min.js"></script>
+	<script type="text/javascript" src="js/jquery.mobile-1.0a4.1.min.js"></script>
+	<script type="text/javascript" src="js/simple-inheritance.min.js"></script>
+	<script type="text/javascript" src="js/jquery.animate-enhanced.min.js"></script>
+	<script type="text/javascript" src="js/code-photoswipe-jQuery-1.0.11.min.js"></script>
+
+ <script type="text/javascript">
+     /*
+     This example shows how to set up PhotoSwipe using jQuery Mobile.
+     */
+     $(document).ready(function () {
+
+         $('div.gallery-page').live('pageshow', function (e) {
+
+             // Re-initialize with the photos for the current page
+             $("div.gallery a", e.target).photoSwipe();
+             return true;
+
+         })
+
+     });
+	</script>--%>
+
+</head>
+<body>
+  <form id="form" runat="server">
+    
+       
+ <%--<div data-role="page" id="Home">
+
+	<div data-role="header">
+		<h1>PhotoSwipe</h1>
+	</div>
+	
+	
+	<div data-role="content" >	
+		
+		<p>These examples show PhotoSwipe integrated with jQuery Mobile:</p>		
+		
+		<ul data-role="listview" data-inset="true">
+			<li><a href="#Gallery1">Product Catalog 2013-2014</a></li> 
+		</ul> 
+				
+	</div>
+
+	<div data-role="footer">
+		<h4>&copy; 2011 Code Computerlove</h4>
+	</div>
+
+</div>
+
+
+<div data-role="page" id="Gallery1" class="gallery-page">
+
+	<div data-role="header">
+		<h1>Product Catalog 2013-2014</h1>
+	</div>
+
+	<div data-role="content">	
+		
+		<div id="img_content" class="gallery" runat="server">
+	
+			<div class="gallery-row">
+		
+				<div class="gallery-item"><a href="http://172.20.1.79:2010/eBook/2013_D_C_Master_Catalog_000001.jpg" rel="external"><img src="http://172.20.1.79:2010/eBook/2013_D_C_Master_Catalog_000001.jpg" alt="Image 001" /></a></div>
+				
+				<div class="gallery-item"><a href="http://172.20.1.79:2010/eBook/2013_D_C_Master_Catalog_000002.jpg" rel="external"><img src="http://172.20.1.79:2010/eBook/2013_D_C_Master_Catalog_000002.jpg" alt="Image 002" /></a></div>
+				
+				<div class="gallery-item"><a href="http://172.20.1.79:2010/eBook/2013_D_C_Master_Catalog_000003.jpg" rel="external"><img src="http://172.20.1.79:2010/eBook/2013_D_C_Master_Catalog_000003.jpg" alt="Image 003" /></a></div>
+				
+			</div>
+
+		
+			<div class="gallery-row">
+		
+				<div class="gallery-item"><a href="http://172.20.1.79:2010/eBook/2013_D_C_Master_Catalog_000004.jpg" rel="external"><img src="http://172.20.1.79:2010/eBook/2013_D_C_Master_Catalog_000004.jpg" alt="Image 004" /></a></div>
+				
+				<div class="gallery-item"><a href="http://172.20.1.79:2010/eBook/2013_D_C_Master_Catalog_000005.jpg" rel="external"><img src="http://172.20.1.79:2010/eBook/2013_D_C_Master_Catalog_000005.jpg" alt="Image 005" /></a></div>
+				
+				<div class="gallery-item"><a href="http://172.20.1.79:2010/eBook/2013_D_C_Master_Catalog_000006.jpg" rel="external"><img src="http://172.20.1.79:2010/eBook/2013_D_C_Master_Catalog_000006.jpg" alt="Image 006" /></a></div>
+		
+			</div>
+		
+			<div class="gallery-row">
+		
+				<div class="gallery-item"><a href="http://172.20.1.79:2010/eBook/2013_D_C_Master_Catalog_000007.jpg" rel="external"><img src="http://172.20.1.79:2010/eBook/2013_D_C_Master_Catalog_000007.jpg" alt="Image 007" /></a></div>
+				
+				<div class="gallery-item"><a href="http://172.20.1.79:2010/eBook/2013_D_C_Master_Catalog_000008.jpg" rel="external"><img src="http://172.20.1.79:2010/eBook/2013_D_C_Master_Catalog_000008.jpg" alt="Image 008" /></a></div>
+				
+				<div class="gallery-item"><a href="http://172.20.1.79:2010/eBook/2013_D_C_Master_Catalog_000009.jpg" rel="external"><img src="http://172.20.1.79:2010/eBook/2013_D_C_Master_Catalog_000009.jpg" alt="Image 009" /></a></div>
+
+			</div>
+		
+		
+		</div>
+		
+	</div>
+	
+	<div data-role="footer">
+		<h4>&copy; 2013 Code TC</h4>
+	</div>
+	
+</div>--%>
+  </form>
+</body>
+</html>

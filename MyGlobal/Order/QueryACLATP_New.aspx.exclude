@@ -1,0 +1,209 @@
+﻿<%@ Page Title="MyAdvantech - Query ACL ATP" Language="VB" MasterPageFile="~/Includes/MyMaster.master" %>
+<%@ MasterType VirtualPath="~/Includes/MyMaster.master" %>
+
+<script runat="server">
+    'Function GetSql() As String
+    '    Dim sb As New System.Text.StringBuilder
+    '    With sb
+    '        .AppendLine(String.Format(" SELECT top 1000 a.part_no "))
+    '        .AppendLine(String.Format("  "))
+    '        .AppendLine(String.Format(" FROM  sap_product a "))
+    '        .AppendLine(String.Format(" where a.material_group not in ('BTOS','ODM','T') "))
+    '        'If dlPD.SelectedIndex > 0 Then .AppendLine(String.Format(" and b.product_division = '{0}' ", dlPD.SelectedValue))
+    '        If txtPN.Text.Trim() <> "" Then .AppendLine(String.Format(" and a.part_no like '%{0}%' ", txtPN.Text.Trim.Replace("'", "''").Replace("*", "%")))
+    '        .AppendLine(String.Format(" ORDER BY a.part_no "))
+    '    End With
+    '    Return sb.ToString()
+       
+    'End Function
+
+    'Protected Sub gv1_PageIndexChanging(ByVal sender As Object, ByVal e As System.Web.UI.WebControls.GridViewPageEventArgs)
+    '    src1.SelectCommand = GetSql()
+    'End Sub
+
+    'Protected Sub gv1_Sorting(ByVal sender As Object, ByVal e As System.Web.UI.WebControls.GridViewSortEventArgs)
+    '    src1.SelectCommand = GetSql()
+    'End Sub
+
+    'Protected Sub dlPD_SelectedIndexChanged(ByVal sender As Object, ByVal e As System.EventArgs)
+    '    src1.SelectCommand = GetSql()
+    'End Sub
+
+    'Protected Sub rowTwATPTimer_Tick(ByVal sender As Object, ByVal e As System.EventArgs)
+    '    Dim tmr As Timer = sender
+    '    tmr.Interval = 99999
+    '    Try
+    '        Dim gv As GridView = tmr.NamingContainer.FindControl("gvRowTWATP")
+    '        Dim atp1 As New GlobalATP(CType(tmr.NamingContainer.FindControl("lbRowPN"), Label).Text, "TWH1")
+    '        atp1.Query()
+    '        If atp1.rdt IsNot Nothing AndAlso atp1.rdt.Rows.Count > 0 Then
+    '            gv.DataSource = atp1.rdt
+    '        Else
+    '            gv.EmptyDataText="N/A"
+    '        End If
+    '        gv.DataBind()
+    '    Catch ex As Exception
+    '        Util.SendEmail("tc.chen@advantech.eu", "ebiz.aeu@advantech.eu", "ERRPINOUT  ATP", ex.ToString(), False, "", "")
+    '    End Try
+    '    CType(tmr.NamingContainer.FindControl("imgRowTWATPLoad"), Image).Visible = False
+    '    tmr.Enabled = False
+    'End Sub
+    
+    'Protected Sub rowUSATPTimer_Tick(ByVal sender As Object, ByVal e As System.EventArgs)
+    '    Dim tmr As Timer = sender
+    '    tmr.Interval = 99999
+    '    Try
+    '        Dim gv As GridView = tmr.NamingContainer.FindControl("gvRowUSATP")
+    '        Dim atp1 As New GlobalATP(CType(tmr.NamingContainer.FindControl("lbRowPN"), Label).Text, "EUH1")
+    '        atp1.Query()
+    '        If atp1.rdt IsNot Nothing AndAlso atp1.rdt.Rows.Count > 0 Then
+    '            gv.DataSource = atp1.rdt
+    '        Else
+    '            gv.EmptyDataText = "N/A"
+    '        End If
+    '        gv.DataBind()
+    '    Catch ex As Exception
+    '        Util.SendEmail("tc.chen@advantech.eu", "ebiz.aeu@advantech.eu", "ERRPINOUT  ATP", ex.ToString(), False, "", "")
+    '    End Try
+    '    CType(tmr.NamingContainer.FindControl("imgRowUSATPLoad"), Image).Visible = False
+    '    tmr.Enabled = False
+    'End Sub
+
+    Protected Sub Page_Load(ByVal sender As Object, ByVal e As System.EventArgs)
+        If Not Page.IsPostBack Then
+            Response.Redirect("QueryACLATP.aspx")
+            'If Session("account_status") <> "EZ" AndAlso Session("account_status") <> "CP" Then
+            '    Response.Redirect("/home.aspx")
+            'End If
+            'Me.Master.EnableAsyncPostBackHolder = False
+            'If Session("org_id") <> "TW01" Then
+            '    gv1.Columns(gv1.Columns.Count - 1).Visible = True
+            '    gv1.Columns(gv1.Columns.Count - 1).HeaderText = "Curent Stock in " + Left(Session("org_id"), 2)
+            'Else
+            '    gv1.Columns(gv1.Columns.Count - 1).Visible = False
+            'End If
+        End If
+    End Sub
+
+    'Protected Sub gv1_RowDataBound(ByVal sender As Object, ByVal e As System.Web.UI.WebControls.GridViewRowEventArgs)
+    '    If e.Row.RowType = DataControlRowType.DataRow Then
+    '        CType(e.Row.FindControl("rowTwATPTimer"), Timer).Interval = 100 + 80 * e.Row.RowIndex
+    '        CType(e.Row.FindControl("rowUSATPTimer"), Timer).Interval = 150 + 80 * e.Row.RowIndex
+    '    End If
+    'End Sub
+
+    'Protected Sub btnQuery_Click(ByVal sender As Object, ByVal e As System.EventArgs)
+    '    src1.SelectCommand = GetSql()
+    'End Sub
+
+    Protected Sub rowPriceTimer_Tick(ByVal sender As Object, ByVal e As System.EventArgs)
+        'Dim tmr As Timer = sender
+        'tmr.Interval = 99999
+        'Try
+        '    Dim gv As GridView = tmr.NamingContainer.FindControl("gvRowUSATP")
+        '    Dim atp1 As New GlobalATP(CType(tmr.NamingContainer.FindControl("lbRowPN"), Label).Text, "EUH1")
+        '    atp1.Query()
+        '    If atp1.rdt IsNot Nothing AndAlso atp1.rdt.Rows.Count > 0 Then
+        '        gv.DataSource = atp1.rdt
+        '    Else
+        '        gv.EmptyDataText = "N/A"
+        '    End If
+        '    gv.DataBind()
+        'Catch ex As Exception
+        '    Util.SendEmail("tc.chen@advantech.eu", "ebiz.aeu@advantech.eu", "ERRPINOUT  ATP", ex.ToString(), False, "", "")
+        'End Try
+        'CType(tmr.NamingContainer.FindControl("imgRowUSATPLoad"), Image).Visible = False
+        'tmr.Enabled = False
+    End Sub
+</script>
+
+<asp:Content ID="Content1" ContentPlaceHolderID="_main" Runat="Server">
+   <%-- <table width="100%">
+        <tr><th align="left" colspan="2" style="font-size:large; color:Navy">Query ACL ATP</th></tr>
+        <tr valign="top">            
+            <td style="width:25%">
+                <table width="100%">
+                    <tr>                        
+                        <th align="left">Part No:</th>
+                        <td>
+                            <ajaxToolkit:AutoCompleteExtender runat="server" ID="ac1" ServicePath="~/Services/AutoComplete.asmx"
+                                TargetControlID="txtPN" CompletionInterval="200" ServiceMethod="GetPartNo" MinimumPrefixLength="2" />
+                            <asp:TextBox runat="server" ID="txtPN" Width="150px" />
+                        </td>
+                        <td><asp:Button runat="server" ID="btnQuery" OnClick="btnQuery_Click" Text="Query" /></td>
+                    </tr>
+                </table>
+            </td>
+            <td style="width:75%">&nbsp;</td>
+        </tr>
+        <tr valign="top">
+            <td colspan="2">
+                <asp:UpdatePanel runat="server" ID="up1" UpdateMode="Conditional">
+                    <ContentTemplate>
+                        <asp:GridView runat="server" ID="gv1" Width="90%" AutoGenerateColumns="false" AllowPaging="true" PageSize="25" DataSourceID="src1" 
+                            PagerSettings-Position="TopAndBottom" OnPageIndexChanging="gv1_PageIndexChanging" OnSorting="gv1_Sorting" OnRowDataBound="gv1_RowDataBound">
+                            <Columns>                                
+                                <asp:TemplateField HeaderText="Product" SortExpression="part_no">
+                                    <ItemTemplate>
+                                        <asp:Label runat="server" ID="lbRowPN" Text='<%#Eval("part_no") %>' />
+                                    </ItemTemplate>
+                                </asp:TemplateField>    
+                                <asp:TemplateField HeaderText="Price" ItemStyle-Width="250px" Visible="false">
+                                    <ItemTemplate>
+                                        <asp:UpdatePanel runat="server" ID="upRowPrice" UpdateMode="Conditional">
+                                            <ContentTemplate>
+                                                <asp:Timer runat="server" ID="rowPriceTimer" Enabled="false" Interval="100" OnTick="rowPriceTimer_Tick" />
+                                                <center><asp:Image runat="server" ID="imgRowPriceLoad" ImageUrl="~/Images/loading2.gif" /></center>
+                                                <asp:GridView runat="server" ID="gvRowPrice" />
+                                            </ContentTemplate>
+                                        </asp:UpdatePanel> 
+                                    </ItemTemplate>
+                                </asp:TemplateField>                                                             
+                                <asp:TemplateField HeaderText="Current Stock in Taiwan" ItemStyle-Width="250px">
+                                    <ItemTemplate>
+                                        <asp:UpdatePanel runat="server" ID="upRowTwStock" UpdateMode="Conditional">
+                                            <ContentTemplate>
+                                                <asp:Timer runat="server" ID="rowTwATPTimer" Interval="100" OnTick="rowTwATPTimer_Tick" />
+                                                <center><asp:Image runat="server" ID="imgRowTWATPLoad" ImageUrl="~/Images/loading2.gif" /></center>
+                                                <asp:Panel runat="server" ID="TWATPPanel" Width="255px" heith="50px" ScrollBars="Auto">
+                                                    <asp:GridView runat="server" ID="gvRowTWATP" Width="250px" AutoGenerateColumns="false">
+                                                        <Columns>
+                                                            <asp:BoundField HeaderText="Available Date" DataField="atp_date" ItemStyle-HorizontalAlign="Center" />
+                                                            <asp:BoundField HeaderText="Qty." DataField="atp_qty" ItemStyle-HorizontalAlign="Center" />
+                                                        </Columns>
+                                                    </asp:GridView> 
+                                                </asp:Panel>
+                                            </ContentTemplate>
+                                        </asp:UpdatePanel>
+                                    </ItemTemplate>
+                                </asp:TemplateField>
+                                <asp:TemplateField HeaderText="Current Stock in Local" ItemStyle-Width="250px">
+                                    <ItemTemplate>
+                                        <asp:UpdatePanel runat="server" ID="upRowUSStock" UpdateMode="Conditional">
+                                            <ContentTemplate>
+                                                <asp:Timer runat="server" ID="rowUSATPTimer" Interval="100" OnTick="rowUSATPTimer_Tick" />
+                                                <center><asp:Image runat="server" ID="imgRowUSATPLoad" ImageUrl="~/Images/loading2.gif" /></center>
+                                                <asp:Panel runat="server" ID="USATPPanel" Width="255px" heith="50px" ScrollBars="Auto">
+                                                    <asp:GridView runat="server" ID="gvRowUSATP" Width="250px" AutoGenerateColumns="false">
+                                                        <Columns>
+                                                            <asp:BoundField HeaderText="Available Date" DataField="atp_date" ItemStyle-HorizontalAlign="Center" />
+                                                            <asp:BoundField HeaderText="Qty." DataField="atp_qty" ItemStyle-HorizontalAlign="Center" />
+                                                        </Columns>
+                                                    </asp:GridView> 
+                                                </asp:Panel>                                                
+                                            </ContentTemplate>
+                                        </asp:UpdatePanel>
+                                    </ItemTemplate>
+                                </asp:TemplateField>
+                            </Columns>
+                        </asp:GridView>
+                        <asp:SqlDataSource runat="server" ID="src1" ConnectionString="<%$ConnectionStrings:MY %>" />
+                    </ContentTemplate>
+                    <Triggers>                        
+                        <asp:AsyncPostBackTrigger ControlID="btnQuery" EventName="Click" />
+                    </Triggers>
+                </asp:UpdatePanel>
+            </td>
+        </tr>
+    </table>--%>
+</asp:Content>

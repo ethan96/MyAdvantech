@@ -1,0 +1,38 @@
+﻿<%@ Page Title="Siebel Password Admin" EnableEventValidation="false" Language="VB" MasterPageFile="~/Includes/MyMaster.master" %>
+
+<script runat="server">
+
+</script>
+
+<asp:Content ID="Content1" ContentPlaceHolderID="_main" Runat="Server">
+<table  width="100%">
+            <tr>
+                <td style="width: 291px; height: 40px">
+                  <h2>Siebel Password Admin</h2>
+                </td>
+                <td rowspan="3" style="width: 100px">
+                <iframe src="Profile/ChangePwd.aspx" enableviewstate="false"  frameborder ="0" visible="false"  height="300" width="500"></iframe>
+                </td>
+            </tr>
+            <tr>
+                <td style="width: 291px" >
+               <ul> <li><a target="main" href="Profile/ChangePwd.aspx"><h3>Change password</h3></a></li>
+               </ul>
+                </td>
+            </tr>
+            <tr>
+                <td style="width: 291px ">
+                <ul><li><a target="main" href="Profile/NewPwd.aspx"><h3>New password</h3></a></li></ul>
+                </td>
+            </tr>
+            <tr>
+                <td style="width: 291px">
+                 <ul><li><a target="main" href="Profile/DeleteLogin.aspx"><h3>Delete SQL login</h3></a></li></ul>
+                </td>
+                <td style="width: 100px">
+                
+                </td>
+            </tr>
+        </table>
+</asp:Content>
+

@@ -1,0 +1,865 @@
+﻿<%@ Page Title="2011 Survey Event" Language="VB" MasterPageFile="~/Includes/MyMaster.master" %>
+
+<%@ Import Namespace="EC_Survey_KR_eStore" %>
+<script runat="server">
+
+    Protected Sub TBQ14_Load(sender As Object, e As System.EventArgs)
+        TBQ14.Attributes.Add("onfocus", "ss=setInterval(sp,600)")
+        TBQ14.Attributes.Add("onblur", "clearInterval(ss)")
+    End Sub
+    Protected Sub BT_Click(sender As Object, e As System.EventArgs)
+        If Util.IsValidEmailFormat(TB_email.Text.Trim) = False Then
+            ScriptManager.RegisterStartupScript(UpdatePanel1, HttpContext.Current.GetType(), "show", "ShowLoadingInfo('Email is invalid .', '5','Q15');", True)
+            Exit Sub
+        End If
+        Dim line As String = " | "
+        Dim EC_A As New EC_Survey_KR_eStoreTableAdapters.Survey_KR_eStore1TableAdapter
+        EC_A.DeleteQuery(Session.SessionID)
+        Dim Dt As New Survey_KR_eStore1DataTable
+        Dim Row As Survey_KR_eStore1Row = Dt.NewSurvey_KR_eStore1Row()
+        Row.ROWID = Session.SessionID
+        Row.Q1 = RBQ1.SelectedValue
+        If RBQ1.SelectedIndex = 0 Then
+            Row.Q2 = RBQ2.SelectedValue
+            Row.Q2_TEXT = T(TBQ2.Text)
+            Row.Q3 = RBQ3.SelectedValue
+            Row.Q3_TEXT = T(TBQ3.Text)
+        Else
+            Row.Q4 = RBQ4.SelectedValue
+            Row.Q4_TEXT = T(TBQ4.Text)
+            Row.Q5 = RBQ5.SelectedValue
+            Row.Q5_TEXT = T(TBQ5.Text)
+        End If
+        Row.Q6 = RBQ6.SelectedValue
+        Row.Q7_1 = T(RBQ7_1.SelectedValue)
+        Row.Q7_2 = T(RBQ7_2.SelectedValue)
+        Row.Q7_3 = T(RBQ7_3.SelectedValue)
+        Row.Q7_4 = T(RBQ7_4.SelectedValue)
+        Row.Q7_5 = T(RBQ7_5.SelectedValue)
+        Row.Q8_1 = T(RBQ8_1.SelectedValue)
+        Row.Q8_2 = T(RBQ8_2.SelectedValue)
+        Row.Q8_3 = T(RBQ8_3.SelectedValue)
+        Row.Q8_4 = T(RBQ8_4.SelectedValue)
+        Row.Q9 = RBQ9.SelectedValue
+        Row.Q10 = RBQ10.SelectedValue
+        Row.Q11 = RBQ11.SelectedValue
+        Row.Q11_TEXT = T(TBQ11.Text)
+        Row.Q12 = RBQ12.SelectedValue
+        Row.Q13 = RBQ13.SelectedValue
+        Row.Q14 = T(TBQ14.Text)
+        Row.Q15 = "name:" + T(TB_name.Text) + line _
+                + "company:" + T(TB_company.Text) + line _
+                   + "title:" + T(TB_title.Text) + line _
+                      + "phone number:" + T(TB_phone.Text) + line _
+                         + "email:" + T(TB_email.Text) + line
+        Row.CREATED_BY = ""
+        If Session("user_id") IsNot Nothing AndAlso Session("user_id").ToString() <> "" Then
+            Row.CREATED_BY = Session("user_id").ToString()
+        End If
+        Row.CREATED_DATE = Now()
+        Dt.AddSurvey_KR_eStore1Row(Row)
+        Dt.AcceptChanges()
+        Dim conn As New SqlClient.SqlConnection(ConfigurationManager.ConnectionStrings("MyLocal").ConnectionString)
+        conn.Open()
+        Dim bk As New SqlClient.SqlBulkCopy(conn)
+        Try
+            bk.DestinationTableName = "Survey_KR_eStore" : bk.WriteToServer(Dt)
+            If conn.State <> ConnectionState.Closed Then conn.Close()
+            'ScriptManager.RegisterStartupScript(UpdatePanel1, HttpContext.Current.GetType(), "show", "ShowLoadingInfo('참여해 주셔서 감사합니다.', '5','');", True)
+            Util.AjaxJSAlertRedirect(UpdatePanel1, "참여해 주셔서 감사합니다.", "http://buy.advantech.co.kr")
+        Catch ex As Exception
+        End Try
+    End Sub
+    Public Function T(ByVal s As String) As String
+        Return s.ToString().Trim().Replace("'", "''")
+    End Function
+    Protected Sub Page_Load(sender As Object, e As System.EventArgs)
+        Dim url As String = "http://" + Request.ServerVariables("SERVER_NAME").ToString() + ":" _
+                               + Request.ServerVariables("SERVER_PORT").ToString() + Request.ServerVariables("PATH_INFO").ToString().Trim()
+        If Request("TempId") IsNot Nothing AndAlso Request("id") IsNot Nothing AndAlso Util.IsValidEmailFormat(Request("id")) Then
+            Dim ws As New SSO.MembershipWebservice, UID As String = Request("id"), LoginTicket As String = Request("TempId")
+            If ws.validateTemidEmail(Util.GetClientIP(), Request("TempId"), "MY", Request("id")) Then
+                AuthUser(Request("id"), "", Request("TempId"))
+            End If
+        End If
+        If Session("user_id") Is Nothing Then 'Not User.Identity.IsAuthenticated
+            Response.Redirect("http://member.advantech.com/login.aspx?lang=ko-kr&pass=adv&callbackurl=" + url) 'Request.RawUrl
+            Response.End()
+        Else
+            If False Then
+                Util.JSAlertRedirect(Me.Page, "This page is for Advantech Korea customers only", "../../home.aspx")
+            End If
+            TB_email.Text = Session("user_id").ToString()
+            If Util.IsValidEmailFormat(TB_email.Text.Trim) Then
+                TB_email.ReadOnly = True
+            End If
+        End If
+        For i As Integer = 0 To RBQ1.Items.Count - 1
+            RBQ1.Items(i).Attributes.Add("onclick", "drpchange(this)")
+        Next
+    End Sub
+    Private Sub AuthUser(ByVal UID As String, ByVal PWD As String, ByVal TempId As String)
+        Dim sso As New SSO.MembershipWebservice, Validated As Boolean = False
+        Dim loginTicket As String = ""
+        sso.Timeout = -1
+        Try
+            If PWD <> "" Then
+                loginTicket = sso.login(UID, PWD, "MY", Util.GetClientIP())
+            Else
+                loginTicket = sso.loginForEUMyAdvantech(UID, "MY", Util.GetClientIP())
+                loginTicket = TempId
+            End If
+        Catch ex As Exception
+            Util.SendEmail("tc.chen@advantech.com.tw", "ebiz.aeu@advantech.eu", "SSO Error email:" + UID + "|pwd:" + PWD, ex.ToString(), False, "", "")
+        End Try
+        Dim failed_reason As String = ""
+        If loginTicket <> "" Then
+            ' Validated = True
+            '/ ming add for sieble validation
+            If Util.IsInternalUser(UID) Then 'If UID Like "*@advantech*" Then
+                Validated = True
+            Else
+                If LCase(UID) = "test.acl@advantech.com" Then
+                    Validated = True
+                Else
+                    Dim dt As DataTable = dbUtil.dbGetDataTable("MY", String.Format("select top 1 isnull(erpid,'') as erpid,isnull(ACTIVE_FLAG,'N') as ACTIVE_FLAG from siebel_contact where email_address='{0}'", Replace(UID, "'", "")))
+                    If dt.Rows.Count > 0 Then
+                        If dt.Rows(0).Item(0).ToString <> "" AndAlso UCase(dt.Rows(0).Item(1).ToString) = "Y" Then
+                            Validated = True
+                        Else
+                            If dt.Rows(0).Item(0).ToString = "" Then
+                                failed_reason = "Siebel ERPID is empty"
+                                Validated = True
+                            End If
+                            If UCase(dt.Rows(0).Item(1).ToString) = "N" Then
+                                failed_reason = "Siebel is inactive"
+                                Validated = False
+                            End If
+                        End If
+                    Else
+                        dt = dbUtil.dbGetDataTable("CRMDB75", String.Format("SELECT A.ROW_ID FROM S_CONTACT A WHERE Lower(A.EMAIL_ADDR)='{0}' and A.ACTIVE_FLG='Y'", Replace(UID.ToLower(), "'", "")))
+                        If dt.Rows.Count > 0 Then
+                            Util.SyncContactFromSiebel(dt.Rows(0).Item(0).ToString)
+                            Validated = True
+                        Else
+                            Validated = True
+                            'failed_reason = "No Siebel Contact"
+                        End If
+                    End If
+                End If
+            End If
+            '\ ming end
+        Else
+            If Not Util.IsInternalUser(UID) Then
+                Dim dt As DataTable = dbUtil.dbGetDataTable("MYLOCAL", String.Format("select USER_STATUS from SSO_MEMBER where EMAIL_ADDR='{0}'", UID))
+                If dt.Rows.Count > 0 Then
+                    If CBool(dt.Rows(0).Item("USER_STATUS")) = False Then
+                        failed_reason = "SSO Inactive"
+                    Else
+                        failed_reason = "Password error"
+                    End If
+                Else
+                    failed_reason = "No User"
+                End If
+            End If
+        End If
+        
+        If Validated Then
+            AuthUtil.SetSessionById(UID, loginTicket)
+            If HttpContext.Current.Session("user_id") = "test.acl@advantech.com" Then
+                Dim au As New AuthUtil
+                au.ChangeCompanyId("UHTE00002")
+            End If
+            AuthUtil.LogUserAccess(HttpContext.Current.Session("CART_ID"), PWD)
+            Dim WS As New quote.quoteExit
+            WS.Timeout = -1
+            WS.LogSSOId(loginTicket, UID, PWD, Util.GetClientIP())
+            'If Request("ReturnUrl") IsNot Nothing _
+            '   AndAlso Trim(Request("ReturnUrl")) <> "" _
+            '   AndAlso Request("ReturnUrl") <> "/" Then
+            '    Try
+            '        FormsAuthentication.RedirectFromLoginPage(UID, False)
+            '    Catch ex As Exception
+            '        Util.SendEmail("tc.chen@advantech.com.tw,rudy.wang@advantech.com.tw,nada.liu@advantech.com.cn,ming.zhao@advantech.com.cn", "ebiz.aeu@advantech.eu", _
+            '                       "ReturnUrl Error email:" + UID + "", " The return URL: " + Request("ReturnUrl") + "," + ex.ToString(), False, "", "")
+            '        FormsAuthentication.SetAuthCookie(UID, False)
+            '        'RedirectLoginUser()
+            '    End Try
+            'Else
+            '    'RedirectLoginUser()
+            'End If
+            Response.Redirect("./Survey_KR_eStore.aspx")
+        Else
+            Try
+                dbUtil.dbExecuteNoQuery("MY", String.Format(" insert into LOGIN_FAILED (USERID,PASSWORD,TIMESTAMP,IP,REASON) values " + _
+                                                            " (N'{0}',N'{1}',GETDATE(),'{2}','{3}')", Replace(UID, "'", "''"), Replace(PWD, "'", "''"), Util.GetClientIP(), failed_reason))
+            Catch ex As Exception
+
+            End Try
+        End If
+    End Sub
+</script>
+<asp:Content ID="Content1" ContentPlaceHolderID="_main" runat="Server">
+    <script src="Styles/jquery1.42-min.js" type="text/javascript"></script>
+    <link href="Styles/css.css" rel="stylesheet" type="text/css" />
+    <!--[if IE 6]>
+<style type="text/css">
+/*ie6 fix顶端元素*/
+    #Global_Loading{
+    top:expression(eval(document.documentElement.scrollTop));
+}
+#Global_Loading{
+	position:fixed !important;/*ie7 ff*/
+	position:absolute;
+	z-index:21;
+	height:30px;
+	width:500px;
+
+}
+
+</style>
+<![endif]-->
+    <div id="Global_Loading">
+        Loading...</div>
+
+    <div class="divmid">
+        <div class="divtitle">
+            2011 Survey Event</div>
+        <div>
+            지난 2011년도 한해도 어드밴텍을 성원해 주신 여러분들께 진심으로 감사의 말씀을 전합니다. 2012년 한 해도 고객을 위한 서비스를 마련하고자
+            아래와 같은 설문조사 내용을 마련하였습니다. 어드밴텍을 사랑하시는 여러분들의 많은 참여 부탁 드립니다.</div>
+        <ul class="myul">
+            <li>설문 참여는 계정 당 1회로 제한됩니다.</li>
+            <li>어드밴텍의 추첨 상품 배송을 위해 자기 정보를 반드시 입력해 주시길 바랍니다. </li>
+        </ul>
+    </div>
+    <div class="blank8">
+    </div>
+    <a name="Q1" id="Q1"></a>
+    <div class="divmid">
+        <div class="title">
+            <span>Q1. </span><em>*</em><asp:Literal ID="LitQ1" runat="server">귀하께서는 2011년도 어드밴텍의 제품 및 서비스를 구매하신 경험이 있으십니까?</asp:Literal></div>
+        <div class="con">
+            <asp:RadioButtonList ID="RBQ1" runat="server">
+                <asp:ListItem Value="예.">예.<span class="rbt">(‘예’를 선택하신 분들은 2번, 3번 문항으로 자동이동 됩니다.)</span></asp:ListItem>
+                <asp:ListItem Value="아니요.">아니요.<span class="rbt"> (‘아니오’를 선택하신 분들은 4번, 5번 문항으로 자동이동 됩니다.)</span></asp:ListItem>
+            </asp:RadioButtonList>
+        </div>
+    </div>
+    <div class="blank8">
+    </div>
+    <div id="h2-3">
+        <a name="Q2" id="Q2"></a>
+        <div class="divmid">
+            <div class="title">
+                <span>Q2. </span><em></em>
+                <asp:Literal ID="LitQ2" runat="server">2011년도 어드밴텍 제품 및 서비스를 구매하셨다면 주로 어떤 제품 및 서비스를 구매하셨습니까?</asp:Literal>
+            </div>
+            <div class="con Rela">
+                <asp:RadioButtonList ID="RBQ2" runat="server">
+                    <asp:ListItem>산업용 컴퓨터 및 일체형 컴퓨터(IPC, PPC 등) 제품 군 </asp:ListItem>
+                    <asp:ListItem>임베디드 컴퓨터(ARK, UNO 등) 제품 군 </asp:ListItem>
+                    <asp:ListItem>산업용 허브 및 이더넷 스위치(EKI, 멀티포트카드 등) 네트워트 장비 </asp:ListItem>
+                    <asp:ListItem>SOM, SBC, AIMB, CPU 카드 등 산업용 보드 제품 군 </asp:ListItem>
+                    <asp:ListItem>각종 카드 타입 (ADAM, USB등) 제품 군</asp:ListItem>
+                    <asp:ListItem>DTOS(Design to Order Service), OEM/ODM Service</asp:ListItem>
+                    <asp:ListItem>Microsoft Embedded OS외 기타 제품군</asp:ListItem>
+                </asp:RadioButtonList>
+                <div class="Abs AbsQ2">
+                    <asp:TextBox ID="TBQ2" runat="server" Width="180"></asp:TextBox>
+                </div>
+            </div>
+        </div>
+        <div class="blank8">
+        </div>
+        <a name="Q3" id="Q3"></a>
+        <div class="divmid">
+            <div class="title">
+                <span>Q3. </span><em></em>어드밴텍 제품 및 서비스를 구매 결정을 하신 가장 주된 요인은 무엇입니까?
+            </div>
+            <div class="con Rela">
+                <asp:RadioButtonList ID="RBQ3" runat="server">
+                    <asp:ListItem>제품의 성능 및 품질  </asp:ListItem>
+                    <asp:ListItem>국내 기술 서비스 및 제품 사후 관리  </asp:ListItem>
+                    <asp:ListItem>제품의 가격 </asp:ListItem>
+                    <asp:ListItem>어드밴텍 브랜드에 대한 인지도 및 신뢰도 </asp:ListItem>
+                    <asp:ListItem>End User의 결정에 따라  </asp:ListItem>
+                    <asp:ListItem>기타  </asp:ListItem>
+                </asp:RadioButtonList>
+                <div class="Abs AbsQ3">
+                    <asp:TextBox ID="TBQ3" runat="server" Width="180"></asp:TextBox>
+                </div>
+            </div>
+        </div>
+        <div class="blank8">
+        </div>
+    </div>
+    <div id="h4-5">
+        <a name="Q4" id="Q4"></a>
+        <div class="divmid">
+            <div class="title">
+                <span>Q4. </span><em></em>귀하께서는 어드밴텍의 제품 및 서비스를 구매 결정을 포기하시는 가장 주된 원인은 무엇입니까?
+            </div>
+            <div class="con Rela">
+                <asp:RadioButtonList ID="RBQ4" runat="server">
+                    <asp:ListItem>어드밴텍 제품으로 진행할만한 프로젝트가 없어서   </asp:ListItem>
+                    <asp:ListItem>제품 및 서비스에 대한 정보가 부족해서  </asp:ListItem>
+                    <asp:ListItem>제품의 가격이 너무 비싸서  </asp:ListItem>
+                    <asp:ListItem>기술지원 및 사후 관리에 대한 우려</asp:ListItem>
+                    <asp:ListItem>어드밴텍의 대응에 대한 불만(영업담당자, 콜 센터등)   </asp:ListItem>
+                    <asp:ListItem>제품의 품질 및 성능에 대한 불만  </asp:ListItem>
+                    <asp:ListItem>기타  </asp:ListItem>
+                </asp:RadioButtonList>
+                <div class="Abs AbsQ4">
+                    <asp:TextBox ID="TBQ4" runat="server" Width="180"></asp:TextBox>
+                </div>
+            </div>
+        </div>
+        <div class="blank8">
+        </div>
+        <a name="Q5" id="Q5"></a>
+        <div class="divmid">
+            <div class="title">
+                <span>Q5. </span><em></em>귀하께서는 추후에 어드밴텍 제품을 사용하실 의향은 있으십니까?
+            </div>
+            <div class="con Rela">
+                <asp:RadioButtonList ID="RBQ5" runat="server">
+                    <asp:ListItem>2012년도 상반기 구매 계획 있음  </asp:ListItem>
+                    <asp:ListItem>현재 구매 여부 고려 중  </asp:ListItem>
+                    <asp:ListItem>현재 계획은 없으나 장기적으로 고려  </asp:ListItem>
+                    <asp:ListItem>구매 의사 전혀 없음</asp:ListItem>
+                    <asp:ListItem>기타  </asp:ListItem>
+                </asp:RadioButtonList>
+                <div class="Abs AbsQ5">
+                    <asp:TextBox ID="TBQ5" runat="server" Width="180"></asp:TextBox>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="blank8">
+    </div>
+    <a name="Q6" id="Q6"></a>
+    <div class="divmid">
+        <div class="title">
+            <span>Q6. </span><em></em>귀하께서는 이후 어드밴텍 담당 영업사원이 배치되어 제품의 기술 교육 및 데모 소개 위해 귀사를 방문하길
+            원하십니까?
+        </div>
+        <div class="con">
+            <asp:RadioButtonList ID="RBQ6" runat="server" RepeatDirection="Horizontal" Width="100%">
+                <asp:ListItem>1개월 내 방문 희망   </asp:ListItem>
+                <asp:ListItem>3개월 내 방문 희망 </asp:ListItem>
+                <asp:ListItem>방문을 희망하지 않음 </asp:ListItem>
+                <asp:ListItem>우선 전화상담을 받길 희망 </asp:ListItem>
+            </asp:RadioButtonList>
+        </div>
+    </div>
+    <div class="blank8">
+    </div>
+    <div class="divmid">
+        <div class="title">
+            <span>Q7. </span><em></em>
+            <asp:Literal ID="LitQ7" runat="server">어드밴텍 제품에 대한 만족도를 아래 문항에 따라 표기하여 주세요. </asp:Literal>
+        </div>
+        <div class="con">
+            <table width="100%" border="1">
+                <tr>
+                    <td width="150">
+                        &nbsp;
+                    </td>
+                    <td align="center" class="mytd">
+                        <p>
+                            매우 만족</p>
+                    </td>
+                    <td align="center" class="mytd">
+                        <p>
+                            만족</p>
+                    </td>
+                    <td align="center" class="mytd">
+                        <p>
+                            보통</p>
+                    </td>
+                    <td align="center" class="mytd">
+                        <p>
+                            불만</p>
+                    </td>
+                    <td align="center" class="mytd">
+                        <p>
+                            매우 불만</p>
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <p>
+                            제품&nbsp;성능</p>
+                    </td>
+                    <td colspan="5">
+                        <asp:RadioButtonList ID="RBQ7_1" runat="server" RepeatDirection="Horizontal" Width="100%"
+                            CssClass="myrblist">
+                            <asp:ListItem Value="매우 만족" Text=""></asp:ListItem>
+                            <asp:ListItem Value="만족" Text=""></asp:ListItem>
+                            <asp:ListItem Value="보통" Text=""></asp:ListItem>
+                            <asp:ListItem Value="불만" Text=""></asp:ListItem>
+                            <asp:ListItem Value="매우 불만" Text=""></asp:ListItem>
+                        </asp:RadioButtonList>
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <p>
+                            제품의&nbsp;납기&nbsp;및&nbsp;배송</p>
+                    </td>
+                    <td colspan="5">
+                        <asp:RadioButtonList ID="RBQ7_2" runat="server" RepeatDirection="Horizontal" Width="100%"
+                            CssClass="myrblist">
+                            <asp:ListItem Value="매우 만족" Text=""></asp:ListItem>
+                            <asp:ListItem Value="만족" Text=""></asp:ListItem>
+                            <asp:ListItem Value="보통" Text=""></asp:ListItem>
+                            <asp:ListItem Value="불만" Text=""></asp:ListItem>
+                            <asp:ListItem Value="매우 불만" Text=""></asp:ListItem>
+                        </asp:RadioButtonList>
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <p>
+                            제품&#160;품질&nbsp;및&#160;내구성&nbsp;</p>
+                    </td>
+                    <td colspan="5">
+                        <asp:RadioButtonList ID="RBQ7_3" runat="server" RepeatDirection="Horizontal" Width="100%"
+                            CssClass="myrblist">
+                            <asp:ListItem Value="매우 만족" Text=""></asp:ListItem>
+                            <asp:ListItem Value="만족" Text=""></asp:ListItem>
+                            <asp:ListItem Value="보통" Text=""></asp:ListItem>
+                            <asp:ListItem Value="불만" Text=""></asp:ListItem>
+                            <asp:ListItem Value="매우 불만" Text=""></asp:ListItem>
+                        </asp:RadioButtonList>
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <p>
+                            제품&nbsp;및&nbsp;서비스&nbsp;가격</p>
+                    </td>
+                    <td colspan="5">
+                        <asp:RadioButtonList ID="RBQ7_4" runat="server" RepeatDirection="Horizontal" Width="100%"
+                            CssClass="myrblist">
+                            <asp:ListItem Value="매우 만족" Text=""></asp:ListItem>
+                            <asp:ListItem Value="만족" Text=""></asp:ListItem>
+                            <asp:ListItem Value="보통" Text=""></asp:ListItem>
+                            <asp:ListItem Value="불만" Text=""></asp:ListItem>
+                            <asp:ListItem Value="매우 불만" Text=""></asp:ListItem>
+                        </asp:RadioButtonList>
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <p>
+                            제품의&nbsp;출시&nbsp;시기</p>
+                    </td>
+                    <td colspan="5">
+                        <asp:RadioButtonList ID="RBQ7_5" runat="server" RepeatDirection="Horizontal" Width="100%"
+                            CssClass="myrblist">
+                            <asp:ListItem Value="매우 만족" Text=""></asp:ListItem>
+                            <asp:ListItem Value="만족" Text=""></asp:ListItem>
+                            <asp:ListItem Value="보통" Text=""></asp:ListItem>
+                            <asp:ListItem Value="불만" Text=""></asp:ListItem>
+                            <asp:ListItem Value="매우 불만" Text=""></asp:ListItem>
+                        </asp:RadioButtonList>
+                    </td>
+                </tr>
+            </table>
+        </div>
+    </div>
+    <div class="blank8">
+    </div>
+    <div class="divmid">
+        <div class="title">
+            <span>Q8. </span><em>*</em><asp:Literal ID="LitQ8" runat="server">다음 서비스에 대한 만족도를 아래 문항에 따라 표시해 주세요.</asp:Literal>
+        </div>
+        <div class="con">
+            <table width="100%" border="1">
+                <tr>
+                    <td width="250">
+                        &nbsp;
+                    </td>
+                    <td align="center" class="mytd">
+                        <p>
+                            매우 만족</p>
+                    </td>
+                    <td align="center" class="mytd">
+                        <p>
+                            만족</p>
+                    </td>
+                    <td align="center" class="mytd">
+                        <p>
+                            보통</p>
+                    </td>
+                    <td align="center" class="mytd">
+                        <p>
+                            불만</p>
+                    </td>
+                    <td align="center" class="mytd">
+                        <p>
+                            매우 불만</p>
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <p>
+                            상담시 친철도</p>
+                    </td>
+                    <td colspan="5">
+                        <asp:RadioButtonList ID="RBQ8_1" runat="server" RepeatDirection="Horizontal" Width="100%"
+                            CssClass="myrblist">
+                            <asp:ListItem Value="매우 만족" Text=""></asp:ListItem>
+                            <asp:ListItem Value="만족" Text=""></asp:ListItem>
+                            <asp:ListItem Value="보통" Text=""></asp:ListItem>
+                            <asp:ListItem Value="불만" Text=""></asp:ListItem>
+                            <asp:ListItem Value="매우 불만" Text=""></asp:ListItem>
+                        </asp:RadioButtonList>
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <p>
+                            웹 서비스 지원 (웹정보,회원가입,로그인 등)</p>
+                    </td>
+                    <td colspan="5">
+                        <asp:RadioButtonList ID="RBQ8_2" runat="server" RepeatDirection="Horizontal" Width="100%"
+                            CssClass="myrblist">
+                            <asp:ListItem Value="매우 만족" Text=""></asp:ListItem>
+                            <asp:ListItem Value="만족" Text=""></asp:ListItem>
+                            <asp:ListItem Value="보통" Text=""></asp:ListItem>
+                            <asp:ListItem Value="불만" Text=""></asp:ListItem>
+                            <asp:ListItem Value="매우 불만" Text=""></asp:ListItem>
+                        </asp:RadioButtonList>
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <p>
+                            기술지원 및 A/S</p>
+                    </td>
+                    <td colspan="5">
+                        <asp:RadioButtonList ID="RBQ8_3" runat="server" RepeatDirection="Horizontal" Width="100%"
+                            CssClass="myrblist">
+                            <asp:ListItem Value="매우 만족" Text=""></asp:ListItem>
+                            <asp:ListItem Value="만족" Text=""></asp:ListItem>
+                            <asp:ListItem Value="보통" Text=""></asp:ListItem>
+                            <asp:ListItem Value="불만" Text=""></asp:ListItem>
+                            <asp:ListItem Value="매우 불만" Text=""></asp:ListItem>
+                        </asp:RadioButtonList>
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <p>
+                            영업 사원의 숙련도</p>
+                    </td>
+                    <td colspan="5">
+                        <asp:RadioButtonList ID="RBQ8_4" runat="server" RepeatDirection="Horizontal" Width="100%"
+                            CssClass="myrblist">
+                            <asp:ListItem Value="매우 만족" Text=""></asp:ListItem>
+                            <asp:ListItem Value="만족" Text=""></asp:ListItem>
+                            <asp:ListItem Value="보통" Text=""></asp:ListItem>
+                            <asp:ListItem Value="불만" Text=""></asp:ListItem>
+                            <asp:ListItem Value="매우 불만" Text=""></asp:ListItem>
+                        </asp:RadioButtonList>
+                    </td>
+                </tr>
+            </table>
+        </div>
+    </div>
+    <div class="blank8">
+    </div>
+    <a name="Q9" id="Q9"></a>
+    <div class="divmid">
+        <div class="title">
+            <span>Q9. </span><em></em>소식지에 항상 열람하십니까?
+        </div>
+        <div class="con">
+            <asp:RadioButtonList ID="RBQ9" runat="server" RepeatDirection="Horizontal" Width="100%">
+                <asp:ListItem>항상 확인함   </asp:ListItem>
+                <asp:ListItem>가끔 확인함 </asp:ListItem>
+                <asp:ListItem>확인하지 않음</asp:ListItem>
+            </asp:RadioButtonList>
+        </div>
+    </div>
+    <div class="blank8">
+    </div>
+    <a name="Q10" id="Q10"></a>
+    <div class="divmid">
+        <div class="title">
+            <span>Q10. </span><em></em>소식지에 대한 내용에 만족하십니까?
+        </div>
+        <div class="con">
+            <asp:RadioButtonList ID="RBQ10" runat="server" RepeatDirection="Horizontal" Width="100%">
+                <asp:ListItem>매우만족 </asp:ListItem>
+                <asp:ListItem>만족  </asp:ListItem>
+                <asp:ListItem>보통</asp:ListItem>
+                <asp:ListItem>불만족 </asp:ListItem>
+                <asp:ListItem>매우 불만족</asp:ListItem>
+            </asp:RadioButtonList>
+        </div>
+    </div>
+    <div class="blank8">
+    </div>
+    <a name="Q11" id="Q11"></a>
+    <div class="divmid">
+        <div class="title">
+            <span>Q11. </span><em></em>어드밴텍에서 제공하는 아래 정보지 중 가장 도움이 된다고 생각하시는 것을 선택해 주세요.
+        </div>
+        <div class="con Rela">
+            <asp:RadioButtonList ID="RBQ11" runat="server" Width="100%">
+                <asp:ListItem>신제품 출시 정보</asp:ListItem>
+                <asp:ListItem>세미나 알림 안내</asp:ListItem>
+                <asp:ListItem>기술 동향 문건</asp:ListItem>
+                <asp:ListItem>이벤트 소식  </asp:ListItem>
+                <asp:ListItem>제품 가격 프로모션 </asp:ListItem>
+                <asp:ListItem>기타  </asp:ListItem>
+            </asp:RadioButtonList>
+            <div class="Abs AbsQ11">
+                <asp:TextBox ID="TBQ11" runat="server" Width="180"></asp:TextBox>
+            </div>
+        </div>
+    </div>
+    <div class="blank8">
+    </div>
+    <a name="Q12" id="Q12"></a>
+    <div class="divmid">
+        <div class="title">
+            <span>Q12. </span><em></em>2012년도 국내 자동화 산업을 어떻게 전망하십니까?
+        </div>
+        <div class="con">
+            <asp:RadioButtonList ID="RBQ12" runat="server" RepeatDirection="Horizontal" Width="100%">
+                <asp:ListItem>성장할 것이다.</asp:ListItem>
+                <asp:ListItem>하락할 것이다.</asp:ListItem>
+                <asp:ListItem>정체할 것이다. </asp:ListItem>
+                <asp:ListItem>잘 모르겠다. </asp:ListItem>
+            </asp:RadioButtonList>
+        </div>
+    </div>
+    <div class="blank8">
+    </div>
+    <a name="Q13" id="Q13"></a>
+    <div class="divmid">
+        <div class="title">
+            <span>Q13. </span><em></em>경기 회복한다면 그 시기는 언제 정도일 것으로 예상하십니까?
+        </div>
+        <div class="con">
+            <asp:RadioButtonList ID="RBQ13" runat="server" RepeatDirection="Horizontal" Width="100%">
+                <asp:ListItem>1분기</asp:ListItem>
+                <asp:ListItem>2분기</asp:ListItem>
+                <asp:ListItem>3분기 </asp:ListItem>
+                <asp:ListItem>4분기 </asp:ListItem>
+            </asp:RadioButtonList>
+        </div>
+    </div>
+    <div class="blank8">
+    </div>
+    <a name="Q14" id="Q14"></a>
+    <div class="divmid">
+        <div class="title">
+            <span>Q14. </span><em></em>
+            <div class="Q12">
+                귀하께서 어드밴텍의 발전을 위하여 제안하고 싶은 내용이 있다면 자유롭게 서술하여 주시기 바랍니다. 보다 좋은 제품과 서비스를 제공하기 위해 적극적으로
+                반영하도록 하겠습니다.
+            </div>
+        </div>
+        <div class="clearfix">
+        </div>
+        <div class="con">
+            <div id="labw">
+                (<asp:Label ID="Lab1" runat="server" ForeColor="Red" Text="">0</asp:Label>/ 2000
+                byte )
+            </div>
+            <asp:TextBox ID="TBQ14" runat="server" TextMode="MultiLine" Height="75px" Width="639px"
+                OnLoad="TBQ14_Load" Text=""></asp:TextBox>
+        </div>
+    </div>
+    <div class="blank8">
+    </div>
+    <a name="Q15" id="Q15"></a>
+    <div class="divmid">
+        <div class="title">
+            <span>Q15. </span><em></em>
+            <div class="Q12">
+                바쁘신 가운데 설문에 참여하여 주셔서 대단히 감사합니다.경품 추첨을 위해 아래 개인 정보를 다시 확인해 주시길 바랍니다. 보다 발전하는 어드밴텍을
+                위한 소중한 기초 자료로 활용하도록 하겠습니다.
+            </div>
+            <div class="clearfix">
+            </div>
+        </div>
+        <div class="con" id="myQ13">
+            <div class="clearfix">
+            </div>
+            <table>
+                <tr>
+                    <td width="100px" align="right" class="btitle">
+                        name:
+                    </td>
+                    <td align="left">
+                        <asp:TextBox ID="TB_name" runat="server" Width="280px"></asp:TextBox>
+                    </td>
+                </tr>
+                <tr>
+                    <td align="right" class="btitle">
+                        company:
+                    </td>
+                    <td align="left">
+                        <asp:TextBox ID="TB_company" runat="server" Width="280px"></asp:TextBox>
+                    </td>
+                </tr>
+                <tr>
+                    <td align="right" class="btitle">
+                        title:
+                    </td>
+                    <td align="left">
+                        <asp:TextBox ID="TB_title" runat="server" Width="280px"></asp:TextBox>
+                    </td>
+                </tr>
+                <tr>
+                    <td align="right" class="btitle">
+                        phone number:
+                    </td>
+                    <td align="left">
+                        <asp:TextBox ID="TB_phone" runat="server" Width="280px"></asp:TextBox>
+                    </td>
+                </tr>
+                <tr>
+                    <td align="right" class="btitle">
+                        email:
+                    </td>
+                    <td align="left">
+                        <asp:TextBox ID="TB_email" runat="server" Width="280px"></asp:TextBox>
+                    </td>
+                </tr>
+            </table>
+        </div>
+    </div>
+    <asp:Button ID="BT" runat="server" Text="Submit" OnClick="BT_Click" CssClass="bt"
+        OnClientClick="return check();" Font-Bold="True" BorderStyle="Groove" />
+    <asp:UpdatePanel ID="UpdatePanel1" runat="server">
+        <Triggers>
+            <asp:AsyncPostBackTrigger ControlID="BT" EventName="Click"></asp:AsyncPostBackTrigger>
+        </Triggers>
+    </asp:UpdatePanel>
+    <script type="text/javascript">
+        function GetObj(obj) {
+            return document.getElementById(obj);
+        }
+        function sp() {
+            var tex = GetObj('<%=TBQ14.ClientID %>').value;
+            var nun = tex.length;
+            var spa = GetObj('<%=Lab1.ClientID %>');
+            spa.innerHTML = 2000 - nun;
+        }
+        window.onload = function () { drpchange("t"); };
+        function drpchange(rad) {
+            var V = $("input[name='ctl00$_main$RBQ1']:checked").val();
+            if (V == "아니요.") {
+                //                $("#h2-3").slideUp("slow", function () { });
+                //                $("#h4-5").slideDown("slow");
+                $("#h2-3").hide();
+                $("#h4-5").show();
+            }
+            else {
+                //                $("#h4-5").slideUp("slow", function () { });
+                //                $("#h2-3").slideDown("slow");
+                $("#h2-3").show();
+                $("#h4-5").hide();
+            }
+        }
+        function check() {
+            //            if ($("input[name='ctl00$_main$RBQ1']:checked").length == 0) {
+            //                ShowLoadingInfo("Please select Q1:", 5, "Q1");
+            //                return false;
+            //            }
+            var txtChecks = "Q1,Q6,Q9,Q10,Q11,Q12,Q13";
+            var V = $("input[name='ctl00$_main$RBQ1']:checked").val();
+            if (V == "예.") {
+                txtChecks = "Q1,Q2,Q3,Q6,Q9,Q10,Q11,Q12,Q13";
+            } else {
+                txtChecks = "Q1,Q4,Q5,Q6,Q9,Q10,Q11,Q12,Q13";
+            }
+
+            var oArray = txtChecks.split(",");
+            for (var i = 0; i < oArray.length; i++) {
+                if ($("input[name='ctl00$_main$RB" + oArray[i] + "']:checked").length == 0) {
+                    try {
+                        ShowLoadingInfo("Please select " + oArray[i] + ":", 5, oArray[i]);
+                        return false;
+                    }
+                    catch (e) { }
+                    event.returnValue = false;
+                    return false;
+                }
+            }
+            if (GetObj('<%=TBQ14.ClientID %>').value.length <= 1) {
+                ShowLoadingInfo("Please input Q14:", 5, "Q12");
+                GetObj('<%=TBQ14.ClientID %>').focus();
+                return false;
+            }
+            if (GetObj('<%=TB_name.ClientID %>').value == "") {
+                ShowLoadingInfo("Please input name:", 5, "Q13");
+                GetObj('<%=TB_name.ClientID %>').focus();
+                return false;
+            }
+            if (GetObj('<%=TB_company.ClientID %>').value == "") {
+                ShowLoadingInfo("Please input company:", 5, "Q13");
+                GetObj('<%=TB_company.ClientID %>').focus();
+                return false;
+            }
+            if (GetObj('<%=TB_title.ClientID %>').value == "") {
+                ShowLoadingInfo("Please input title:", 5, "Q13");
+                GetObj('<%=TB_title.ClientID %>').focus();
+                return false;
+            }
+            if (GetObj('<%=TB_phone.ClientID %>').value == "") {
+                ShowLoadingInfo("Please input phone number:", 5, "Q13");
+                GetObj('<%=TB_phone.ClientID %>').focus();
+                return false;
+            }
+            if (GetObj('<%=TB_email.ClientID %>').value == "") {
+                ShowLoadingInfo("Please input email:", 5, "Q13");
+                GetObj('<%=TB_email.ClientID %>').focus();
+                return false;
+            }
+        }
+        var tming = 0;
+        function ShowLoadingInfo(StrHtml, showTime, AnchorID) {
+            if (AnchorID != "") { scroller(AnchorID, 800); }
+            var Obj = document.getElementById("Global_Loading");
+            if (Obj) {
+                tming = showTime;
+                Obj.style.display = "block";
+                var loadingimg = "";
+                if (tming == 0) {
+                    loadingimg = "<img src='./Styles/loading.gif'/>";
+                }
+                Obj.innerHTML = loadingimg + StrHtml + "<span id='TimeSpan'></span>";
+                if (showTime != 0) {
+                    autoClose();
+                }
+            }
+        }
+        function autoClose() {
+            --tming;
+            if (tming > 0) {
+                document.getElementById("TimeSpan").innerHTML = "This message will disappear after " + tming + " seconds"
+                setTimeout(autoClose, 1000);
+            }
+            else {
+                HideLoadingInfo();
+            }
+        }
+        function HideLoadingInfo() {
+            document.getElementById("Global_Loading").style.display = "none";
+        }
+    </script>
+    <script type="text/javascript">
+        function intval(v) { v = parseInt(v); return isNaN(v) ? 0 : v; }
+        function getPos(e) { var l = 0; var t = 0; var w = intval(e.style.width); var h = intval(e.style.height); var wb = e.offsetWidth; var hb = e.offsetHeight; while (e.offsetParent) { l += e.offsetLeft + (e.currentStyle ? intval(e.currentStyle.borderLeftWidth) : 0); t += e.offsetTop + (e.currentStyle ? intval(e.currentStyle.borderTopWidth) : 0); e = e.offsetParent; } l += e.offsetLeft + (e.currentStyle ? intval(e.currentStyle.borderLeftWidth) : 0); t += e.offsetTop + (e.currentStyle ? intval(e.currentStyle.borderTopWidth) : 0); return { x: l, y: t, w: w, h: h, wb: wb, hb: hb }; }
+        function getScroll() { var t, l, w, h; if (document.documentElement && document.documentElement.scrollTop) { t = document.documentElement.scrollTop; l = document.documentElement.scrollLeft; w = document.documentElement.scrollWidth; h = document.documentElement.scrollHeight; } else if (document.body) { t = document.body.scrollTop; l = document.body.scrollLeft; w = document.body.scrollWidth; h = document.body.scrollHeight; } return { t: t, l: l, w: w, h: h }; }
+        function scroller(el, duration) { if (typeof el != 'object') { el = document.getElementById(el); } if (!el) return; var z = this; z.el = el; z.p = getPos(el); z.s = getScroll(); z.clear = function () { window.clearInterval(z.timer); z.timer = null }; z.t = (new Date).getTime(); z.step = function () { var t = (new Date).getTime(); var p = (t - z.t) / duration; if (t >= duration + z.t) { z.clear(); window.setTimeout(function () { z.scroll(z.p.y, z.p.x) }, 13); } else { st = ((-Math.cos(p * Math.PI) / 2) + 0.5) * (z.p.y - z.s.t) + z.s.t; sl = ((-Math.cos(p * Math.PI) / 2) + 0.5) * (z.p.x - z.s.l) + z.s.l; z.scroll(st, sl); } }; z.scroll = function (t, l) { window.scrollTo(l, t) }; z.timer = window.setInterval(function () { z.step(); }, 13); }  </script>
+</asp:Content>

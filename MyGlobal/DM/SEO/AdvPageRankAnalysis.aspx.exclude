@@ -1,0 +1,443 @@
+﻿<%@ Page Title="MyAdvantech - Google Page Rank of Advantech Webpages" Language="VB" MasterPageFile="~/Includes/MyMaster.master" ValidateRequest="false" %>
+
+<script runat="server">
+    
+    Function GetSql() As String
+        Dim sb As New System.Text.StringBuilder
+        With sb
+            .AppendLine(String.Format(" select top 500 a.KEYID, a.Url, a.ResponseUri, a.Title, a.Meta_Description, a.Meta_Keywords,  "))
+            .AppendLine(String.Format(" a.APPNAME, a.[Text], a.GOOGLE_PAGERANK   "))
+            .AppendLine(String.Format(" from MY_WEB_SEARCH a "))
+            .AppendLine(String.Format(" where 1=1 "))
+            If Trim(txtUrl.Text) <> "" Then .AppendLine(String.Format(" and a.ResponseUri like N'%{0}%' ", Replace(Replace(Trim(txtUrl.Text), "'", "''"), "*", "%")))
+            If Trim(txtTitle.Text) <> "" Then .AppendLine(String.Format(" and a.Title like N'%{0}%' ", Replace(Replace(Trim(txtTitle.Text), "'", "''"), "*", "%")))
+            If Trim(txtMetaDesc.Text) <> "" Then .AppendLine(String.Format(" and a.Meta_Description like N'%{0}%' ", Replace(Replace(Trim(txtMetaDesc.Text), "'", "''"), "*", "%")))
+            'If Trim(txtMetaKey1.Text) <> "" Then .AppendLine(String.Format(" and a.Meta_Keywords like N'%{0}%' ", Replace(Replace(Trim(txtMetaKey1.Text), "'", "''"), "*", "%")))
+            If GetAllInputKeys.Count > 0 Then
+                .Append(" and ( ")
+                Dim ar As ArrayList = GetAllInputKeys()
+                For i As Integer = 0 To ar.Count - 1
+                    .AppendLine(String.Format(" a.Meta_Keywords like N'%{0}%' {1} ", Replace(Replace(ar.Item(i).ToString(), "'", "''"), "*", "%"), IIf(i < ar.Count - 1, "and", "")))
+                Next
+                .Append(" ) ")
+            End If
+            If Trim(txtText.Text) <> "" Then .AppendLine(String.Format(" and a.Text like N'%{0}%' ", Replace(Replace(Trim(txtText.Text), "'", "''"), "*", "%")))
+            .AppendLine(String.Format(" order by a.GOOGLE_PAGERANK desc, a.Depth, a.KEYID  "))
+        End With
+        'Response.Write(sb.ToString())
+        Return sb.ToString()
+    End Function
+    
+    Class MozURLMetrics
+        Public Property ut As String
+        Public Property uu As String
+        Public Property fmrp As String
+        Public Property fmrr As String
+        Public Property umrp As String
+        Public Property umrr As String
+        Public Property ueid As String
+        Public Property uid As String
+        Public Property us As String
+        Public Property upa As String
+        Public Property pda As String
+    End Class
+    
+    <Services.WebMethod()> _
+    <Web.Script.Services.ScriptMethod()> _
+    Public Shared Function WSGetMozURLMetrics(ByVal keyid As String) As String
+        'Return keyid
+        Dim u As Object = dbUtil.dbExecuteScalar("MY", "select top 1 ResponseUri from MY_WEB_SEARCH where keyid='" + keyid + "' ")
+        If u IsNot Nothing Then
+            Dim strUrl As String = u.ToString()
+            If strUrl.StartsWith("http://", StringComparison.OrdinalIgnoreCase) Then
+                strUrl = strUrl.Substring(7)
+            Else
+                If strUrl.StartsWith("https://", StringComparison.OrdinalIgnoreCase) Then
+                    strUrl = strUrl.Substring(8)
+                End If
+            End If
+            Dim ret As String = getMozUrlMetrics(strUrl)
+            Dim js As New Script.Serialization.JavaScriptSerializer()
+            Dim l As MozURLMetrics = js.Deserialize(Of MozURLMetrics)(ret)
+            Dim sb As New System.Text.StringBuilder
+            sb.AppendLine("<table width='100%'>")
+            sb.AppendLine(String.Format("<tr valign='top'><th colspan='2'>SEOmoz URL Metrics Analysis</th></tr>"))
+            sb.AppendLine(String.Format("<tr><td> <a target='blank' href='{0}'>{0}</a></td></tr>", u.ToString()))
+            sb.AppendLine(String.Format("<tr valign='top'><th align='left' style='width:140px'>{0}</th><td>{1}<td/></tr>", "Subdomain mozRank (1-10)", l.fmrp))
+            sb.AppendLine(String.Format("<tr valign='top'><th align='left' style='width:140px'>{0}</th><td>{1}<td/></tr>", "Subdomain mozRank (raw score)", l.fmrr))
+            sb.AppendLine(String.Format("<tr valign='top'><th align='left' style='width:140px'>{0}</th><td>{1}<td/></tr>", "Domain Authority", l.pda))
+            sb.AppendLine(String.Format("<tr valign='top'><th align='left' style='width:140px'>{0}</th><td>{1}<td/></tr>", "Page Authority", l.upa))
+            sb.AppendLine(String.Format("<tr valign='top'><th align='left' style='width:140px'>{0}</th><td>{1}<td/></tr>", "External Links", l.ueid))
+            sb.AppendLine(String.Format("<tr valign='top'><th align='left' style='width:140px'>{0}</th><td>{1}<td/></tr>", "Links", l.uid))
+            sb.AppendLine(String.Format("<tr valign='top'><th align='left' style='width:140px'>{0}</th><td>{1}<td/></tr>", "mozRank (1-10)", l.umrp))
+            sb.AppendLine(String.Format("<tr valign='top'><th align='left' style='width:140px'>{0}</th><td>{1}<td/></tr>", "mozRank (raw score)", l.umrr))
+            sb.AppendLine(String.Format("<tr valign='top'><th align='left' style='width:140px'>{0}</th><td>{1}<td/></tr>", "HTTP Status Code", l.us))
+            'sb.AppendLine(String.Format("<tr valign='top'><th align='left' style='width:140px'>{0}</th><td>{1}<td/></tr>", "Title", l.ut))
+            'sb.AppendLine(String.Format("<tr valign='top'><th align='left' style='width:140px'>{0}</th><td>{1}<td/></tr>", "URL", l.uu))
+            sb.AppendLine("</table>")
+            Return sb.ToString()
+        End If
+        Return "No Data"
+    End Function
+    
+    Function GetAllInputKeys() As ArrayList
+        Dim ar As New ArrayList
+        Dim par As ContentPlaceHolder = Me.Master.FindControl("_main")
+        For i As Integer = 1 To 6
+            Dim tc As TextBox = par.FindControl("txtMetaKey" + i.ToString())
+            If tc IsNot Nothing Then
+                If tc.Visible AndAlso Trim(tc.Text) <> "" Then
+                    ar.Add(Trim(tc.Text))
+                End If
+            End If
+        Next
+        Return ar
+    End Function
+
+    Protected Sub btnQuery_Click(sender As Object, e As System.EventArgs)
+        src1.SelectCommand = GetSql() : gv1.PageIndex = 0
+    End Sub
+    
+    Function ShowTextPreview(ByVal t As String, ByVal SearchColumnIdx As Integer) As String
+        Dim tKey As String = ""
+        Select Case SearchColumnIdx
+            Case 1
+                tKey = txtUrl.Text
+            Case 2
+                tKey = txtTitle.Text
+            Case 3
+                tKey = txtMetaDesc.Text
+            Case 4
+                Dim ar As ArrayList = GetAllInputKeys()
+                For Each a In ar
+                    t = Util.Highlight(a.ToString(), t)
+                    'Response.Write("replaced " + a.ToString() + "<br/>")
+                Next
+                'Response.Write(t)
+                'Response.End()
+                Return t
+            Case 5
+                If Trim(Me.txtText.Text) = String.Empty Then Return Left(t, 200) + "..."
+                tKey = txtText.Text
+        End Select
+        If SearchColumnIdx = 5 Then
+            Dim tl() As String = Split(t, vbCrLf)
+            Dim reg1 As New Regex(Trim(tKey), RegexOptions.IgnoreCase)
+            Dim nt As New System.Text.StringBuilder
+            For Each l As String In tl
+                If reg1.IsMatch(l) Then
+                    nt.AppendLine("..." + l + "...")
+                End If
+            Next
+            Dim rt As String = Util.Highlight(tKey, HttpUtility.HtmlEncode(nt.ToString()))
+            If Trim(rt) <> String.Empty Then Return rt
+            If t.Length > 200 Then
+                Return t.Substring(0, 200) + "..."
+            Else
+                Return t
+            End If
+        Else
+            Return Util.Highlight(tKey, HttpUtility.HtmlEncode(t))
+        End If
+      
+    End Function
+    
+    
+    'Public Function Highlight(ByVal Search_Str As String, ByVal InputTxt As String) As String
+    '    Dim reg1 As New Regex(Trim(Search_Str), RegexOptions.IgnoreCase)
+    '    If reg1.IsMatch(InputTxt) Then
+    '        Return reg1.Replace(InputTxt, New MatchEvaluator(AddressOf ReplaceKeyWords))
+    '        reg1 = Nothing
+    '    End If
+    '    Return ""
+    'End Function
+    
+    'Public Function ReplaceKeyWords(ByVal m As Match) As String
+    '    Return "<span style='color:Red'><b>" + m.Value + "</b></span>"
+    'End Function
+    
+    Protected Sub gvRowCreated(ByVal sender As Object, ByVal e As System.Web.UI.WebControls.GridViewRowEventArgs)
+        If Not (e.Row Is Nothing) AndAlso e.Row.RowType = DataControlRowType.Header Then
+            Dim GridView1 As GridView = sender
+            For Each cell As TableCell In e.Row.Cells
+                If cell.HasControls Then
+                    Dim button As LinkButton = DirectCast(cell.Controls(0), LinkButton)
+                    If Not (button Is Nothing) Then
+                        Dim image As New ImageButton
+                        image.ImageUrl = "../../Images/sort_1.jpg"
+                        image.CommandArgument = button.CommandArgument : image.CommandName = button.CommandName
+                        If GridView1.SortExpression = button.CommandArgument Then
+                            If GridView1.SortDirection = SortDirection.Ascending Then
+                                image.ImageUrl = "../../Images/sort_2.jpg"
+                            Else
+                                image.ImageUrl = "../../Images/sort_1.jpg"
+                            End If
+                        End If
+                        cell.Controls.Add(image)
+                    End If
+                End If
+            Next
+        End If
+    End Sub
+
+    Protected Sub gv1_PageIndexChanging(sender As Object, e As System.Web.UI.WebControls.GridViewPageEventArgs)
+        src1.SelectCommand = GetSql()
+    End Sub
+
+    Protected Sub gv1_Sorting(sender As Object, e As System.Web.UI.WebControls.GridViewSortEventArgs)
+        src1.SelectCommand = GetSql()
+    End Sub
+
+    Protected Sub Page_Load(sender As Object, e As System.EventArgs)
+        If Not Page.IsPostBack Then
+            src1.SelectCommand = GetSql()
+            'Response.Write("MOZ Result:" + getMozUrlMetrics("my.advantech.com"))
+        End If
+    End Sub
+
+    Protected Sub btnMoreKey_Click(sender As Object, e As System.EventArgs)
+        Dim par As ContentPlaceHolder = Me.Master.FindControl("_main")
+        For i As Integer = 2 To 6
+            Dim tc As TextBox = par.FindControl("txtMetaKey" + i.ToString())
+            If tc IsNot Nothing Then
+                If tc.Visible = False Then
+                    tc.Visible = True
+                    If i = 6 Then btnMoreKey.Enabled = False
+                    Exit For
+                End If
+            End If
+        Next
+    End Sub
+    
+    Private Shared Function getMozUrlMetrics(ByVal sWebSiteURL As String) As String
+        Dim sAccessID As String = "member-b38c5f9446"
+        Dim sSecretKey As String = "b9c392415170b5c54b8f18cafab4facb"
+        Dim lExpires As Long = DateDiff("s", DateSerial(1970, 1, 1), Now()) + 300
+        Dim sSafeSignature As String, sURLToFetch As String
+        sWebSiteURL = HttpUtility.UrlEncode(sWebSiteURL)
+        sSafeSignature = Encode(sAccessID, lExpires, sSecretKey, vbLf)
+
+        sURLToFetch = "http://lsapi.SEOmoz.com/linkscape/url-metrics/" & _
+        sWebSiteURL & "?Cols=69256398885&AccessID=" & sAccessID & "&Expires=" & lExpires & _
+        "&Signature=" & sSafeSignature
+
+        Return sGetData(sURLToFetch)
+    End Function
+
+    Public Shared Function Encode(ByVal sAccessID As String, _
+    ByVal lExpires As Long, _
+    ByVal SecretAccessKey As String, ByVal Separator As String) As String
+
+        Dim sAccessExpires As String
+        sAccessExpires = sAccessID & Separator & lExpires
+
+        Dim strSig_UTF8 As Byte(), strSignature As String, objUTF8Encoder As Text.UTF8Encoding, objHMACSHA1 As System.Security.Cryptography.HMACSHA1
+
+        objUTF8Encoder = New Text.UTF8Encoding()
+        strSig_UTF8 = objUTF8Encoder.GetBytes(sAccessExpires)
+
+        objHMACSHA1 = New System.Security.Cryptography.HMACSHA1( _
+         objUTF8Encoder.GetBytes(SecretAccessKey))
+        strSignature = Convert.ToBase64String _
+         (objHMACSHA1.ComputeHash( _
+         objUTF8Encoder.GetBytes( _
+         sAccessExpires.ToCharArray())))
+
+        Encode = HttpUtility.UrlEncode(strSignature)
+
+    End Function
+
+    Public Shared Function sGetData(ByVal sURL As String, _
+    Optional ByRef oCookies As Net.CookieContainer = Nothing) As String
+
+        Dim Writer As IO.StreamWriter = Nothing, WebRequestObject As Net.HttpWebRequest, sr As IO.StreamReader
+        Dim WebResponseObject As Net.HttpWebResponse, sbResultsBuilder As New Text.StringBuilder, sBuffer(8192) As Char, iRetChars As Integer
+
+        WebRequestObject = CType(Net.WebRequest.Create(sURL), Net.HttpWebRequest)
+        With WebRequestObject
+            .UserAgent = "Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.2; .NET CLR 1.0.3705;)"
+            .Method = "GET" : .Timeout = 55000 : .ReadWriteTimeout = 55000 : .AllowAutoRedirect = True
+        End With
+
+        If Not (oCookies Is Nothing) Then
+            WebRequestObject.CookieContainer = oCookies
+        End If
+
+        WebResponseObject = CType(WebRequestObject.GetResponse(), Net.HttpWebResponse)
+
+        sr = New IO.StreamReader(WebResponseObject.GetResponseStream)
+
+        Do
+            iRetChars = sr.Read(sBuffer, 0, sBuffer.Length)
+            If iRetChars > 0 Then
+                sbResultsBuilder.Append(sBuffer, 0, iRetChars)
+            End If
+        Loop While iRetChars > 0
+        sGetData = sbResultsBuilder.ToString
+
+    End Function
+    
+</script>
+<asp:Content ID="Content1" ContentPlaceHolderID="_main" runat="Server">
+    <script type="text/javascript">
+        function ShowMozMetrics(kid) {
+            var divMoz = document.getElementById('div_Moz');
+            divMoz.style.display = 'block';
+            var divMozDetail = document.getElementById('div_MozDetail');
+            divMozDetail.innerHTML = "<center><img src='../../Images/loading2.gif' alt='Loading...' width='35' height='35' />Loading...</center> ";
+            PageMethods.WSGetMozURLMetrics(kid,
+                function (pagedResult, eleid, methodName) {
+                    divMozDetail.innerHTML = pagedResult;                    
+                },
+                function (error, userContext, methodName) {
+                    //alert(error.get_message());
+                    divMozDetail.innerHTML = error.get_message();
+                });
+            }
+            function CloseDivMoz() {
+                var divMoz = document.getElementById('div_Moz');
+                divMoz.style.display = 'none';
+            }
+    </script>
+    <table width="100%">
+        <tr><td style="color:Navy">&nbsp;&nbsp;<h2>Advantech Page Rank Analysis</h2></td></tr>
+        <tr><td align="right"><a href="CompetitorPageRankAnalysis.aspx">Competitor's Page Rank</a></td></tr>
+        <tr>
+            <td>
+                <asp:Panel runat="server" ID="panel1" DefaultButton="btnQuery">
+                    <table>
+                        <tr>
+                            <th align="left">
+                                URL:
+                            </th>
+                            <td>
+                                <asp:TextBox runat="server" ID="txtUrl" Width="500px" />
+                            </td>
+                        </tr>
+                        <tr>
+                            <th align="left">
+                                Page Title:
+                            </th>
+                            <td>
+                                <asp:TextBox runat="server" ID="txtTitle" Width="200px" />
+                            </td>
+                        </tr>
+                        <tr>
+                            <th align="left">
+                                Meta Description:
+                            </th>
+                            <td>
+                                <asp:TextBox runat="server" ID="txtMetaDesc" Width="200px" />
+                            </td>
+                        </tr>
+                        <tr>
+                            <th align="left">
+                                Meta Keywords:
+                            </th>
+                            <td>
+                                <asp:UpdatePanel runat="server" ID="upKeys" UpdateMode="Conditional">
+                                    <ContentTemplate>                                        
+                                        <asp:TextBox runat="server" ID="txtMetaKey1" Width="80px" />&nbsp;
+                                        <asp:TextBox runat="server" Visible="false" ID="txtMetaKey2" Width="80px" />&nbsp;
+                                        <asp:TextBox runat="server" Visible="false" ID="txtMetaKey3" Width="80px" />&nbsp;
+                                        <asp:TextBox runat="server" Visible="false" ID="txtMetaKey4" Width="80px" />&nbsp;
+                                        <asp:TextBox runat="server" Visible="false" ID="txtMetaKey5" Width="80px" />&nbsp;
+                                        <asp:TextBox runat="server" Visible="false" ID="txtMetaKey6" Width="80px" />
+                                        <asp:Button runat="server" ID="btnMoreKey" Text="More..." OnClick="btnMoreKey_Click" />
+                                    </ContentTemplate>
+                                </asp:UpdatePanel>
+                                
+                            </td>
+                        </tr>
+                        <tr>
+                            <th align="left">
+                                Webpage Content:
+                            </th>
+                            <td>
+                                <asp:TextBox runat="server" ID="txtText" Width="200px" />
+                            </td>
+                        </tr>
+                        <tr>
+                            <td colspan="2">
+                                <asp:Button runat="server" ID="btnQuery" Text="Search" OnClick="btnQuery_Click" />
+                            </td>
+                        </tr>
+                    </table>
+                </asp:Panel>                
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <asp:UpdatePanel runat="server" ID="up1" UpdateMode="Conditional">
+                    <ContentTemplate>
+                        <asp:GridView runat="server" ID="gv1" Width="100%" AllowPaging="true" AllowSorting="true"
+                            PageSize="25" PagerSettings-Position="TopAndBottom" DataSourceID="src1" AutoGenerateColumns="false" 
+                            OnPageIndexChanging="gv1_PageIndexChanging" OnSorting="gv1_Sorting" OnRowCreated="gvRowCreated" HeaderStyle-HorizontalAlign="Right">
+                            <Columns>
+                                <asp:TemplateField SortExpression="GOOGLE_PAGERANK" HeaderText="Sort by Page Rank">
+                                    <ItemTemplate>
+                                        <table width="100%">
+                                            <tr align="left">
+                                                <td><a target="_blank" href='<%# Eval("Url")%>'><%# Eval("APPNAME")%></a></td>
+                                                <td align="right" style="color:Navy">
+                                                    <b>Google Page Rank:</b>&nbsp;<%#Eval("GOOGLE_PAGERANK")%><br />
+                                                    <a href="javascript:void(0);" onclick=ShowMozMetrics('<%#Eval("KEYID") %>')>SEOmoz URL Metrics</a>
+                                                </td>
+                                            </tr>                                            
+                                            <tr>
+                                                <td colspan="2"><b>Url:</b>&nbsp;<a target="_blank" href='<%#Eval("ResponseUri") %>'><%# ShowTextPreview(Eval("ResponseUri"), 1)%></a></td>                                                
+                                            </tr>
+                                            <tr>
+                                                <td colspan="2"><b>Title:</b><%# ShowTextPreview(Eval("title"), 2)%></td>
+                                            </tr>
+                                            <tr>
+                                                <td colspan="2">
+                                                    <b>Meta Description:</b>&nbsp;<%#ShowTextPreview(Eval("Meta_Description"), 3)%>
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td colspan="2">
+                                                    <b>Meta Keywords:</b>&nbsp;<%#ShowTextPreview(Eval("Meta_Keywords"), 4)%>
+                                                </td>
+                                            </tr>
+                                            <tr align="left">
+                                                <td colspan="2">
+                                                    <b>Content:</b>
+                                                    <div style="width: 98%; overflow: auto; height: 100px">
+                                                        <%# ShowTextPreview(Eval("Text"), 5)%>
+                                                    </div>
+                                                </td>
+                                            </tr>                                       
+                                        </table>
+                                    </ItemTemplate>
+                                </asp:TemplateField>
+                            </Columns>
+                        </asp:GridView>
+                        <asp:SqlDataSource runat="server" ID="src1" ConnectionString="<%$ConnectionStrings:MY %>" />
+                    </ContentTemplate>
+                    <Triggers>
+                        <asp:PostBackTrigger ControlID="btnQuery" />
+                    </Triggers>
+                </asp:UpdatePanel>
+            </td>
+        </tr>
+    </table>
+    <ajaxToolkit:AlwaysVisibleControlExtender ID="AlwaysVisibleControlExtender1" runat="server"
+        TargetControlID="PanelMozDetail" HorizontalSide="Center" VerticalSide="Middle"
+        HorizontalOffset="250" VerticalOffset="200" />
+    <asp:Panel runat="server" ID="PanelMozDetail">
+        <div id="div_Moz" style="display: none; background-color: white;
+            border: solid 1px silver; padding: 10px; width: 500px; height: 350px; overflow: auto;">
+            <table width="100%">
+                <tr>
+                    <td><a href="javascript:void(0);" onclick="CloseDivMoz();">Close</a></td>
+                </tr>
+                <tr>
+                    <td>
+                        <div id="div_MozDetail"></div>
+                    </td>
+                </tr>
+            </table>
+        </div>
+    </asp:Panel>  
+</asp:Content>

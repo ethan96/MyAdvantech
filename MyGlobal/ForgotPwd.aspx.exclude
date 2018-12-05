@@ -1,0 +1,133 @@
+﻿<%@ Page Language="VB" MasterPageFile="~/Includes/MyMaster.master" Title="MyAdvantech - Forgot Password" ValidateRequest="false" %>
+<%@ Register TagPrefix="uc1" TagName="ForgotPassword" Src="~/Includes/ForgotPassword.ascx" %>
+<%@ MasterType VirtualPath="~/Includes/MyMaster.master" %>
+
+<script runat="server">
+    Protected Sub Submit_Click(ByVal sender As Object, ByVal e As System.EventArgs)
+        txtMsg.Text = ""
+        If Trim(Me.txtEmail.Text) <> "" AndAlso Util.IsValidEmailFormat(txtEmail.Text.Trim) Then
+            lbl1.Visible = False
+            Dim strEmail, strSqlCmd, flgUserExist As String
+            strEmail = Trim(Me.txtEmail.Text)
+            ' strSqlCmd = "Select EMAIL_ADDRESS as USERID,'' as LOGIN_PASSWORD,isnull(FIRSTNAME,'') as FIRST_NAME,isnull(LASTNAME,'') as LASTNAME FROM SIEBEL_CONTACT WHERE EMAIL_ADDRESS = '" & strEmail & "'"
+            flgUserExist = "No"
+            'Dim xDT As DataTable = dbUtil.dbGetDataTable("My", strSqlCmd)
+            'If xDT.Rows.Count > 0 Then
+            '    Dim chglf, Last_Name, First_Name, LOGIN_PASSWORD, USER_ID As String
+            '    chglf = Chr(13) & Chr(10)
+            '    Last_Name = xDT.Rows(0).Item("LastName")
+            '    First_Name = xDT.Rows(0).Item("FirstName")
+            '    LOGIN_PASSWORD = xDT.Rows(0).Item("LOGIN_PASSWORD")
+            '    USER_ID = xDT.Rows(0).Item("USERID")
+
+            '    Dim FROM_Email As String = "", TO_Email As String = "", CC_Email As String = "", BCC_Email As String = "", Subject_Email As String = "", AttachFile As String = "", MailBody As String = ""
+            '    MailBody = "Dear " & First_Name & " " & Last_Name & "," & "<br/>"
+            '    MailBody = MailBody & " Your MyAdvantech account is : " & USER_ID & "<br/>"
+            '    MailBody = MailBody & " Your MyAdvantech password is : " & LOGIN_PASSWORD & "<br/><br/>"
+            '    MailBody = MailBody & "Best Regards<br/>"
+            '    MailBody = MailBody & "MyAdvantech <br/>" & _
+            '    "<a href='http://my.advantech.eu'>http://my.advantech.eu</a>"
+
+            '    FROM_Email = "ebusiness.aeu@advantech.eu"
+            '    TO_Email = strEmail
+            '    CC_Email = ""
+            '    BCC_Email = "tc.chen@advantech.com.tw;daive.wang@advantech.com.cn;rudy.wang@advantech.com.tw"
+            '    Subject_Email = "Your password to sign in MyAdvantech"
+            '    AttachFile = ""
+            '    'response.write(TO_Email & "<br>")
+            '    'response.write(CC_Email & "<br>")
+            '    'response.write(BCC_Email & "<br>")
+            '    'response.end
+            '    MailUtil.Utility_EMailPage(FROM_Email, TO_Email, CC_Email, BCC_Email, Subject_Email, AttachFile, MailBody)
+            '    Me.txtMsg.Text = "<font color='red'>Your password has been sent to your E-Mail box. </font>"
+            '    'Response.Redirect ("/login.asp?message=" & g_strMessage)
+            '    'Else
+            If HttpUtility.HtmlEncode(LCase(txtEmail.Text).Trim()) Like "*@advantech*" Or True Then
+                Dim ws As New SSO.MembershipWebservice
+                Dim p As SSO.SSOUSER = ws.getProfile(txtEmail.Text.Trim(), "PZ")
+                If p Is Nothing Then
+                    p = ws.getProfile(txtEmail.Text.Trim(), "my")
+                End If
+                If p IsNot Nothing Then
+                    'If dbUtil.dbGetDataTable("B2B", "select company_id from sap_dimcompany where company_id='" + p.erpid + "'").Rows.Count > 0 Then
+                   
+                        Dim FROM_Email As String = "", TO_Email As String = "", CC_Email As String = "", BCC_Email As String = "", Subject_Email As String = "", AttachFile As String = "", MailBody As String = ""
+                    MailBody = "Dear " & p.first_name & " " & p.last_name & "," & "<br/><br/>"
+                    Dim iDT As DataTable = dbUtil.dbGetDataTable("B2B", "select company_id,company_name from sap_dimcompany where company_id='" + p.erpid + "'")
+                    If iDT.Rows.Count > 0 Then
+                        If Not Convert.IsDBNull(iDT.Rows(0).Item("company_name")) Then
+                            MailBody = MailBody & " Your Company Name is : " & iDT.Rows(0).Item("company_name").ToString.Trim & "<br/>"
+                        End If
+                    End If
+                    MailBody = MailBody & " Your MyAdvantech account is : " & p.email_addr & "<br/>"
+                    MailBody = MailBody & " Your MyAdvantech password is : " & p.login_password & "<br/><br/>"
+                    MailBody = MailBody & "Best Regards<br/>"
+                    MailBody = MailBody & "MyAdvantech <br/>" & _
+                    "<a href='http://" + Request.ServerVariables("HTTP_HOST").ToString + "'>http://" + Request.ServerVariables("HTTP_HOST").ToString + "</a>"
+                    FROM_Email = "ebusiness.aeu@advantech.eu"
+                    TO_Email = strEmail
+                    CC_Email = ""
+                    BCC_Email = "tc.chen@advantech.com.tw;nada.liu@advantech.com.cn;rudy.wang@advantech.com.tw;ming.zhao@advantech.com.cn"
+                    Subject_Email = "Your password to sign in MyAdvantech"
+                    AttachFile = ""
+                    'response.write(TO_Email & "<br>")
+                    'response.write(CC_Email & "<br>")
+                    'response.write(BCC_Email & "<br>")
+                    'response.end
+                    MailUtil.Utility_EMailPage(FROM_Email, TO_Email, CC_Email, BCC_Email, Subject_Email, AttachFile, MailBody)
+                    Me.txtMsg.Text = "<font color='red'>Your password has been sent to your E-Mail box. </font>"
+                    ' Else
+                    ' Me.txtMsg.Text = "<font color='red'>E-mail " & strEmail & " not found in system. Please re-enter your E-mail or contact</font> <a href='mailto:ebusiness.aeu@advantech.eu'>eBusiness.AEU@advantech.eu</a>"
+                    ' End If
+                Else
+                    Me.txtMsg.Text = "<font color='red'>E-mail " & strEmail & " not found in system. Please re-enter your E-mail or contact</font> <a href='mailto:ebusiness.aeu@advantech.eu'>eBusiness.AEU@advantech.eu</a>"
+                End If
+        Else
+            Me.txtMsg.Text = "<font color='red'>E-mail " & strEmail & " not found in system. Please re-enter your E-mail or contact</font> <a href='mailto:ebusiness.aeu@advantech.eu'>eBusiness.AEU@advantech.eu</a>"
+        End If
+        'End If
+        Else
+        lbl1.Visible = True
+        If txtEmail.Text.Trim <> "" And Not Util.IsValidEmailFormat(txtEmail.Text.Trim) Then
+            txtMsg.Text = "Email Format incorrect"
+        Else
+            txtMsg.Text = "Please enter your email"
+        End If
+        End If
+    End Sub
+</script>
+
+<asp:Content runat="server" ID="_main" ContentPlaceHolderID="_main">
+    <table border="0" width="560px" cellpadding="0" cellspacing="0">  
+        <tr>
+            <th colspan="3" style="font-size:medium; color:Navy;" align="left">&nbsp;&nbsp;Forgot Your Password?</th>
+        </tr>  
+        <tr style="height:30px">
+            <td colspan="3">&nbsp;&nbsp;&nbsp;&nbsp;Please enter your email address below and we will email you your password.</td>
+        </tr>    
+        <tr align="left">            
+			<td width="80px">
+			    &nbsp;&nbsp;&nbsp;<img src="../images/ebiz.aeu.face/square_gray.gif" alt="" />&nbsp;Your Email&nbsp;:
+			</td>
+			<td>
+			    <asp:TextBox runat="server" ID="txtEmail" Width="280px" /><asp:Label runat="server" ID="lbl1" Text=" *" ForeColor="Red" Visible="false" />
+			</td>
+			<td>
+			    <asp:Button runat="server" ID="Submit" Text="Retrieve password" OnClick="Submit_Click" />
+			</td>			
+        </tr>
+		<tr valign="middle">
+			<td width="100px" height="30px" align="right"></td>
+			<td colspan="2">
+			    <asp:UpdatePanel runat="server" ID="upMsg" UpdateMode="Conditional">
+			        <ContentTemplate>
+			            <asp:Label runat="server" ID="txtMsg" ForeColor="Red" Font-Bold="true" />
+			        </ContentTemplate>
+			        <Triggers>
+			            <asp:AsyncPostBackTrigger ControlID="Submit" EventName="Click" />
+			        </Triggers>
+			    </asp:UpdatePanel>					    
+			</td>
+		</tr>
+    </table> 
+</asp:Content>

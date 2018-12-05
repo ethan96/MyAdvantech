@@ -1,0 +1,119 @@
+﻿<?xml version="1.0" encoding="utf-8"?><Database Name="MyAdvantechGlobal" Class="MyLing2SqlDataContext" xmlns="http://schemas.microsoft.com/linqtosql/dbml/2007">
+  <Connection Mode="WebSettings" ConnectionString="Data Source=ACLSTNR12;Initial Catalog=MyAdvantechGlobal;Persist Security Info=True;User ID=b2bsa;Pooling=True;Connect Timeout=300;Application Name=MyAdvantech" SettingsObjectName="System.Configuration.ConfigurationManager.ConnectionStrings" SettingsPropertyName="MY" Provider="System.Data.SqlClient" />
+  <Table Name="dbo.ExtendedWarrantyPartNo_V2" Member="EWPartNos">
+    <Type Name="EWPartNo">
+      <Column Name="ID" Type="System.Int32" DbType="Int NOT NULL" IsPrimaryKey="true" CanBeNull="false" />
+      <Column Name="EW_PartNO" Type="System.String" DbType="NVarChar(50)" CanBeNull="true" UpdateCheck="Never" />
+      <Column Name="EW_Month" Type="System.Int32" DbType="Int" CanBeNull="true" UpdateCheck="Never" />
+      <Column Name="EW_Rate" Type="System.Decimal" DbType="Decimal(18,4)" CanBeNull="true" UpdateCheck="Never" />
+      <Column Name="Plant" Type="System.String" DbType="NVarChar(10)" CanBeNull="true" UpdateCheck="Never" />
+      <Column Name="SeqNO" Type="System.Int32" DbType="Int" CanBeNull="true" UpdateCheck="Never" />
+    </Type>
+  </Table>
+  <Table Name="dbo.ORDER_DETAIL" Member="OrderItems">
+    <Type Name="OrderItem">
+      <Column Name="ID" Type="System.Int32" DbType="Int NOT NULL IDENTITY" IsPrimaryKey="true" IsDbGenerated="true" CanBeNull="false" />
+      <Column Name="ORDER_ID" Type="System.String" DbType="VarChar(50)" CanBeNull="true" UpdateCheck="Never" />
+      <Column Name="LINE_NO" Type="System.Int32" DbType="Int" CanBeNull="true" UpdateCheck="Never" />
+      <Column Name="PRODUCT_LINE" Type="System.String" DbType="VarChar(10)" CanBeNull="true" UpdateCheck="Never" />
+      <Column Name="PART_NO" Type="System.String" DbType="VarChar(50)" CanBeNull="true" UpdateCheck="Never" />
+      <Column Name="ORDER_LINE_TYPE" Type="System.String" DbType="VarChar(30)" CanBeNull="true" UpdateCheck="Never" />
+      <Column Name="QTY" Type="System.Int32" DbType="Int" CanBeNull="true" UpdateCheck="Never" />
+      <Column Name="LIST_PRICE" Type="System.Decimal" DbType="Money" CanBeNull="true" UpdateCheck="Never" />
+      <Column Name="UNIT_PRICE" Type="System.Decimal" DbType="Money" CanBeNull="true" UpdateCheck="Never" />
+      <Column Name="REQUIRED_DATE" Type="System.DateTime" DbType="DateTime" CanBeNull="true" UpdateCheck="Never" />
+      <Column Name="DUE_DATE" Type="System.DateTime" DbType="DateTime" CanBeNull="true" UpdateCheck="Never" />
+      <Column Name="ERP_SITE" Type="System.String" DbType="VarChar(50)" CanBeNull="true" UpdateCheck="Never" />
+      <Column Name="ERP_LOCATION" Type="System.String" DbType="VarChar(50)" CanBeNull="true" UpdateCheck="Never" />
+      <Column Name="AUTO_ORDER_FLAG" Type="System.Char" DbType="Char(1)" CanBeNull="true" UpdateCheck="Never" />
+      <Column Name="AUTO_ORDER_QTY" Type="System.Int32" DbType="Int" CanBeNull="true" UpdateCheck="Never" />
+      <Column Name="SUPPLIER_DUE_DATE" Type="System.DateTime" DbType="DateTime" CanBeNull="true" UpdateCheck="Never" />
+      <Column Name="LINE_PARTIAL_FLAG" Type="System.Int32" DbType="Int" CanBeNull="true" UpdateCheck="Never" />
+      <Column Name="RoHS_FLAG" Type="System.String" DbType="VarChar(4)" CanBeNull="true" UpdateCheck="Never" />
+      <Column Name="EXWARRANTY_FLAG" Type="System.String" DbType="VarChar(5)" CanBeNull="true" UpdateCheck="Never" />
+      <Column Name="CustMaterialNo" Type="System.String" DbType="VarChar(150)" CanBeNull="true" UpdateCheck="Never" />
+      <Column Name="DeliveryPlant" Type="System.String" DbType="NVarChar(20) NOT NULL" CanBeNull="false" UpdateCheck="Never" />
+      <Column Name="NoATPFlag" Type="System.String" DbType="VarChar(1)" CanBeNull="true" UpdateCheck="Never" />
+      <Column Name="DMF_Flag" Type="System.String" DbType="VarChar(50)" CanBeNull="true" UpdateCheck="Never" />
+      <Column Name="OptyID" Type="System.String" DbType="NVarChar(50)" CanBeNull="true" UpdateCheck="Never" />
+      <Column Name="Cate" Type="System.String" DbType="VarChar(300)" CanBeNull="true" UpdateCheck="Never" />
+      <Column Name="Description" Type="System.String" DbType="NVarChar(1000)" CanBeNull="true" UpdateCheck="Never" />
+      <Column Name="HigherLevel" Type="System.Int32" DbType="Int" CanBeNull="true" UpdateCheck="Never" />
+      <Column Name="itp" Type="System.Decimal" DbType="Decimal(10,2)" CanBeNull="true" UpdateCheck="Never" />
+    </Type>
+  </Table>
+  <Table Name="dbo.CARTMASTERV2" Member="CartMasters">
+    <Type Name="CartMaster">
+      <Column Name="CartID" Type="System.String" DbType="NVarChar(50) NOT NULL" IsPrimaryKey="true" CanBeNull="false" />
+      <Column Name="ErpID" Type="System.String" DbType="NVarChar(15)" CanBeNull="true" UpdateCheck="Never" />
+      <Column Name="QuoteID" Type="System.String" DbType="NVarChar(20)" CanBeNull="true" UpdateCheck="Never" />
+      <Column Name="OpportunityID" Type="System.String" DbType="NVarChar(15)" CanBeNull="true" UpdateCheck="Never" />
+      <Column Name="OpportunityAmount" Type="System.Decimal" DbType="Decimal(18,0)" CanBeNull="true" UpdateCheck="Never" />
+      <Column Name="Currency" Type="System.String" DbType="NVarChar(15)" CanBeNull="true" UpdateCheck="Never" />
+      <Column Name="CreatedBy" Type="System.String" DbType="NVarChar(50)" CanBeNull="true" UpdateCheck="Never" />
+      <Column Name="CreatedDate" Type="System.DateTime" DbType="DateTime" CanBeNull="true" UpdateCheck="Never" />
+      <Column Name="LastUpdatedBy" Type="System.String" DbType="NVarChar(50)" CanBeNull="true" UpdateCheck="Never" />
+      <Column Name="LastUpdatedDate" Type="System.DateTime" DbType="DateTime" CanBeNull="true" UpdateCheck="Never" />
+    </Type>
+  </Table>
+  <Table Name="dbo.Cart2OrderMaping" Member="Cart2OrderMapings">
+    <Type Name="Cart2OrderMaping">
+      <Column Name="ID" Type="System.Int32" DbType="Int NOT NULL IDENTITY" IsPrimaryKey="true" IsDbGenerated="true" CanBeNull="false" />
+      <Column Name="CartID" Type="System.String" DbType="NVarChar(20)" CanBeNull="true" UpdateCheck="Never" />
+      <Column Name="OrderID" Type="System.String" DbType="NVarChar(20)" CanBeNull="true" UpdateCheck="Never" />
+      <Column Name="OrderNo" Type="System.String" DbType="NVarChar(10)" CanBeNull="true" UpdateCheck="Never" />
+      <Column Name="CreateTime" Type="System.DateTime" DbType="DateTime" CanBeNull="true" UpdateCheck="Never" />
+      <Column Name="CreateBy" Type="System.String" DbType="NVarChar(50)" CanBeNull="true" UpdateCheck="Never" />
+    </Type>
+  </Table>
+  <Table Name="dbo.order_Master_ExtensionV2" Member="orderMasterExtensionV2s">
+    <Type Name="orderMasterExtensionV2">
+      <Column Name="ORDER_ID" Type="System.String" DbType="NVarChar(50) NOT NULL" IsPrimaryKey="true" CanBeNull="false" />
+      <Column Name="PI2CUSTOMER_FLAG" Type="System.Int32" DbType="Int NOT NULL" CanBeNull="false" UpdateCheck="Never" />
+      <Column Name="OrderNoScheme" Type="System.Int32" DbType="Int NOT NULL" CanBeNull="false" UpdateCheck="Never" />
+      <Column Member="OrderTaxRate" Type="System.Decimal" CanBeNull="true" />
+    </Type>
+  </Table>
+  <Table Name="dbo.CART_DETAIL_V2" Member="CartItems">
+    <Type Name="CartItem">
+      <Column Name="ID" Type="System.Int32" DbType="Int NOT NULL IDENTITY" IsPrimaryKey="true" IsDbGenerated="true" CanBeNull="false" />
+      <Column Name="Cart_Id" Type="System.String" DbType="VarChar(50)" CanBeNull="true" UpdateCheck="Never" />
+      <Column Name="Line_No" Type="System.Int32" DbType="Int" CanBeNull="true" UpdateCheck="Never" />
+      <Column Name="Part_No" Type="System.String" DbType="VarChar(100)" CanBeNull="true" UpdateCheck="Never" />
+      <Column Name="Description" Type="System.String" DbType="NVarChar(300)" CanBeNull="true" UpdateCheck="Never" />
+      <Column Name="Qty" Type="System.Int32" DbType="Int" CanBeNull="true" UpdateCheck="Never" />
+      <Column Name="List_Price" Type="System.Decimal" DbType="Decimal(10,2)" CanBeNull="true" UpdateCheck="Never" />
+      <Column Name="Unit_Price" Type="System.Decimal" DbType="Decimal(10,2)" CanBeNull="true" UpdateCheck="Never" />
+      <Column Name="Itp" Type="System.Decimal" DbType="Money" CanBeNull="true" UpdateCheck="Never" />
+      <Column Name="RecyclingFee" Type="System.Decimal" DbType="Decimal(8,2)" CanBeNull="true" UpdateCheck="Never" />
+      <Column Name="Delivery_Plant" Type="System.String" DbType="VarChar(10)" CanBeNull="true" UpdateCheck="Never" />
+      <Column Name="Category" Type="System.String" DbType="VarChar(300)" CanBeNull="true" UpdateCheck="Never" />
+      <Column Name="class" Type="System.String" DbType="VarChar(8)" CanBeNull="true" UpdateCheck="Never" />
+      <Column Name="rohs" Type="System.Int32" DbType="Int" CanBeNull="true" UpdateCheck="Never" />
+      <Column Name="Ew_Flag" Type="System.Int32" DbType="Int" CanBeNull="true" UpdateCheck="Never" />
+      <Column Name="req_date" Type="System.DateTime" DbType="Date" CanBeNull="true" UpdateCheck="Never" />
+      <Column Name="due_date" Type="System.DateTime" DbType="Date" CanBeNull="true" UpdateCheck="Never" />
+      <Column Name="SatisfyFlag" Type="System.Int32" DbType="Int" CanBeNull="true" UpdateCheck="Never" />
+      <Column Name="CanbeConfirmed" Type="System.Int32" DbType="Int" CanBeNull="true" UpdateCheck="Never" />
+      <Column Name="CustMaterial" Type="System.String" DbType="NVarChar(200)" CanBeNull="true" UpdateCheck="Never" />
+      <Column Name="inventory" Type="System.Int32" DbType="Int" CanBeNull="true" UpdateCheck="Never" />
+      <Column Name="otype" Type="System.Int32" DbType="Int" CanBeNull="true" UpdateCheck="Never" />
+      <Column Name="Model_No" Type="System.String" DbType="VarChar(50)" CanBeNull="true" UpdateCheck="Never" />
+      <Column Name="QUOTE_ID" Type="System.String" DbType="NVarChar(50)" CanBeNull="true" UpdateCheck="Never" />
+      <Column Name="oUnit_Price" Type="System.Decimal" DbType="Decimal(10,2)" CanBeNull="true" UpdateCheck="Never" />
+      <Column Name="higherLevel" Type="System.Int32" DbType="Int" CanBeNull="true" UpdateCheck="Never" />
+    </Type>
+  </Table>
+  <Table Name="dbo.Cart_BtosPart_Manual" Member="Cart_BtosPart_Manuals">
+    <Type Name="Cart_BtosPart_Manual">
+      <Column Name="ID" Type="System.Int32" DbType="Int NOT NULL IDENTITY" IsPrimaryKey="true" IsDbGenerated="true" CanBeNull="false" />
+      <Column Name="Cart_Id" Type="System.String" DbType="VarChar(50)" CanBeNull="true" />
+      <Column Name="Part_No" Type="System.String" DbType="VarChar(100)" CanBeNull="true" />
+      <Column Name="Description" Type="System.String" DbType="NVarChar(300)" CanBeNull="true" />
+      <Column Name="OrgID" Type="System.String" DbType="NVarChar(150)" CanBeNull="true" />
+      <Column Name="COMPANY_ID" Type="System.String" DbType="NChar(30)" CanBeNull="true" />
+      <Column Name="Created_Date" Type="System.DateTime" DbType="DateTime" CanBeNull="true" />
+      <Column Name="Created_By" Type="System.String" DbType="VarChar(100)" CanBeNull="true" />
+    </Type>
+  </Table>
+</Database>

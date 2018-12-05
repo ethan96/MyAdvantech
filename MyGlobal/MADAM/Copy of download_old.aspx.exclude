@@ -1,0 +1,157 @@
+﻿<%@ Page Language="VB" ValidateRequest="false" EnableEventValidation="false" Title="Advantech’s 1 Millionth ADAM Modules"  MasterPageFile="~/MADAM/MADAM_MP.master" %>
+
+<script runat="server">
+
+    Protected Sub Page_Load(ByVal sender As Object, ByVal e As System.EventArgs)
+        If Not Page.IsPostBack Then
+            btnDownload.Attributes("onmouseover") = "MM_swapImage('" + btnDownload.ClientID + "','','images/btn_download_over.jpg',1)"
+            btnDownload.Attributes("onmouseout") = "MM_swapImgRestore()"
+        End If
+    End Sub
+
+    Protected Sub btnDownload_Click(ByVal sender As Object, ByVal e As System.Web.UI.ImageClickEventArgs)
+        lbMsg.Text = ""
+        lbMsg.Font.Bold = True
+        'If txtSN.Text.Trim().Length <= 4 OrElse txtSN.Text.StartsWith("IA") = False Then
+        '    lbMsg.Text = "Please input correct serial number" : Exit Sub
+        'End If
+       
+        If txtName.Text.Trim() = "" Then
+            lbMsg.Text = "Please input your name" : Exit Sub
+        End If
+
+         If txtEmail.Text.Trim() = "" Then
+            lbMsg.Text = "Please input email" : Exit Sub
+        End If
+
+        If Util.IsValidEmailFormat(txtEmail.Text) = False Then
+            lbMsg.Text = "Email is not in correct format" : Exit Sub
+        End If
+        Dim c As Integer = dbUtil.dbExecuteScalar("MY", String.Format("select COUNT(*) from RMA_SFIS where LEN(barcode_no)>4 and barcode_no='{0}'", txtSN.Text.Trim().Replace("'", "''")))
+        If c = 0 And False Then
+            lbMsg.Text = "Serial number is not in correct format" : Exit Sub
+        End If
+        Dim rid As String = System.Guid.NewGuid().ToString()
+        dbUtil.dbExecuteNoQuery("MYLOCAL", String.Format( _
+                                " INSERT INTO MADAM_OPC_REQUEST (ROW_ID, SERIAL_NUMBER, NAME, EMAIL, CREATE_TIME) " + _
+                                " VALUES ('{0}', '{1}', N'{2}', N'{3}', GETDATE())", _
+                                rid, Replace(txtSN.Text.Trim(), "'", "''"), _
+                                Replace(HttpUtility.HtmlEncode(txtName.Text).Trim(), "'", "''"), _
+                                txtEmail.Text.Trim()))
+        NotifyDownload(rid)
+        lbMsg.Text = "Thank you. An email has been sent to you including the download link."
+        txtName.Text = "" : txtSN.Text = "" : txtEmail.Text = ""
+        'Util.AjaxRedirect(Me.upMsg, "main_1.aspx")
+    End Sub
+    
+    Sub NotifyDownload(ByVal rid As String)
+        Dim sb As New System.Text.StringBuilder
+        With sb
+            .AppendLine(String.Format("Dear {0}<br />", txtName.Text))
+            .AppendLine(String.Format("Please click <a href='http://my-global.advantech.eu/MADAM/DlOPC.ashx?ROWID={0}'>here</a><br />", rid))
+            .AppendLine(String.Format("Or copy below url and paste it in your browser's address bar.<br />"))
+            .AppendLine(String.Format("http://my-global.advantech.eu/MADAM/DlOPC.ashx?ROWID={0}<br />", rid))
+            .AppendLine(String.Format("Thank you.<br /><br />"))
+            .AppendLine(String.Format("Your sincerly<br />"))
+            .AppendLine(String.Format("Advantech Industrial Automation Group<br />"))
+        End With
+        Util.SendEmail(txtEmail.Text.Trim(), "ia@advantech.com", "OPC Server Download instruction", sb.ToString(), True, "", "")
+    End Sub
+
+    Protected Sub btnFirstSubmit_Click(ByVal sender As Object, ByVal e As System.EventArgs)
+    ModalPopupExtender1.Show()
+    End Sub
+</script>
+
+<asp:Content ID="Content1" ContentPlaceHolderID="ContentPlaceHolder1" Runat="Server">
+<table width="1000"  border="0" align="center" cellpadding="0" cellspacing="0" id="Table_01">
+<tr>
+		<td height="20">&nbsp;</td>
+  </tr>
+	<tr>
+		<td><table id="Table_2" width="1000" height="489" border="0" cellpadding="0" cellspacing="0">
+          <tr>
+            <td rowspan="3" valign="top"><img src="images/download_01.jpg" width="122" height="489" alt=""></td>
+            <td colspan="3"><img src="images/download_02.jpg" width="759" height="280" alt=""></td>
+            <td rowspan="3" valign="top"><img src="images/download_03.jpg" width="119" height="489" alt=""></td>
+          </tr>
+          <tr>
+            <td rowspan="2" valign="top"><img src="images/download_04.jpg" width="190" height="209" alt=""></td>
+            <td height="138" valign="top" background="images/download_05.jpg">                    
+                <table>
+                    <tr>
+                        <td class="txt1">                            
+                            <asp:LinkButton runat="server" ID="btnFirstSubmit" ForeColor="#0193ce" OnClick="btnFirstSubmit_Click">I'm already eStore member and want to download.</asp:LinkButton>
+                            <ajaxToolkit:ModalPopupExtender runat="server" ID="ModalPopupExtender1"  PopupControlID="Panel1"
+                                                              TargetControlID="btnFirstSubmit" BackgroundCssClass="modalBackground" />
+                            <asp:Panel runat="server" HorizontalAlign="Center" ID="Panel1" BackColor="White"  Width="565" >
+                                <div style="float:right">
+                                    <a  href="#" onclick="hide();" style="color: #FF0000;font-size: 14px;"> [ x ] </a>&nbsp;&nbsp;&nbsp;
+                                </div>
+                                <br />
+                                 <asp:UpdatePanel runat="server" ID="upForm" UpdateMode="Conditional"  >
+                                    <ContentTemplate>
+                                        <table width="525" bgcolor="#FAF3D6" border="0" cellspacing="2" cellpadding="0" valign="top" style="margin-top:10px; margin-left:13px; margin-right:10px; margin-bottom:20px;">
+                                            <tr>
+                                                <td width="369" class="txt1">．Serial Number： <asp:TextBox runat="server" ID="txtSN" Width="222px" /></td>
+                                                <td width="150" rowspan="4" valign="bottom">
+                                                    <asp:ImageButton runat="server" ID="btnDownload" ImageUrl="images/btn_download.jpg" 
+                                                        Width="150px" Height="94px" BorderWidth="0px" AlternateText="Submit & Download" OnClick="btnDownload_Click" />
+                                                </td>
+                                            </tr>
+                                            <tr class="txt1">
+                                                <td>．Name：
+                                                    <asp:TextBox runat="server" ID="txtName" /></td>
+                                            </tr>
+                                            <tr class="txt1">
+                                                <td>．eMail：
+                                                    <asp:TextBox runat="server" ID="txtEmail" /></td>
+                                            </tr>
+                                            <tr style="height:42px">
+                                                <td valign="top">
+                                                    <asp:Label runat="server" ID="lbMsg" CssClass="txt2" 
+                                                        Text="* Each software download link will be composed by a series of unique code for one-time download only." />  
+                                                </td>
+                                            </tr>
+                                        </table>
+                                    </ContentTemplate>
+                                 </asp:UpdatePanel>                                      
+                            </asp:Panel>
+                        <script language="javascript" type="text/javascript">
+                            function hide() {
+                                $find('<%= ModalPopupExtender1.ClientID%>').hide()
+                                //  $find('Panel1').show()
+                                return false;
+                            }
+                        </script>
+                        </td>
+                    </tr>
+                     <tr>
+                        <td class="txt1">
+                            <a class="text1" style="color:#0193ce" href="https://member.advantech.com/profile.aspx?Pass=mya&id=&lang=&tempid=&callbackurl=http://www.1millionadam.advantech.com/MADAM/download.aspx&CallBackURLName=Go%20To%20MyAdvantech" target="_self">                         
+                                I'm not yet eStore member.
+                             </a>
+                        </td>
+                    </tr>
+                </table>     
+            </td>
+            <td rowspan="2"><img src="images/download_06.jpg" width="40" height="209" alt=""></td>
+          </tr>
+          <tr>
+            <td valign="top"><img src="images/download_07.jpg" width="529" height="71" alt=""></td>
+          </tr>
+        </table></td>
+  </tr>
+
+</table>
+<asp:UpdateProgress DynamicLayout="false" ID="UpdateProgress2" runat="server">
+    <ProgressTemplate>
+        <div class="Progress">
+            <asp:Image runat="server" ID="imgMasterLoad" ImageUrl="~/Images/LoadingRed.gif" />
+            <b>Loading ...</b>
+        </div>
+    </ProgressTemplate>
+</asp:UpdateProgress>
+<ajaxToolkit:AlwaysVisibleControlExtender ID="AlwaysVisibleControlExtender1"
+    runat="server" TargetControlID="UpdateProgress2" HorizontalSide="Center" VerticalSide="Top" HorizontalOffset="0" />  
+</asp:Content>

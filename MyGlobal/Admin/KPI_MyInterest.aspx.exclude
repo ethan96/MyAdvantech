@@ -1,0 +1,97 @@
+﻿<%@ Page Language="VB" MasterPageFile="~/Includes/MyMaster.master" Title="KPI -- MyInterest" %>
+
+<script runat="server">
+
+    Protected Sub btnSearch_Click(ByVal sender As Object, ByVal e As System.EventArgs)
+        Dim sql As String = " part_no, count(part_no) as count from interested_product where USERID not like 'rudy.wang%' and USERID not like 'tc.chen%' and USERID not like 'nada.liu%' group by part_no order by count desc"
+        Dim dt As DataTable = dbUtil.dbGetDataTable("My", "select " & ddlTopItem.SelectedValue & sql)
+        gv1.DataSource = dt
+        gv1.DataBind()
+        gv2.Visible = False
+    End Sub
+
+    Protected Sub gv1_RowDataBoundDataRow(ByVal sender As Object, ByVal e As System.Web.UI.WebControls.GridViewRowEventArgs)
+        If e.Row.RowType = DataControlRowType.DataRow Then
+            e.Row.Attributes.Add("onmouseover", "currentcolor=this.style.backgroundColor;this.style.backgroundColor='#FFEEAA'")
+            e.Row.Attributes.Add("onmouseout", "this.style.backgroundColor=currentcolor")
+        End If
+    End Sub
+
+    Protected Sub btnCount_Click(ByVal sender As Object, ByVal e As System.EventArgs)
+        Dim dt As DataTable = dbUtil.dbGetDataTable("My", String.Format("select userid from interested_product where part_no='{0}' and USERID not like 'rudy.wang%' and USERID not like 'tc.chen%' and USERID not like 'nada.liu%' order by userid", gv1.DataKeys(CType(CType(sender, LinkButton).NamingContainer, GridViewRow).RowIndex).Values("part_no")))
+        gv2.DataSource = dt
+        gv2.DataBind()
+        gv2.Visible = True
+    End Sub
+</script>
+
+<asp:Content runat="server" ID="_main" ContentPlaceHolderID="_main">
+    <table border="0" cellpadding="0" cellspacing="0">
+        <tr><td height="20" colspan="2"></td></tr>
+        <tr>
+            <td>
+                <asp:DropDownList runat="server" ID="ddlTopItem">
+                    <asp:ListItem Text="Top 5 Products" Value="Top 5"></asp:ListItem>
+                    <asp:ListItem Text="Top 10 Products" Value="Top 10"></asp:ListItem>
+                    <asp:ListItem Text="Top 50 Products" Value="Top 50"></asp:ListItem>
+                </asp:DropDownList>
+            </td>
+            <td><asp:Button runat="server" ID="btnSearch" Text="Submit" OnClick="btnSearch_Click" /></td>
+        </tr>
+    </table>
+    <hr />
+    <table border="0" height="400" cellpadding="0" cellspacing="0">
+        <tr>
+            <td valign="top">
+                <asp:GridView runat="server" ID="gv1" AutoGenerateColumns="false" Width="300" OnRowDataBoundDataRow="gv1_RowDataBoundDataRow" DataKeyNames="part_no">
+                    <Columns>
+                        <asp:TemplateField ItemStyle-Width="50px" ItemStyle-HorizontalAlign="Center">
+                            <headertemplate>
+                                No.
+                            </headertemplate>
+                            <itemtemplate>
+                                <%# Container.DataItemIndex + 1 %>
+                            </itemtemplate>
+                        </asp:TemplateField>
+                        <asp:HyperLinkField HeaderText="Part No." DataNavigateUrlFields="part_no" DataNavigateUrlFormatString="http://aeu-ebus-dev:7000/Admin/ProductProfile.aspx?PN={0}" DataTextField="part_no" Target="_blank" />
+                        <asp:TemplateField HeaderText="Count">
+                            <ItemTemplate>
+                                <asp:LinkButton runat="server" ID="btnCount" Text='<%# Eval("count") %>' OnClick="btnCount_Click" />
+                            </ItemTemplate>
+                        </asp:TemplateField>
+                    </Columns>
+                    <FooterStyle BackColor="#A4B5BD" ForeColor="White" Font-Bold="True" />
+                    <RowStyle BackColor="#F7F6F3" ForeColor="#333333" />
+                    <SelectedRowStyle BackColor="#E2DED6" Font-Bold="True" ForeColor="#333333" />
+                    <PagerStyle BackColor="#284775" ForeColor="White" HorizontalAlign="Justify"  />
+                    <HeaderStyle BackColor="#A4B5BD" Font-Bold="True" ForeColor="White" />
+                    <AlternatingRowStyle BackColor="White" ForeColor="#284775" />
+                    <PagerSettings PageButtonCount="10" Position="TopAndBottom" />
+                </asp:GridView>
+            </td>
+            <td width="10"></td>
+            <td valign="top">
+                <asp:GridView runat="server" ID="gv2" AutoGenerateColumns="false" Visible="false">
+                    <Columns>
+                        <asp:TemplateField ItemStyle-Width="50px" ItemStyle-HorizontalAlign="Center">
+                            <headertemplate>
+                                No.
+                            </headertemplate>
+                            <itemtemplate>
+                                <%# Container.DataItemIndex + 1 %>
+                            </itemtemplate>
+                        </asp:TemplateField>
+                        <asp:BoundField HeaderText="User ID" DataField="userid" />
+                    </Columns>
+                    <FooterStyle BackColor="#A4B5BD" ForeColor="White" Font-Bold="True" />
+                    <RowStyle BackColor="#F7F6F3" ForeColor="#333333" />
+                    <SelectedRowStyle BackColor="#E2DED6" Font-Bold="True" ForeColor="#333333" />
+                    <PagerStyle BackColor="#284775" ForeColor="White" HorizontalAlign="Justify"  />
+                    <HeaderStyle BackColor="#A4B5BD" Font-Bold="True" ForeColor="White" />
+                    <AlternatingRowStyle BackColor="White" ForeColor="#284775" />
+                    <PagerSettings PageButtonCount="10" Position="TopAndBottom" />
+                </asp:GridView>
+            </td>
+        </tr>
+    </table>
+</asp:Content>

@@ -1,0 +1,58 @@
+﻿<%@ Page Language="VB" MasterPageFile="~/Includes/MyMaster.master" Title="Warranty Lookup"%>
+
+<script runat="server">
+
+    Protected Sub btnQuery_Click(ByVal sender As Object, ByVal e As System.Web.UI.ImageClickEventArgs)
+        Query()
+    End Sub
+    
+    Private Sub Query()
+        Dim tmpKey As String = Trim(Server.HtmlEncode(txtKey.Text)).Replace("'", "''").Replace(";", "")
+        Select Case dlQType.SelectedIndex
+            Case 0
+                gv1.DataSource = dbUtil.dbGetDataTable("RFM", _
+                String.Format("SELECT TOP 20 SERIAL_NUMBER, KEY_PART_NO, VERSION_CODE, BIOS_ID, WARRANTY, CUSTOMER_NO, GROUP_NAME, CONTAINER_NO, IN_STATION_TIME, MO_NUMBER, IN_LINE_TIME, SECTION_FLAG, ONSITE_FLAG, NEW_SO, WARRANTY_YEAR FROM SFIS where serial_number like '%{0}%' and customer_no='{1}'", tmpKey, Session("company_id")))
+                gv1.DataBind()
+            Case 1
+                Dim strSql As String = _
+               String.Format(" select top 100 PartNumber, IsNull(Warranty_Month, 0) as Warranty_Month " + _
+               " from eRMA_Warranty " + _
+               " where PartNumber like '%{0}%'", tmpKey)
+                'Response.Write(strSql)
+                gv1.DataSource = dbUtil.dbGetDataTable("RMA", strSql) : gv1.DataBind()
+        End Select
+    End Sub
+
+    Protected Sub Page_Load(ByVal sender As Object, ByVal e As System.EventArgs)
+        If Not Page.IsPostBack AndAlso Request("key") IsNot Nothing Then
+            Me.txtKey.Text = Trim(Request("key"))
+            If Request("type") IsNot Nothing AndAlso Integer.TryParse(Request("type"), 1) Then
+                dlQType.SelectedIndex = Request("type")
+            End If
+            Query()
+        End If
+    End Sub
+</script>
+<asp:Content runat="server" ID="_main" ContentPlaceHolderID="_main">
+    <table width="100%">
+        <tr>
+            <td>
+                <asp:Panel runat="server" ID="searchPanel" DefaultButton="btnQuery">
+                    <asp:DropDownList runat="server" ID="dlQType" Width="100px">
+                        <asp:ListItem Text="Barcode" />
+                        <asp:ListItem Text="Product Name" Selected="True"/>
+                    </asp:DropDownList>
+                    &nbsp;
+                    <asp:TextBox runat="server" ID="txtKey" Width="200px" />
+                    &nbsp;
+                    <asp:ImageButton runat="server" ID="btnQuery" ImageUrl="~/Images/btn7.jpg" AlternateText="Search" OnClick="btnQuery_Click" />
+                </asp:Panel>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <asp:GridView runat="server" ID="gv1" />
+            </td>
+        </tr>
+    </table>
+</asp:Content>

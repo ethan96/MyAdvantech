@@ -1,0 +1,502 @@
+﻿<%@ Page Language="VB" ValidateRequest="false" Title="Advantech Celebrates One Million ADAM Remote I/O Modules Sold!" EnableEventValidation="false" MasterPageFile="~/MADAM/MADAM_MP.master" %>
+<script runat="server">
+
+    Protected Sub Page_Load(ByVal sender As Object, ByVal e As System.EventArgs)
+        If Not Page.IsPostBack Then
+            'imgBtnSend.Attributes("onmouseover") = "MM_swapImage('" + imgBtnSend.ClientID + "','','images/btn_send_over.jpg',1)"
+            'imgBtnSend.Attributes("onmouseout") = "MM_swapImgRestore()"
+        End If
+    End Sub
+
+    Protected Sub imgBtnSend_Click(ByVal sender As Object, ByVal e As System.Web.UI.ImageClickEventArgs)
+       
+        Dim warn1 As String = "Email cannot be empty and must be in correct format."
+        Dim warn2 As String = "Please input Mailing Address."
+        Dim warn3 As String = "Please input your name."
+        Dim warn4 As String = "Please input your nickname."
+        Dim warn5 As String = "Please input reason 1."
+        Dim warn6 As String = "Please input reason 2."
+        Dim warn7 As String = "Please input reason 3."
+        Dim warn8 As String = ""
+        Dim lan As String = "en"
+        Dim IsCN As Boolean = False
+        If Session("Browser_lan") IsNot Nothing AndAlso Session("Browser_lan").ToString() <> "" Then
+            lan = Session("Browser_lan").ToString.ToLower
+            Select Case lan
+                Case "zh-cn"
+                    warn1 = "邮箱不能为空,而且必须是正确的格式."
+                    warn2 = "请输您的入邮寄地址."
+                    warn3 = "请输入您的名字."
+                    warn4 = "请输入您的昵称."
+                    warn5 = "请输入原因 1."
+                    warn6 = "请输入原因 2."
+                    warn7 = "请输入原因 3."
+                    warn8 = "请输入联系电话."
+                    IsCN = True
+                Case "zh-tw"
+                Case Else
+                   
+            End Select
+        End If
+        lbMsg.Text = ""
+        If txtName.Text.Trim() = "" Then
+            lbMsg.Text = warn3 : Exit Sub
+        End If
+        If txtEmail.Text.Trim() = "" OrElse Util.IsValidEmailFormat(txtEmail.Text) = False Then
+            lbMsg.Text = warn1 : Exit Sub
+        End If
+        If txtNickName.Text.Trim() = "" Then
+            lbMsg.Text = warn4 : Exit Sub
+        End If
+        If txtMailAddr.Text.Trim() = "" Then
+            lbMsg.Text = warn2 : Exit Sub
+        End If
+        If IsCN AndAlso txtTel.Text.Trim() = "" Then
+            lbMsg.Text = warn8 : Exit Sub
+        End If
+        If txtReason1.Text.Trim() = "" Then
+            lbMsg.Text = warn5 : Exit Sub
+        End If
+        If txtReason2.Text.Trim() = "" Then
+            lbMsg.Text = warn6 : Exit Sub
+        End If
+        If txtReason3.Text.Trim() = "" Then
+            lbMsg.Text = warn7 : Exit Sub
+        End If
+        Dim rid As String = System.Guid.NewGuid().ToString()
+        Dim Is_Receiver As Integer = 0
+        If CK1.Checked = True Then
+            Is_Receiver = 1
+        End If
+        Dim insSql As String = String.Format( _
+            "INSERT INTO MADAM_USER_REASON (ROW_ID, NAME, EMAIL, NICK_NAME, MAIL_ADDR,TEL, REASON1, REASON2, REASON3,Is_Receiver, SUBMIT_TIME, CLIENT_IP) " + _
+            " VALUES     (N'" + rid + "', N'" + HttpUtility.HtmlEncode(txtName.Text).Trim().Replace("'", "''") + "'," + _
+            " N'" + txtEmail.Text.Trim() + "', N'" + HttpUtility.HtmlEncode(txtNickName.Text).Trim().Replace(";", "''") + "', " + _
+            " N'" + txtMailAddr.Text.Trim().Replace("'", "''") + "'," + _
+            " N'" + txtTel.Text.Trim().Replace("'", "''") + "'," + _
+            " N'" + HttpUtility.HtmlEncode(txtReason1.Text).Replace("'", "''").Replace(vbCrLf, "<br/>") + "', " + _
+            " N'" + HttpUtility.HtmlEncode(txtReason2.Text).Replace("'", "''").Replace(vbCrLf, "<br/>") + "', " + _
+            " N'" + HttpUtility.HtmlEncode(txtReason3.Text).Replace("'", "''").Replace(vbCrLf, "<br/>") + "'," + Is_Receiver.ToString + ", GETDATE(), '" + Util.GetClientIP() + "')")
+        'lbMsg.Text = insSql
+        dbUtil.dbExecuteNoQuery("MYLOCAL", insSql)
+        'Util.AjaxRedirect(upMsg, "main_2.aspx")
+        ModalPopupExtender1.Show()
+        'Exit Sub
+    End Sub
+
+    Protected Sub Page_Init(ByVal sender As Object, ByVal e As System.EventArgs)
+        If Session("Browser_lan") IsNot Nothing AndAlso Session("Browser_lan").ToString() <> "" Then
+            Dim lan As String = Session("Browser_lan").ToString.ToLower
+            Select Case lan
+                Case "zh-cn"
+                    name.Text = "名字" : nickname.Text = "昵称" : email.Text = "邮箱" : email_Addr.Text = "邮寄地址"
+                    reason1.Text = "理由" : reason2.Text = "理由" : reason3.Text = "理由"
+                    LabCK.Text = "以后，我想收到研华最新动态信息。"
+                    lbMsg.Text = "为便于邮寄礼品，请您实名登记，并留下正确的邮寄地址及联系电话。网站仅显示昵称以维护个人资料安全。"
+                    TD1.Attributes.Add("background", "images_cn/main_tab_01.jpg")
+                    imgBtnSend.ImageUrl = "images_cn/btn_send.jpg"
+                    imgBtnSend.Attributes("onmouseover") = "MM_swapImage('" + imgBtnSend.ClientID + "','','images_cn/btn_send_over.jpg',1)"
+                    Image7.Attributes.Add("onMouseOver", "MM_swapImage('" + Image7.ClientID + "','','images_cn/btn_see_over.jpg',1)")
+                    Image7.Src = "images_cn/btn_see.jpg"
+                    TRTel.Visible = True
+                    LabTel.Text = "联系电话"
+                    Literal1.Text = """百万亚当""留言活动已结束，感谢您的关注！"
+                    tbcn.Visible = True
+                Case Else
+                    imgBtnSend.Attributes("onmouseover") = "MM_swapImage('" + imgBtnSend.ClientID + "','','images/btn_send_over.jpg',1)"
+                    Image7.Attributes.Add("onMouseOver", "MM_swapImage('" + Image7.ClientID + "','','images/btn_see_over.jpg',1)")
+                    tben.Visible=True 
+            End Select
+             imgBtnSend.Attributes("onmouseout") = "MM_swapImgRestore()"
+        End If
+    End Sub
+</script>
+
+<asp:Content ID="Content1" ContentPlaceHolderID="ContentPlaceHolder1" Runat="Server">
+<table width="977"  border="0" align="center" cellpadding="0" cellspacing="0" id="Table_01" valign="top">
+<tr>
+		<td height="20" colspan="3">&nbsp;</td>
+  </tr>
+	<tr>
+		<td>
+			<img src="images/main_1_02.jpg"  width="106" height="481" alt=""/></td>
+		<td><table id="Table_2" width="759" height="481" border="0" cellpadding="0" cellspacing="0">
+          <tr>
+            <td height="161" colspan="3" valign="bottom" background="images/main_tab_01.gif" runat="server" id="TD1">
+                <table width="240" height="58" border="0" align="right" cellpadding="0" cellspacing="2">
+                  <tr>
+                    <td width="236" height="54" valign="top">
+                        <a href="main_2.aspx">
+                            <img src="images/btn_see.jpg" width="191" height="40" border="0" id="Image7" runat="server" onMouseOut="MM_swapImgRestore()"/>
+                        </a>
+                    </td>
+                  </tr>
+                </table>
+            </td>
+          </tr>
+          <tr>
+            <td bgcolor="#faf3d5"><img src="images/main_tab_02.jpg" width="121" height="249" alt=""></td>
+            <td width="594" height="249" bgcolor="#faf3d5" align="left">
+            <table width="583" border="0"  align="center" cellpadding="0" cellspacing="0">
+              <tr>
+                <td width="583">
+                <table width="583" border="0" cellspacing="2" cellpadding="0" style="display:none;">
+                  <tr>
+                    <td width="253"><p class="txt1">．<asp:Label ID="name" runat="server" Text="Name"></asp:Label>：
+                      <asp:TextBox runat="server" ID="txtName" />
+                      <br>
+                    </p>                      </td>
+                    <td width="324"><span class="txt1">．<asp:Label ID="email" runat="server" Text="eMail"></asp:Label>：
+                        <asp:TextBox runat="server" ID="txtEmail" />
+                    </span></td>
+                  </tr>
+                  <tr>
+                    <td><span class="txt1">．<asp:Label ID="nickname" runat="server" Text="Nickname"></asp:Label>：
+                      <asp:TextBox runat="server" ID="txtNickName" />
+                    </span></td>
+                    <td><span class="txt1">．<asp:Label ID="email_Addr" runat="server" Text="Mailing Address"></asp:Label>：
+                        <asp:TextBox runat="server" ID="txtMailAddr" />
+                    </span></td>
+                  </tr>
+                  <tr id="TRTel" runat="server" visible="false">
+                    <td></td> 
+                    <td>
+                        <span class="txt1">．<asp:Label ID="LabTel" runat="server" Text="Nickname"></asp:Label>：
+                            <asp:TextBox runat="server" ID="txtTel" />
+                        </span>
+                    </td>                                     
+                  </tr>
+                </table>
+                <div style="position:relative;  height:200px;">
+                  <div style="position:absolute;bottom:-20px; right:5%;" id="paneldiv1">
+                   <table width="550" border="0" align="left" cellpadding="0" cellspacing="0" id="tben" runat="server" visible="false">
+                                      <tr>
+                                        <td align="center" ><img src="./images/top12.gif" width="550" height="9" /></td>
+                                      </tr>
+                                      <tr>
+                                        <td align="center" background="./images/top32.gif" style="text-align:center; color:tomato;" height="25">
+                                            <b>'Three Things You Like About ADAM' Winner Announcement</b>
+                                        </td>
+                                      </tr>
+                                      <tr>
+                                        <td align="center" style="text-align:center;" background="./images/top32.gif">
+                                            <img src="./images/top2.gif" width="500" height="5"  />
+                                        </td>
+                                      </tr>
+                                      <tr>
+                                        <td align="left" background="./images/top32.gif" class="Pancs20" style="line-height:21px;">
+                                            <asp:Panel runat="server" ID="Panel2" HorizontalAlign="Left" CssClass="Pancs3" ScrollBars="Auto" height="180">
+                                                Thanks for all the participants in this ‘1 Million ADAM’ Celebration event! Congratulations to the winners below, listed by their submitted nicknames. Advantech will contact the winners shortly so don’t forget to check your email!
+                                                <br /><b>iPad Winner: </b><span  style="color: #666666;"> 未来</span>  
+                                                <br />
+                                                <b>ADAM-shape Memo Pad Winners:</b>
+                                               <table width="80%" border="0" align="left" style="color: #666666;">
+                                                    <tr>
+                                                    <td width="25%">Felix</td>
+                                                    <td width="25%">Tom</td>
+                                                    <td width="25%">qq</td>
+                                                    <td>Alan</td>
+                                                    </tr>
+                                                    <tr>
+                                                    
+                                                    <td>Nickname</td>
+                                                    <td>翟工</td>
+                                                     <td>Dolomiti</td>
+                                                    <td>graydoc</td>
+                                                    </tr>  
+                                                    <tr>
+                                                  
+                                                    <td>Jason</td>
+                                                     <td>Alvaro</td>
+                                                    <td>wohuole</td>
+                                                    <td>亚当很给力</td>
+                                                    </tr>
+                                                  
+                                                    <tr>
+                                                    <td>andrefreire</td>
+                                                    <td>都市2046</td>
+                                                    <td>phosphor</td>
+                                                      <td>protoneone</td>
+                                                    </tr>
+                                                    <tr>
+                                                  
+                                                    <td>DR</td>
+                                                    <td>顺泰</td>
+                                                      <td>bob</td>
+                                                    <td>申广</td>
+                                                    </tr>
+                                                   
+                                                    <tr>
+                                                    <td>jshen7</td>
+                                                    <td>Jimthegr</td>
+                                                    <td>oldthree</td>
+                                                    <td>孙高旭</td>
+                                                    </tr>
+                                                    <tr>
+                                                    <td>Edison</td>
+                                                    <td>阿安</td>
+                                                    <td>xiaoliang</td>
+                                                    <td>Frank</td>
+                                                    </tr>
+                                                    <tr>
+                                                 
+                                                    <td>李戈</td>
+                                                    <td>NicoLuis</td>
+                                                    <td>homeauto</td>
+                                                    <td>峰</td>
+                                                    </tr>
+                                                    <tr>                                              
+                                                    <td>杨杰</td>
+                                                      <td>Morales</td>
+                                                    <td>li</td>
+                                                    <td>yangjun</td>
+                                                    </tr>
+                                                    
+                                                    <tr>
+                                                    <td>Manel</td>
+                                                    <td>胖胖</td>
+                                                    <td>蚜虫</td> 
+                                                     <td>Pilotto</td>
+                                                    </tr>
+                                                    <tr>
+                                                  
+                                                    <td>sczty</td>
+                                                    <td>飞雁</td>
+                                                      <td>2016nguyenhuong</td>
+                                                    <td>SUNNY</td>
+                                                    </tr>
+                                                    <tr>                                               
+                                                    <td>邓城</td>
+                                                      <td>Peterpan</td>
+                                                    <td>hufo</td>
+                                                    <td>houzi80</td>
+                                                    </tr>
+                                                   
+                                                    <tr>
+                                                    <td>Sergio</td>
+                                                    <td>james</td>
+                                                    <td></td>
+                                                    <td></td>
+                                                    </tr>
+                                                </table>
+                                            </asp:Panel>     
+                                        </td>
+                                      </tr>
+                                      <tr>
+                                         <td  align="right" background="./images/top32.gif" style="text-align:right; padding-right:10px;display:none;">
+                                            <a href="#" onclick="closepanle('paneldiv1');" style="cursor:pointer"><img alt="close" src="./images/madamclose2.gif" border="0" width="55" height="19"/></a>
+                                         </td>
+                                      </tr>
+                                       <tr>
+                                        <td align="center"><img src="./images/top42.gif" width="550" height="8" /></td>
+                                      </tr>
+                                    </table>  
+                       <table width="550" border="0" align="left" cellpadding="0" cellspacing="0" id="tbcn" runat="server" visible="false">
+                                      <tr>
+                                        <td align="center" ><img src="./images/top12.gif" width="550" height="9" /></td>
+                                      </tr>
+                                      <tr>
+                                        <td align="center" background="./images/top32.gif" style="text-align:center; color:tomato;" height="25">
+                                            <b>“百万亚当销量 荣耀与您分享”获奖名单公布</b>
+                                        </td>
+                                      </tr>
+                                      <tr>
+                                        <td align="center" style="text-align:center;" background="./images/top32.gif">
+                                            <img src="./images/top2.gif" width="500" height="5"  />
+                                        </td>
+                                      </tr>
+                                      <tr>
+                                        <td align="left" background="./images/top32.gif" class="Pancs20" style="line-height:21px;">
+                                            <asp:Panel runat="server" ID="reasons" HorizontalAlign="Left" CssClass="Pancs3" ScrollBars="Auto" height="180">
+                                                &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;感谢所有关注、参与研华“百万亚当”庆祝活动的朋友们！在此，祝贺以下获奖者（获奖名单以注册名显示）。近期，研华将与所有的获奖者联系并寄送礼品，请获奖者再次检查自己的邮箱、邮寄地址及联系电话！谢谢！
+                                                <br /><b>iPad 获得者: </b><span  style="color: #666666;"> 未来</span>  
+                                                <br />
+                                                <b>限量ADAM造型便利贴 获得者:</b>
+                                                <table width="80%" border="0" align="left" style="color: #666666;">
+                                                    <tr>
+                                                    <td width="25%">Felix</td>
+                                                    <td width="25%">Tom</td>
+                                                    <td width="25%">qq</td>
+                                                    <td>Alan</td>
+                                                    </tr>
+                                                    <tr>
+                                                    
+                                                    <td>Nickname</td>
+                                                    <td>翟工</td>
+                                                     <td>Dolomiti</td>
+                                                    <td>graydoc</td>
+                                                    </tr>  
+                                                    <tr>
+                                                  
+                                                    <td>Jason</td>
+                                                     <td>Alvaro</td>
+                                                    <td>wohuole</td>
+                                                    <td>亚当很给力</td>
+                                                    </tr>
+                                                  
+                                                    <tr>
+                                                    <td>andrefreire</td>
+                                                    <td>都市2046</td>
+                                                    <td>phosphor</td>
+                                                      <td>protoneone</td>
+                                                    </tr>
+                                                    <tr>
+                                                  
+                                                    <td>DR</td>
+                                                    <td>顺泰</td>
+                                                      <td>bob</td>
+                                                    <td>申广</td>
+                                                    </tr>
+                                                   
+                                                    <tr>
+                                                    <td>jshen7</td>
+                                                    <td>Jimthegr</td>
+                                                    <td>oldthree</td>
+                                                    <td>孙高旭</td>
+                                                    </tr>
+                                                    <tr>
+                                                    <td>Edison</td>
+                                                    <td>阿安</td>
+                                                    <td>xiaoliang</td>
+                                                    <td>Frank</td>
+                                                    </tr>
+                                                    <tr>
+                                                 
+                                                    <td>李戈</td>
+                                                    <td>NicoLuis</td>
+                                                    <td>homeauto</td>
+                                                    <td>峰</td>
+                                                    </tr>
+                                                    <tr>                                              
+                                                    <td>杨杰</td>
+                                                      <td>Morales</td>
+                                                    <td>li</td>
+                                                    <td>yangjun</td>
+                                                    </tr>
+                                                    
+                                                    <tr>
+                                                    <td>Manel</td>
+                                                    <td>胖胖</td>
+                                                    <td>蚜虫</td> 
+                                                     <td>Pilotto</td>
+                                                    </tr>
+                                                    <tr>
+                                                  
+                                                    <td>sczty</td>
+                                                    <td>飞雁</td>
+                                                      <td>2016nguyenhuong</td>
+                                                    <td>SUNNY</td>
+                                                    </tr>
+                                                    <tr>                                               
+                                                    <td>邓城</td>
+                                                      <td>Peterpan</td>
+                                                    <td>hufo</td>
+                                                    <td>houzi80</td>
+                                                    </tr>
+                                                   
+                                                    <tr>
+                                                    <td>Sergio</td>
+                                                    <td>james</td>
+                                                    <td></td>
+                                                    <td></td>
+                                                    </tr>
+                                                </table>
+                                            </asp:Panel>     
+                                        </td>
+                                      </tr>
+                                      <tr>
+                                         <td align="right" background="./images/top32.gif" style="text-align:right; padding-right:10px;display:none;">
+                                            <a href="#" onclick="closepanle('paneldiv2');" style="cursor:pointer"><img alt="close" src="./images/madamclose1.gif" border="0" width="52" height="19"/></a>
+                                         </td>
+                                      </tr>
+                                       <tr>
+                                        <td align="center"><img src="./images/top42.gif" width="550" height="8" /></td>
+                                      </tr>
+                                    </table>                  
+                </div>
+                </div>
+                
+                </td>
+              </tr>
+              <tr>
+                <td>
+                <table width="583" border="0" cellspacing="2" cellpadding="0" style="display:none;">
+                  <tr>
+                    <td class="txt1">．<asp:Label ID="reason1" runat="server" Text="Reason"></asp:Label> 1：<br>
+                      <asp:TextBox runat="server" ID="txtReason1" Rows="2" Columns="21" TextMode="MultiLine" MaxLength="1000" /></td>
+                    <td><span class="txt1">．<asp:Label ID="reason2" runat="server" Text="Reason"></asp:Label> 2：<br>
+                        <asp:TextBox runat="server" ID="txtReason2" Rows="2" Columns="21" TextMode="MultiLine" MaxLength="1000" />
+                    </span></td>
+                    <td><span class="txt1">．<asp:Label ID="reason3" runat="server" Text="Reason"></asp:Label> 3：<br>
+                        <asp:TextBox runat="server" ID="txtReason3" Rows="2" Columns="20" TextMode="MultiLine" MaxLength="1000" />
+                    </span></td>
+                  </tr>
+                  <tr>
+                    <td colspan="3">
+                        <asp:CheckBox runat="server" ID="CK1" Checked="true" />
+                        <span style="color:#1B9BCA; font-size:larger; margin-top:5px;">
+                            <asp:Label runat="server" ID="LabCK" Text="I would like to receive the latest News from Advantech in the future."></asp:Label></span>
+                    </td>
+                  </tr>
+                </table>
+                  <table width="583" border="0" cellspacing="2" cellpadding="0" style="display:none;">
+                    <tr>
+                      <td width="442">
+                        <span class="txt2">
+                            <asp:UpdatePanel runat="server" ID="upMsg" UpdateMode="Conditional">
+                                <ContentTemplate>
+                                    <asp:Label runat="server" ID="lbMsg" CssClass="txt2" Text="* Please leave the actual information in order to mail the prizes. The nickname is the only personal information shown in website." />
+                                </ContentTemplate>
+                                <Triggers>
+                                    <asp:AsyncPostBackTrigger ControlID="imgBtnSend" EventName="Click" />
+                                </Triggers>
+                            </asp:UpdatePanel>
+                        </span>
+                      </td>
+                      <td width="135">
+                        <div align="right">
+                            <asp:ImageButton runat="server" ID="imgBtnSend" ImageUrl="images/btn_send.jpg" Width="97px" Height="37px" BorderWidth="0px" OnClick="imgBtnSend_Click" />                           
+                        </div>
+                      </td>
+                    </tr>
+                  </table></td>
+              </tr>
+            </table></td>
+            <td align="left" ><img src="images/main_tab_04.jpg"  height="249" alt=""></td>
+          </tr>
+          <tr>
+            <td colspan="3"><img src="images/main_tab_05.jpg" width="759" height="71" alt=""></td>
+          </tr>
+        </table></td>
+		<td>
+			<img src="images/main_1_04.jpg" width="112" height="481" alt=""/></td>
+	</tr>
+  </table>
+     <asp:HiddenField ID="HiddenField1" runat="server" />
+     <ajaxToolkit:ModalPopupExtender runat="server" ID="ModalPopupExtender1"  PopupControlID="Panel1"
+              TargetControlID="HiddenField1" BackgroundCssClass="modalBackground" />
+    <asp:Panel runat="server" HorizontalAlign="Center" ID="Panel1" BackColor="White"  Width="430" style="display:none" >
+        <div style="float:right">
+            [<a  href="#" onclick="hide();" style="color: #FF0000;font-size: 14px;">  x  </a>]&nbsp;&nbsp;&nbsp;
+        </div>
+        <br />
+         <table  width="410" bgcolor="#FAF3D6" border="0" cellspacing="2" cellpadding="0"  align="center" style="margin-top:10px; margin-left:13px; margin-right:10px; margin-bottom:20px;">
+            <tr>
+                <td height="50" align="center">
+                    <font color="#FF0000" size="+1" >
+                        <b>                           
+                            <asp:Literal ID="Literal1" runat="server">This program is now  closed. Thanks for your comments !</asp:Literal>
+                        </b>
+                    </font>
+                </td>
+            </tr>
+        </table>
+    </asp:Panel>
+    <script language="javascript" type="text/javascript">
+                    function hide() {
+                        $find('<%= ModalPopupExtender1.ClientID%>').hide();
+                        // document.getElementById('<%= imgBtnSend.ClientID%>').style.display = "none";
+                        window.location.href = "main_2.aspx";
+                        return false; }
+    </script>
+</asp:Content>

@@ -1,0 +1,401 @@
+﻿<%@ Page Language="VB" MasterPageFile="~/Includes/MyMaster.master" Title="MyAdvantech -- Forwarder Tracking" %>
+<%@ Register TagPrefix="NaviOrderTracking" TagName="Inc" Src="~/Includes/OrderTrackingNavi_Inc.ascx" %>
+
+<script runat="server">
+    Dim xInvoiceNo As String = ""
+    Private Sub page_load(ByVal sender As Object, ByVal e As System.EventArgs)
+        If Not Page.IsPostBack Then
+            If Me.txtForwarderNo.Text.Trim = "" Then
+                Me.txtForwarderNo.Text = Request("FORWARDER_NO")
+            End If
+            If Me.txtInvoiceNo.Text.Trim = "" Then
+                Me.txtInvoiceNo.Text = Request("INVOICE_NO")
+            End If
+            If Me.txtSONo.Text.Trim = "" Then
+                Me.txtSONo.Text = Request("so_no")
+            End If
+            If Me.txtPONo.Text.Trim = "" Then
+                Me.txtPONo.Text = Request("po_no")
+            End If
+        End If
+        Call InitDataBound()
+    End Sub
+    
+    Protected Sub InitDataBound()
+        Dim T_strSQL, l_strSQLCmd, l_strWhere As String
+        l_strSQLCmd = "select distinct a.InvoiceNo as INVOICE_NO, " & _
+                      "a.PONo as PO_NO, " & _
+                      "a.OrderNo as SO_NO, " & _
+                      "b.SchdLineDeliveryDate as SHIP_DATE, " & _
+                      "b.DNForwardInfo as FORWARDER, " & _
+                      "b.DNForwardInfo as FORWARDER_NO, " & _
+                      "'' as FORWARDER_INFO " & _
+                      "from factShipment a " & _
+                      "inner join factOrder b " & _
+                      "on a.ReferenceDoc = b.DNNo and a.ReferenceDocLine = b.DNLine "
+
+        l_strWhere = "where " & _
+                     "a.InvoiceStatus = 'Valid' and a.CustomerID='" & Session("COMPANY_ID") & "' "
+
+        If Me.txtForwarderNo.Text.Trim <> "" Then
+            l_strWhere = l_strWhere + " and b.DNForwardInfo Like '%" & Me.txtForwarderNo.Text.Trim & "%' "
+        End If
+        
+        If Me.txtInvoiceNo.Text.Trim <> "" Then
+            l_strWhere = l_strWhere + " and a.InvoiceNo = '00" & Me.txtInvoiceNo.Text.Trim & "' "
+        End If
+        
+        If Me.txtSONo.Text.Trim <> "" Then
+            l_strWhere = l_strWhere + " and a.OrderNo = '" & Me.txtSONo.Text.Trim & "' "
+        End If
+        
+        If Me.txtPONo.Text.Trim <> "" Then
+            l_strWhere = l_strWhere + " and a.PONo = '" & Me.txtPONo.Text.Trim & "' "
+        End If
+	
+        T_strSQL = l_strSQLCmd + l_strWhere + " order by b.SchdLineDeliveryDate desc,a.InvoiceNo "
+        ViewState("SqlCommand") = ""
+        Me.SqlDataSource1.SelectCommand = T_strSQL
+        ViewState("SqlCommand") = Me.SqlDataSource1.SelectCommand
+        gv1.DataBind()
+        If Session("user_id").ToString.ToLower = "jackie.wu@advantech.com.cn" Then
+            Response.Write(T_strSQL)
+        End If
+        'Response.Write(T_strSQL)
+        If Not Page.IsPostBack Or Me.SearchFlag.Text = "YES" Then Me.SearchFlag.Text = "NO"
+        
+    End Sub
+    
+    Protected Sub Search_Click(ByVal sender As Object, ByVal e As System.EventArgs)
+        Me.SearchFlag.Text = "YES"
+        Me.InitDataBound()
+    End Sub
+    
+    Protected Sub SqlDataSource1_Load(ByVal sender As Object, ByVal e As System.EventArgs)
+        If ViewState("SqlCommand") = "" Then
+            
+        Else
+            SqlDataSource1.SelectCommand = ViewState("SqlCommand")
+        End If
+    End Sub
+    
+    Protected Sub gv1_RowDataBound(ByVal sender As Object, ByVal e As System.Web.UI.WebControls.GridViewRowEventArgs)
+        If e.Row.RowType = DataControlRowType.DataRow Then
+            e.Row.Attributes.Add("onmouseover", "currentcolor=this.style.backgroundColor;this.style.backgroundColor='#FFEEAA'")
+            e.Row.Attributes.Add("onmouseout", "this.style.backgroundColor=currentcolor")
+            Dim lStart As String = "", rEnd As String = ""
+            If xInvoiceNo <> e.Row.Cells(1).Text Then
+                lStart = "<b>" : rEnd = "</b>" : xInvoiceNo = e.Row.Cells(1).Text
+            Else
+                lStart = "" : rEnd = "" : xInvoiceNo = e.Row.Cells(1).Text
+            End If
+            e.Row.Cells(1).Text = lStart & CInt(e.Row.Cells(1).Text) & rEnd
+            e.Row.Cells(2).Text = lStart & e.Row.Cells(2).Text & rEnd
+            e.Row.Cells(3).Text = lStart & e.Row.Cells(3).Text & rEnd
+            e.Row.Cells(4).Text = Global_Inc.FormatDate(e.Row.Cells(4).Text)
+            If e.Row.Cells(5).Text <> "" Then
+                Select Case UCase(Left(e.Row.Cells(5).Text, 3))
+                    Case "TNT"
+                        e.Row.Cells(7).Text = "<a href=""http://www.tnt.de/servlet/Tracking?openDocument=&cons=" & Mid(e.Row.Cells(5).Text, 4) & "&trackType=CON&genericSiteIdent=&page=1&respLang=de&respCountry=DE&sourceID=1&sourceCountry=ww&plazakey=&refs=" & Mid(e.Row.Cells(5).Text, 4) & "&requestType=GEN&searchType=CON&navigation=0"" target=""_blank""><img src=""../images/lg_tnt_s.jpg"" border=""0""></a>"
+                        
+                        e.Row.Cells(5).Text = UCase(Left(e.Row.Cells(5).Text, 3))
+                        e.Row.Cells(6).Text = UCase(Replace(e.Row.Cells(5).Text, Left(e.Row.Cells(5).Text, 3), ""))
+                        'e.Row.Cells(7).Text = "<a href=""http://www.tnt.com/webtracker/tracking.do?respLang=en&respCountry=GENERIC&genericSiteIdent=.&searchType=CON&cons=" & UCase(Replace(e.Row.Cells(5).Text, Left(e.Row.Cells(5).Text, 3), "")) & "&respLang=en&respCountry=GENERIC&page=1&sourceID=1&sourceCountry=ww&plazakey=&refs=&requesttype=GEN&navigation=1"" target=""_blank""><img src=""../images/lg_tnt_s.jpg"" border=""0""></a>"
+
+                    Case "UPS"
+                        e.Row.Cells(7).Text = "<a href=""http://www.ups.com/WebTracking/track?loc=en_NL&WT.svl=PriNav&trackNums=" & Mid(e.Row.Cells(5).Text, 4) & """ target=""_blank""><img src=""../images/lg_ups_s.gif"" border=""0""></a>"
+                        
+                        e.Row.Cells(5).Text = UCase(Left(e.Row.Cells(5).Text, 3))
+                        e.Row.Cells(6).Text = UCase(Replace(e.Row.Cells(5).Text, Left(e.Row.Cells(5).Text, 3), ""))
+                    Case "DHL"
+                        e.Row.Cells(7).Text = "<a href=""http://www.dhl.nl/index_e.html"" target=""_blank""><img src=""../images/lg_dhl_s.jpg"" border=""0""></a>"
+                        
+                        e.Row.Cells(5).Text = UCase(Left(e.Row.Cells(5).Text, 3))
+                        e.Row.Cells(6).Text = UCase(Replace(e.Row.Cells(5).Text, Left(e.Row.Cells(5).Text, 3), ""))
+                    Case Else
+                        e.Row.Cells(5).Text = "" : e.Row.Cells(7).Text = ""
+                End Select
+            Else
+                e.Row.Cells(5).Text = "" : e.Row.Cells(6).Text = "" : e.Row.Cells(7).Text = ""
+            End If
+        End If
+        If e.Row.RowType = DataControlRowType.Header Or e.Row.RowType = DataControlRowType.DataRow Then
+            e.Row.Cells(6).Visible = False
+        End If
+    End Sub
+    
+    Protected Sub btnToXls_Click(ByVal sender As Object, ByVal e As System.EventArgs)
+        gv1.AllowPaging = False
+        gv1.DataBind()
+        gv1.Export2Excel("Forwarder.xls")
+    End Sub
+</script>
+
+<asp:Content runat="server" ID="_main" ContentPlaceHolderID="_main">
+    <div>
+    <table align="center" width="100%" height="100%" border="0" cellspacing="0" cellpadding="0">
+			<tr>
+				<td style="height:5px">
+				</td>
+			</tr>
+			<tr>
+				<td valign="top">
+					<table align="center" width="100%" border="0" cellspacing="0" cellpadding="0">
+						<tr>
+							<td style="width:10px">
+							</td>
+							<td>
+								<!--Page Navi Bar-->
+								<table border="0" cellspacing="0" cellpadding="0">
+									<tr>
+										<td><asp:HyperLink runat="server" ID="hlHome" NavigateUrl="~/home.aspx" Text="Home" /></td>
+										<td width="15" align="center">></td>
+										<td><asp:HyperLink runat="server" ID="hlHere" NavigateUrl="~/Order/BO_OrderTracking.aspx" Text="Order Tracking" /></td>
+										<td width="15" align="center">></td>
+										<td><div class="euPageNaviBar">Forwarder Tracking</div></td>
+									</tr>
+								</table>
+							</td>
+							<td style="width:20px">
+							</td>
+						</tr>
+						<tr>
+							<td colspan="3" style="height:15px">
+							</td>
+						</tr>
+						<tr>
+							<td style="width:10px">
+							</td>
+							<td>
+								<!--Page Title-->
+								<div class="euPageTitle">Forwarder Tracking</div>
+							</td>
+							<td style="width:20px">
+							</td>
+						</tr>
+						<tr>
+							<td colspan="3" style="height:15px">
+							</td>
+						</tr>
+						<tr>
+							<td style="width:10px">
+							</td>
+							<td valign="top">
+								<table border="0" cellpadding="0" cellspacing="0">
+									<tr valign="top">
+										<td>
+											<!--New Table Start-->
+											<table width="445" border="0" cellpadding="0" cellspacing="0" ID="Table1">
+												<tr>
+													<td>
+														<table width="100%" border="0" cellpadding="0" cellspacing="0" class="text" id="Table2">
+															<tr>
+																<td style="width:2%" rowspan="2"><img alt="" src="../images/ebiz.aeu.face/bluefolder_left.jpg" width="7" height="23"/></td>
+																<td style="width:15%;background-color:#A3BFD4" valign="top"><img alt="" src="../images/ebiz.aeu.face/bluefolder_top.jpg" width="138" height="3"/></td>
+																<td style="width:2%" rowspan="2"><img alt="" src="../images/ebiz.aeu.face/bluefolder_right.jpg" width="7" height="23"/></td>
+																<td style="width:2%" rowspan="2"><img alt="" src="../images/ebiz.aeu.face/clear.gif" width="5" height="8"/></td>
+																<td style="width:2%" rowspan="2"><img alt="" src="../images/ebiz.aeu.face/skyfolder_left.jpg" width="6" height="23"/></td>
+																<td style="width:17%;background-color:#E7EFF1"><img alt="" src="../images/ebiz.aeu.face/skyfolder_top.jpg" width="140" height="3"/></td>
+																<td style="width:2%" rowspan="2"><img alt="" src="../images/ebiz.aeu.face/skyfolder_right.jpg" width="7" height="23"/></td>
+																<td style="width:2%" rowspan="2"><img alt="" src="../images/ebiz.aeu.face/clear.gif" width="5" height="8"/></td>
+																<td style="width:2%" rowspan="2"><img alt="" src="../images/ebiz.aeu.face/skyfolder_left.jpg" width="6" height="23"/></td>
+																<td style="width:31%;background-color:#E7EFF1" ><img alt="" src="../images/ebiz.aeu.face/skyfolder_top.jpg" width="140" height="3"/></td>
+																<td style="width:2%" rowspan="2"><img alt="" src="../images/ebiz.aeu.face/skyfolder_right.jpg" width="7" height="23"/></td>
+															</tr>
+															<tr>
+																<td style="height:13" class="euFormCaption">
+																	Criteria
+																</td>
+																<td style="width:17%" class="euFormCaptionInactive">
+																	&nbsp;
+																</td>
+																<td style="width:31%" class="euFormCaptionInactive">
+																	&nbsp;
+																</td>
+															</tr>
+														</table>
+													</td>
+												</tr>
+												<tr>
+													<td style="width:439px;height:5px;background-color:#A0BFD3"></td>
+												</tr>
+												<tr>
+													<td style="height:145px;background-color:#A4B5BD">
+														<table width="100%" style="height:100%" border="0" cellpadding="0" cellspacing="1" id="Table3">
+															<tr valign="top">
+																<td style="height:100%;background-color:#F1F2F4">
+																	<table width="100%" border="0" cellpadding="0" cellspacing="0">
+																		<!--form id="bofrm" name="bofrm" action="B2bOrderInquiry-rvmp05.asp" method="post"-->
+																			<!--form id="bofrm" name="bofrm" action="B2bOrderInquiry.asp" method="post"-->
+																			<tr>
+																				<td colspan="4" style="height:4px">
+																				</td>
+																			</tr>
+																			<tr valign="middle">
+																				<td style="width:5%;height:30px" align="right">
+																					<img alt="" src="../images/ebiz.aeu.face/square_gray.gif" width="7" height="7"/>&nbsp;&nbsp;
+																				</td>
+																				<td style="width:27%">
+																					<div class="euFormFieldCaption">Forwarder Number&nbsp;:</div>
+																				</td>
+																				<td style="width:40%">
+																					<asp:TextBox ID="txtForwarderNo" runat="server" Width="95px"></asp:TextBox>
+																				</td>
+																				<td align="left">
+																					<div class="euFormFieldDesc"></div>
+																				</td>
+																			</tr>
+																			<tr valign="middle">
+																				<td style="width:5%;height:30px" align="right">
+																					<img alt="" src="../images/ebiz.aeu.face/square_gray.gif" width="7" height="7"/>&nbsp;&nbsp;
+																				</td>
+																				<td style="width:27%">
+																					<div class="euFormFieldCaption">Invoice Number&nbsp;:</div>
+																				</td>
+																				<td style="width:40%">
+																				    <ajaxToolkit:AutoCompleteExtender runat="server" ID="ace3"                                             
+                                                                                        ServiceMethod="GetInvoiceNo" TargetControlID="txtInvoiceNo" ServicePath="~/Services/AutoComplete.asmx" 
+                                                                                        MinimumPrefixLength="0" CompletionInterval="1000" />
+																					<asp:TextBox ID="txtInvoiceNo" runat="server" Width="95px"></asp:TextBox>
+																				</td>
+																				<td align="left">
+																					<div class="euFormFieldDesc"></div>
+																				</td>
+																			</tr>
+																			<tr valign="middle">
+																				<td style="width:5%;height:30px" align="right">
+																					<img alt="" src="../images/ebiz.aeu.face/square_gray.gif" width="7" height="7"/>&nbsp;&nbsp;
+																				</td>
+																				<td style="width:27%">
+																					<div class="euFormFieldCaption">SO Number&nbsp;:</div>
+																				</td>
+																				<td style="width:40%">
+																				    <ajaxToolkit:AutoCompleteExtender runat="server" ID="ace1"                                             
+                                                                                        ServiceMethod="GetSO" TargetControlID="txtSONo" ServicePath="~/Services/AutoComplete.asmx" 
+                                                                                        MinimumPrefixLength="0" CompletionInterval="1000" />
+																					<asp:TextBox ID="txtSONo" runat="server" Width="95px"></asp:TextBox>
+																				</td>
+																				<td align="left">
+																					<div class="euFormFieldDesc"></div>
+																				</td>
+																			</tr>
+																			<tr valign="middle">
+																				<td style="width:5%;height:30px" align="right">
+																					<img alt="" src="../images/ebiz.aeu.face/square_gray.gif" width="7" height="7"/>&nbsp;&nbsp;
+																				</td>
+																				<td style="width:27%">
+																					<div class="euFormFieldCaption">PO Number&nbsp;:</div>
+																				</td>
+																				<td style="width:40%">
+																				    <ajaxToolkit:AutoCompleteExtender runat="server" ID="ace2"                                             
+                                                                                        ServiceMethod="GetPO" TargetControlID="txtPONo" ServicePath="~/Services/AutoComplete.asmx" 
+                                                                                        MinimumPrefixLength="0" CompletionInterval="1000" />
+																					<asp:TextBox ID="txtPONo" runat="server" Width="95px"></asp:TextBox>
+																				</td>
+																				<td align="left">
+																					<div class="euFormFieldDesc"></div>
+																				</td>
+																			</tr>
+																			<tr>
+																				<td colspan="4" style="height:3px">
+																				</td>
+																			</tr>
+																			<tr valign="middle">
+																				<td style="width:5%;height:30px" align="right">
+																				</td>
+																				<td style="width:27%">
+																				</td>
+																				<td style="width:40%">
+																					<asp:Label runat="server" ID="SearchFlag" Text="NO" Visible="false"></asp:Label>
+																					<asp:Button runat="server" ID="Search" Text="Search&nbsp;&nbsp;&nbsp;>>" CssClass="euFormSubmit" OnClick="Search_Click" />
+																				</td>
+																				<td align="left">
+																				</td>
+																			</tr>
+																			<tr>
+																				<td colspan="4" style="height:4px">
+																				</td>
+																			</tr>
+																		<!--/form-->
+																	</table>
+																</td>
+															</tr>
+														</table>
+													</td>
+												</tr>
+											</table>
+											<!--New Table End-->
+										</td>
+										<td style="width:150px">
+										</td>
+										<td>
+											<!--Navi Table Start-->
+												<!-- include file = "incOrderTrackingNavi.asp" -->
+												<NaviOrderTracking:Inc runat="server" ID="NaviOrderTrackingInc1" />
+											<!--Navi Table End-->
+										</td>
+									</tr>
+								</table>
+							</td>
+							<td style="width:20px">
+							</td>
+						</tr>
+						<tr>
+							<td></td>
+							<td colspan="2" style="height:15px"><asp:Button runat="server" ID="btnToXls" Text="Export To Excel" OnClick="btnToXls_Click" />
+							</td>
+						</tr>
+						<tr>
+							<td style="width:10px">
+							</td>
+							<td valign="top">
+								<table width="100%" border="0" cellpadding="0" cellspacing="0">
+							        <tr>
+							            <td>
+							                <sgv:SmartGridView runat="server" ID="gv1" DataSourceID="SqlDataSource1" AutoGenerateColumns="false" AllowSorting="true" PageSize="20" Width="100%"
+								                 ShowWhenEmpty="true" OnRowDataBound="gv1_RowDataBound" RowStyle-Height="21">
+								                <Columns>
+								                    <asp:TemplateField ItemStyle-Width="50px" ItemStyle-HorizontalAlign="Center">
+                                                        <headertemplate>
+                                                            No.
+                                                        </headertemplate>
+                                                        <itemtemplate>
+                                                            <%# Container.DataItemIndex + 1 %>
+                                                        </itemtemplate>
+                                                    </asp:TemplateField>
+								                    <asp:BoundField HeaderText="Invoice NO." DataField="INVOICE_NO" SortExpression="INVOICE_NO" />
+								                    <asp:BoundField HeaderText="PO NO." DataField="PO_NO" SortExpression="PO_NO" />
+								                    <asp:BoundField HeaderText="SO NO." DataField="SO_NO" SortExpression="SO_NO" />
+								                    <asp:BoundField HeaderText="Ship Date" DataField="SHIP_DATE" SortExpression="SHIP_DATE" />
+								                    <asp:BoundField HeaderText="Forwarder" DataField="FORWARDER" SortExpression="FORWARDER" />
+								                    <asp:BoundField HeaderText="Forwarder NO" DataField="FORWARDER_NO" SortExpression="FORWARDER_NO" />
+								                    <asp:BoundField HeaderText="Link2" DataField="FORWARDER_INFO" />
+								                </Columns>
+								                <FooterStyle BackColor="#A4B5BD" ForeColor="White" Font-Bold="True" />
+	                                            <RowStyle BackColor="#F7F6F3" ForeColor="#333333" />
+	                                            <SelectedRowStyle BackColor="#E2DED6" Font-Bold="True" ForeColor="#333333" />
+	                                            <PagerStyle BackColor="#284775" ForeColor="White" HorizontalAlign="Justify"  />
+	                                            <HeaderStyle BackColor="#A4B5BD" Font-Bold="True" ForeColor="White" />
+	                                            <AlternatingRowStyle BackColor="White" ForeColor="#284775" />
+                                                <PagerSettings PageButtonCount="10" Position="TopAndBottom" />
+								            </sgv:SmartGridView>
+								            <asp:SqlDataSource runat="server" ID="SqlDataSource1" ConnectionString="<%$ ConnectionStrings:MY %>" SelectCommand="" OnLoad="SqlDataSource1_Load">
+								            </asp:SqlDataSource>
+							            </td>
+							        </tr>
+							    </table>
+							</td>
+							<td style="width:20px">
+							</td>
+						</tr>
+					</table>
+				</td>
+			</tr>
+			<tr>
+				<td style="height:250px">
+					<!--Buffer--> &nbsp;
+				</td>
+			</tr>
+		</table>
+    </div>
+</asp:Content>

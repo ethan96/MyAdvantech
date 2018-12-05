@@ -1,0 +1,59 @@
+﻿<%@ Control Language="VB" ClassName="SurveyFunctionLinks" %>
+
+<script runat="server">
+
+    Protected Sub hlSurveyTemplate_Load(ByVal sender As Object, ByVal e As System.EventArgs)
+        If Request("sid") <> "" Then hlSurveyTemplate.NavigateUrl = "~/EC/Surveys/SurveyTemplate.aspx?sid=" + Request("sid")
+    End Sub
+
+    Protected Sub hlSurveyReport_Load(ByVal sender As Object, ByVal e As System.EventArgs)
+        If Request("sid") <> "" Then hlSurveyReport.NavigateUrl = "~/EC/Surveys/SurveyReport.aspx?sid=" + Request("sid")
+    End Sub
+
+    Protected Sub hlSurveyContent_Load(ByVal sender As Object, ByVal e As System.EventArgs)
+        If Request("sid") <> "" Then hlSurveyContent.NavigateUrl = "~/EC/Surveys/SurveyContent.aspx?sid=" + Request("sid")
+    End Sub
+</script>
+<a runat="server" id="LitTypeLabel">Survey Function Links</a>
+<obout:Flyout runat="server" ID="FlyoutLitType" OpenEvent="ONMOUSEOVER" CloseEvent="ONMOUSEOUT"
+    AttachTo="LitTypeLabel" Position="ABSOLUTE" zIndex="8" RelativeLeft="5" RelativeTop="25">
+    <table width="200px" style="background-color:#EBEBEB">
+        <tr>
+            <th align="left" colspan="2">
+                Survey Function Links
+            </th>
+        </tr>
+        <tr align="left">
+            <td valign="top">
+                <asp:Image runat="server" ID="Image1" ImageUrl="~/Images/point_02.gif" />
+            </td>
+            <td>
+                <asp:HyperLink runat="server" ID="hlSurveyMaster" NavigateUrl="~/EC/Surveys/SurveyMaster.aspx" Text="Survey Master" />
+            </td>
+        </tr>
+        <tr align="left">
+            <td valign="top">
+                <asp:Image runat="server" ID="Image2" ImageUrl="~/Images/point_02.gif" />
+            </td>
+            <td>
+                <asp:HyperLink runat="server" ID="hlSurveyTemplate" Text="Survey Template" OnLoad="hlSurveyTemplate_Load" />
+            </td>
+        </tr>
+        <tr align="left">
+            <td valign="top">
+                <asp:Image runat="server" ID="Image3" ImageUrl="~/Images/point_02.gif" />
+            </td>
+            <td>
+                <asp:HyperLink runat="server" ID="hlSurveyReport" Text="Survey Report" OnLoad="hlSurveyReport_Load" />
+            </td>
+        </tr>
+        <tr align="left">
+            <td valign="top">
+                <asp:Image runat="server" ID="Image4" ImageUrl="~/Images/point_02.gif" />
+            </td>
+            <td>
+                <asp:HyperLink runat="server" ID="hlSurveyContent" Text="Survey Content" OnLoad="hlSurveyContent_Load" />
+            </td>
+        </tr>   
+    </table>
+</obout:Flyout>

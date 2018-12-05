@@ -1,0 +1,265 @@
+﻿<%@ Page Title="MyAdvantech - Survey KR eStore Your Way Usage Report" Language="VB"
+    MasterPageFile="~/Includes/MyMaster.master" %>
+<%@ Register src="Survey_KR_Chart.ascx" tagname="Survey_KR_Chart" tagprefix="uc1" %>
+<script runat="server">
+    Protected Sub Page_Load(ByVal sender As Object, ByVal e As System.EventArgs)
+        If Not Page.IsPostBack Then
+            If Not User.Identity.IsAuthenticated Then
+                Response.Redirect("../../home.aspx?ReturnUrl=" + Request.RawUrl)
+            Else
+                If Session("user_id") IsNot Nothing AndAlso (Session("user_id").ToString() = "ming.zhao@advantech.com.cn" _
+                                                    OrElse Session("user_id").ToString() = "tc.chen@advantech.com.tw" _
+                                                    OrElse Session("user_id").ToString() = "jay.lee@advantech.com" _
+                                                    OrElse Session("user_id").ToString() = "tina.kim@advantech.co.kr") Then
+                Else
+                    Util.JSAlertRedirect(Me.Page, "You have no permission to visit this page.", "../../home.aspx")
+                End If
+            End If
+            Dim nextMonthDate As Date = DateAdd(DateInterval.Month, 1, Now)
+            nextMonthDate = New Date(nextMonthDate.Year, nextMonthDate.Month, 1)
+            hd_StatDate.Value = DateAdd(DateInterval.Day, -1, nextMonthDate).ToString("yyyy/MM/dd")
+            DrawChart()
+            Dim webcontrols() As String = {"Q1", "Q2", "Q3", "Q4", "Q5", "Q6", "Q7_1", "Q7_2", "Q7_3", "Q7_4", "Q7_5", "Q8_1", "Q8_2", "Q8_3", "Q8_4", "Q9", "Q10", "Q11", "Q12", "Q13"}
+            For i As Integer = 0 To webcontrols.Length - 1
+                Dim SKC As New Survey_KR_Chart
+                SKC.Rowid = webcontrols(i)
+                PlaceHolder1.Controls.Add(SKC)
+            Next
+            Dim Qtext() As String = {"Q2_TEXT", "Q3_TEXT", "Q4_TEXT", "Q5_TEXT", "Q11_TEXT", "Q14", "Q15"}
+            For i As Integer = 0 To Qtext.Length - 1
+                Dim title As String = ""
+                Select Case Qtext(i).Trim()
+                    Case "Q2_TEXT"
+                        title = "Q2 Other Answers: " + " 2011년도 어드밴텍 제품 및 서비스를 구매하셨다면 주로 어떤 제품 및 서비스를 구매하셨습니까? "
+                    Case "Q3_TEXT"
+                        title = "Q3 Other Answers: " + " 어드밴텍 제품 및 서비스를 구매 결정을 하신 가장 주된 요인은 무엇입니까?  "
+                    Case "Q4_TEXT"
+                        title = "Q4 Other Answers: " + " 귀하께서는 어드밴텍의 제품 및 서비스를 구매 결정을 포기하시는 가장 주된 원인은 무엇입니까? "
+                    Case "Q5_TEXT"
+                        title = "Q5 Other Answers: " + " 귀하께서는 추후에 어드밴텍 제품을 사용하실 의향은 있으십니까? "
+                    Case "Q11_TEXT"
+                        title = "Q11 Other Answers: " + " 어드밴텍에서 제공하는 아래 정보지 중 가장 도움이 된다고 생각하시는 것을 선택해 주세요.  "
+                    Case "Q14"
+                        title = Qtext(i).Trim() + " 귀하께서 어드밴텍의 발전을 위하여 제안하고 싶은 내용이 있다면 자유롭게 서술하여 주시기 바랍니다. 보다 좋은 제품과 서비..."
+                    Case "Q15"
+                        title = Qtext(i).Trim() + " 바쁘신 가운데 설문에 참여하여 주셔서 대단히 감사합니다.경품 추첨을 위해 아래 개인 정보를 다시 확인해 주시길 바랍니다.보..."
+                        
+                End Select
+                Dim _Repeater As New Repeater
+                Dim _Literal As New Literal
+                _Literal.Text = "<div class=""myrp""><span>"+title +"</span><table class=""mytb"">" + GetText(Qtext(i)) + "</table><div class=""clearfix""></div></div>"
+                _Repeater.Controls.Add(_Literal)
+                PlaceHolder1.Controls.Add(_Repeater)
+            Next
+
+        End If
+        btnToXls.Visible = False
+        If Session("user_id") IsNot Nothing AndAlso (Session("user_id").ToString() = "ming.zhao@advantech.com.cn" _
+                                                     OrElse Session("user_id").ToString() = "tc.chen@advantech.com.tw" _
+                                                     OrElse Session("user_id").ToString() = "jay.lee@advantech.com" _
+                                                     OrElse Session("user_id").ToString() = "tina.kim@advantech.co.kr") Then
+            btnToXls.Visible = True
+        End If
+    End Sub
+    Protected Sub btnToXls_Click(sender As Object, e As System.Web.UI.ImageClickEventArgs)
+        Dim dt As DataTable = dbUtil.dbGetDataTable("MyLocal", "select * from  Survey_KR_eStore  order by  CREATED_DATE desc")
+        'For Each r As DataRow In dt.Rows
+        '    For i As Integer = 0 To dt.Columns.Count - 3
+        '        r(i) = r(i).ToString().Replace("<br/>", "<br style='mso-data-placement:same-cell;'/>")
+        '    Next
+        'Next
+        'dt.AcceptChanges()
+        Util.DataTable2ExcelDownload(dt, "Survey_KR_eStore.xls")
+    End Sub
+    Private Function GetText(ByVal ColumnName As String) As String
+        Dim dt As DataTable = dbUtil.dbGetDataTable("MyLocal", _
+                 String.Format("select isnull({0},'') as c from Survey_KR_eStore where {0} is not null and {0} <> '' order by CREATED_DATE desc ", ColumnName))
+        Dim ReturnStr As String = ""
+        If dt.Rows.Count > 0 Then
+            For i As Integer = 0 To dt.Rows.Count - 1
+                Dim nclass = ""
+                If i Mod 2 > 0 Then
+                    nclass="class=""ge"""
+                End If
+                If dt.Rows(i).Item("c").ToString.Trim <> "" Then
+                    ReturnStr += "<tr " + nclass + "><td><b>[" + (i + 1).ToString() + "] : </b>" + dt.Rows(i).Item("c").ToString() + "</td></tr>"
+                End If
+       
+            Next
+                     Return ReturnStr
+        End If
+        Return ""
+    End Function
+    Protected Function GetDatatableByDate(ByVal FromDate As Date, ByVal ToDate As Date) As DataTable
+        Dim dt As DataTable = dbUtil.dbGetDataTable("MYLOCAL", String.Format( _
+           " select dbo.DateOnly(CREATED_DATE) as ST, COUNT(ROWID) as c from Survey_KR_eStore where CREATED_DATE between  " + _
+           " '{0}' and '{1}' group by dbo.DateOnly(CREATED_DATE) order by dbo.DateOnly(CREATED_DATE) ", _
+           FromDate.ToString("yyyy-MM-dd"), ToDate.ToString("yyyy-MM-dd")))
+        'Dim dt As New DataTable
+        'dt.Columns.Add("ST", GetType(String))
+        'dt.Columns.Add("c", GetType(Double))
+        'Dim aa As New Random()
+        'For i As Integer = 0 To 30
+        '    Dim dr As DataRow = dt.NewRow()
+        '    dr("ST") = CDate(hd_StatDate.Value).Year.ToString() + "-" + CDate(hd_StatDate.Value).Month.ToString() + "-" + i.ToString()
+        '    Dim b As Integer = aa.Next(0, 30)
+        '    dr("c") = b
+        '    dt.Rows.Add(dr)
+        'Next
+        'dt.AcceptChanges()
+        Return dt
+    End Function
+    Sub DrawChart()
+        Dim months() As String = {"Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"}
+        Dim values() As Double = Nothing
+        Dim labels() As String = Nothing
+        Dim FromDate As Date = CDate(hd_StatDate.Value), ToDate As Date = CDate(hd_StatDate.Value)
+        Select Case dlDateView.SelectedIndex
+            Case 0
+                FromDate = DateAdd(DateInterval.Day, -7, ToDate)
+                values = {0, 0, 0, 0, 0, 0, 0}
+                ReDim labels(7)
+                For i As Integer = 0 To values.Length - 1
+                    labels(i) = DateAdd(DateInterval.Day, i, FromDate).ToString("yyyy/MM/dd")
+                Next
+                Dim dt As DataTable = GetDatatableByDate(FromDate, ToDate)
+                For i As Integer = 0 To values.Length - 1
+                    Dim rs() As DataRow = dt.Select("ST='" + DateAdd(DateInterval.Day, i, FromDate).ToString("yyyy-M-d") + "'")
+                    If rs.Length > 0 Then
+                        values(i) = rs(0).Item("c")
+                    End If
+                Next
+                'gv2.DataSource = dt : gv2.DataBind()
+            Case 1
+                FromDate = New Date(ToDate.Year, ToDate.Month, 1)
+                ReDim values(DateDiff(DateInterval.Day, FromDate, ToDate))
+                ReDim labels(DateDiff(DateInterval.Day, FromDate, ToDate))
+                For i As Integer = 0 To values.Length - 1
+                    values(i) = 0
+                    If i Mod 2 > 0 Then
+                        labels(i) = DateAdd(DateInterval.Day, i, FromDate).ToString("MM/dd")
+                    Else
+                         labels(i) =""
+                    End If
+                Next
+                Dim dt As DataTable = GetDatatableByDate(FromDate, ToDate)
+                For i As Integer = 0 To values.Length - 1
+                    Dim rs() As DataRow = dt.Select("ST='" + DateAdd(DateInterval.Day, i, FromDate).ToString("yyyy-M-d") + "'")
+                    If rs.Length > 0 Then
+                        values(i) = rs(0).Item("c")
+                    End If
+                Next
+                'gv2.DataSource = dt : gv2.DataBind()
+            Case 2
+                FromDate = DateAdd(DateInterval.Month, -11, ToDate)
+                values = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}
+                ReDim labels(12)
+                For i As Integer = 0 To values.Length - 1
+                    labels(i) = DateAdd(DateInterval.Month, i, FromDate).ToString("yyyy/MM")
+                Next
+                Dim dt As DataTable = GetDatatableByDate(FromDate, ToDate)
+                For i As Integer = 0 To values.Length - 1
+                    Dim rs() As DataRow = dt.Select("ST='" + DateAdd(DateInterval.Month, i, FromDate).Month.ToString() + "'")
+                    If rs.Length > 0 Then
+                        values(i) = rs(0).Item("c")
+                    End If
+                Next
+                'gv2.DataSource = dt : gv2.DataBind()
+        End Select
+       
+        Dim c As XYChart = New XYChart(970, 330, &HFFFFFF, &HC7D5F1)
+        With c
+            .setPlotArea(40, 70, 910, 220, &HFFFFFF, -1, -1, &HC0C0C0, -1) : .addLegend(35, 20, False, "", 8).setBackground(Chart.Transparent)
+            .addTitle(FromDate.Year.ToString() + " " + months(FromDate.Month - 1) + " Survey KR eStore Yourway Usage ", "Arial Bold Italic", 11, &H333333).setBackground(&HECECEC, &HC7D5F1) : .yAxis().setTitle("Visits")
+            .xAxis().setLabels(labels) : .xAxis().setTitle(" ")
+        End With
+        Dim layer As LineLayer = c.addLineLayer2()
+        With layer
+            .setLineWidth(2)
+            .addDataSet(values)
+        End With
+        WebChartViewer1.Image = c.makeWebImage(Chart.PNG) : WebChartViewer1.ImageMap = c.getHTMLImageMap("", "", "title='[{dataSetName}] Month {xLabel}: {value} Account'")
+     
+    End Sub
+    
+    Protected Sub btnNext_Click(ByVal sender As Object, ByVal e As System.EventArgs)
+        Dim curDate As Date = CDate(hd_StatDate.Value)
+        Select Case dlDateView.SelectedIndex
+            Case 0
+                hd_StatDate.Value = DateAdd(DateInterval.Day, 7, curDate).ToString("yyyy/MM/dd")
+            Case 1
+                Dim nextMonthDate As Date = DateAdd(DateInterval.Month, 2, CDate(hd_StatDate.Value))
+                nextMonthDate = New Date(nextMonthDate.Year, nextMonthDate.Month, 1)
+                hd_StatDate.Value = DateAdd(DateInterval.Day, -1, nextMonthDate).ToString("yyyy/MM/dd")
+            Case 2
+                hd_StatDate.Value = DateAdd(DateInterval.Year, 1, curDate).ToString("yyyy/MM/dd")
+        End Select
+        DrawChart()
+    End Sub
+
+    Protected Sub btnPrev_Click(ByVal sender As Object, ByVal e As System.EventArgs)
+        Dim curDate As Date = CDate(hd_StatDate.Value)
+        Select Case dlDateView.SelectedIndex
+            Case 0
+                hd_StatDate.Value = DateAdd(DateInterval.Day, -7, curDate).ToString("yyyy/MM/dd")
+            Case 1
+                Dim nextMonthDate As Date = CDate(hd_StatDate.Value)
+                nextMonthDate = New Date(nextMonthDate.Year, nextMonthDate.Month, 1)
+                hd_StatDate.Value = DateAdd(DateInterval.Day, -1, nextMonthDate).ToString("yyyy/MM/dd")
+            Case 2
+                hd_StatDate.Value = DateAdd(DateInterval.Year, -1, curDate).ToString("yyyy/MM/dd")
+        End Select
+        DrawChart()
+    End Sub
+
+    Protected Sub dlDateView_SelectedIndexChanged(ByVal sender As Object, ByVal e As System.EventArgs)
+        DrawChart()
+    End Sub
+</script>
+<asp:Content ID="Content1" ContentPlaceHolderID="_main" runat="Server">
+    <link href="Styles/css.css" rel="stylesheet" type="text/css" />
+        <div style="float: right; width: 50px;">
+        <asp:ImageButton ID="btnToXls" runat="server" ImageUrl="~/Images/excel.gif" OnClick="btnToXls_Click" /></div>
+    <table width="1000px">
+        <tr valign="top">
+            <td>
+                <asp:UpdatePanel runat="server" ID="upChart" UpdateMode="Conditional">
+                    <ContentTemplate>
+                        <asp:HiddenField runat="server" ID="hd_StatDate" />
+                        <chartdir:WebChartViewer runat="server" ID="WebChartViewer1" />
+                        <asp:GridView runat="server" ID="gv2" Visible="false" />
+                    </ContentTemplate>
+                    <Triggers>
+                        <asp:AsyncPostBackTrigger ControlID="btnPrev" EventName="Click" />
+                        <asp:AsyncPostBackTrigger ControlID="btnNext" EventName="Click" />
+                        <asp:AsyncPostBackTrigger ControlID="dlDateView" EventName="SelectedIndexChanged" />
+                    </Triggers>
+                </asp:UpdatePanel>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <table width="970">
+                    <td align="left">
+                        <asp:Button runat="server" ID="btnPrev" Text="Last Month" OnClick="btnPrev_Click" />
+                    </td>
+                    <td align="center" style="display: none;">
+                        <asp:DropDownList runat="server" ID="dlDateView" OnSelectedIndexChanged="dlDateView_SelectedIndexChanged"
+                            AutoPostBack="true">
+                            <asp:ListItem Text="Week" />
+                            <asp:ListItem Text="Month" Selected="True" />
+                            <asp:ListItem Text="Year" />
+                        </asp:DropDownList>
+                    </td>
+                    <td align="right">
+                        <asp:Button runat="server" ID="btnNext" Text="Next Month" OnClick="btnNext_Click" />
+                    </td>
+                </table>
+            </td>
+        </tr>
+    </table>
+    <asp:PlaceHolder ID="PlaceHolder1" runat="server"></asp:PlaceHolder>
+    <asp:PlaceHolder ID="PlaceHolder2" runat="server"></asp:PlaceHolder>
+    <asp:Repeater ID="Repeater1" runat="server">
+    </asp:Repeater>
+</asp:Content>

@@ -1,0 +1,139 @@
+﻿<%@ Page Language="VB" %>
+
+<%@ Import Namespace="System.Web.Services" %>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<script runat="server">
+
+    'Protected Sub Page_Load(sender As Object, e As System.EventArgs)
+    '    'Me.GetCoBranding("Stefanie.Chang@advantech.com.tw")
+    'End Sub
+
+    <Services.WebMethod()> _
+            <Web.Script.Services.ScriptMethod()> _
+    Public Shared Function GetCoBranding(ByVal UserID As String) As String
+        
+        Dim _CoBrand As New AdvantechCoBrandingPartnerPortal.CoBrandingPartnerWebservice
+        Dim _returnval() As AdvantechCoBrandingPartnerPortal.PartnerListEntity = _CoBrand.GetCoBrandingPartnerSitesByEmail(UserID)
+        Dim _CoBrandingInfo(_returnval.Length - 1) As CoBrandingInfo, i = 0
+        For Each _item As AdvantechCoBrandingPartnerPortal.PartnerListEntity In _returnval
+            _CoBrandingInfo(i) = New CoBrandingInfo
+            _CoBrandingInfo(i).SiteName = _item.partnerName
+            _CoBrandingInfo(i).AdminSiteURL = _item.urlAdminSite
+            i += 1
+        Next
+        
+        Dim serializer = New Script.Serialization.JavaScriptSerializer()
+        Dim json As String = serializer.Serialize(_CoBrandingInfo)
+        Return json
+    End Function
+    
+    Class CoBrandingInfo
+        Private _SiteName As String, _SiteURL As String
+        Public Property SiteName As String
+            Get
+                Return _SiteName
+            End Get
+            Set(value As String)
+                _SiteName = value
+            End Set
+        End Property
+
+        Public Property AdminSiteURL As String
+            Get
+                Return _SiteURL
+            End Get
+            Set(value As String)
+                _SiteURL = value
+            End Set
+        End Property
+
+    End Class
+    
+    
+</script>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head runat="server">
+    <title></title>
+</head>
+<body>
+    <form id="form1" runat="server">
+    <a runat="server" id="HyCobranding">Co-branding Website Maintenance</a>
+    <obout:Flyout runat="server" ID="FlyoutLitType" OpenEvent="ONMOUSEOVER" CloseEvent="ONMOUSEOUT"
+        AttachTo="HyCobranding" Position="ABSOLUTE" zIndex="998" RelativeLeft="220" RelativeTop="-10">
+        <table style="background-color: #EBEBEB; padding-left: 5px; padding-top: 5px; padding-bottom: 5px">
+            <tr align="left">
+                <td valign="top">
+                    <asp:Image runat="server" ID="Image3" ImageUrl="~/Images/point_02.gif" />
+                </td>
+                <td>
+                    <asp:HyperLink runat="server" ID="HyperLink21" NavigateUrl="http://member.advantech.com/mgt/SimpleFormURLBuilder.aspx"
+                        Text="Create Simple Form" />
+                </td>
+            </tr>
+            <tr align="left">
+                <td valign="top">
+                    <asp:Image runat="server" ID="Image4" ImageUrl="~/Images/point_02.gif" />
+                </td>
+                <td>
+                    <asp:HyperLink runat="server" ID="HyperLink22" NavigateUrl="http://my.advantech.com/My/AOnline/UNICA_SBU_Campaigns_New.aspx"
+                        Text="SBU Campaign Overview" />
+                </td>
+            </tr>
+        </table>
+    </obout:Flyout>
+    <table id="divACLATP" style="border-width: thin; border-style: solid">
+    </table>
+    </form>
+    <script type="text/javascript" src="http://code.jquery.com/jquery-latest.min.js"></script>
+    <script type="text/javascript">
+        $(document).ready(function () {
+            getCoBranding();
+        }
+        );
+
+        function getCoBranding() {
+            $("body").css("cursor", "progress");
+
+            var user_id = 'Stefanie.Chang@advantech.com.tw';
+            //var user_id = 'antoni.warszawik@elmark.com.pl';
+            //console.log('strPN:' + strPN);
+            var postData = JSON.stringify({ UserID: user_id });
+            $.ajax({
+                type: "POST",
+                url: "Co-Branding_Testing.aspx/GetCoBranding",
+                data: postData,
+                contentType: "application/json; charset=utf-8",
+                dataType: "json",
+                success: function (msg) {
+                    //console.log('called atp ok');
+                    var ATPTotalInfo = $.parseJSON(msg.d);
+                    var divATP = $('#divACLATP');
+                    divATP.html('');
+                    //console.log(ATPTotalInfo.PartNo);
+
+                    if (ATPTotalInfo.length > 0) {
+                        divATP.append("<tr><th colspan='2' style='color:Black'>ACL Inventory</th></tr>");
+                        divATP.append("<tr><th style='color:Black'>Available Date</th><th style='color:Black'>Qty</th></tr>");
+                        $.each(ATPTotalInfo, function (i, item) {
+                            divATP.append('<tr><td>' + item.SiteName + '</td><td>' + item.AdminSiteURL + '</td></tr>');
+                        });
+                    }
+
+                    divATP.append("<tr><th colspan='2' style='color:Black'>URL Count:" + ATPTotalInfo.length + "</th></tr>");
+
+                    $("body").css("cursor", "auto");
+                },
+                error: function (msg) {
+                    //console.log('err calling atp ' + msg.d);
+                    $("body").css("cursor", "auto");
+                    //alert("123");
+                    var divATP = $('#divACLATP');
+                    divATP.html('');
+                    divATP.append("<tr><th colspan='2' style='color:Black'>Error:" + msg.d + "</th></tr>");
+                }
+            }
+            );
+        }
+    </script>
+</body>
+</html>

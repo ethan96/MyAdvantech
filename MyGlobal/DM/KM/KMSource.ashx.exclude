@@ -1,0 +1,34 @@
+﻿<%@ WebHandler Language="VB" Class="KMSource" %>
+
+Imports System
+Imports System.Web
+
+Public Class KMSource : Implements IHttpHandler
+    
+    Public Sub ProcessRequest(ByVal context As HttpContext) Implements IHttpHandler.ProcessRequest
+        With context
+            If .Request("SrcId") IsNot Nothing AndAlso .Request("SrcType") IsNot Nothing _
+                  AndAlso Not String.IsNullOrEmpty(.Request("SrcId")) AndAlso Not String.IsNullOrEmpty(.Request("SrcType")) Then
+                Dim cmd As New SqlClient.SqlCommand( _
+                    " select top 1 ORIGINAL_URL from KM_SEARCH_TMP_DETAIL " + _
+                    " where SOURCE_APP=@APP and SOURCE_ID=@ID " + _
+                    " and (ORIGINAL_URL like 'http%//%' or ORIGINAL_URL like 'ftp%')", _
+                    New SqlClient.SqlConnection(ConfigurationManager.ConnectionStrings("MyLocal").ConnectionString))
+                cmd.Parameters.AddWithValue("APP", Trim(.Request("SrcType"))) : cmd.Parameters.AddWithValue("ID", Trim(.Request("SrcId")))
+                Dim tmpURL As Object = Nothing
+                cmd.Connection.Open() : tmpURL = cmd.ExecuteScalar() : cmd.Connection.Close()
+                If tmpURL IsNot Nothing Then
+                    .Response.Redirect(tmpURL.ToString())
+                End If
+            End If
+            .Response.End()
+        End With
+    End Sub
+ 
+    Public ReadOnly Property IsReusable() As Boolean Implements IHttpHandler.IsReusable
+        Get
+            Return False
+        End Get
+    End Property
+
+End Class

@@ -1,0 +1,151 @@
+﻿<%@ Page Title="MyAdvantech - Million ADAM Ballot Page" Language="VB" MasterPageFile="~/Includes/MyMaster.master" %>
+
+<script runat="server">
+
+    Protected Sub Page_Load(ByVal sender As Object, ByVal e As System.EventArgs)
+
+    End Sub
+
+    Protected Sub btnBallot_Click(ByVal sender As Object, ByVal e As System.EventArgs)
+        btnBallot.Text = "Ballot again" : lbMsg.Text = ""
+        Dim sb As New System.Text.StringBuilder
+        With sb
+            .AppendLine(String.Format(" select distinct a.EMAIL  "))
+            .AppendLine(String.Format(" from MADAM_USER_REASON a "))
+            .AppendLine(String.Format(" where a.EMAIL not like '%@advantech%.%' and a.IS_VISIBLE=1 and CLIENT_IP not like '172.%' "))
+            .AppendLine(String.Format(" order by a.EMAIL "))
+        End With
+        Dim dt As DataTable = dbUtil.dbGetDataTable("MYLOCAL", sb.ToString())
+        If dt.Rows.Count > 0 Then
+            Dim emailsArr As New ArrayList
+            For Each r As DataRow In dt.Rows
+                If r.Item("email") IsNot DBNull.Value AndAlso Util.IsValidEmailFormat(r.Item("email").ToString().Trim()) Then
+                    If emailsArr.Contains(r.Item("email").ToString().Trim()) = False Then emailsArr.Add(r.Item("email").ToString().Trim())
+                End If
+            Next
+            Dim rnd As New Random
+            If emailsArr.Count >= 51 Then
+                For i As Integer = 0 To 50
+                    Dim ci As Integer = rnd.Next(0, emailsArr.Count)
+                    Dim cemail As String = emailsArr(i)
+                    emailsArr(i) = emailsArr(ci)
+                    emailsArr(ci) = cemail
+                Next
+                Dim mySql As New SqlClient.SqlConnection(ConfigurationManager.ConnectionStrings("MYLOCAL").ConnectionString)
+                Dim iPadDt As New DataTable, memoDt As New DataTable
+                Dim adapter1 As SqlClient.SqlDataAdapter = Nothing
+                For i As Integer = 0 To 50
+                    adapter1 = New SqlClient.SqlDataAdapter( _
+                        " select top 1 a.NAME, a.EMAIL, a.NICK_NAME, a.MAIL_ADDR, a.REASON1, a.REASON2, a.REASON3, a.SUBMIT_TIME " + _
+                        " from MADAM_USER_REASON a where a.EMAIL = '" + emailsArr(i) + "' and a.IS_VISIBLE=1 and CLIENT_IP not like '172.%' " + _
+                        " order by a.SUBMIT_TIME desc ", mySql)
+                    If i = 0 Then
+                        adapter1.Fill(iPadDt)
+                    Else
+                        Dim tmpDt As New DataTable
+                        adapter1.Fill(tmpDt) : memoDt.Merge(tmpDt)
+                    End If
+                Next
+                gv1.DataSource = iPadDt : gv1.DataBind() : gv2.DataSource = memoDt : gv2.DataBind()
+                ViewState("iPadDt") = iPadDt : ViewState("memoDt") = memoDt
+            End If
+        Else
+            lbMsg.Text = "No candidate in database, please contact TC.Chen@advantech.com.tw"
+        End If
+       
+    End Sub
+
+    Protected Sub xls1_Click(ByVal sender As Object, ByVal e As System.Web.UI.ImageClickEventArgs)
+        If ViewState("iPadDt") IsNot Nothing Then
+            Util.DataTable2ExcelDownload(ViewState("iPadDt"), "iPad.xls")
+        End If
+    End Sub
+
+    Protected Sub xls2_Click(ByVal sender As Object, ByVal e As System.Web.UI.ImageClickEventArgs)
+        If ViewState("memoDt") IsNot Nothing Then
+            Util.DataTable2ExcelDownload(ViewState("memoDt"), "Memo.xls")
+        End If
+    End Sub
+</script>
+
+<asp:Content ID="Content1" ContentPlaceHolderID="_main" Runat="Server">
+    <table width="100%">
+        <tr>
+            <td>
+                <asp:Button runat="server" ID="btnBallot" Text="Start Ballot" OnClick="btnBallot_Click" />
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <b>iPad Winner</b>
+                <asp:UpdatePanel runat="server" ID="up1" UpdateMode="Conditional">
+                    <ContentTemplate>
+                        <asp:Label runat="server" ID="lbMsg" Font-Bold="true" Font-Size="Larger" ForeColor="Red" />
+                        <asp:ImageButton runat="server" ID="xls1" AlternateText="Download" OnClick="xls1_Click" ImageUrl="~/Images/excel.gif" />
+                        <asp:GridView runat="server" ID="gv1" Width="100%" AutoGenerateColumns="false">
+                            <Columns>
+                                <asp:TemplateField>
+                                    <headertemplate>
+                                        No.
+                                    </headertemplate>
+                                    <itemtemplate>
+                                        <%# Container.DataItemIndex + 1 %>
+                                    </itemtemplate>
+                                    <ItemStyle HorizontalAlign="Center" Width="50px" />
+                                </asp:TemplateField> 
+                                <asp:BoundField HeaderText="Name" DataField="NAME" />
+                                <asp:BoundField HeaderText="Eamil" DataField="EMAIL" />
+                                <asp:BoundField HeaderText="Nick Name" DataField="NICK_NAME" />
+                                <asp:BoundField HeaderText="Mailing Address" DataField="MAIL_ADDR" />
+                                <asp:BoundField HeaderText="Reason1" DataField="REASON1" />
+                                <asp:BoundField HeaderText="Reason2" DataField="REASON2" />
+                                <asp:BoundField HeaderText="Reason3" DataField="REASON3" />
+                                <asp:BoundField HeaderText="Submit Time" DataField="SUBMIT_TIME" />
+                            </Columns>
+                        </asp:GridView>
+                    </ContentTemplate>
+                    <Triggers>
+                        <asp:AsyncPostBackTrigger ControlID="btnBallot" EventName="Click" />
+                        <asp:PostBackTrigger ControlID="xls1" />
+                    </Triggers>
+                </asp:UpdatePanel>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <b>Memo paper Winners</b>
+                <asp:UpdatePanel runat="server" ID="up2" UpdateMode="Conditional">
+                    <ContentTemplate>
+                        <asp:ImageButton runat="server" ID="xls2" AlternateText="Download" OnClick="xls2_Click" ImageUrl="~/Images/excel.gif" />
+                        <asp:GridView runat="server" ID="gv2" Width="100%" AutoGenerateColumns="false">
+                            <Columns>
+                                <asp:TemplateField>
+                                    <headertemplate>
+                                        No.
+                                    </headertemplate>
+                                    <itemtemplate>
+                                        <%# Container.DataItemIndex + 1 %>
+                                    </itemtemplate>
+                                    <ItemStyle HorizontalAlign="Center" Width="50px" />
+                                </asp:TemplateField> 
+                                <asp:BoundField HeaderText="Name" DataField="NAME" />
+                                <asp:BoundField HeaderText="Eamil" DataField="EMAIL" />
+                                <asp:BoundField HeaderText="Nick Name" DataField="NICK_NAME" />
+                                <asp:BoundField HeaderText="Mailing Address" DataField="MAIL_ADDR" />
+                                <asp:BoundField HeaderText="Reason1" DataField="REASON1" />
+                                <asp:BoundField HeaderText="Reason2" DataField="REASON2" />
+                                <asp:BoundField HeaderText="Reason3" DataField="REASON3" />
+                                <asp:BoundField HeaderText="Submit Time" DataField="SUBMIT_TIME" />
+                            </Columns>
+                        </asp:GridView>
+                    </ContentTemplate>
+                    <Triggers>
+                        <asp:AsyncPostBackTrigger ControlID="btnBallot" EventName="Click" />
+                        <asp:PostBackTrigger ControlID="xls2" />
+                    </Triggers>
+                </asp:UpdatePanel>
+            </td>
+        </tr>
+    </table>
+</asp:Content>
+

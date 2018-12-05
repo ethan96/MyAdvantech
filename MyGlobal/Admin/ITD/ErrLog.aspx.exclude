@@ -1,0 +1,105 @@
+﻿<%@ Page Title="MyAdvantech - Error Log" Language="VB" MasterPageFile="~/Includes/MyMaster.master" %>
+
+<script runat="server">
+
+    Protected Sub cbIsFixed_CheckedChanged(sender As Object, e As System.EventArgs)
+        Dim cb As CheckBox = sender
+        Dim rid As String = CType(cb.NamingContainer.FindControl("hd_ROWID"), HiddenField).Value
+        dbUtil.dbExecuteNoQuery("MyLocal", "update MY_ERR_LOG set IS_FIXED=" + IIf(cb.Checked, 1, 0).ToString() + " where row_id='" + rid + "'")
+    End Sub
+
+    Protected Sub btnUpdOwner_Click(sender As Object, e As System.EventArgs)
+        Dim dlOwner As DropDownList = CType(sender, Button).NamingContainer.FindControl("dlOwner")
+        Dim rid As String = CType(dlOwner.NamingContainer.FindControl("hd_ROWID"), HiddenField).Value
+        dbUtil.dbExecuteNoQuery("MyLocal", "update MY_ERR_LOG set OWNER='" + Replace(Trim(dlOwner.SelectedValue), "'", "''") + "' where row_id='" + rid + "'")
+        Dim dt As DataTable = dbUtil.dbGetDataTable("MyLocal", "select USERID, URL, QSTRING, EXMSG, ERRDATE from MY_ERR_LOG where ROW_ID='" + rid + "'")
+        If dt.Rows.Count > 0 Then
+            Dim r As DataRow = dt.Rows(0)
+            Dim sb As New System.Text.StringBuilder
+            With sb
+                .AppendLine(String.Format("ERRDATE:{0}", r.Item("ERRDATE")))
+                .AppendLine(String.Format("USERID:{0}", r.Item("USERID")))
+                .AppendLine(String.Format("URL:  {0}", r.Item("URL")))
+                .AppendLine(String.Format("QSTRING:{0}", r.Item("QSTRING")))
+                .AppendLine(String.Format("EXMSG:{0}", r.Item("EXMSG")))
+            End With
+            MailUtil.SendEmail(dlOwner.SelectedValue, "tc.chen@advantech.com.tw", "MyAdvantech Error has been assigned to you", sb.ToString(), False, "tc.chen@advantech.com.tw", "")
+        End If
+    
+    End Sub
+
+    Protected Sub Page_Load(sender As Object, e As System.EventArgs)
+        If Not Page.IsPostBack Then
+            If MailUtil.IsInRole("ITD.ACL") = False Then
+                Response.Redirect("../../home.aspx")
+            End If
+        End If
+    End Sub
+
+    Protected Sub gv1_RowDataBound(sender As Object, e As System.Web.UI.WebControls.GridViewRowEventArgs)
+        If e.Row.RowType = DataControlRowType.DataRow Then
+            Dim txtOwner As String = CType(e.Row.FindControl("hd_OriOwner"), HiddenField).Value
+            Dim dlOwner As DropDownList = e.Row.FindControl("dlOwner")
+            dlOwner.SelectedValue = txtOwner
+        End If
+    End Sub
+</script>
+<asp:Content ID="Content1" ContentPlaceHolderID="_main" runat="Server">
+    <asp:UpdatePanel runat="server" ID="upGv" UpdateMode="Conditional">
+        <ContentTemplate>
+            <asp:GridView runat="server" ID="gv1" Width="100%" AllowPaging="true" AllowSorting="true"
+                PageSize="100" AutoGenerateColumns="false" DataSourceID="src1" PagerSettings-Position="TopAndBottom"
+                DataKeyNames="ROW_ID" OnRowDataBound="gv1_RowDataBound">
+                <Columns>
+                    <asp:CommandField ShowDeleteButton="true" />
+                    <asp:BoundField HeaderText="USERID" DataField="USERID" SortExpression="USERID" />
+                    <asp:TemplateField HeaderText="URL" SortExpression="URL">
+                        <ItemTemplate>
+                            <a target="_blank" href='<%#Eval("URL") %>?<%#Eval("QSTRING") %>'>
+                                <%#Eval("URL") %></a>
+                        </ItemTemplate>
+                    </asp:TemplateField>
+                    <asp:BoundField HeaderText="QSTRING" DataField="QSTRING" SortExpression="QSTRING" />
+                    <asp:TemplateField HeaderText="EXMSG" SortExpression="EXMSG">
+                        <ItemTemplate>
+                            <div style="width: 450px; height: 250px; overflow: scroll">
+                                <%#Eval("EXMSG")%>
+                            </div>
+                        </ItemTemplate>
+                    </asp:TemplateField>
+                    <asp:BoundField HeaderText="ERRDATE" DataField="ERRDATE" SortExpression="ERRDATE" />
+                    <asp:TemplateField HeaderText="IS_FIXED" SortExpression="IS_FIXED">
+                        <ItemTemplate>
+                            <asp:UpdatePanel runat="server" ID="upIsFixed" UpdateMode="Conditional">
+                                <ContentTemplate>
+                                    <asp:HiddenField runat="server" ID="hd_ROWID" Value='<%#Eval("ROW_ID") %>' />
+                                    <asp:CheckBox runat="server" ID="cbIsFixed" Checked='<%#Eval("IS_FIXED") %>' AutoPostBack="true"
+                                        OnCheckedChanged="cbIsFixed_CheckedChanged" />&nbsp;
+                                </ContentTemplate>
+                            </asp:UpdatePanel>
+                        </ItemTemplate>
+                    </asp:TemplateField>
+                    <asp:BoundField HeaderText="APPID" DataField="APPID" SortExpression="APPID" />
+                    <asp:TemplateField HeaderText="OWNER" SortExpression="OWNER">
+                        <ItemTemplate>
+                            <asp:UpdatePanel runat="server" ID="upOwner" UpdateMode="Conditional">
+                                <ContentTemplate>
+                                    <asp:HiddenField runat="server" ID="hd_OriOwner" Value='<%#Eval("OWNER") %>' />
+                                    <asp:DropDownList runat="server" ID="dlOwner">
+                                        <asp:ListItem Value="tc.chen@advantech.com.tw" />
+                                        <asp:ListItem Value="rudy.wang@advantech.com.tw" />
+                                        <asp:ListItem Value="nada.liu@advantech.com.cn" />
+                                        <asp:ListItem Value="ming.zhao@advantech.com.cn" />
+                                    </asp:DropDownList>&nbsp;<asp:Button runat="server" ID="btnUpdOwner" Text="Update" OnClick="btnUpdOwner_Click" />
+                                </ContentTemplate>
+                            </asp:UpdatePanel>
+                        </ItemTemplate>
+                    </asp:TemplateField>
+                </Columns>
+            </asp:GridView>
+            <asp:SqlDataSource runat="server" ID="src1" ConnectionString="<%$ConnectionStrings:MyLocal %>"
+                SelectCommand="select ROW_ID, USERID, URL, QSTRING, EXMSG, ERRDATE, IS_FIXED, APPID, OWNER from MY_ERR_LOG order by ERRDATE desc"
+                DeleteCommand="delete from MY_ERR_LOG where ROW_ID=@ROW_ID"></asp:SqlDataSource>
+        </ContentTemplate>
+    </asp:UpdatePanel>
+</asp:Content>

@@ -1,0 +1,418 @@
+﻿<%@ Page Title="AMD Sales List" Language="VB" MasterPageFile="~/Includes/MyMaster.master" %>
+
+<script runat="server">
+
+    Protected Sub Page_Load(ByVal sender As Object, ByVal e As System.EventArgs)
+        
+    End Sub
+
+    Protected Sub btnAdd_Click(ByVal sender As Object, ByVal e As System.EventArgs)
+        If txtEmail.Text.Trim <> "" Then
+            If CheckInvalidEmail(txtEmail.Text.Trim) Then
+                lblAddMsg.Text = ""
+                If dbUtil.dbGetDataTable("MY", String.Format("select * from amd_sales_list where email='{0}'", txtEmail.Text.Trim.Replace("'", ""))).Rows.Count > 0 Then lblAddMsg.Text = "Email already exists." : Exit Sub
+                Dim flag As Boolean = False
+                Dim dt As DataTable = dbUtil.dbGetDataTable("MY", String.Format("select a.email_address,isnull(a.account_row_id,'') as account_row_id from siebel_contact a where a.email_address='{0}'", txtEmail.Text.Trim.Replace("'", "''")))
+                If dt.Rows.Count > 0 Then
+                    For Each row As DataRow In dt.Rows
+                        If row.Item("account_row_id") <> "" Then flag = True
+                    Next
+                    dbUtil.dbExecuteNoQuery("MY", String.Format("insert into amd_sales_list (email) values ('{0}')", txtEmail.Text.Trim.Replace("'", "''")))
+                    If CheckSSO(txtEmail.Text.Trim.Replace("'", "''")) = False Then CreateSSO(True)
+                    lblAddMsg.Text += txtEmail.Text.Trim.Replace("'", "") + " is added."
+                    'If flag = True Then
+                    '    dbUtil.dbExecuteNoQuery("MY", String.Format("insert into amd_sales_list (email) values ('{0}')", txtEmail.Text.Trim.Replace("'", "''")))
+                    '    If CheckSSO(txtEmail.Text.Trim.Replace("'", "''")) = False Then CreateSSO(True)
+                    '    lblAddMsg.Text += txtEmail.Text.Trim.Replace("'", "") + " is added."
+                    'Else
+                    '    If txtEmail.Text Like "*@advantech*" Then
+                    '        dbUtil.dbExecuteNoQuery("MY", String.Format("insert into amd_sales_list (email) values ('{0}')", txtEmail.Text.Trim.Replace("'", "''")))
+                    '        lblAddMsg.Text += txtEmail.Text.Trim.Replace("'", "") + " is added."
+                    '    Else
+                    '        dbUtil.dbExecuteNoQuery("MY", String.Format("insert into amd_sales_list (email) values ('{0}')", txtEmail.Text.Trim.Replace("'", "''")))
+                    '        If CheckSSO(txtEmail.Text.Trim.Replace("'", "''")) = False Then CreateSSO(True)
+                    '        lblAddMsg.Text += txtEmail.Text.Trim.Replace("'", "") + " is added."
+                    '    End If
+                    'End If
+                Else
+                    If txtFirstName.Text.Trim.Replace("'", "''") = "" Then lblAddMsg.Text = "First Name is required." : Exit Sub
+                    If txtLastName.Text.Trim.Replace("'", "''") = "" Then lblAddMsg.Text = "Last Name is required." : Exit Sub
+                    If txtAccountId.Text.Trim.Replace("'", "") <> "" Then
+                        Dim ws As New aeu_eai2000.Siebel_WS
+                        ws.UseDefaultCredentials = True : ws.Timeout = 500 * 1000
+                        Dim row_id As String = ws.CreateNewContact_New(txtEmail.Text.Trim, txtAccountId.Text.Trim.Split("(")(1).Replace(")", ""), txtFirstName.Text.Trim.Replace("'", "''"), txtLastName.Text.Trim.Replace("'", "''"), False, False, "", txtPhone.Text.Trim.Replace("'", "''"), False, False)
+                        If row_id <> "" Then
+                            Threading.Thread.Sleep(10000)
+                            If Util.SyncContactFromSiebel(row_id) = False Then
+                                lblAddMsg.Text += "Sync contact from Siebel failed.<br/>"""
+                            End If
+                            dbUtil.dbExecuteNoQuery("MY", String.Format("insert into amd_sales_list (email) values ('{0}')", txtEmail.Text.Trim.Replace("'", "''")))
+                            If CheckSSO(txtEmail.Text.Trim.Replace("'", "''")) = False Then CreateSSO()
+                            gv1.DataBind()
+                            lblAddMsg.Text += txtEmail.Text.Trim.Replace("'", "") + " is added. (" + row_id + ")"
+                        Else
+                            lblAddMsg.Text = "Create Siebel Contact Failed."
+                        End If
+                    Else
+                        lblAddMsg.Text = "Please pick an account."
+                    End If
+                End If
+            Else
+                lblAddMsg.Text = "This email format is invalid."
+            End If
+        Else
+            lblAddMsg.Text = ""
+        End If
+    End Sub
+
+    Protected Sub gv1_RowDeleting(ByVal sender As Object, ByVal e As System.Web.UI.WebControls.GridViewDeleteEventArgs)
+        'dbUtil.dbExecuteNoQuery("MY", String.Format("delete from amd_sales_list where email='{0}'", gv1.Rows(e.RowIndex).Cells(2).Text))
+        sql1.DeleteParameters("amd_email").DefaultValue = gv1.Rows(e.RowIndex).Cells(2).Text
+    End Sub
+    
+    Private Function CheckInvalidEmail(ByVal email As String) As Boolean
+        Dim reg As String = "^\w+([-+.]\w+)*@\w+([-.]\w+)*\.\w+([-.]\w+)*$"
+        Dim options As RegexOptions = RegexOptions.Singleline
+        If Regex.Matches(email, reg, options).Count = 0 Then
+            Return False
+        Else
+            Return True
+        End If
+    End Function
+    
+    Private Function CheckSSO(ByVal email As String) As Boolean
+        If dbUtil.dbGetDataTable("MYLOCAL", String.Format("select * from SSO_MEMBER where EMAIL_ADDR='{0}'", email)).Rows.Count = 0 Then
+            Return False
+        Else
+            Return True
+        End If
+    End Function
+    
+    Private Function CreateSSO(Optional ByVal isSiebelContact As Boolean = False) As Boolean
+        Try
+            Dim email As String = txtEmail.Text.Trim.Replace("'", "''")
+            Dim firstname As String = txtFirstName.Text.Trim.Replace("'", "''"), lastname As String = txtLastName.Text.Trim.Replace("'", "''")
+            If isSiebelContact = True Then
+                Dim dtCon As DataTable = dbUtil.dbGetDataTable("MY", String.Format("select isnull(firstname,'') as firstname, isnull(lastname,'') as lastname from siebel_contact where email_address='{0}'", email))
+                If dtCon.Rows.Count > 0 Then
+                    If dtCon.Rows(0).Item(0).ToString <> "" Then firstname = dtCon.Rows(0).Item(0).ToString Else firstname = email.Split("@")(0).Split(".")(0)
+                    If dtCon.Rows(0).Item(1).ToString <> "" Then lastname = dtCon.Rows(0).Item(1).ToString Else lastname = email.Split("@")(0).Split(".")(0)
+                Else
+                    firstname = email.Split("@")(0).Split(".")(0) : lastname = email.Split("@")(0).Split(".")(0)
+                End If
+            End If
+            Dim password As String = CreateRandomPassword()
+            Dim erp_id As String = ""
+            Dim dt As DataTable = dbUtil.dbGetDataTable("MY", String.Format("select isnull(ERP_ID,'') as ERP_ID from siebel_account where row_id='{0}'", txtAccountId.Text.Trim.Split("(")(1).Replace(")", "")))
+            If dt.Rows.Count > 0 Then
+                erp_id = dt.Rows(0).Item(0).ToString
+            Else
+                'erp_id = Session("COMPANY_ID")
+            End If
+            Dim ws As New ADWWW_Register.MembershipWebservice
+            ws.UseDefaultCredentials = True : ws.Timeout = 500 * 1000
+            Dim p As New ADWWW_Register.SSOUSER
+            With p
+                p.company_id = erp_id : p.erpid = erp_id
+                p.email_addr = email
+                p.login_password = password  'Util.GetMD5Checksum(LCase(email.Text.Trim) + "|" + password.Text.Trim)
+                p.first_name = firstname : p.last_name = lastname
+            End With
+            ws.register("My", p)
+            dbUtil.dbExecuteNoQuery("MYLOCAL", String.Format("insert into SSO_MEMBER (EMAIL_ADDR,USER_STATUS) values ('{0}',1)", email))
+        
+            Dim l_strHTML As String = ""
+            l_strHTML = l_strHTML & "<html xmlns=""http://www.w3.org/1999/xhtml"">"
+            l_strHTML = l_strHTML & "<body><table  width=""900"" border=""0"" cellspacing=""0"" cellpadding=""0"" style=""font-family:Arial Unicode MS""><tr><td>"
+            l_strHTML = l_strHTML & "<img alt="""" src=""../Images/logo2.jpg"" /><br/></td>"
+            l_strHTML = l_strHTML & "</tr><tr><td>"
+            l_strHTML = l_strHTML & "Dear <b>" & firstname & "&nbsp;" & lastname & "</b>,</td>"
+            l_strHTML = l_strHTML & "</tr><tr><td>"
+            l_strHTML = l_strHTML & "Welcome to MyAdvantech. Through this portal you can access <b>personal content</b> and Advantech <b>Product/Sales/MarketingTools, eRMA & Support, and B2B online procurement</b> easily with the least effort."
+            l_strHTML = l_strHTML & "</td></tr>"
+            l_strHTML = l_strHTML & "<tr><td height=""50"">"
+            l_strHTML = l_strHTML & "Your login information for&nbsp;MyAdvantech is as follows:</td>"
+            l_strHTML = l_strHTML & "</tr>"
+            l_strHTML = l_strHTML & "<tr><td>"
+            l_strHTML = l_strHTML & "<table style="" width: 80.0%;background: silver;font-family:Arial Unicode MS"" border=""0"" cellspacing=""0""  cellpadding=""0"">"
+            l_strHTML = l_strHTML & "<tr><td  align=""center""style=""width: 150px ;background: #EEEEEE;border-right:solid 1px #cccccc"">ID(Email Address):</td><td style=""background: #EEEEEE""><span style=""color:navy""> &nbsp;" & email & "</span></td></tr>"
+            l_strHTML = l_strHTML & "<tr><td  align=""center""style=""background: #D9D9D9;border-right:solid 1px #cccccc"">Password:</td> <td style=""background: #D9D9D9""><span style=""color:navy""> &nbsp;" & password & "</span></td></tr>"
+            l_strHTML = l_strHTML & "<tr><td  align=""center""style=""background: #EEEEEE;border-right:solid 1px #cccccc"">First Name:</td><td style=""background: #EEEEEE""><span style=""color:navy""> &nbsp;" & firstname & "</span></td></tr>"
+            l_strHTML = l_strHTML & "<tr><td  align=""center""style=""background: #D9D9D9;border-right:solid 1px #cccccc"">Last Name:</td><td style=""background: #D9D9D9""><span style=""color:navy""> &nbsp;" & lastname & "</span></td></tr>"
+            l_strHTML = l_strHTML & "</table></td></tr> <tr><td>"
+            l_strHTML = l_strHTML & "At the MyAdvantech "
+            l_strHTML = l_strHTML & "<a href=""http://" + Request.ServerVariables("HTTP_HOST").ToString + "/Login.aspx?ReturnUrl=%2fhome.aspx"" "
+            l_strHTML = l_strHTML & "title=""http://my.advantech.com/""><span style=""color:#000099"">login</span></a> "
+            l_strHTML = l_strHTML & "page, enter the ID and password provided above for the first login. Afterwards, "
+            l_strHTML = l_strHTML & "you can change the password by updating your user "
+            l_strHTML = l_strHTML & "<a href=""http://" + Request.ServerVariables("HTTP_HOST").ToString + "/My/MyProfile.aspx"">profile</a> .</td>"
+            l_strHTML = l_strHTML & "</tr><tr><td></td> </tr>"
+            l_strHTML = l_strHTML & "<tr><td >Should you have any questions or comments please feel free to "
+            Dim rbu As String = ""
+            Dim SiebDt As DataTable = dbUtil.dbGetDataTable("MY", _
+                String.Format("select top 1 RBU, row_id as account_row_id from siebel_account where RBU is not null and RBU<>'' and ERP_ID='{0}' order by account_status ", erp_id))
+            If SiebDt.Rows.Count = 1 Then
+                rbu = SiebDt.Rows(0).Item("RBU").ToString
+            End If
+            If rbu = "ADL" OrElse rbu = "AFR" OrElse rbu = "AIT" OrElse rbu = "ABN" OrElse rbu = "AEE" OrElse rbu = "AUK" Then
+                l_strHTML = l_strHTML & "contact us via&nbsp;<u><a href=""mailto:customercare@advantech.eu"">customercare@advantech.eu</a></u>"
+            Else
+                l_strHTML = l_strHTML & "contact us via&nbsp;<u><a href=""mailto:buy@advantech.com"">buy@advantech.com</a></u>"
+            End If
+            l_strHTML = l_strHTML & "</td></tr>"
+            l_strHTML = l_strHTML & "</table>"
+            l_strHTML = l_strHTML & "</body>"
+            l_strHTML = l_strHTML & "</html>"
+            Dim strFrom, strTo, strCC, strBCC, strSubject, AttachFile, strBody As String
+            strFrom = "myadvantech@advantech.com"
+                
+            strTo = Trim(email)
+            'strTo = "jan.huang@Advantech.com.cn;"
+            strCC = "" '"Jackie.wu@adv"
+            strBCC = Session("USER_ID") + ",rudy.wang@advantech.com.tw,tc.chen@advantech.com.tw"
+            strSubject = "MyAdvantech thanks your registration - (" & email & ")"
+            AttachFile = "" 'Server.MapPath("../images/") & "\header_advantech_logo.gif"
+            strBody = l_strHTML 'Replace(l_strHTML, "/images/", "")
+            Util.SendEmail(strTo, strFrom, strSubject, strBody, True, strCC, strBCC)
+            Return True
+        Catch ex As Exception
+            Return False
+        End Try
+        
+    End Function
+
+    Public Function CreateRandomPassword() As String
+        Dim _allowedChars As String = "abcdefghijkmnopqrstuvwxyzABCDEFGHJKLMNOPQRSTUVWXYZ"
+        Dim _allowedNumber As String = "0123456789"
+        Dim randNum As New Random()
+        Dim chars As New ArrayList
+
+        For i As Integer = 0 To 3
+            chars.Add(_allowedChars.Chars(CInt(Fix((_allowedChars.Length) * randNum.NextDouble()))))
+        Next
+        For j As Integer = 4 To 5
+            chars.Add(_allowedNumber.Chars(CInt(Fix((_allowedNumber.Length) * randNum.NextDouble()))))
+        Next
+        Dim ran As New Random()
+        Dim newChars(5) As Char
+        Dim count As Integer = 5
+        For k As Integer = 0 To 5
+            Dim index As Integer = CInt(count * ran.NextDouble())
+            newChars(k) = chars.Item(index)
+            chars.RemoveAt(index)
+            count -= 1
+        Next
+
+        Return New String(newChars)
+    End Function
+
+    Protected Sub gv1_RowDataBound(sender As Object, e As System.Web.UI.WebControls.GridViewRowEventArgs)
+        If e.Row.RowType = DataControlRowType.DataRow Then
+            Dim dt As DataTable = dbUtil.dbGetDataTable("MYLOCAL", String.Format("select * from SSO_MEMBER where EMAIL_ADDR = '{0}'", e.Row.Cells(2).Text))
+            Dim isActive As Boolean = True
+            If dt.Rows.Count > 0 Then
+                CType(e.Row.Cells(3).FindControl("lblLogin"), Label).Text = "Y"
+                CType(e.Row.Cells(3).FindControl("btnCreateLogin"), LinkButton).Visible = False
+            Else
+                CType(e.Row.Cells(3).FindControl("lblLogin"), Label).Text = "N"
+                CType(e.Row.Cells(3).FindControl("btnCreateLogin"), LinkButton).Visible = True
+            End If
+        End If
+    End Sub
+    
+    Protected Sub btnCreateLogin_Click(ByVal sender As Object, ByVal e As System.EventArgs)
+        Dim email As String = CType(CType(sender, LinkButton).NamingContainer, GridViewRow).Cells(2).Text
+        Dim erpid As String = CType(CType(sender, LinkButton).NamingContainer, GridViewRow).Cells(6).Text
+        Dim firstname As String = "", lastname As String = ""
+        Dim password As String = CreateRandomPassword()
+        Dim dt As DataTable = dbUtil.dbGetDataTable("MY", String.Format("select isnull(firstname,'') as firstname, isnull(lastname,'') as lastname from siebel_contact where email_address='{0}'", email))
+        If dt.Rows.Count > 0 Then
+            firstname = dt.Rows(0).Item(0).ToString
+            lastname = dt.Rows(0).Item(1).ToString
+        End If
+        Dim ws As New ADWWW_Register.MembershipWebservice
+        ws.UseDefaultCredentials = True : ws.Timeout = 500 * 1000
+        Dim p As New ADWWW_Register.SSOUSER
+        With p
+            p.company_id = Session("COMPANY_ID") : p.erpid = Session("COMPANY_ID")
+            p.email_addr = email
+            p.login_password = password  'Util.GetMD5Checksum(LCase(email.Text.Trim) + "|" + password.Text.Trim)
+            p.first_name = firstname : p.last_name = lastname
+        End With
+        ws.register("My", p)
+        dbUtil.dbExecuteNoQuery("MYLOCAL", String.Format("insert into SSO_MEMBER (EMAIL_ADDR,USER_STATUS) values ('{0}',1)", email))
+        
+        Dim l_strHTML As String = ""
+        l_strHTML = l_strHTML & "<html xmlns=""http://www.w3.org/1999/xhtml"">"
+        l_strHTML = l_strHTML & "<body><table  width=""900"" border=""0"" cellspacing=""0"" cellpadding=""0"" style=""font-family:Arial Unicode MS""><tr><td>"
+        l_strHTML = l_strHTML & "<img alt="""" src=""http://" + Request.ServerVariables("HTTP_HOST").ToString + "/Images/logo2.jpg"" /><br/></td>"
+        l_strHTML = l_strHTML & "</tr><tr><td>"
+        l_strHTML = l_strHTML & "Dear <b>" & firstname & "&nbsp;" & lastname & "</b>,</td>"
+        l_strHTML = l_strHTML & "</tr><tr><td>"
+        l_strHTML = l_strHTML & "Welcome to MyAdvantech. Through this portal you can access <b>personal content</b> and Advantech <b>Product/Sales/MarketingTools, eRMA & Support, and B2B online procurement</b> easily with the least effort."
+        l_strHTML = l_strHTML & "</td></tr>"
+        l_strHTML = l_strHTML & "<tr><td height=""50"">"
+        l_strHTML = l_strHTML & "Your login information for&nbsp;MyAdvantech is as follows:</td>"
+        l_strHTML = l_strHTML & "</tr>"
+        l_strHTML = l_strHTML & "<tr><td>"
+        l_strHTML = l_strHTML & "<table style="" width: 80.0%;background: silver;font-family:Arial Unicode MS"" border=""0"" cellspacing=""0""  cellpadding=""0"">"
+        l_strHTML = l_strHTML & "<tr><td  align=""center""style=""width: 150px ;background: #EEEEEE;border-right:solid 1px #cccccc"">ID(Email Address):</td><td style=""background: #EEEEEE""><span style=""color:navy""> &nbsp;" & email & "</span></td></tr>"
+        l_strHTML = l_strHTML & "<tr><td  align=""center""style=""background: #D9D9D9;border-right:solid 1px #cccccc"">Password:</td> <td style=""background: #D9D9D9""><span style=""color:navy""> &nbsp;" & password & "</span></td></tr>"
+        l_strHTML = l_strHTML & "<tr><td  align=""center""style=""background: #EEEEEE;border-right:solid 1px #cccccc"">First Name:</td><td style=""background: #EEEEEE""><span style=""color:navy""> &nbsp;" & firstname & "</span></td></tr>"
+        l_strHTML = l_strHTML & "<tr><td  align=""center""style=""background: #D9D9D9;border-right:solid 1px #cccccc"">Last Name:</td><td style=""background: #D9D9D9""><span style=""color:navy""> &nbsp;" & lastname & "</span></td></tr>"
+        l_strHTML = l_strHTML & "</table></td></tr> <tr><td>"
+        l_strHTML = l_strHTML & "At the MyAdvantech "
+        l_strHTML = l_strHTML & "<a href=""http://" + Request.ServerVariables("HTTP_HOST").ToString + "/Login.aspx?ReturnUrl=%2fhome.aspx"" "
+        l_strHTML = l_strHTML & "title=""http://my.advantech.com/""><span style=""color:#000099"">login</span></a> "
+        l_strHTML = l_strHTML & "page, enter the ID and password provided above for the first login. Afterwards, "
+        l_strHTML = l_strHTML & "you can change the password by updating your user "
+        l_strHTML = l_strHTML & "<a href=""http://" + Request.ServerVariables("HTTP_HOST").ToString + "/My/MyProfile.aspx"">profile</a> .</td>"
+        l_strHTML = l_strHTML & "</tr><tr><td></td> </tr>"
+        l_strHTML = l_strHTML & "<tr><td >Should you have any questions or comments please feel free to "
+        Dim rbu As String = ""
+        Dim SiebDt As DataTable = dbUtil.dbGetDataTable("MY", _
+            String.Format("select top 1 RBU, row_id as account_row_id from siebel_account where RBU is not null and RBU<>'' and ERP_ID='{0}' order by account_status ", erpid))
+        If SiebDt.Rows.Count = 1 Then
+            rbu = SiebDt.Rows(0).Item("RBU").ToString
+        End If
+        If rbu = "ADL" OrElse rbu = "AFR" OrElse rbu = "AIT" OrElse rbu = "ABN" OrElse rbu = "AEE" OrElse rbu = "AUK" Then
+            l_strHTML = l_strHTML & "contact us via&nbsp;<u><a href=""mailto:customercare@advantech.eu"">customercare@advantech.eu</a></u>"
+        Else
+            l_strHTML = l_strHTML & "contact us via&nbsp;<u><a href=""mailto:buy@advantech.com"">buy@advantech.com</a></u>"
+        End If
+        l_strHTML = l_strHTML & "</td></tr>"
+        l_strHTML = l_strHTML & "</table>"
+        l_strHTML = l_strHTML & "</body>"
+        l_strHTML = l_strHTML & "</html>"
+        Dim strFrom, strTo, strCC, strBCC, strSubject, AttachFile, strBody As String
+        strFrom = "myadvantech@advantech.com"
+                
+        strTo = Trim(email)
+        'strTo = "jan.huang@Advantech.com.cn;"
+        strCC = "" '"Jackie.wu@adv"
+        strBCC = Session("USER_ID") + ",rudy.wang@advantech.com.tw,tc.chen@advantech.com.tw"
+        strSubject = "MyAdvantech thanks your registration - (" & email & ")"
+        AttachFile = "" 'Server.MapPath("../images/") & "\header_advantech_logo.gif"
+        strBody = l_strHTML 'Replace(l_strHTML, "/images/", "")
+        Util.SendEmail(strTo, strFrom, strSubject, strBody, True, strCC, strBCC)
+        gv1.DataBind()
+        'Response.Redirect("Profile_Admin.aspx")
+    End Sub
+</script>
+
+<asp:Content ID="Content1" ContentPlaceHolderID="_main" Runat="Server">
+<script type="text/javascript">
+function PickAccount(){
+    window.open("/Includes/PickSiebelAccount.aspx", "pop","height=470,width=680,scrollbars=yes");
+}
+function updateFromChildWindowAcc(updateValue)
+{
+    document.getElementById('<%= txtAccountId.ClientID %>').value = updateValue;
+}
+function Clear(){
+    document.getElementById('<%= txtAccountId.ClientID %>').value = '';
+}
+</script>
+    <table>
+        <tr><th>Upload AMD Sales</th></tr>
+        <tr>
+            <td>
+                <table>
+                    <tr>
+                        <td>
+                            <table>
+                                <tr>
+                                    <td>Email: </td><td><asp:TextBox runat="server" ID="txtEmail" Width="250px" /><asp:RequiredFieldValidator runat="server" ID="rf1" ControlToValidate="txtEmail" Text=" *" ForeColor="Red" /></td>
+                                </tr>
+                                <tr><td>First Name: </td><td><asp:TextBox runat="server" ID="txtFirstName" /></td></tr>
+                                <tr><td>Last Name: </td><td><asp:TextBox runat="server" ID="txtLastName" /></td></tr>
+                                <tr><td>Phone: </td><td><asp:TextBox runat="server" ID="txtPhone" /></td></tr>
+                            </table>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <table>
+                                <tr>
+                                    <td>Account (Associate with an account if email is not in Siebel): </td>
+                                    <td><asp:TextBox runat="server" ID="txtAccountId" Width="250px" Enabled="false" /></td>
+                                    <td><asp:Button runat="server" ID="btnPickAccount" Text="Pick" OnClientClick="PickAccount();return false;" /></td>
+                                    <td><asp:Button runat="server" ID="btnClear" Text="Clear" OnClientClick="Clear();return false;" /></td>
+                                </tr>
+                            </table>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <table>
+                                <tr>
+                                    <td><asp:Button runat="server" ID="btnAdd" Text="Add" OnClick="btnAdd_Click" /></td>
+                                    <td>
+                                        <asp:UpdatePanel runat="server" ID="up3" UpdateMode="Conditional">
+                                            <ContentTemplate>
+                                                <asp:Label runat="server" ID="lblAddMsg" ForeColor="Red" />
+                                            </ContentTemplate>
+                                            <Triggers>
+                                                <asp:AsyncPostBackTrigger ControlID="btnAdd" EventName="Click" />
+                                            </Triggers>
+                                        </asp:UpdatePanel>
+                                    </td>
+                                </tr>
+                            </table>
+                        </td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+    </table>
+    <table width="100%">
+        <tr>
+            <td>
+                <asp:UpdatePanel runat="server" ID="up1">
+                    <ContentTemplate>
+                        <asp:GridView runat="server" ID="gv1" Width="100%" AutoGenerateColumns="false" DataSourceID="sql1" AllowPaging="true" AllowSorting="true" PageSize="50" OnRowDeleting="gv1_RowDeleting" OnRowDataBound="gv1_RowDataBound">
+                            <Columns>
+                                <asp:TemplateField ItemStyle-Width="50px" ItemStyle-HorizontalAlign="Center">
+                                    <headertemplate>
+                                        No.
+                                    </headertemplate>
+                                    <itemtemplate>
+                                        <%# Container.DataItemIndex + 1 %>
+                                    </itemtemplate>
+                                </asp:TemplateField>
+                                <asp:CommandField ButtonType="Link" ShowDeleteButton="true" />
+                                <asp:BoundField DataField="email" HeaderText="Email" SortExpression="email" />
+                                <asp:TemplateField HeaderText="Has SSO Login?" ItemStyle-Width="100px" ItemStyle-HorizontalAlign="Center">
+                                        <ItemTemplate>
+                                            <asp:Label runat="server" ID="lblLogin" />
+                                            <asp:LinkButton runat="server" ID="btnCreateLogin" Text="Create Login" CausesValidation="false" OnClick="btnCreateLogin_Click" />
+                                        </ItemTemplate>
+                                    </asp:TemplateField>
+                                <asp:BoundField DataField="account_row_id" HeaderText="Account Row ID" SortExpression="account_row_id" />
+                                <asp:BoundField DataField="account_name" HeaderText="Account" SortExpression="account_name" />
+                                <asp:BoundField DataField="erp_id" HeaderText="ERP_ID" SortExpression="erp_id" />
+                                <asp:BoundField DataField="account_status" HeaderText="Account Status" SortExpression="account_status" />
+                                <asp:TemplateField HeaderText="Update Profile" ItemStyle-HorizontalAlign="Center">
+                                    <ItemTemplate>
+                                        <a href='User_Profile_Update.aspx?rid=<%#Eval("row_id") %>' target="_blank">Edit</a>
+                                    </ItemTemplate>
+                                </asp:TemplateField>
+                            </Columns>
+                        </asp:GridView>
+                    </ContentTemplate>
+                    <Triggers>
+                        <asp:AsyncPostBackTrigger ControlID="btnAdd" EventName="Click" />
+                    </Triggers>
+                </asp:UpdatePanel>
+                <asp:SqlDataSource runat="server" ID="sql1" ConnectionString="<%$ connectionStrings: MY %>"
+                     SelectCommand="select a.email, isnull(b.account_row_id,'') as account_row_id, isnull(c.account_name,'') as account_name, isnull(c.erp_id,'') as erp_id, isnull(c.account_status,'') as account_status, b.row_id from amd_sales_list a left join siebel_contact b on a.email=b.email_address left join siebel_account c on b.account_row_id=c.row_id order by a.email"
+                     DeleteCommand="delete from amd_sales_list where email=@amd_email">
+                     <DeleteParameters>
+                        <asp:Parameter Name="amd_email" />
+                     </DeleteParameters>
+                </asp:SqlDataSource>
+            </td>
+        </tr>
+    </table>
+</asp:Content>
+

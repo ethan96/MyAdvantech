@@ -1,0 +1,118 @@
+﻿<%@ Page Language="VB" MasterPageFile="~/Includes/MyMaster.master" Title="Sql Job Monitor" %>
+<%@ Import Namespace="System.Data.SqlClient" %>
+<script runat="server">
+    Protected Sub AEUSQLGv_RowDataBoundDataRow(ByVal sender As Object, ByVal e As System.Web.UI.WebControls.GridViewRowEventArgs)
+        If e.Row.RowType = DataControlRowType.DataRow Then
+            CType(e.Row.FindControl("histSrc"), SqlDataSource).SelectParameters("JOBID").DefaultValue = e.Row.DataItem("job_id").ToString()
+            Dim trig1 As New AsyncPostBackTrigger()
+            trig1.ControlID = "lbRunJob" : trig1.EventName = "Click"
+            CType(e.Row.FindControl("gvStatusUp"), UpdatePanel).Triggers.Add(trig1)
+        End If
+    End Sub
+    Protected Sub HistGv_RowDataBoundDataRow(ByVal sender As Object, ByVal e As System.Web.UI.WebControls.GridViewRowEventArgs)
+        If e.Row.RowType = DataControlRowType.DataRow Then
+            Select Case e.Row.Cells(3).Text
+                Case "0"
+                    e.Row.Cells(3).Text = "Failed"
+                Case "1"
+                    e.Row.Cells(3).Text = "Succeeded"
+                Case "3"
+                    e.Row.Cells(3).Text = "Canceled"
+                Case "5"
+                    e.Row.Cells(3).Text = "Unkown"
+            End Select
+            Select Case e.Row.Cells(6).Text
+                Case "1"
+                    e.Row.Cells(6).Text = "Executing"
+                Case "2"
+                    e.Row.Cells(6).Text = "Waiting For Thread"
+                Case "3"
+                    e.Row.Cells(6).Text = "Between Retries"
+                Case "4"
+                    e.Row.Cells(6).Text = "Idle"
+                Case "5"
+                    e.Row.Cells(6).Text = "Suspended"
+                Case "6"
+                    e.Row.Cells(6).Text = "[Obsolete]"
+                Case "7"
+                    e.Row.Cells(6).Text = "Performing Completion Actions"
+            End Select
+        End If
+    End Sub
+     Protected Sub lbRunJob_Click(ByVal sender As Object, ByVal e As System.EventArgs)
+        Dim srv As New Microsoft.SqlServer.Management.Smo.Server( _
+              New Microsoft.SqlServer.Management.Common.ServerConnection(New SqlConnection(ConfigurationManager.ConnectionStrings("RFM").ConnectionString)))
+        Dim gv As GridViewRow = CType(sender, LinkButton).NamingContainer
+        Dim cjob As Microsoft.SqlServer.Management.Smo.Agent.Job = srv.JobServer.GetJobByID(AEUSQLGv.DataKeys(gv.RowIndex).Value)
+        If cjob Is Nothing Then
+            CType(gv.FindControl("lbRunMsg"), Label).Text = "Job not found"
+        Else
+            If cjob.CurrentRunStatus = Microsoft.SqlServer.Management.Smo.Agent.JobExecutionStatus.Idle Then
+                cjob.Start() : CType(gv.FindControl("lbRunMsg"), Label).Text = "Job started"
+            Else
+                CType(gv.FindControl("lbRunMsg"), Label).Text = "Job is already running"
+            End If
+        End If
+        CType(gv.FindControl("HistGv"),SmartGridView).DataBind()
+    End Sub
+</script>
+<asp:Content runat="server" ID="_main" ContentPlaceHolderID="_main">
+    <ajaxToolkit:TabContainer runat="server" ID="ServersTabCon">
+        <ajaxToolkit:TabPanel runat="server" ID="AEUSQLTab">
+            <HeaderTemplate>AEUSQL-HQ</HeaderTemplate>
+            <ContentTemplate>             
+                <sgv:SmartGridView runat="server" ID="AEUSQLGv" DataKeyNames="job_id" AutoGenerateColumns="false" AllowSorting="true" DataSourceID="AEUSQLSrc" OnRowDataBoundDataRow="AEUSQLGv_RowDataBoundDataRow">
+                    <Columns>
+                        <asp:BoundField HeaderText="Job Name" DataField="name" SortExpression="name" />
+                        <asp:TemplateField HeaderText="Job Status">
+                            <ItemTemplate>
+                                <asp:UpdatePanel runat="server" ID="gvStatusUp">
+                                    <ContentTemplate>
+                                        <sgv:SmartGridView OnRowDataBound="HistGv_RowDataBoundDataRow" runat="server" ID="HistGv" AutoGenerateColumns="false" DataSourceID="histSrc" Width="100%">
+                                            <Columns>                                        
+                                                <asp:BoundField HeaderText="Description" DataField="description" SortExpression="description" />
+                                                <asp:BoundField HeaderText="Last Run Date" DataField="last_run_date" SortExpression="last_run_date" />
+                                                <asp:BoundField HeaderText="Last Run Time" DataField="last_run_time" SortExpression="last_run_time" />
+                                                <asp:BoundField HeaderText="Last Run Outcome" DataField="last_run_outcome" SortExpression="last_run_outcome" />
+                                                <asp:BoundField HeaderText="Next Run Date" DataField="next_run_date" SortExpression="next_run_date" />
+                                                <asp:BoundField HeaderText="Next Run Time" DataField="next_run_time" SortExpression="next_run_time" />
+                                                <asp:BoundField HeaderText="Current Execution Status" DataField="current_execution_status" SortExpression="current_execution_status" />
+                                            </Columns>                                    
+                                        </sgv:SmartGridView>
+                                        <asp:SqlDataSource runat="server" ID="histSrc" ConnectionString="<%$ ConnectionStrings:RFM %>"
+                                            SelectCommand="exec msdb.dbo.sp_help_job @job_id=@JOBID, @job_aspect='job'">
+                                            <SelectParameters>
+                                                <asp:Parameter Name="JOBID" Type="String" />
+                                            </SelectParameters>
+                                        </asp:SqlDataSource>        
+                                    </ContentTemplate> 
+                                    <Triggers>
+                                        
+                                    </Triggers>
+                                </asp:UpdatePanel>                                                                                                                             
+                            </ItemTemplate>
+                        </asp:TemplateField>
+                        <asp:TemplateField HeaderText="Run Job" ItemStyle-HorizontalAlign="Center">
+                            <ItemTemplate>
+                                <asp:UpdatePanel runat="server" ID="csUp">
+                                    <ContentTemplate>
+                                        <asp:LinkButton runat="server" ID="lbRunJob" Text="Run" OnClick="lbRunJob_Click" /><br />
+                                        <asp:Label ForeColor="Red" runat="server" ID="lbRunMsg" />  
+                                    </ContentTemplate>
+                                </asp:UpdatePanel>                                                           
+                            </ItemTemplate>
+                        </asp:TemplateField> 
+                    </Columns>
+                    <FixRowColumn FixRowType="Header" FixRows="-1" FixColumns="-1" TableHeight="500px" TableWidth="99%" />
+                </sgv:SmartGridView>
+                <asp:SqlDataSource runat="server" ID="AEUSQLSrc" SelectCommand="SELECT a.job_id, a.name FROM msdb.dbo.sysjobs a" ConnectionString="<%$ ConnectionStrings:RFM %>" />
+            </ContentTemplate>
+        </ajaxToolkit:TabPanel>
+        <ajaxToolkit:TabPanel runat="server" ID="AEUEAITab">
+            <HeaderTemplate>AEU-EAI</HeaderTemplate>
+            <ContentTemplate>
+                
+            </ContentTemplate>
+        </ajaxToolkit:TabPanel>
+    </ajaxToolkit:TabContainer>
+</asp:Content>

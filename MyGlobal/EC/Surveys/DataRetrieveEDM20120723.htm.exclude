@@ -1,0 +1,268 @@
+﻿<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<!-- saved from url=(0075)http://www.advantech.com.tw/ia/newsletter/tw/sales/20120723/index_form.html -->
+<HTML><HEAD><TITLE>研華資料擷取卡支援LabVIEW</TITLE>
+<META content="text/html; charset=utf-8" http-equiv=Content-Type>
+<STYLE type=text/css>P {
+	FONT: 12px/16px Arial; COLOR: #666
+}
+DIV {
+	FONT: 12px/16px Arial; COLOR: #666
+}
+SPAN {
+	FONT: 12px/16px Arial; COLOR: #666
+}
+TD {
+	FONT: 12px/16px Arial; COLOR: #666
+}
+TH {
+	FONT: 12px/16px Arial; COLOR: #666
+}
+LI {
+	FONT: 12px/16px Arial; COLOR: #666
+}
+A:link {
+	COLOR: #0082d1; TEXT-DECORATION: none
+}
+A:visited {
+	COLOR: #0082d1; TEXT-DECORATION: none
+}
+A:hover {
+	COLOR: #0082d1; TEXT-DECORATION: underline
+}
+A:active {
+	COLOR: #0082d1; TEXT-DECORATION: none
+}
+.copyright {
+	COLOR: #ffffff; FONT-SIZE: 11px; TEXT-DECORATION: none
+}
+.copyright A:link {
+	COLOR: #fff; TEXT-DECORATION: none
+}
+.copyright A:visited {
+	COLOR: #fff; TEXT-DECORATION: none
+}
+.copyright A:hover {
+	COLOR: #fff; TEXT-DECORATION: underline
+}
+.copyright A:active {
+	COLOR: #fff; TEXT-DECORATION: none
+}
+.color-blue {
+	COLOR: #0082d1
+}
+.color-org {
+	COLOR: #ff6500
+}
+.txbold {
+	FONT-WEIGHT: bold
+}
+.tiltle {
+	LINE-HEIGHT: 21px; COLOR: #ff6500; FONT-SIZE: 16px; FONT-WEIGHT: bold
+}
+</STYLE>
+
+<META name=GENERATOR content="MSHTML 9.00.8112.16447"></HEAD>
+<BODY leftMargin=0 topMargin=0 bgColor=#b4d2eb marginheight="0" marginwidth="0">
+<TABLE cellSpacing=0 cellPadding=0 width=750 align=center>
+  <TBODY>
+  <TR>
+    <TD class=color-blue height=40 align=center>您若無法閱讀以下內容，請按此<A class=top 
+      href="http://www.advantech.com.tw/epc/newsletter/ATW/2010Q3Training" 
+      target=_blank>連結</A>於線上進行瀏覽</TD></TR>
+  <TR>
+    <TD>
+      <TABLE cellSpacing=0 cellPadding=0 bgColor=#ffffff align=center>
+        <TBODY>
+        <TR>
+          <TD vAlign=middle align=center>
+            <TABLE cellSpacing=0 cellPadding=0 width=730>
+              <TBODY>
+              <TR>
+                <TD width=187><A href="http://buy.advantech.com.tw/" 
+                  target=_blank><IMG border=0 
+                  src="DataRetrieveEDM20120723.files/logo.gif" width=267 
+                  height=45></A></TD>
+                <TD width=561 align=right>
+                  <TABLE class=top1 border=0 cellSpacing=0 cellPadding=5>
+                    <TBODY>
+                    <TR>
+                      <TD vAlign=middle><IMG 
+                        src="DataRetrieveEDM20120723.files/icn_hotline.gif" 
+                        width=34 height=31></TD>
+                      <TD class="color-blue txbold " 
+                        vAlign=middle>研華在線：0800-777-111</TD></TR></TBODY></TABLE></TD></TR></TBODY></TABLE></TD></TR>
+        <TR>
+          <TD><IMG src="DataRetrieveEDM20120723.files/banner.jpg" width=750 
+            height=405></TD></TR>
+        <TR>
+          <TD>&nbsp;</TD></TR>
+        <TR>
+          <TD align=center>
+            <TABLE border=0 cellSpacing=0 cellPadding=0 width=680>
+              <TBODY>
+              <TR>
+                <TD height=25><SPAN class=tiltle>凡於活動期間內填寫以下問題，就可以獲得$500 
+                  現金抵用券！還可以申請借測喔！</SPAN><BR></TD></TR>
+              <TR>
+                <TD>&nbsp;</TD></TR>
+              <TR>
+                <TD>
+                  <FORM method=post name=form1 action="">
+                  <TABLE border=0 cellSpacing=1 cellPadding=4 width="100%" 
+                  bgColor=#dbdbdb>
+                    <TBODY>
+                    <TR>
+                      <TD bgColor=#ffffff width=118>公司</TD>
+                      <TD bgColor=#ffffff width=268><LABEL><INPUT id=textfield 
+                        name=textfield> </LABEL></TD>
+                      <TD bgColor=#ffffff width=48>姓名</TD>
+                      <TD bgColor=#ffffff width=206><INPUT id=textfield3 
+                        name=textfield3></TD></TR>
+                    <TR>
+                      <TD bgColor=#ffffff>電話</TD>
+                      <TD bgColor=#ffffff><INPUT id=textfield2 
+                      name=textfield2></TD>
+                      <TD bgColor=#ffffff>Email</TD>
+                      <TD bgColor=#ffffff><INPUT id=textfield4 
+                      name=textfield4></TD></TR>
+                    <TR>
+                      <TD bgColor=#ffffff>目前使用的卡片品牌</TD>
+                      <TD bgColor=#ffffff colSpan=3>
+                        <TABLE border=0 cellSpacing=0 cellPadding=4>
+                          <TBODY>
+                          <TR>
+                            <TD><LABEL><INPUT id=checkbox name=checkbox 
+                              type=checkbox> </LABEL></TD>
+                            <TD>研華</TD>
+                            <TD>&nbsp;</TD>
+                            <TD><INPUT id=checkbox2 name=checkbox2 
+                              type=checkbox></TD>
+                            <TD>NI</TD>
+                            <TD>&nbsp;</TD>
+                            <TD><INPUT id=checkbox3 name=checkbox3 
+                              type=checkbox></TD>
+                            <TD>凌華</TD>
+                            <TD>&nbsp;</TD>
+                            <TD><INPUT id=checkbox4 name=checkbox4 
+                              type=checkbox></TD>
+                            <TD>泓格</TD>
+                            <TD>&nbsp;</TD>
+                            <TD><INPUT id=checkbox5 name=checkbox5 
+                              type=checkbox></TD>
+                            <TD>其他</TD>
+                            <TD><INPUT id=textfield5 
+                          name=textfield5></TD></TR></TBODY></TABLE></TD></TR>
+                    <TR>
+                      <TD bgColor=#ffffff>卡片主要應用領域</TD>
+                      <TD bgColor=#ffffff colSpan=3>
+                        <TABLE border=0 cellSpacing=0 cellPadding=4>
+                          <TBODY>
+                          <TR>
+                            <TD><LABEL><INPUT id=checkbox6 name=checkbox6 
+                              type=checkbox> </LABEL></TD>
+                            <TD>自動光學檢測AOI</TD>
+                            <TD>&nbsp;</TD>
+                            <TD><INPUT id=checkbox7 name=checkbox6 
+                              type=checkbox></TD>
+                            <TD>學校/實驗室</TD>
+                            <TD>&nbsp;</TD>
+                            <TD><INPUT id=checkbox8 name=checkbox6 
+                              type=checkbox></TD>
+                            <TD>量測儀器</TD>
+                            <TD>&nbsp;</TD>
+                            <TD><INPUT id=checkbox9 name=checkbox8 
+                              type=checkbox></TD>
+                            <TD>工業用設備製造</TD></TR></TBODY></TABLE>
+                        <TABLE border=0 cellSpacing=0 cellPadding=4>
+                          <TBODY>
+                          <TR>
+                            <TD><INPUT id=checkbox12 name=checkbox7 
+                              type=checkbox></TD>
+                            <TD>其他</TD>
+                            <TD><INPUT id=textfield6 name=textfield6 
+                            size=50></TD></TR></TBODY></TABLE></TD></TR>
+                    <TR>
+                      <TD bgColor=#ffffff>申請借測</TD>
+                      <TD bgColor=#ffffff colSpan=3>
+                        <TABLE border=0 cellSpacing=0 cellPadding=4>
+                          <TBODY>
+                          <TR>
+                            <TD><LABEL><INPUT id=radio name=radio value=radio 
+                              type=radio> </LABEL></TD>
+                            <TD>是</TD>
+                            <TD>&nbsp;</TD>
+                            <TD><INPUT id=radio2 name=radio value=radio 
+                              type=radio></TD>
+                            <TD>否</TD></TR></TBODY></TABLE></TD></TR></TBODY></TABLE></FORM></TD></TR>
+              <TR>
+                <TD class=color-blue height=50 vAlign=middle align=center>
+                  <TABLE border=0 cellSpacing=0 cellPadding=0>
+                    <TBODY>
+                    <TR>
+                      <TD><A 
+                        href="http://www.advantech.com.tw/ia/newsletter/tw/sales/20120723/index_form.html#"><IMG 
+                        border=0 src="DataRetrieveEDM20120723.files/btn.gif" 
+                        width=137 height=25></A></TD>
+                      <TD width=25>&nbsp;</TD>
+                      <TD><A 
+                        href="http://www.advantech.com.tw/ia/newsletter/tw/sales/20120723/index_form.html#"><IMG 
+                        border=0 src="DataRetrieveEDM20120723.files/btn2.gif" 
+                        width=137 height=25></A></TD></TR></TBODY></TABLE></TD></TR>
+              <TR>
+                <TD class=color-blue>$ 500現金抵用券使用說明:</TD></TR>
+              <TR>
+                <TD>1. 凡持本抵用券，單筆消費研華產品滿5,000元，方可使用本券<BR>2. 
+                  本券使用期限至2012年12月31日(逾期恕不受理)<BR>3. 本券適用於研華資料擷取產品，包含PCI、PCI 
+                  Express、USB模組<BR>4. 本抵用券恕無法與其他優惠活動併用<BR>5. 本券使用若有任何問題，請來電洽詢 
+                  0800-777-111</TD></TR>
+              <TR>
+                <TD>&nbsp;</TD></TR></TBODY></TABLE></TD></TR>
+        <TR>
+          <TD height=130 vAlign=top align=center>
+            <TABLE cellSpacing=0 cellPadding=0 width=710>
+              <TBODY>
+              <TR>
+                <TD height=40><IMG 
+                  src="DataRetrieveEDM20120723.files/footer_icn03.gif" width=24 
+                  height=26></TD>
+                <TD 
+                  class="footericn color-blue">參加者於參加本活動同時，即視為同意接受本活動規範，研華公司有權決定取消、終止、修改或暫停本活動</TD></TR>
+              <TR>
+                <TD height=40 width=30><IMG 
+                  src="DataRetrieveEDM20120723.files/footer_icn01.gif" width=24 
+                  height=26></TD>
+                <TD class="footericn color-blue">聯絡研華<BR>想更進一步瞭解研華LabVIEW 
+                  Express VI 及資料擷取卡，請洽<STRONG>0800-777-111</STRONG>或 <A 
+                  class=footericn 
+                  href="mailto:buy@advantech.tw"><STRONG>buy@advantech.tw</STRONG></A> 
+                  .</TD></TR>
+              <TR>
+                <TD height=40><IMG 
+                  src="DataRetrieveEDM20120723.files/footer_icn02.gif" width=24 
+                  height=26></TD>
+                <TD class="footericn color-blue"><A 
+                  href="http://www.advantech.tw/util/emailpage.aspx?title=%E7%A0%94%E8%8F%AF%E8%B3%87%E6%96%99%E6%93%B7%E5%8F%96%E5%8D%A1%E6%94%AF%E6%8F%B4LabVIEW%20%E5%A4%A7%E6%AD%A5%E8%B7%A8%E8%B6%8A%E6%88%90%E6%9C%AC%E8%80%83%E9%87%8F&amp;PageURL=http://www.advantech.com.tw/promotion/Templates/eDM/01/" 
+                  target=_blank>轉寄好友 
+            </A><BR>免費轉寄與您的客戶、夥伴、親友分享</TD></TR></TBODY></TABLE></TD></TR>
+        <TR>
+          <TD bgColor=#87909a height=35>
+            <TABLE cellSpacing=0 cellPadding=0>
+              <TBODY>
+              <TR>
+                <TD width=17></TD>
+                <TD class=copyright width=520>Copyright © 1983-2012 Advantech 
+                  Co., Ltd. All Rights Reserved. </TD>
+                <TD class=copyright width=102><IMG hspace=5 
+                  src="DataRetrieveEDM20120723.files/footerarrow.gif" width=4 
+                  height=7><A class=footer 
+                  href="http://www.advantech.com/privacy.asp" 
+                  target=_blank>隱私權政策</A></TD>
+                <TD class=copyright><IMG hspace=5 
+                  src="DataRetrieveEDM20120723.files/footerarrow.gif" width=4 
+                  height=7><A class=footer 
+                  href="http://www.advantech.com.tw/rss/" target=_blank>研華 
+                  RSS</A></TD></TR></TBODY></TABLE></TD></TR>
+        <TR>
+          <TD><IMG src="DataRetrieveEDM20120723.files/footer01.gif" width=750 
+            height=9></TD></TR></TBODY></TABLE></TD></TR></TBODY></TABLE>
+<P>&nbsp;</P></BODY></HTML>

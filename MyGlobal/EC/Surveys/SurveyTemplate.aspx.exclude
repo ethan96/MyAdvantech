@@ -1,0 +1,183 @@
+﻿<%@ Page Title="eSurvey - Survey Template" Language="VB" MasterPageFile="~/Includes/MyMaster.master" %>
+<%@ Register Src="~/EC/Surveys/Aonline_CreateQuestion.ascx" TagName="CreateQuestion" TagPrefix="uc1" %>
+<%@ Register Src="~/EC/Surveys/Aonline_PageDetail.ascx" TagName="PageDetail" TagPrefix="uc3" %>
+<%@ Register Src="~/EC/Surveys/SurveyFunctionLinks.ascx" TagName="FunctionLinks" TagPrefix="uc2" %>
+<script runat="server">
+    Protected Sub btnAddQuestion_Click(ByVal sender As Object, ByVal e As System.EventArgs)
+        If Request("sid") Is Nothing OrElse Request("sid") = "" Then up1.Update() : Util.AjaxJSAlert(up1, "Please select a survey.") : Exit Sub
+        ucCreateQuestion.Initial()
+        mpeCreateQuestion.Show()
+    End Sub
+
+    Protected Sub ucCreateQuestion_Update()
+        ucPageDetail.DataBind()
+        up1.Update()
+    End Sub
+
+    Protected Sub ucPageDetail_Update()
+        ucPageDetail.DataBind()
+        up1.Update()
+    End Sub
+
+    Protected Sub ucPageDetail_Edit(ByVal Question_Id As String)
+        ucCreateQuestion.LoadQuestion(Question_Id)
+        mpeCreateQuestion.Show()
+    End Sub
+
+    Protected Sub Page_Load(ByVal sender As Object, ByVal e As System.EventArgs)
+        If Not Page.IsPostBack Then
+            If Request.IsAuthenticated = False Then
+                Dim strRuntimeSiteUrl As String = Util.GetRuntimeSiteUrl()
+                Response.Redirect(strRuntimeSiteUrl & "/home.aspx?ReturnUrl=" & strRuntimeSiteUrl & "/EC/Surveys/SurveyTemplate.aspx?sid=" & Request("sid"))
+            End If
+            If Request("sid") IsNot Nothing AndAlso Request("sid") <> "" Then SetSurveySetting(Request("sid")) Else btnUpdateSurveySetting.Enabled = False
+        End If
+    End Sub
+    
+    Public Sub SetSurveySetting(ByVal survey_id As String)
+        Dim dt As DataTable = dbUtil.dbGetDataTable("MYLOCAL", String.Format("select BG_COLOR, QUESTION_INTERVAL, SUBMIT_FORM_TEXT, SUBMIT_FORM_ALIGN, SHOW_RESULT, SHOW_INDEX from survey_master where row_id='{0}'", survey_id))
+        If dt.Rows.Count > 0 Then
+            With dt.Rows(0)
+                txtQuestionInterval.Text = .Item("question_interval")
+                txtSurveyBgColor.BackColor = System.Drawing.Color.FromArgb(Integer.Parse(.Item("bg_color").ToString.Replace("#", ""), Globalization.NumberStyles.HexNumber))
+                txtSurveyBgColor.Text = .Item("bg_color") : txtSurveyBgColor.ForeColor = txtSurveyBgColor.BackColor
+                txtSubmitFormText.Text = .Item("submit_form_text") : rblSubmitFormAlign.SelectedValue = .Item("submit_form_align")
+                rblShowResult.SelectedValue = IIf(CBool(.Item("show_result")) = False, 0, 1)
+                rblShowIndex.SelectedValue = IIf(CBool(.Item("show_index")) = False, 0, 1)
+                ucPageDetail.ShowIndex = CBool(.Item("show_index"))
+                'ViewState("SurveyBgColor") = "#" + .Item("bg_color").ToString.Replace("#", "")
+                'ViewState("QuestionInterval") = .Item("question_interval")
+            End With
+        End If
+    End Sub
+
+    Protected Sub btnUpdateSurveySetting_Click(ByVal sender As Object, ByVal e As System.EventArgs)
+        Dim q_interval As String = txtQuestionInterval.Text.Replace("'", "")
+        Dim bg_color As String = txtSurveyBgColor.Text.Replace("#", "")
+        txtSurveyBgColor.BackColor = System.Drawing.Color.FromArgb(Integer.Parse(bg_color, Globalization.NumberStyles.HexNumber))
+        txtSurveyBgColor.ForeColor = txtSurveyBgColor.BackColor
+        If q_interval = "" Then q_interval = "0"
+        Dim submit_form_text As String = txtSubmitFormText.Text.Replace("'", "''")
+        Dim submit_form_align As String = rblSubmitFormAlign.SelectedValue
+        Dim show_result As Boolean = CBool(rblShowResult.SelectedValue)
+        Dim show_index As Boolean = CBool(rblShowIndex.SelectedValue)
+        'ViewState("SurveyBgColor") = "#" + bg_color
+        'ViewState("QuestionInterval") = q_interval
+        'Util.SendEmail("rudy.wang@advantech.com.tw", "rudy.wang@advantech.com.tw", "sql", String.Format("update survey_master set question_interval='{1}', bg_color='{2}', last_updated_by='{3}', submit_form_text='{4}', submit_form_align='{5}', show_result='{6}' where row_id='{0}'", Request("sid"), q_interval, bg_color, Session("user_id"), submit_form_text, submit_form_align, show_result), True, "", "")
+        dbUtil.dbExecuteNoQuery("MYLOCAL", String.Format("update survey_master set question_interval='{1}', bg_color='{2}', last_updated_by='{3}', submit_form_text='{4}', submit_form_align='{5}', show_result='{6}', show_index='{7}' where row_id='{0}'", Request("sid"), q_interval, bg_color, Session("user_id"), submit_form_text, submit_form_align, show_result, show_index))
+        If cbQuestionInterval.Checked Then dbUtil.dbExecuteNoQuery("MYLOCAL", String.Format("update survey_question set QUESTION_INTERVAL='{0}' where survey_id='{1}'", q_interval, Request("sid")))
+        ucPageDetail.ShowIndex = CBool(rblShowIndex.SelectedValue)
+        ucPageDetail.DataBind()
+        up1.Update()
+        Util.AjaxJSAlert(upSurveySetting, "Updated!!")
+    End Sub
+</script>
+
+<asp:Content ID="Content1" ContentPlaceHolderID="_main" Runat="Server">
+<script type="text/javascript">
+    function colorChanged(sender) {
+        sender.get_element().blur();
+        sender.get_element().style.color = '#' + sender.get_selectedColor();
+        sender.get_element().style.backgroundColor = '#' + sender.get_selectedColor();
+    }
+</script>
+<asp:UpdatePanel runat="server" ID="up1" UpdateMode="Conditional" ChildrenAsTriggers="false">
+        <ContentTemplate>
+            <table width="100%" cellspacing="0" cellpadding="0">
+                <%--<tr><td><div id="navtext"><a style="color:Black" href="SurveyMaster.aspx">Survey Master</a> > Survey Template</div><br /></td></tr>--%>
+                <tr><td><uc2:FunctionLinks runat="server" ID="ucFunctionLinks" /></td></tr>
+                <tr><td height="10"></td></tr>
+                <tr>
+                    <td>
+                        <asp:UpdatePanel runat="server" ID="upSurveySetting" UpdateMode="Conditional">
+                            <ContentTemplate>
+                                <table width="100%" style="padding:5px; border-style:dotted; border-color:#ebebeb; border-width:3px">
+                                    <tr><th align="left" style="font-size:large">Survey Setting</th></tr>
+                                    <tr><td height="10"></td></tr>
+                                    <tr><th align="left">Survey Link: <a href="SurveyContent.aspx?sid=<%=Request("sid") %>" target="_blank">http://my.advantech.com/EC/Surveys/SurveyContent.aspx?sid=<%=Request("sid") %></a></th></tr>
+                                    <tr>
+                                        <th align="left">Survey default background color: <asp:TextBox runat="server" ID="txtSurveyBgColor" Width="50" />
+                                            <ajaxToolkit:ColorPickerExtender runat="server" ID="cpeSurveyBgColor" TargetControlID="txtSurveyBgColor"
+                                                 Enabled="true" OnClientColorSelectionChanged="colorChanged">
+                                            </ajaxToolkit:ColorPickerExtender>
+                                        </th>
+                                    </tr>
+                                    <tr>
+                                        <td>
+                                            <table cellpadding="0">
+                                                <tr>
+                                                    <th align="left">Showing question index: </th>
+                                                     <td>
+                                                        <asp:RadioButtonList runat="server" ID="rblShowIndex" RepeatDirection="Horizontal">
+                                                            <asp:ListItem Text="Yes" Value="1" />
+                                                            <asp:ListItem Text="No" Value="0" />
+                                                        </asp:RadioButtonList>
+                                                    </td>
+                                                </tr>
+                                            </table>
+                                        </td>
+                                    </tr>
+                                    <tr><th align="left">Question interval: <asp:TextBox runat="server" ID="txtQuestionInterval" Width="50" />&nbsp;&nbsp;<asp:CheckBox runat="server" ID="cbQuestionInterval" Text=" Update new interval setting to all Questions." /><ajaxToolkit:FilteredTextBoxExtender runat="server" ID="ftbeQuestionInterval" TargetControlID="txtQuestionInterval" FilterType="Numbers" FilterMode="ValidChars" /></th></tr>
+                                    <tr><th align="left">Submit form text: <asp:TextBox runat="server" ID="txtSubmitFormText" Width="100" /></th></tr>
+                                    <tr><td>
+                                            <table cellpadding="0">
+                                                <tr>
+                                                    <th align="left">Submit form horizontal position: </th>
+                                                    <td>
+                                                        <asp:RadioButtonList runat="server" ID="rblSubmitFormAlign" RepeatDirection="Horizontal">
+                                                            <asp:ListItem Text="Left" Value="Left" />
+                                                            <asp:ListItem Text="Center" Value="Center" />
+                                                            <asp:ListItem Text="Right" Value="Right" />
+                                                        </asp:RadioButtonList>
+                                                    </td>
+                                                </tr>
+                                            </table>
+                                        </td>
+                                    </tr>
+                                    <tr><td>
+                                            <table cellpadding="0">
+                                                <tr>
+                                                    <th align="left">Showing result after submitting: </th>
+                                                    <td>
+                                                        <asp:RadioButtonList runat="server" ID="rblShowResult" RepeatDirection="Horizontal">
+                                                            <asp:ListItem Text="No" Value="0" />
+                                                            <asp:ListItem Text="Yes" Value="1" />
+                                                        </asp:RadioButtonList>
+                                                    </td>
+                                                 </tr>
+                                            </table>
+                                        </td>
+                                    </tr>
+                                    <tr><td><asp:Button runat="server" ID="btnUpdateSurveySetting" Text="Update" Width="80" OnClick="btnUpdateSurveySetting_Click" CausesValidation="false" /></td></tr>
+                                </table>
+                            </ContentTemplate>
+                        </asp:UpdatePanel>
+                    </td>
+                </tr>
+                <tr><td height="30"></td></tr>
+                <tr><th align="left" style="font-size:large">Survey Template</th></tr>
+                <tr><td height="10"></td></tr>
+                <tr>
+                    <td>
+                        <table width="100%" style="border-color:#ebebeb; border-bottom-width:1px; border-bottom-style:solid; border-left-width:1px; border-left-style:solid; border-right-width:1px; border-right-style:solid; border-top-width:1px; border-top-style:solid">
+                            <tr>
+                                <td align="center">
+                                    <asp:Button runat="server" ID="btnAddQuestion" Text="Add Question Here" Width="130" Height="30" CausesValidation="false" OnClick="btnAddQuestion_Click" />
+                                    <asp:LinkButton runat="server" ID="linkCreateQuestion" CausesValidation="false" />
+                                    <ajaxToolkit:ModalPopupExtender runat="server" ID="mpeCreateQuestion" PopupControlID="PanelCreateQuestion" 
+                                        TargetControlID="linkCreateQuestion" BackgroundCssClass="modalBackground" />
+                                    <asp:Panel runat="server" ID="PanelCreateQuestion" Height="750" ScrollBars="Auto">
+                                        <uc1:CreateQuestion runat="server" ID="ucCreateQuestion" QuestionIndex="1" OnUpdate="ucCreateQuestion_Update" />
+                                    </asp:Panel>
+                                </td>
+                            </tr>
+                            <tr><td height="5"></td></tr>
+                            <tr><td><uc3:PageDetail runat="server" ID="ucPageDetail" OnUpdate="ucPageDetail_Update" OnEdit="ucPageDetail_Edit" /></td></tr>
+                        </table>
+                    </td>
+                </tr>
+            </table>
+        </ContentTemplate>
+    </asp:UpdatePanel>
+</asp:Content>
+

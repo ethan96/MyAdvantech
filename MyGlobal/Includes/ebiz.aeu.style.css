@@ -1,0 +1,1830 @@
+/* Standard Advantech Style Tag Definitions */
+
+A
+{
+	color:#004181;
+    text-decoration: none;
+}
+
+
+A:link
+{
+	color: #004181;
+	text-decoration: none;
+	cursor: hand;
+	
+}
+A:hover
+{
+	color:#004181;
+    text-decoration:underline;
+	cursor: hand;
+}
+
+/* Text Styles */
+.text_mini
+{
+	font-family: "Arial" , "Helvetica" , "sans-serif";
+	font-size: 10px;
+	color: #000000;
+}
+.text
+{
+	font-family: "Arial" , "Helvetica" , "sans-serif";
+	font-size: 12px;
+	color: #000000;
+}
+
+/* Title Styles */
+.title_med
+{
+	font-family: "Arial" , "Helvetica" , "sans-serif";
+	font-size: 14px;
+	font-weight: bold;
+	color: #000099;
+}
+.title_big
+{
+	font-family: "Arial" , "Helvetica" , "sans-serif";
+	font-size: 16px;
+	font-weight: bold;
+	color: #000099;
+}
+.title_verybig
+{
+	font-family: "Arial" , "Helvetica" , "sans-serif";
+	font-size: 22px;
+	line-height: 26px;
+	font-weight: bold;
+	color: #000099;
+}
+
+/* Page */
+.euPageTitle
+{
+	font-family: "Arial" , "Helvetica" , "sans-serif";
+	font-size: 24px;
+	line-height: 26px;
+	font-weight: bold;
+	color: #000000;
+}
+
+.euPageNaviBar
+{
+	font-family: "Arial" , "Helvetica" , "sans-serif";
+	font-size: 11px;
+	color: #000000;
+}
+
+/* Form */
+
+.euPickButton
+{
+	font-family: Arial; 
+	font-size: 9pt; 
+	color: #ffffff; 
+	font-weight: bold; 
+	background-color: #3960a1;
+	width: 35px;	
+	height: 20px;	
+}
+
+.euFormTable
+{
+	border-left: 1px solid #a2bed6; 
+	border-right: 1px solid #a2bed6; 
+	border-top: 4px solid #a2bed6; 
+	border-bottom: 1px solid #a2bed6; 
+	padding: 2px;
+}
+.euFormCaption
+{
+	font-family: "Arial" , "Helvetica" , "sans-serif";
+	font-size: 14px;
+	font-weight: bold;
+	color: #013580;
+	background-color: #A3BFD4;
+	text-align: center;
+	vertical-align: middle;
+}
+
+.euFormCaptionInactive
+{
+	font-family: "Arial" , "Helvetica" , "sans-serif";
+	font-size: 14px;
+	font-weight: bold;
+	color: #335C7A;
+	background-color: #E7EFF1;
+	text-align: center;
+	vertical-align: middle;
+}
+
+.euFormFieldCaption
+{
+	font-family: "Arial" , "Helvetica" , "sans-serif";
+	font-size: 12px;
+	font-weight: bold;
+	color: #000000;
+	text-align: left;
+}
+
+.euFormFieldValue
+{
+	font-family: Arial; 
+	font-size: 8pt; 
+	height: 20;
+}
+
+.euFormFieldDesc
+{
+	font-family: "Arial" , "Helvetica" , "sans-serif";
+	font-size: 12px;
+	color: #013781;
+	text-align: left;
+}
+
+.euFormRequiredMark
+{
+	font-family: "Arial" , "Helvetica" , "sans-serif";
+	font-size: 9px;
+	color: red;
+	text-align: left;
+}
+	
+.euFormSubmit
+{
+	font-family: Arial; 
+	font-size: 9pt; 
+	color: #ffffff; 
+	font-weight: bold; 
+	background-color: #3967a3;
+	width: 120px;	
+	height: 22px;	
+}	
+
+/* Navi Table */
+.euNaviTableItem
+{
+	font-family: "Arial" , "Helvetica" , "sans-serif";
+	font-size: 12px;
+	/*font-weight: bold;*/
+	color: #000000;
+	text-align: left;
+}
+
+.euNaviTableTitle
+{
+	font-family: "Arial" , "Helvetica" , "sans-serif";
+	font-size: 12px;
+	font-weight: bold;
+	color: #FFFFFF;
+	text-align: center;
+}
+
+/* Header */
+.euHeaderTab
+{
+	font-family: "Arial" , "Helvetica" , "sans-serif";
+	font-size: 12px;
+	line-height: 26px;
+	font-weight: bold;
+	color: #ffffff;
+	height: 20px;	
+}
+.euHeaderTab2
+{
+	font-family: "Arial" , "Helvetica" , "sans-serif";
+	font-size: 12px;
+	line-height: 26px;
+	font-weight: bold;
+	color: #1c6de3;
+	height: 20px;	
+}
+.euHeaderNaviBar
+{
+	font-family: "Arial" , "Helvetica" , "sans-serif";
+	font-size: 12px;
+	line-height: 26px;
+	font-weight: bold;
+	color: #ffffff;
+	/*text-align: center;*/
+	height: 20px;
+}
+.euHeaderMessage
+{
+	font-family: "Arial" , "Helvetica" , "sans-serif";
+	font-size: 11px;
+	font-weight: bold;
+	color: #013781;
+}
+
+/* Footer */
+.euFooterText
+{
+	font-family: "Arial" , "Helvetica" , "sans-serif";
+	font-size: 10px;
+	color: #ffffff;
+}
+
+/* Login */
+.euLoginGreetingTitle
+{
+	font-family: "Arial" , "Helvetica" , "sans-serif";
+	font-size: 22px;
+	line-height: 26px;
+	font-weight: bold;
+	color: #000000;
+	text-align: center;
+}
+
+.euLoginGreetingText
+{
+	font-family: "Arial" , "Helvetica" , "sans-serif";
+	font-size: 12px;
+	line-height: 26px;
+	color: #000000;
+	text-align: left;
+	vertical-align: top;
+}
+
+.euLoginPanelTitle
+{
+	font-family: "Arial" , "Helvetica" , "sans-serif";
+	font-size: 16px;
+	font-weight: bold;
+	color: #003881;
+	text-align: center;
+}
+
+.euLoginFormFieldCaption
+{
+	font-family: "Arial" , "Helvetica" , "sans-serif";
+	font-size: 14px;
+	font-weight: bold;
+	color: #000000;
+	text-align: right;
+}
+
+.euLoginFormFieldValue
+{
+	font-family: Arial;
+	font-size: 8pt;
+	background-color: #ffffff; 
+	height: 20; 
+	text-align: left
+}
+
+.euLoginFormText
+{
+	font-family: "Arial" , "Helvetica" , "sans-serif";
+	font-size: 12px;
+	color: #013781;
+	text-align: left;
+	vertical-align: middle;
+}
+
+.euLoginFormMessage
+{
+	font-family: "Arial" , "Helvetica" , "sans-serif";
+	font-size: 12px;
+	color: #ed0000;
+	text-align: left;
+	vertical-align: middle;
+}
+
+/* Added all beneth by Sebastian to support ListTemplateV2 */
+/*	Style-Ceneral.css Start Here	*/
+
+.text_mini		{  font-family: "Arial", "Helvetica", "sans-serif"; font-size: 10px; color: #000000 }
+.text			{  font-family: "Arial", "Helvetica", "sans-serif"; font-size: 12px; color: #000000 }
+.text_list		{  font-family: "Arial", "Helvetica", "sans-serif"; font-size: 12px; line-height: 20px; color: #000000 }
+.text_path		{  font-family: "Arial", "Helvetica", "sans-serif"; font-size: 10px; color: #000099 }
+.text_box		{  font-family: "Arial", "Helvetica", "sans-serif"; font-size: 12px; color: #000000; height: 20px; background-color: #CCCCFF }
+
+	/* Title Styles */
+
+.title_para		{  font-family: "Arial", "Helvetica", "sans-serif"; font-size: 12px; font-weight: bold; color: #000099; BACKGROUND-COLOR: #023B7E; height: 19px;}
+.title_med		{  font-family: "Arial", "Helvetica", "sans-serif"; font-size: 14px; font-weight: bold; color: #000099 }
+.title_big		{  font-family: "Arial", "Helvetica", "sans-serif"; font-size: 16px; font-weight: bold; color: #000099 }
+.title_verybig	{  font-family: "Arial", "Helvetica", "sans-serif"; font-size: 22px; line-height: 26px; font-weight: bold; color: #000099 }
+
+	/* Price Styles */
+
+.price_text		{  font-family: "Arial", "Helvetica", "sans-serif"; font-size: 12px; color: #ff0000 }
+.price_med		{  font-family: "Arial", "Helvetica", "sans-serif"; font-size: 14px; color: #ff0000 }
+.price_big		{  font-family: "Arial", "Helvetica", "sans-serif"; font-size: 16px; color: #ff0000 }
+/*	Style-Ceneral.css End Here	*/
+
+
+INPUT,
+SELECT,
+TEXTAREA  {FONT-SIZE: 8pt;FONT-FAMILY: Arial,Helvetica,Sans-Serif}
+
+A, 	 
+/*A:visited {COLOR: #6666cc;TEXT-DECORATION: none}*/
+A:visited {COLOR: #6666cc;TEXT-DECORATION: none}
+.accordionContent A:visited {COLOR: #00008B;TEXT-DECORATION: none}
+A:active  {TEXT-DECORATION: none}
+A:hover   {TEXT-DECORATION: underline}
+
+
+.minibuttonOn ,
+.minibuttonOn A ,
+.minibuttonOn A:link ,
+.minibuttonOn A:visited ,
+.minibuttonOn A:hover  {FONT-SIZE: 8pt;COLOR: #000000;TEXT-DECORATION: none}
+
+
+.minibuttonOff ,
+.minibuttonOff A ,
+.minibuttonOff A:link ,
+.minibuttonOff A:visited ,
+.minibuttonOff A:hover   {FONT-SIZE: 8pt;COLOR: #999999;TEXT-DECORATION: none}
+
+
+.List 						{BACKGROUND-COLOR: #ffffff ; COLOR: #ffffff; }
+.List .AppletBlank			{BACKGROUND-COLOR: #ffffff}
+.List .AppletTitle ,    
+.List .AppletTitle A ,
+.List .AppletTitle A:link ,
+.List .AppletTitle A:visited ,
+.List .AppletTitle A:hover	{FONT-WEIGHT: bold;FONT-SIZE: 10pt;COLOR: #ffffff;BACKGROUND-COLOR: #6666cc;TEXT-DECORATION: none}
+.List .AppletBack			{ }
+.List .AppletBorder			{ }	  
+.List .AppletButtons		{COLOR: #ffffff;BACKGROUND-COLOR: #6666cc}
+.List .PageInfo 			{COLOR: #ffffff;TEXT-DECORATION: none; font-size: 10pt}
+.List .TableBorder 			{background-color : #333399;}
+.List .Header				{background-color:#f0f0f0; border:1px solid silver; border-top:none; border-right:none; color:black; cursor:default; font:8pt arial; font-weight:bold; padding-left:3px; padding-right:3px; }
+.List TR.listRowOff TD.Row	{BACKGROUND-COLOR: #FFFFFF;border:1px solid silver;border-top:none;border-right:none;cursor:default;padding-left:3px;padding-right:3px }
+.List TR.listRowOn  TD.Row	{BACKGROUND-COLOR: #efef99;border:1px solid silver;border-top:none;border-right:none;cursor:default;padding-left:3px;padding-right:3px }
+
+
+.List_Detail 				{BACKGROUND-COLOR: #ffffff ; COLOR: #ffffff; }
+.List_Detail .AppletBlank	{BACKGROUND-COLOR: #ffffff}
+.List_Detail .AppletTitle ,    
+.List_Detail .AppletTitle A ,
+.List_Detail .AppletTitle A:link ,
+.List_Detail .AppletTitle A:visited ,
+.List_Detail .AppletTitle A:hover	{FONT-WEIGHT: bold;FONT-SIZE: 10pt;COLOR: #333399;BACKGROUND-COLOR: #ccccff;TEXT-DECORATION: none}
+.List_Detail .AppletBack			{ }
+.List_Detail .AppletBorder			{ }	  
+.List_Detail .AppletButtons			{COLOR: #000000;BACKGROUND-COLOR: #ccccff }
+.List_Detail .PageInfo 				{ }
+.List_Detail .TableBorder 			{background-color : #dedede;}
+.List_Detail .Header				{background-color:#f0f0f0; border:1px solid silver; border-top:none; border-right:none; color:black; cursor:default; font:8pt arial; font-weight:bold; padding-left:3px; padding-right:3px; }
+.List_Detail TR.listRowOff TD.Row	{BACKGROUND-COLOR: #FFFFFF;border:1px solid silver;border-top:none;border-right:none;cursor:default;padding-left:3px;padding-right:3px }
+.List_Detail TR.listRowOn  TD.Row	{BACKGROUND-COLOR: #efef99;border:1px solid silver;border-top:none;border-right:none;cursor:default;padding-left:3px;padding-right:3px }
+
+
+.List_Corp 						{BACKGROUND-COLOR: #ffffff }
+.List_Corp .AppletBlank			{BACKGROUND-COLOR: #ffffff}
+.List_Corp .AppletTitle ,    
+.List_Corp .AppletTitle A ,
+.List_Corp .AppletTitle A:link ,
+.List_Corp .AppletTitle A:visited ,
+.List_Corp .AppletTitle A:hover	{FONT-WEIGHT: bold;FONT-SIZE: 10pt;COLOR: #FFFFFF;BACKGROUND-COLOR: #4F5FB1;TEXT-DECORATION: none}
+.List_Corp .AppletBack			{BACKGROUND-COLOR: #4F5FB1 }
+.List_Corp .AppletBorder		{ }	  
+.List_Corp .AppletButtons		{COLOR: #ffffff;BACKGROUND-COLOR: #4F5FB1; }
+.List_Corp .PageInfo 			{FONT-SIZE: 12px; BACKGROUND-COLOR: #4F5FB1 }
+.List_Corp .TableBorder 		{background-color: #BEC4E3;}
+.List_Corp .Header				{background-color:#f0f0f0; border:1px solid silver; border-top:none; border-right:none; color:black; cursor:default; font:8pt arial; font-weight:bold; padding-left:3px; padding-right:3px; }
+.List_Corp TR.listRowOff TD.Row	{BACKGROUND-COLOR: #FFFFFF;border:1px solid silver;border-top:none;border-right:none;cursor:default;padding-left:3px;padding-right:3px }
+.List_Corp TR.listRowOn  TD.Row	{BACKGROUND-COLOR: #efef99;border:1px solid silver;border-top:none;border-right:none;cursor:default;padding-left:3px;padding-right:3px }
+
+
+.List_TIC 						{BACKGROUND-COLOR: #ffffff ; COLOR: #ffffff; }
+.List_TIC .AppletBlank			{BACKGROUND-COLOR: #ffffff ; line-height: 40px ;}
+.List_TIC .AppletTitle ,    
+.List_TIC .AppletTitle A ,
+.List_TIC .AppletTitle A:link ,
+.List_TIC .AppletTitle A:visited ,
+.List_TIC .AppletTitle A:hover	{FONT-WEIGHT: bold;FONT-SIZE: 15pt; COLOR: #8D8A8A;BACKGROUND-COLOR: #ffffff;TEXT-DECORATION: none}
+.List_TIC .AppletBack			{BACKGROUND-COLOR: #ffffff }
+.List_TIC .AppletBorder			{ }	  
+.List_TIC .AppletButtons		{COLOR: #ffffff; BACKGROUND-COLOR: #D1F9D0; }
+.List_TIC .PageInfo 			{FONT-SIZE: 12px; COLOR: #000000 }
+.List_TIC .TableBorder 			{ }
+.List_TIC .Header				{background-color:#F0F0F0; line-height: 22px ;FONT-WEIGHT: normal ; COLOR: #787676 ; }
+.List_TIC TR.listRowOff TD.Row	{BACKGROUND-COLOR: #FFFFFF; line-height: 20px ;}
+.List_TIC TR.listRowOn  TD.Row	{BACKGROUND-COLOR: #efef99; line-height: 20px ;}
+
+
+.List_STD 						{BACKGROUND-COLOR: #ffffff ; COLOR: #ffffff; }
+.List_STD .AppletBlank			{BACKGROUND-COLOR: #ffffff}
+.List_STD .AppletTitle ,    
+.List_STD .AppletTitle A ,
+.List_STD .AppletTitle A:link ,
+.List_STD .AppletTitle A:visited ,
+.List_STD .AppletTitle A:hover	{FONT-WEIGHT: bold;FONT-SIZE: 10pt;COLOR: #FFFFFF;BACKGROUND-COLOR: #4F5FB1;TEXT-DECORATION: none}
+.List_STD .AppletBack			{BACKGROUND-COLOR: #4F5FB1 }
+.List_STD .AppletBorder		{ }	  
+.List_STD .AppletButtons		{COLOR: #ffffff;BACKGROUND-COLOR: #DAE3F2; height: 26px}
+.List_STD .PageInfo 			{FONT-SIZE: 12px; BACKGROUND-COLOR: #DAE3F2; Color: #124973 }
+.List_STD .TableBorder 			{background-color: #BCC1DE;}
+.List_STD .Header				{background-color:#f0f0f0; border:1px solid silver; border-top:none; border-right:none; color:black; cursor:default; font:8pt arial; font-weight:bold; padding-left:3px; padding-right:3px; }
+.List_STD TR.listRowOff TD.Row	{BACKGROUND-COLOR: #FFFFFF;border:1px solid silver; border-top:none;border-right:none;cursor:default;padding-left:3px;padding-right:3px }
+.List_STD TR.listRowOn  TD.Row	{BACKGROUND-COLOR: #efef99;border:1px solid silver; border-top:none;border-right:none;cursor:default;padding-left:3px;padding-right:3px }
+
+.List_STD .minibuttonOn ,
+.List_STD .minibuttonOn A ,
+.List_STD .minibuttonOn A:link ,
+.List_STD .minibuttonOn A:visited ,
+.List_STD .minibuttonOn A:hover  {FONT-SIZE: 12px;COLOR: #ffffff;TEXT-DECORATION: none; FONT-WEIGHT: bold; }
+
+
+.List_STD .minibuttonOff ,
+.List_STD .minibuttonOff A ,
+.List_STD .minibuttonOff A:link ,
+.List_STD .minibuttonOff A:visited ,
+.List_STD .minibuttonOff A:hover   {FONT-SIZE: 12px;COLOR: #FFFFFF;TEXT-DECORATION: none; FONT-WEIGHT: bold;}
+
+.Calendar 							{BACKGROUND-COLOR: #ffffff ; COLOR: #ffffff; }
+.Calendar .AppletBlank				{BACKGROUND-COLOR: #ffffff}
+.Calendar .AppletTitle ,    
+.Calendar .AppletTitle A ,
+.Calendar .AppletTitle A:link ,
+.Calendar .AppletTitle A:visited ,
+.Calendar .AppletTitle A:hover		{ FONT-WEIGHT: bold;FONT-SIZE: 10pt;COLOR: #ffffff;BACKGROUND-COLOR: #92D970;TEXT-DECORATION: none}
+.Calendar .AppletBack				{ BACKGROUND-COLOR: #BDC2D5 }
+.Calendar .AppletBorder				{ }	  
+.Calendar .AppletButtons			{ }
+.Calendar .PageInfo 				{ }
+.Calendar .TableBorder 				{ }
+.Calendar .Header					{ background-color:#F0F0F0; color:black; cursor:default; font:12pt arial; font-weight:bold; padding-left:3px; padding-right:3px; height: 19px; }
+.Calendar TR.Cell					{ height: 40px; vertical-align: top; background-color:#FFFFFF;}
+.Calendar TR.Cell TD.ShiftOFF		{ background-color:#FFCACA; }
+.Calendar TR.Cell TD.Schedule		{ background-color:#BFE9AB; }
+.Calendar TR.listRow				{ background-color:#FFFFFF; }
+
+
+
+
+.Form_Small					{COLOR: #ffffff;BACKGROUND-COLOR: #ffffff}
+.Form_Small .AppletBlank		{BACKGROUND-COLOR: #ffffff}
+.Form_Small .AppletTitle,
+.Form_Small .AppletTitle A,
+.Form_Small .AppletTitle A:link,
+.Form_Small .AppletTitle A:visited,
+.Form_Small .AppletTitle A:hover   {FONT-WEIGHT: bold;FONT-SIZE: 11pt;COLOR: #333399;TEXT-DECORATION: none}
+.Form_Small .FormLine		{background-color: #BEC4E3;}
+.Form_Small .FormBorder		{ }
+.Form_Small .FormLabel		{FONT-WEIGHT: bold  ;FONT-SIZE: 8pt;COLOR: #000000;BACKGROUND-COLOR: #ffffff}
+.Form_Small .FormField		{FONT-WEIGHT: normal;FONT-SIZE: 8pt;COLOR: #000000;BACKGROUND-COLOR: #ffffff}
+
+
+.Form_Small_STD					{COLOR: #000000;BACKGROUND-COLOR: #ffffff}
+.Form_Small_STD .AppletBlank	{BACKGROUND-COLOR: #FFFFCD; color: #0000FF }
+.Form_Small_STD .AppletTitle,
+.Form_Small_STD .AppletTitle A,
+.Form_Small_STD .AppletTitle A:link,
+.Form_Small_STD .AppletTitle A:visited,
+.Form_Small_STD .AppletTitle A:hover   {FONT-WEIGHT: bold; font-size: 12px; color: #000000; TEXT-DECORATION: none}
+.Form_Small_STD .AppletTitleDesc	   {font-size: 16px; color: #0000FF; TEXT-DECORATION: none}
+.Form_Small_STD .FormLine		{background-color: #BEC4E3;}
+.Form_Small_STD .FormBorder		{ }
+.Form_Small_STD .FormLabel		{font-size: 12px; color: #000000; BACKGROUND-COLOR: #ffffff}
+.Form_Small_STD .FormField		{FONT-SIZE: 12px; COLOR: #000000; BACKGROUND-COLOR: #ffffff}
+
+
+.Form_Small_TIC					{COLOR: #ffffff;BACKGROUND-COLOR: #ffffff}
+.Form_Small_TIC .AppletBlank		{BACKGROUND-COLOR: #ffffff}
+.Form_Small_TIC .AppletTitle,
+.Form_Small_TIC .AppletTitle A,
+.Form_Small_TIC .AppletTitle A:link,
+.Form_Small_TIC .AppletTitle A:visited,
+.Form_Small_TIC .AppletTitle A:hover   {FONT-WEIGHT: bold;FONT-SIZE: 15pt; COLOR: #8D8A8A;BACKGROUND-COLOR: #ffffff;TEXT-DECORATION: none}
+.Form_Small_TIC .FormLine		{ background-image: 'url(/images/quadDot.gif)' ;}
+.Form_Small_TIC .FormBorder		{ }
+.Form_Small_TIC .FormLabel		{FONT-WEIGHT: normal; FONT-SIZE: 12pt; COLOR: #314296; BACKGROUND-COLOR: #ffffff;  line-height: 20px ;}
+.Form_Small_TIC .FormField		{FONT-WEIGHT: normal; FONT-SIZE: 8pt; COLOR: #000000; BACKGROUND-COLOR: #ffffff}
+
+
+
+.FormBig TD.TabOn ,
+.FormBig TD.Tabon A ,
+.FormBig TD.Tabon A:link ,
+.FormBig TD.Tabon A:visited ,
+.FormBig TD.Tabon A:hover {FONT-WEIGHT: bold;FONT-SIZE: 9pt;COLOR: #ffffff;BACKGROUND-COLOR: #ccccff;TEXT-DECORATION: none}
+
+.FormBig TD.TabOff ,
+.FormBig TD.TabOff A ,
+.FormBig TD.TabOff A:link ,
+.FormBig TD.TabOff A:visited ,
+.FormBig TD.TabOff A:hover {FONT-WEIGHT: bold;FONT-SIZE: 9pt;COLOR: #333399;TEXT-DECORATION: none}
+
+.FormBig					{BACKGROUND-COLOR: #ffffff}
+.FormBig .AppletButtons		{COLOR: #000000;BACKGROUND-COLOR: #8795DD}
+.FormBig .AppletBorder		{BORDER-RIGHT: #8795DD 2px solid;BORDER-TOP: #8795DD 2px solid;BORDER-LEFT: #8795DD 2px solid;BORDER-BOTTOM: #8795DD 2px solid}
+.FormBig .AppletBack		{BACKGROUND-COLOR: #f0f0f0}
+.FormBig .FormBorder		{ }
+.FormBig .FormLabel ,
+.FormBig .FormLabel A ,
+.FormBig .FormLabel A:visited ,
+.FormBig .FormLabel A:hover {FONT-WEIGHT: bold;MARGIN: 2px 0px 0px;VERTICAL-ALIGN: top;COLOR: #000000;TEXT-DECORATION: none}
+.FormBig .FormField			{FONT-WEIGHT: normal;FONT-SIZE: 8pt;COLOR: #000000}
+
+
+.Block .BlockBack  {BACKGROUND-COLOR: #8795DD ; }
+.Block .BlockTitle {font-size: 12px; font-weight: bold; color: #FFFFFF; }
+.Block .BlockBlank {BACKGROUND-COLOR: #FFFFFF ; }
+.Block .ListItem   {font-size: 11px; color: #4F5FB1 ; }
+
+
+.Result .BlockBack  {BACKGROUND-COLOR: #DCB558; }
+.Result .BlockTitle {font-size: 12px; font-weight: bold; color: #FFFFFF; }
+.Result .BlockBlank {BACKGROUND-COLOR: #FFFFFF ; }
+.Result .ListItem   {font-size: 11px; color: #4F5FB1 ; }
+
+.TICMenu .BlockBack  {background-color: #C5C3C4 ; }
+.TICMenu .BlockTitle {background-color: #344299 ; FONT-WEIGHT: bold ;FONT-SIZE: 10pt; COLOR: #FFFFFF ; }
+.TICMenu .BlockBlank {background-color: #F2F2FC ; }
+.TICMenu .ListItem	 {background-color: #F2F2FC ; FONT-SIZE: 10pt; line-height: 20px ; }
+
+.Menu .BlockBack  {BACKGROUND-COLOR: #8795DD ; }
+.Menu .BlockTitle {font-size: 12px; font-weight: bold; color: #FFFFFF; FONT-FAMILY: Arial, Helvetica, sans-serif; }
+.Menu .BlockBlank {BACKGROUND-COLOR: #FFFFFF ; }
+.Menu .ListItem   {font-size: 12px; color: #6666CC; FONT-FAMILY: Arial, Helvetica, sans-serif; }
+
+.NewsArea .AppletTitle {font-size: 12px; font-weight: bold; color: #FFFFFF; FONT-FAMILY: Arial, Helvetica, sans-serif; BACKGROUND-COLOR: #92D970 }
+.NewsArea .ListItem {font-size: 12px; font-weight: normal; color: #6666CC; FONT-FAMILY: Arial, Helvetica, sans-serif;}
+
+.MemberArea .Welcome {font-size: 10px; font-weight: bold; color: #777777; FONT-FAMILY: Arial, Helvetica, sans-serif; }
+.MemberArea .UserName {font-size: 13px; font-weight: bold; color: #FD6601; FONT-FAMILY: Arial, Helvetica, sans-serif; }
+.MemberArea .Region {font-size: 13px; font-weight: bold; color: #3A4A8D; FONT-FAMILY: Arial, Helvetica, sans-serif; }
+.MemberArea .ListItem {font-size: 12px; font-weight: normal; color: #6666CC; FONT-FAMILY: Arial, Helvetica, sans-serif;}
+
+.LocalArea .AppletTitle {font-size: 12px; font-weight: normal; color: #9C690C; FONT-FAMILY: Arial, Helvetica, sans-serif;}
+.LocalArea .ListItem {font-size: 12px; font-weight: normal; color: #000099; FONT-FAMILY: Arial, Helvetica, sans-serif;}
+
+
+.pagecaption 	{font-family: "Arial", "Helvetica", "sans-serif";font-size: 22px;font-weight: bold;color:#3A4A8D;}
+.PageTitleName  {font-size: 24px; font-weight: bold; color: #3B4A8D; FONT-FAMILY: Arial, Helvetica, sans-serif; VERTICAL-ALIGN: bottom}
+
+
+.PageMessageBar	{FONT-FAMILY: Arial,Helvetica,Sans-Serif;FONT-WEIGHT: bold  ;FONT-SIZE: 8pt;COLOR: #ff4500;}
+.PageTitle	{FONT-FAMILY: Arial,Helvetica,Sans-Serif;FONT-WEIGHT: bold  ;FONT-SIZE: 16pt;COLOR: #3A4A8D; BACKGROUND-COLOR: #ffffff}
+.PageThreadBar	{FONT-FAMILY: Arial,Helvetica,Sans-Serif;FONT-SIZE: 7pt;COLOR: #3A4A8D;BACKGROUND-COLOR: #ffffff}
+.PageText	{FONT-FAMILY: Arial,Helvetica,Sans-Serif;FONT-SIZE: 8pt}
+
+.PRSN .BlockBack	 { BACKGROUND-COLOR: #FFFFFF; }
+.PRSN .BlockBorder	 { BORDER: 1px solid #8795DD; background-color: #FFFFFF}
+.PRSN .Blocklegend	 { FONT-WEIGHT: bold;MARGIN: 2px 0px 0px;VERTICAL-ALIGN: top;color: #4B65F5 }
+.PRSN .BlockLabel	 { FONT-WEIGHT: bold;MARGIN: 2px 0px 0px;VERTICAL-ALIGN: top;text-align: right }
+.PRSN .BlockField	 { MARGIN: 2px 0px 0px;VERTICAL-ALIGN: top;text-align: left }
+.PRSN .WorkflowLabel { FONT-WEIGHT: bold;MARGIN: 2px 0px 0px;VERTICAL-ALIGN: top; }
+
+ 
+ 
+/* Added all beneth by Sebastian to support LinkBoxes file ends normaly with _BLOCK */
+.Block .BlockBack  {BACKGROUND-COLOR: #8795DD ; }
+.Block .BlockTitle {font-size: 12px; font-weight: bold; color: #FFFFFF; }
+.Block .BlockBlank {BACKGROUND-COLOR: #FFFFFF ; }
+.Block .ListItem   {font-size: 11px; color: #4F5FB1 ; }
+/* End LinkBoxes */
+
+/* service request  */
+
+.ItemField
+{
+	FONT-WEIGHT: bold;
+	FONT-SIZE: 8pt;
+	color:#003366;
+	font-family:Helvetica;
+	vertical-align:middle;
+}
+.ItemValue
+{
+	FONT-SIZE: 8pt;
+	font-family:Arial;
+	vertical-align:middle;
+	background-color:#ffffff;
+}
+
+.clsBtnText
+{
+	cursor:hand;
+	font-family:Sans-Serif;
+	font-weight:500;
+	font-size:8pt;
+	color: #3A4A8D;
+}
+.clsTabMenuOn
+{
+	FONT-WEIGHT: bold;
+	FONT-SIZE: 8pt;
+	color:#003300;
+	font-family:Tahoma;
+	vertical-align:middle;
+	height:25px;
+	border-right:solid 1px teal;
+	border-left:solid 1px teal;
+	border-top:solid 1px teal;
+	background-color:WhiteSmoke;
+	text-align:center;
+	text-decoration:underline;
+}
+.clsTabMenuOff
+{
+	FONT-WEIGHT: bold;
+	FONT-SIZE: 8pt;
+	color:#a9a9a9;
+	font-family:Tahoma;
+	vertical-align:middle;
+	height:25px;
+	border-right:solid 1px #a9a9a9;
+	border-left:solid 1px #a9a9a9;
+	border-top:solid 1px #a9a9a9;
+	border-bottom:solid 1px teal;
+	background-color:White;
+	text-align:center;
+}
+
+/* service request  */
+
+/* AdxDataGrid Styles -- start -- */
+
+.clsAdxGrid
+{
+	border-color: #6699CC;
+	border-width:1px;
+	cursor:hand;
+}
+
+.clsGridTitleText
+{
+	background-color: #6699CC;
+	vertical-align:middle;
+	padding-left: 8px;
+	font-family: Arial;
+	font-size: 9pt;
+	font-weight: bold;
+	color: white;
+	height: 20px;
+}
+
+.clsGridNavi
+{
+	height: 25px;
+	font: 8pt Arial;
+	padding-left: 5px;
+	vertical-align: middle;
+	color: #3a4a8d;
+	background-color: #c3daf9;
+	border-top:solid 1px #3A4A8D;
+	border-bottom:solid 1px #6699CC;
+}
+.clsGridHeader
+{
+	/*font-weight:bold;*/
+	font-size: 8pt;
+	color: #333399;
+	font-family: Arial;
+	height: 18px;
+	border-top: solid 1px #ffffff;
+	border-right:solid 1px #d6d2c2;	
+	border-bottom:solid 1px #d6d2c2;
+	background-color:#ebeadb;
+	/*background-color:#edefff;*/
+}
+
+.clsGridItem
+{
+	font-size: 8pt;
+	border-right: #d6d2c2 1px solid;
+	text-indent: 4px;
+	/*border-bottom: gainsboro 1px solid;*/
+	font-family: Arial;
+	height: 22px;
+	/*background-color: #edefff;*/
+	padding-right: 2px;}
+
+.clsGridItemAlternate
+{
+	background-color:#fdf5e9 ;/*;#eeeeee*/
+	padding-right: 2px;}
+
+.clsGridFooter
+{
+	border-top:solid 1px #d6d2c2;
+	background-color:#c3daf9;
+	font-family: Arial;
+	font-size: 8pt;
+	color:#3a4a8d;
+	height:8px;
+}
+
+
+/* AdxDataGrid Styles -- end -- */
+
+.tablestyle 
+{
+	font-family: arial;
+	font-size: small;
+	border: solid 1px #7f7f7f;
+}
+
+.altrowstyle 
+{
+    background-color: #edf5ff;
+}
+
+.headerstyle th 
+{
+    background: url(img/sprite.png) repeat-x 0px 0px;
+    border-color: #989898 #cbcbcb #989898 #989898;
+    border-style: solid solid solid none;
+    border-width: 1px 1px 1px medium;
+    color: #000;
+    padding: 2px 2px 2px 2px;
+    text-align: center;
+    vertical-align: bottom;
+}  
+
+.headerstyle th a
+{
+    font-weight: normal;
+	text-decoration: none;
+	text-align: center;
+    color: #000;
+	display: block;
+    padding-right: 10px;
+}    
+
+.rowstyle .sortaltrow, .altrowstyle .sortaltrow 
+{
+    background-color: #edf5ff;
+}
+
+.rowstyle .sortrow, .altrowstyle .sortrow 
+{
+    background-color: #dbeaff;
+}
+
+.rowstyle td, .altrowstyle td 
+{
+    padding: 4px 10px 4px 10px;
+    border-right: solid 1px #cbcbcb;
+}
+
+.headerstyle .sortascheader 
+{
+    background: url(images/sprite.png) repeat-x 0px -100px;
+}
+
+.headerstyle .sortascheader a 
+{
+    background: url(images/dt-arrow-up.png) no-repeat right 50%;
+} 
+
+.headerstyle .sortdescheader 
+{
+    background: url(images/sprite.png) repeat-x 0px -100px;
+}   
+
+.headerstyle .sortdescheader a 
+{
+    background: url(images/dt-arrow-dn.png) no-repeat right 50%;
+} 
+
+
+.progress
+{
+    display: block;
+    position: absolute;
+    padding: 2px 3px;
+}
+.container
+{
+    border: solid 1px #808080;
+    border-width: 1px 0px;
+}
+.header
+{
+    background: url(img/sprite.png) repeat-x 0px 0px;
+    border-color: #808080 #808080 #ccc;
+    border-style: solid;
+    border-width: 0px 1px 1px;
+    padding: 0px 10px;
+    color: #FFFFFF;
+    font-size: 9pt;
+    font-weight: bold;
+    line-height: 1.9;  
+    font-family: arial,helvetica,clean,sans-serif;
+}
+.body
+{
+    color:#333333;
+	font-size:12px;
+	font-family:Arial, Helvetica, sans-serif;
+	line-height:18px;
+}
+/*Modal Popup*/
+.modalBackground {
+	background-color:Gray;
+	filter:alpha(opacity=70);
+	opacity:0.7;
+}
+
+.modalPopup {
+	background-color:#ffffdd;
+	border-width:3px;
+	border-style:solid;
+	border-color:Gray;
+	padding:3px;
+	width:250px;
+}
+.handleImage
+{
+	width:15px;
+	height:16px;
+	background-image:url(images/HandleHand.png);
+	overflow:hidden;
+	cursor:se-resize;
+}
+
+.handleText
+{
+	width:16px;
+	height:16px;
+	background-image:url(images/HandleGrip.png);
+	overflow:hidden;
+	cursor:se-resize;
+}
+
+.resizingImage
+{
+	padding:0px;
+	border-style:solid;
+	border-width:3px;
+	border-color:#B4D35D;
+}
+
+.resizingText
+{
+	padding:0px;
+	border-style:solid;
+	border-width:2px;
+	border-color:#7391BA;
+}
+
+.modalBackground
+{
+	background-color:Gray;
+	filter(opacity=60);
+	opacity:0.6;
+}
+.lbStyle
+{
+ width:100px;
+ font-weight:bold;
+ margin-left:10px;
+ margin-right:10px;
+}
+.divSc
+{
+overflow:auto; 
+width: 100%; 
+height: 120px;
+scrollbar-face-color:#ffffff;
+scrollbar-track-color:#ffffff;
+scrollbar-shadow-color: #ffffff;
+}
+
+/*Ajax CSS--Start*/
+body, div, p, h1, h2, h3, h4, ul, li, table
+{
+	margin:0;
+	padding:0;
+	border:none;
+}
+
+body
+{
+	color:#333333;
+	font-size:12px;
+	font-family:Arial, Helvetica, sans-serif;
+	line-height:18px;
+}
+
+/* Master Page Layout */
+#master_header
+{
+	margin: -1px auto 0 auto;
+	width: 800px;
+}
+
+#master_headertop
+{
+	background: url(images/headertop_img.jpg) no-repeat left top;
+}
+
+#master_headerbottom
+{
+	background: url(images/headerbottom_img.png) no-repeat left top;
+}
+
+#master_page
+{
+	margin: 5px auto 20px auto;
+	width: 800px;
+}
+
+#master_menu
+{
+	float: left;
+	width: 240px;
+	padding-right: 10px;
+}
+
+.sidebar
+{
+	width: 100%;
+	margin-bottom: 10px;
+}
+
+.sidebarheader
+{
+	height: 24px;
+	padding: 10px 0 0 35px;
+	background: url(images/sidebar_header.png) no-repeat left top;
+	color: #FFF;
+	font-family: Arial, Sans-Serif;
+	font-size: 1.2em;
+	font-weight: bold;
+	text-transform: uppercase;
+}
+
+.sidebarcontent
+{	
+	border: 1px solid #0F2543;
+	padding: 20px 20px 20px 30px;
+	line-height: 1.5em;
+	font-weight: bold;
+}
+
+#master_sidebarSamples
+{	
+	padding-top: 72px;
+	background: #FFF url(images/samples_bg.gif) no-repeat left top;
+}
+
+#master_sidebarWalkthroughs
+{
+	padding-top: 72px;
+	background: #FFF url(images/walkthrough_bg.gif) no-repeat left top;
+}
+
+.sidebarcontent a
+{
+	padding: 2px 5px;
+	color: #5377A9;
+	text-decoration: none;
+}
+
+.sidebarcontent a:hover
+{
+	background-color: #0F2543;
+	color: #FFF;
+}
+
+.sidebarcontent a:visited
+{
+	font-weight: normal;
+}
+
+#master_content
+{
+	float: left;
+	width: 550px;
+	margin-right: -550px;
+	color: #666666;
+}
+
+#master_content ul
+{
+	margin: 0 25px 0 30px;
+}
+
+#master_content ul li ul li
+{
+	list-style-type: disc;
+}
+
+#master_contentheader
+{
+	height: 19px;
+	background: url(images/rightcoltop.gif) no-repeat right top;
+}
+
+#master_contentplaceholder
+{
+	padding: 30px 20px 40px 20px;
+	border-left: 1px solid #0F2543;
+	border-right: 1px solid #0F2543;
+	border-bottom: 1px solid #0F2543;
+	background-color: #EFEFEF;
+	line-height: 1.5em;
+}
+
+#master_contentfooter
+{
+	clear: both;
+	padding: 10px 0 5px 10px;
+	color: #333;
+	font-size: 0.8em;
+	letter-spacing: 0.1em;
+}
+
+/* Content Page Layout */
+.demoarea {
+	padding:20px;
+	background:#FFF url(images/demotop.png) no-repeat left top;
+}
+
+.demoarea p 
+{
+	padding:5px;
+}
+
+.demoheading {
+	padding-bottom:20px;
+	color:#5377A9;
+	font-family:Arial, Sans-Serif;
+	font-weight:bold;
+	font-size:1.5em;
+}
+
+.demobottom {
+	height:8px;
+	background:#FFF url(images/demobottom.png) no-repeat left bottom;
+}
+
+
+.heading {
+	padding: 1em 0 1em 0;
+	color:#5377A9;
+	font-family:Arial, Sans-Serif;
+	font-weight:bold;
+	font-size:1.2em;
+}
+
+.subheading{
+	padding:.8em 0 0.5em 0;
+	color:#0F2543;
+	font-weight:bold;
+	font-family:Arial, Sans-Serif;
+	font-size:1.1em;
+}
+
+p {}
+
+em {font-style:italic}
+
+i {font-style: italic;}
+
+strong {font-weight:bold;}
+
+.codeReference
+{
+	font-family: 'Courier New', Monospace;
+	font-style: normal;
+	font-weight: bold;
+}
+
+pre, code {
+	display:block;
+	margin:15px 15px 15px 0;
+	padding:10px;
+	border:1px dashed #CCC;
+	background-color:#FFF;
+	color:#000;
+	font-family:'Courier New', Monospace;
+	font-size:0.9em;
+	font-style:normal;
+}
+
+.releaseList {
+	list-style-type:disc;
+}
+
+
+/* Styles for the Animation Reference */
+.animationReferenceTable
+{
+}
+
+.animationReferenceRow
+{
+}
+
+.animationReferenceField
+{
+	text-align: right;
+	vertical-align: top;
+	padding-top: 5px;
+}
+
+.animationReferenceCode
+{
+	margin-top: 5px;
+	vertical-align: top;
+	font-family: 'Courier New', Monospace;
+	font-style: normal;
+	font-weight: bold;
+	
+	display:block;
+	background-color:#FFF;
+	color:#000;
+	font-family:'Courier New', Monospace;
+	font-size:0.9em;
+	font-style:normal;
+	font-weight: bold;
+	margin-bottom: 5px;
+}
+
+.animationReferenceItems
+{
+	vertical-align: top;
+}
+
+.animationReferenceItemTable
+{
+	width: 100%;
+	padding: 0px;
+	margin: 0px;
+}
+
+.animationReferenceItemRow
+{
+	width: 100%;
+	padding: 0px;
+	margin: 0px;
+}
+
+.animationReferenceItem
+{
+	width: 100%;
+	padding: 0px;
+	margin: 0px;
+	padding-bottom: 10px;
+}
+
+.animationReferenceItemCode
+{
+	display:block;
+	background-color:#FFF;
+	color:#000;
+	font-family:'Courier New', Monospace;
+	font-size:0.9em;
+	font-style:normal;
+	font-weight: bold;
+}
+
+/******************************/
+/**Styling information specific to individual content pages**/
+
+/* Accordion */
+.accordionHeader
+{
+    border: 0px solid #2F4F4F;
+    color: white;
+    background-color: #2E4d7B;
+	font-family: Arial, Sans-Serif;
+	font-size: 12px;
+	font-weight: bold;
+    padding: 5px;
+    margin-top: 5px;
+    cursor: pointer;
+    text-align:center;
+}
+
+#master_content .accordionHeader a
+{
+	color: #FFFFFF;
+	background: none;
+	text-decoration: none;
+}
+
+#master_content .accordionHeader a:hover
+{
+	background: none;
+	text-decoration: underline;
+}
+
+.accordionHeaderSelected
+{
+    border: 1px solid #EEEEEE;
+    color: white;
+    background-color: #5078B3;
+	font-family: Arial, Sans-Serif;
+	font-size: 12px;
+	font-weight: bold;
+    padding: 5px;
+    margin-top: 5px;
+    cursor: pointer;
+    text-align:center;
+}
+
+#master_content .accordionHeaderSelected a
+{
+	color: #FFFFFF;
+	background: none;
+	text-decoration: none;
+}
+
+#master_content .accordionHeaderSelected a:hover
+{
+	background: none;
+	text-decoration: underline;
+}
+
+.accordionContent
+{
+    background-color: #D3DEEF;
+    border: 1px solid #EEEEEE;
+    border-top: none;
+    padding: 5px;
+    padding-top: 10px;
+}
+
+/*AutoComplete flyout */
+
+.autocomplete_completionListElement 
+{  
+	visibility : hidden;
+	margin : 0px!important;
+	background-color : inherit;
+	color : windowtext;
+	border : buttonshadow;
+	border-width : 1px;
+	border-style : solid;
+	cursor : 'default';
+	overflow : auto;
+	height : 200px;
+    text-align : left; 
+    list-style-type : none;
+}
+
+/* AutoComplete highlighted item */
+
+.autocomplete_highlightedListItem
+{
+	background-color: #ffff99;
+	color: black;
+	padding: 1px;
+}
+
+/* AutoComplete item */
+
+.autocomplete_listItem 
+{
+	background-color : window;
+	color : windowtext;
+	padding : 1px;
+}
+
+/*Cascading DropDown*/
+
+/*CollapsiblePanel*/
+.collapsePanel {
+	
+	background-color:white;
+	overflow:hidden;
+}
+
+.collapsePanelHeader{
+	width:100%;
+	height:30px;
+	background-image: url(images/bg-menu-main.png);
+	background-repeat:repeat-x;
+	color:#FFF;
+	font-weight:bold;
+}
+
+#master_content .collapsePanelHeader a {color:#FFF;}
+#master_content .collapsePanelHeader a:hover {text-decoration:none;background:none;}
+
+/*Confirm Button*/
+
+/* DropShadow */
+
+#master_content .dropShadowPanel span {color:white;text-decoration:underline;}
+#master_content .dropShadowPanel span:hover {text-decoration:none;}
+
+
+.dropShadowPanel 
+{
+	width:300px;
+	background-color:#5377A9;
+	color:white;
+	font-weight:bold;
+}
+
+/*Drag Panel*/
+.dragMe {
+	width:100%;
+	height:21px;
+	background-color:#FFF;
+	background-image:url(images/header-opened.png);
+	text-align:center;
+	cursor:move;
+	font-weight:bold;
+}
+
+.overflowHidden {overflow:hidden;}
+
+.overflowScroll {overflow:hidden;}
+
+/*Hover Menu*/
+.popupMenu {
+	position:absolute;
+	visibility:hidden;
+	background-color:#F5F7F8;
+	opacity:.9;
+	filter: alpha(opacity=90);
+}
+
+.popupHover {
+	background-image:url(images/header-opened.png);
+	background-repeat:repeat-x;
+	background-position:left top;
+	background-color:#F5F7F8;
+}
+
+/* PagingBulletedList */
+.selectIndex {
+    font-weight: bold;
+    text-decoration:none;
+}
+.unselectIndex {
+    font-weight:normal;
+    text-decoration:underline;
+}
+
+
+/*Modal Popup*/
+.modalBackground {
+	background-color:Gray;
+	filter:alpha(opacity=70);
+	opacity:0.7;
+}
+
+.modalPopup {
+	background-color:#ffffdd;
+	border-width:3px;
+	border-style:solid;
+	border-color:Gray;
+	padding:3px;
+	width:250px;
+}
+
+.sampleStyleA {
+	background-color:#FFF;
+}
+
+.sampleStyleB {
+	background-color:#FFF;
+	font-family:monospace;
+	font-size:10pt;
+	font-weight:bold;
+}
+
+.sampleStyleC {
+	background-color:#ddffdd;
+	font-family:sans-serif;
+	font-size:10pt;
+	font-style:italic;
+}
+
+.sampleStyleD {
+	background-color:Blue;
+	color:White;
+	font-family:Arial;
+	font-size:10pt;
+}
+
+/*Popup Control*/
+.popupControl{
+	background-color:White;
+	position:absolute;
+	visibility:hidden;
+}
+
+/*Reorder List*/
+.dragHandle {
+	width:10px;
+	height:15px;
+	background-color:Blue;
+	background-image:url(images/bg-menu-main.png);
+	cursor:move;
+	border:outset thin white;
+}
+
+.callbackStyle {
+	border:thin blue inset;		
+}
+
+.callbackStyle table {
+	background-color:#5377A9;	
+	color:Black;
+}
+
+
+.reorderListDemo li {
+	list-style:none;
+	margin:2px;
+	background-image:url(images/bg_nav.gif);
+	background-repeat:repeat-x;
+	color:#FFF;
+}
+
+.reorderListDemo li a {color:#FFF !important; font-weight:bold;}
+
+.reorderCue {
+	border:dashed thin black;
+	width:100%;
+	height:25px;
+}
+
+.itemArea {
+	margin-left:15px;
+	font-family:Arial, Verdana, sans-serif;
+	font-size:1em;
+	text-align:left;
+}
+
+
+/* Rounded Corners*/
+
+.roundedPanel
+{	
+	width:300px;
+	background-color:#5377A9;
+	color:white;
+	font-weight:bold;
+}
+
+/* ResizableControl */
+
+.frameImage
+{
+	width:130px;
+	height:65px;
+	overflow:hidden;
+	float:left;
+	padding:3px;
+}
+
+.frameText
+{
+	width:100px;
+	height:100px;
+	overflow:auto;
+	float:left;
+	background-color:#ffffff;
+	border-style:solid;
+	border-width:2px;
+	border-color:Gray;
+	font-family:Helvetica;
+	line-height:normal;
+}
+
+.handleImage
+{
+	width:15px;
+	height:16px;
+	background-image:url(images/HandleHand.png);
+	overflow:hidden;
+	cursor:se-resize;
+}
+
+.handleText
+{
+	width:16px;
+	height:16px;
+	background-image:url(images/HandleGrip.png);
+	overflow:hidden;
+	cursor:se-resize;
+}
+
+.resizingImage
+{
+	padding:0px;
+	border-style:solid;
+	border-width:3px;
+	border-color:#B4D35D;
+}
+
+.resizingText
+{
+	padding:0px;
+	border-style:solid;
+	border-width:2px;
+	border-color:#7391BA;
+}
+
+/*Textbox Watermark*/
+
+.unwatermarked {
+	height:18px;
+	width:148px;
+}
+
+.watermarked {
+	height:20px;
+	width:150px;
+	padding:2px 0 0 2px;
+	border:1px solid #BEBEBE;
+	background-color:#F0F8FF;
+	color:gray;
+}	
+
+/* Rating */
+.ratingStar {
+    font-size: 0pt;
+    width: 13px;
+    height: 12px;
+    margin: 0px;
+    padding: 0px;
+    cursor: pointer;
+    display: block;
+    background-repeat: no-repeat;
+}
+
+.filledRatingStar {
+    background-image: url(Images/FilledStar.png);
+
+}
+
+.emptyRatingStar {
+    background-image: url(Images/EmptyStar.png);
+}
+
+.savedRatingStar {
+    background-image: url(Images/SavedStar.png);
+}
+
+
+/*Toggle Button*/
+
+/*Setup*/
+.walkthrough li {padding-bottom:5px;}
+
+/*Using a sample extender*/
+
+/*Creating a new extender*/
+.walkthroughNote {
+	padding-left:25px;
+	font-style:italic;
+}
+
+/*Other neat stuff*/
+
+
+
+
+
+/************ PasswordStrength Related Styles ***********************/
+.TextIndicator_TextBox1
+{
+     background-color:Gray;
+     color:White;
+     font-family:Arial;
+     font-size:x-small;
+     font-style:italic;
+     padding: 2px 3px 2px 3px;
+}
+
+.BarIndicator_TextBox2_weak
+{
+    color:Red;
+    background-color:Red;
+}
+.BarIndicator_TextBox2_average
+{
+    color:Blue;
+    background-color:Blue;
+}
+.BarIndicator_TextBox2_good
+{
+    color:Green;
+    background-color:Green;
+}
+
+.BarBorder_TextBox2
+{
+    border-style:solid;
+    border-width:1px;
+    padding:2px 2px 2px 2px;
+    width:200px;
+    vertical-align:middle;
+}
+
+.TextIndicator_TextBox3
+{
+     background-color:Blue;
+     color:Yellow;
+     font-size:small;
+     font-variant:small-caps;
+     padding: 2px 3px 2px 3px;
+}
+
+.TextIndicator_TextBox3_Handle
+{
+	width:16px;
+	height:14px;
+	background-image:url(images/Question.png);
+	overflow:hidden;
+	cursor:help;
+}
+
+.TextIndicator_TextBox1_Strength1
+{
+     background-color:Gray;
+     color:White;
+     font-family:Arial;
+     font-size:x-small;
+     font-style:italic;
+     padding: 2px 3px 2px 3px;
+     font-weight:bold;
+}
+.TextIndicator_TextBox1_Strength2
+{
+     background-color:Gray;
+     color:Yellow;
+     font-family:Arial;
+     font-size:x-small;
+     font-style:italic;
+     padding: 2px 3px 2px 3px;
+     font-weight:bold;
+}
+.TextIndicator_TextBox1_Strength3
+{
+     background-color:Gray;
+     color: #FFCAAF;
+     font-family:Arial;
+     font-size:x-small;
+     font-style:italic;
+     padding: 2px 3px 2px 3px;
+     font-weight:bold;
+}
+.TextIndicator_TextBox1_Strength4
+{
+     background-color:Gray;
+     color:Aqua;
+     font-family:Arial;
+     font-size:x-small;
+     font-style:italic;
+     padding: 2px 3px 2px 3px;
+     font-weight:bold;
+}
+.TextIndicator_TextBox1_Strength5
+{
+     background-color:Gray;
+     color: #93FF9E;
+     font-family:Arial;
+     font-size:x-small;
+     font-style:italic;
+     padding: 2px 3px 2px 3px;
+     font-weight:bold;
+}
+
+
+
+.dynamicPopulate_Normal
+{
+	border:silver 1px inset;
+	padding:2px;
+	text-align:center;
+	height:2em;
+	margin:5px;
+	width:200px;
+}
+
+.dynamicPopulate_Updating 
+{
+	background-image:url(images/loading.gif);
+	background-repeat:no-repeat;
+	border:silver 1px inset;
+	text-align:center;
+	padding:2px;
+	height:2em;
+	margin:5px;
+	width:200px;
+}
+/************ MaskedEdit Related Styles ***********************/
+.MaskedEditFocus
+{
+    background-color: #ffffcc;
+    color: #000000;
+}
+.MaskedEditMessage
+{
+	color: #ff0000;
+	font-weight: bold;
+}
+.MaskedEditError
+{
+    background-color: #ffcccc;
+}
+.MaskedEditFocusNegative
+{
+    background-color: #ffffcc;
+    color: #ff0000;
+}
+.MaskedEditBlurNegative
+{
+    color: #ff0000;
+}
+
+.MyCalendar .ajax__calendar_container {
+    border:1px solid #646464;
+    background-color: lemonchiffon;
+    color: red;
+}
+.MyCalendar .ajax__calendar_other .ajax__calendar_day,
+.MyCalendar .ajax__calendar_other .ajax__calendar_year {
+    color: black;
+}
+.MyCalendar .ajax__calendar_hover .ajax__calendar_day,
+.MyCalendar .ajax__calendar_hover .ajax__calendar_month,
+.MyCalendar .ajax__calendar_hover .ajax__calendar_year {
+    color: black;
+}
+.MyCalendar .ajax__calendar_active .ajax__calendar_day,
+.MyCalendar .ajax__calendar_active .ajax__calendar_month,
+.MyCalendar .ajax__calendar_active .ajax__calendar_year {
+    color: black;
+    font-weight:bold;
+}
+
+/* SlideShow styles */
+
+.slideTitle
+{
+	font-weight:bold;
+	font-size:small;
+	font-style:italic;
+}
+
+.slideDescription
+{
+	font-size:small;
+	font-weight:bold;
+}
+
+.validatorCalloutHighlight
+{
+    background-color: lemonchiffon;
+}
+
+.ListSearchExtenderPrompt
+{
+	font-style:italic;
+	color:Gray;
+	background-color:white;
+}
+/*Ajax CSS--End*/
+/*AutoComplete*/
+.autocomplete {
+    font-family: Tahoma;
+    font-size: 8pt;
+    background-color: white;
+    border: 1px solid black;
+    position: absolute;
+    cursor: default;
+    overflow: auto;
+    overflow-x: hidden;
+}
+
+.autocomplete_item {
+    padding: 1px;
+    padding-left: 5px;
+    color: black;
+    width: 100%;
+}
+
+.autocomplete_item_highlighted {
+    padding: 1px;
+    padding-left: 5px;
+    color: white;
+    background-color: #0A246A;
+}
+   .mytable table
+        {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        
+        .mytable tr td
+        {
+            background: #ffffff;
+            border: #cccccc 1px solid;
+            padding: 2px;
+            font-family: Arial;
+            font-size: 12px;
+        }
+.bk5
+{clear: both;font-size: 1px;height: 0;line-height: 1px;height: 5px  }
+.pl17{ padding-left:17px;}

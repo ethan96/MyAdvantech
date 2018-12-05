@@ -1,0 +1,744 @@
+﻿<%@ Page Language="VB" MasterPageFile="~/Includes/MyMaster.master" Title="MyAdvantech - Category Specification Configrator"
+    ValidateRequest="false" %>
+
+<%@ Import Namespace="System.Data.SqlClient" %>
+<script runat="server">
+
+    Private _ModelSpecTable As String = "Model_Spec_V2", _PartSpecTable As String = "Part_Spec_V2"
+    
+    Protected Sub Page_Load(sender As Object, e As System.EventArgs)
+        Me.HF_Category_ID.Value = Request("Category_ID")
+        
+        Me.Label_AttrAddMsg.Text=""
+        
+        If Not Page.IsPostBack Then
+            
+            Me.HyperLink_CategoryTitle.NavigateUrl = "CategoryNavigation.aspx?Category_ID=" & Me.HF_Category_ID.Value
+            
+            'Show Category path
+            Me.ShowCategoryPath()
+            
+            'Me.cbForward.Checked = False
+            
+            'Load Attribute Category list
+            Me.LoadAttributeCategory()
+            'Load Attribute list
+            Me.LoadAttribute()
+            
+            'Load Category Spec
+            Me.LoadCategorySpec()
+            
+            
+            
+        End If
+
+    End Sub
+    
+    
+    'Public Function GetPostBackControl(ByVal page As System.Web.UI.Page) As System.Web.UI.Control
+    '    ' Find which control caused the postback  
+    '    Dim control As Control = Nothing
+    '    Dim ctrlname As String = page.Request.Params("__EVENTTARGET")
+    '    If Not (ctrlname Is Nothing) AndAlso Not (ctrlname = String.Empty) Then
+    '        control = page.FindControl(ctrlname)
+    '    Else
+    '        Dim ctrlStr As String = String.Empty
+    '        Dim c As Control = Nothing
+    '        For Each ctl As String In page.Request.Form
+    '            If ctl.EndsWith(".x") OrElse ctl.EndsWith(".y") Then
+    '                ctrlStr = ctl.Substring(0, ctl.Length - 2)
+    '                c = page.FindControl(ctrlStr)
+    '            Else
+    '                c = page.FindControl(ctl)
+    '            End If
+    '            If TypeOf c Is System.Web.UI.WebControls.Button OrElse TypeOf c Is System.Web.UI.WebControls.ImageButton Then
+    '                control = c
+    '                ' break  
+    '            End If
+    '        Next
+    '    End If
+    '    Return control
+    'End Function
+    
+    Private Sub LoadCategorySpec()
+        
+        Dim _SQL As New StringBuilder
+        
+        'Update Spec item sequence by category id=========================
+        _SQL.Clear()
+        _SQL.Append(" UPDATE category_spectable_v2 SET DataSheet_Sequence=t.Seq ")
+        _SQL.Append(" FROM (SELECT a.AttrCatID,a.AttrID, Row_Number() OVER (ORDER BY a.DataSheet_Sequence,b.AttrCatName,c.AttrName) as Seq  ")
+        _SQL.Append(" From category_spectable_v2 a left join tbShareAttributeCat_V2 b on a.AttrCatID=b.AttrCatID ")
+        _SQL.Append(" Left join tbShareAttribute c on a.AttrID=c.AttrID ")
+        _SQL.Append(" Where a.Category_ID='" & Me.HF_Category_ID.Value & "' ")
+        _SQL.Append(" ) t ")
+        _SQL.Append(" Inner join category_spectable_v2 m on t.AttrCatID=m.AttrCatID and t.AttrID=m.AttrID ")
+        _SQL.Append(" Where m.Category_ID='" & Me.HF_Category_ID.Value & "' ")
+        dbUtil.dbExecuteNoQuery("PIS", _SQL.ToString)
+        'End:Update Spec item sequence by category id=========================
+        
+        '=====Get Spec item by category id=========================
+        _SQL.Clear()
+        _SQL.Append(" Select ROW_NUMBER() OVER (ORDER BY a.DataSheet_Sequence,b.AttrCatName,c.AttrName) AS RowNumber ")
+        _SQL.Append(" ,a.AttrCatID,b.AttrCatName,a.AttrID,c.AttrName,a.DataSheet_Sequence,a.Is_Navigation ")
+        _SQL.Append(" From category_spectable_v2 a left join tbShareAttributeCat_V2 b on a.AttrCatID=b.AttrCatID ")
+        _SQL.Append(" Left join tbShareAttribute c on a.AttrID=c.AttrID ")
+        _SQL.Append(" Where a.Category_ID='" & Me.HF_Category_ID.Value & "' And b.AttrCatName<>'' And c.AttrName<>'' ")
+        _SQL.Append(" Order by a.DataSheet_Sequence,b.AttrCatName,c.AttrName ")
+
+        Dim _dt_CategorySpec As DataTable = dbUtil.dbGetDataTable("PIS", _SQL.ToString)
+
+        '_dt_CategorySpec.PrimaryKey = New DataColumn() {_dt_CategorySpec.Columns("AttrCatID"), _dt_CategorySpec.Columns("AttrID")}
+        '=====Get category spec table End=========================
+            
+        _SQL = Nothing
+
+        Me.GV_SpecEditor.DataSource = _dt_CategorySpec
+        Me.GV_SpecEditor.DataBind()
+        
+    End Sub
+
+    
+    Private Function GetAttributeCategory() As DataTable
+        Dim _SQL As String = " Select AttrCatID,AttrCatName From tbShareAttributeCat_V2 Order by AttrCatName "
+        Return dbUtil.dbGetDataTable("PIS", _SQL)
+    End Function
+
+    Private Function GetAttributeByAttributeCategory(ByVal _AttrCatid As Integer) As DataTable
+        'Dim _AttrCatid As Integer = Me.DropDownList_AttributeCategoryID.SelectedItem.Value
+        Dim _SQL As String = " Select AttrID,AttrName From tbShareAttribute_V2 where AttrCatID=" & _AttrCatid & " Order by AttrName"
+        Return dbUtil.dbGetDataTable("PIS", _SQL.ToString)
+    End Function
+
+    
+    Private Sub LoadAttributeCategory()
+        
+        Dim _dt As DataTable = GetAttributeCategory()
+            
+        Me.DropDownList_AttributeCategoryID.DataValueField = "AttrCatID"
+        Me.DropDownList_AttributeCategoryID.DataTextField = "AttrCatName"
+        Me.DropDownList_AttributeCategoryID.DataSource = _dt
+        Me.DropDownList_AttributeCategoryID.DataBind()
+        
+    End Sub
+
+    Private Sub LoadAttribute()
+        
+        Dim _AttrCatid As Integer = Me.DropDownList_AttributeCategoryID.SelectedItem.Value
+        Dim _dt As DataTable = GetAttributeByAttributeCategory(_AttrCatid)
+        
+        Me.DropDownList_CategoryID.DataValueField = "AttrID"
+        Me.DropDownList_CategoryID.DataTextField = "AttrName"
+        Me.DropDownList_CategoryID.DataSource = _dt
+        Me.DropDownList_CategoryID.DataBind()
+        
+    End Sub
+    
+    
+    Private Sub ShowCategoryPath()
+        
+        'category_name1,category_name2,category_name3,category_name4,category_name5,category_name6
+        Dim _SQL As New StringBuilder
+        _SQL.Clear()
+        _SQL.Append(" SELECT parent_category_id1,model_no,category_name1,category_name2,category_name3,category_name4,category_name5,category_name6 ")
+        _SQL.Append(" FROM CATEGORY_HIERARCHY ")
+        '_SQL.Append(" Where Parent_category_id1=@Parent_Category_Id and model_no=@model_name ")
+        _SQL.Append(" Where parent_category_id1=@parent_category_id1 ")
+        
+        Dim apt As SqlDataAdapter = New SqlDataAdapter(_SQL.ToString, _
+        New SqlConnection(ConfigurationManager.ConnectionStrings("PIS").ConnectionString))
+        'apt.SelectCommand.Parameters.AddWithValue("Parent_Category_Id", _Category_ID)
+        apt.SelectCommand.Parameters.AddWithValue("parent_category_id1", Me.HF_Category_ID.Value)
+        Dim _dt As New DataTable
+        apt.Fill(_dt)
+        apt.SelectCommand.Connection.Close()
+
+        
+        'Me.Label_CategoryPath.Text = "Category："
+        Me.Label_CategoryPath.Text = ""
+        'Me._Category_ID = _dt.Rows(0).Item("parent_category_id1").ToString
+        If _dt.Rows.Count = 0 Then
+            Me.HF_Category_ID.Value = "" : tr_DeleteAndAddAttr.Visible = False : Exit Sub
+        End If
+        tr_DeleteAndAddAttr.Visible = True
+
+        Me.HF_Category_ID.Value = _dt.Rows(0).Item("parent_category_id1").ToString
+        For i As Integer = _dt.Columns.Count - 1 To 0 Step -1
+            
+            If String.IsNullOrEmpty(_dt.Rows(0).Item(i).ToString) Then Continue For
+            
+            If _dt.Columns(i).ColumnName = "model_no" Then Exit For
+            
+            Me.Label_CategoryPath.Text &= " " & _dt.Rows(0).Item(i).ToString & " >"
+        Next
+
+        Me.Label_CategoryPath.Text = Me.Label_CategoryPath.Text.TrimEnd(">")
+        
+    End Sub
+    
+    Protected Sub Button_SearchModel_Click(sender As Object, e As System.EventArgs)
+        
+        Me.ShowCategoryPath()
+        
+        Me.LoadCategorySpec()
+        'Me.UP_SpecEditor.Update()
+    End Sub
+
+    
+    'Protected Sub cbForward_CheckedChanged(ByVal sender As Object, ByVal e As System.EventArgs)
+    '    If cbForward.Checked Then
+    '        Me.PanelAddSpec.Visible = True
+    '        'Me.forwardEquotationUI.QuoteID = Me.quoteId
+    '        Me.upAddSpec.Update()
+    '    Else
+    '        Me.PanelAddSpec.Visible = False
+    '    End If
+    'End Sub
+
+
+    Protected Sub chk_filter_CheckedChanged(ByVal sender As Object, ByVal e As System.EventArgs)
+        
+        Dim _ckobj As CheckBox = CType(sender, CheckBox)
+        Dim row As GridViewRow = CType(_ckobj.NamingContainer, GridViewRow)
+        Dim _KeyObj = Me.GV_SpecEditor.DataKeys(row.RowIndex).Values
+        
+        Dim _AttrCatid As String = _KeyObj("AttrCatID"), _AttrID As String = _KeyObj("AttrID"), _SQL As String = String.Empty
+        
+        If _ckobj.Checked Then
+            _SQL = " Update category_spectable_v2 set Is_Navigation=1 "
+        Else
+            _SQL = " Update category_spectable_v2 set Is_Navigation=0 "
+        End If
+        _SQL &= " Where Category_ID='" & Me.HF_Category_ID.Value & "' And AttrCatid=" & _AttrCatid & " and AttrId=" & _AttrID
+        
+        dbUtil.dbExecuteNoQuery("PIS", _SQL)
+
+        Me.LoadCategorySpec()
+        
+    End Sub
+
+    Private Function IsAttributeExist(ByVal _AttrCatID As Integer, ByVal _AttrID As Integer) As Boolean
+        Dim _SQL As String = " Select count(*) From Category_Spectable_V2 Where Category_ID='" & Me.HF_Category_ID.Value & "' "
+        _SQL &= " And AttrCatID =" & _AttrCatID
+        _SQL &= " And AttrID =" & _AttrID
+        Dim _count As Integer = dbUtil.dbExecuteScalar("PIS", _SQL)
+        If _count > 0 Then Return True
+        
+        Return False
+    End Function
+    
+    Protected Sub Button_AddCategorySpecItem_Click(sender As Object, e As System.EventArgs)
+        
+        Dim _SQL As String = String.Empty, _AttrCatid As String = String.Empty, _AttrID As String = String.Empty
+            
+        'Table:category_spectable_v2
+        '[Category_ID],[AttrCatID],[AttrID],[AttrValue_Unit],[AttrValue_Type],[DataSheet_Sequence]
+        ',[Is_Navigation],[Navigation_Sequence],[Last_Updated],[Last_Updated_By]
+            
+        _AttrCatid = Me.DropDownList_AttributeCategoryID.SelectedValue
+        _AttrID = Me.DropDownList_CategoryID.SelectedValue
+        Me.Label_AttrAddMsg.Text = ""
+        If IsAttributeExist(_AttrCatid, _AttrID) Then
+            Me.Label_AttrAddMsg.Text = "Attribute already existed."
+            Exit Sub
+        End If
+        
+        
+        _SQL = " Insert into Category_Spectable_V2 values ('" & Me.HF_Category_ID.Value & "'"
+        _SQL &= "," & _AttrCatid
+        _SQL &= "," & _AttrID
+        _SQL &= ",''"
+        _SQL &= ",''"
+        _SQL &= ",0"
+        _SQL &= ",0"
+        _SQL &= ",0"
+        _SQL &= ",getDate()"
+        _SQL &= ",'" & Session("user_id") & "')"
+        
+        dbUtil.dbExecuteNoQuery("PIS", _SQL)
+
+        Me.LoadCategorySpec()
+    End Sub
+
+    Protected Sub Button_RemoveCategorySpecItem_Click(sender As Object, e As System.EventArgs)
+
+        Dim count As Integer = 0, _removePartNo As String = "", _SQL As New StringBuilder
+        Dim _AttrCatid As String = String.Empty, _AttrID As String = String.Empty
+
+        '_SQL = " Delete From category_spectable_v2 Where Category_ID='" & Me.HF_Category_ID.Value & "' "
+        
+        For Each _row As GridViewRow In Me.GV_SpecEditor.Rows
+            'Dim chk As CheckBox = CType(_row.FindControl("chkKey"), CheckBox)
+            Dim chk As HtmlInputCheckBox = CType(_row.FindControl("chkKey"), HtmlInputCheckBox)
+            If chk IsNot Nothing AndAlso chk.Checked Then
+                
+                Dim _key = Me.GV_SpecEditor.DataKeys(_row.RowIndex).Values
+                
+                _AttrCatid = _key("AttrCatID")
+                _AttrID = _key("AttrID")
+                _SQL.Append(" Delete From category_spectable_v2 Where Category_ID='" & Me.HF_Category_ID.Value & "' ")
+                _SQL.Append("  And AttrCatID='" & _AttrCatid & "' And AttrID='" & _AttrID & "'; ")
+                
+            End If
+        Next
+        If _SQL.Length > 0 Then dbUtil.dbExecuteNoQuery("PIS", _SQL.ToString)
+        Me.LoadCategorySpec()
+        
+    End Sub
+
+    Protected Sub DropDownList_AttributeCategoryID_SelectedIndexChanged(sender As Object, e As System.EventArgs)
+        Me.LoadAttribute()
+    End Sub
+    
+    Enum MoveType
+        First
+        Previous
+        [Next]
+        Last
+        Customer
+    End Enum
+    
+    'Private Sub AdjustSequence(ByVal _AttrCatID As Integer, ByVal _AttrID As Integer, ByVal _Original_Seqence As Integer, ByVal _MoveType As MoveType)
+    Private Sub AdjustSequence(ByVal sender As Object, ByVal _MoveType As MoveType)
+        
+        Dim _ckobj As ImageButton = CType(sender, ImageButton), row As GridViewRow = CType(_ckobj.NamingContainer, GridViewRow)
+        Dim _Label_Sequence As Label = CType(row.FindControl("Label_Sequence"), Label), _KeyObj = Me.GV_SpecEditor.DataKeys(row.RowIndex).Values
+        Dim _AttrCatid As String = _KeyObj("AttrCatID"), _AttrID As String = _KeyObj("AttrID"), _Original_Seqence As Integer
+        
+        If Not Integer.TryParse(_Label_Sequence.Text, _Original_Seqence) Then Exit Sub
+        
+        Dim _New_Sequence As Integer = 0, _sql As New StringBuilder
+        
+        Select Case _MoveType
+            Case MoveType.First
+                _New_Sequence = 1
+                _sql.Append(" Update Category_Spectable_V2 Set DataSheet_Sequence=DataSheet_Sequence+1 ")
+                _sql.Append(" Where Category_ID='" & Me.HF_Category_ID.Value & "' And DataSheet_Sequence<" & _Original_Seqence)
+                _sql.Append(";Update Category_Spectable_V2 Set DataSheet_Sequence=" & _New_Sequence)
+                _sql.Append(" Where Category_ID='" & Me.HF_Category_ID.Value & "'")
+                _sql.Append(" And AttrCatID=" & _AttrCatid & " And AttrID=" & _AttrID)
+
+            Case MoveType.Previous
+                _New_Sequence = _Original_Seqence - 1
+                _sql.Append(" Update Category_Spectable_V2 Set DataSheet_Sequence=" & _Original_Seqence)
+                _sql.Append(" Where Category_ID='" & Me.HF_Category_ID.Value & "' and DataSheet_Sequence=" & _New_Sequence)
+                _sql.Append(";Update Category_Spectable_V2 Set DataSheet_Sequence=" & _New_Sequence)
+                _sql.Append(" Where Category_ID='" & Me.HF_Category_ID.Value & "'")
+                _sql.Append(" And AttrCatID=" & _AttrCatid & " And AttrID=" & _AttrID)
+            Case MoveType.Next
+                _New_Sequence = _Original_Seqence + 1
+                _sql.Append(" Update Category_Spectable_V2 Set DataSheet_Sequence=" & _Original_Seqence)
+                _sql.Append(" Where Category_ID='" & Me.HF_Category_ID.Value & "' and DataSheet_Sequence=" & _New_Sequence)
+                _sql.Append(";Update Category_Spectable_V2 Set DataSheet_Sequence=" & _New_Sequence)
+                _sql.Append(" Where Category_ID='" & Me.HF_Category_ID.Value & "'")
+                _sql.Append(" And AttrCatID=" & _AttrCatid & " And AttrID=" & _AttrID)
+            Case MoveType.Last
+                Dim _dt As DataTable = dbUtil.dbGetDataTable("PIS", "Select count(category_id) From category_spectable_v2 Where Category_ID='" & Me.HF_Category_ID.Value & "'")
+                _New_Sequence = _dt.Rows(0).Item(0)
+                _dt = Nothing
+                _sql.Append(" Update Category_Spectable_V2 Set DataSheet_Sequence=DataSheet_Sequence-1 ")
+                _sql.Append(" Where Category_ID='" & Me.HF_Category_ID.Value & "' And (DataSheet_Sequence>" & _Original_Seqence & " and DataSheet_Sequence<=" & _New_Sequence & ")")
+                _sql.Append(";Update Category_Spectable_V2 Set DataSheet_Sequence=" & _New_Sequence)
+                _sql.Append(" Where Category_ID='" & Me.HF_Category_ID.Value & "'")
+                _sql.Append(" And AttrCatID=" & _AttrCatid & " And AttrID=" & _AttrID)
+            Case MoveType.Customer
+                Exit Sub
+            Case Else
+                Exit Sub
+        End Select
+            
+        If _sql.Length > 0 Then dbUtil.dbGetDataTable("PIS", _sql.ToString)
+        
+        'Update Model spec sequence
+        _sql.Clear()
+        _sql.Append(" UPDATE Model_Spec_V2 SET DataSheet_Sequence=t.Seq ")
+        _sql.Append(" From (SELECT a.AttrCatID,a.AttrID,a.DataSheet_Sequence as Seq ")
+        _sql.Append(" From category_spectable_v2 a ")
+        _sql.Append(" Where a.Category_ID='" & Me.HF_Category_ID.Value & "' ) t ")
+        _sql.Append(" Inner join Model_Spec_V2 m on t.AttrCatID=m.AttrCatID and t.AttrID=m.AttrID ")
+        _sql.Append(" Where m.Model_Name in ( Select Model_Name From Category_Model Where Category_id='" & Me.HF_Category_ID.Value & "') ")
+        dbUtil.dbGetDataTable("PIS", _sql.ToString)
+
+        'Update Part spec sequence
+        _sql.Clear()
+        _sql.Append(" UPDATE Part_Spec_V2 SET DataSheet_Sequence=t.Seq ")
+        _sql.Append(" From (SELECT a.AttrCatID,a.AttrID,a.DataSheet_Sequence as Seq ")
+        _sql.Append(" From category_spectable_v2 a ")
+        _sql.Append(" Where a.Category_ID='" & Me.HF_Category_ID.Value & "' ) t ")
+        _sql.Append(" Inner join Part_Spec_V2 m on t.AttrCatID=m.AttrCatID and t.AttrID=m.AttrID ")
+        _sql.Append(" Where m.PART_NO in ( ")
+        _sql.Append(" Select PART_NO From model_product ")
+        _sql.Append(" Where Model_Name in ( Select Model_Name From Category_Model Where Category_id='" & Me.HF_Category_ID.Value & "') ")
+        _sql.Append(" and relation='Product' and [status]='active' ) ")
+        dbUtil.dbGetDataTable("PIS", _sql.ToString)
+
+        
+    End Sub
+    
+    ''' <summary>
+    ''' Spec item was moved first sequence 
+    ''' </summary>
+    ''' <param name="sender"></param>
+    ''' <param name="e"></param>
+    ''' <remarks></remarks>
+    Protected Sub ImageButton_MoveFirst_Click(sender As Object, e As System.EventArgs)
+        AdjustSequence(sender, MoveType.First)
+        Me.LoadCategorySpec()
+    End Sub
+    
+    ''' <summary>
+    ''' Spec item was moved previous sequence
+    ''' </summary>
+    ''' <param name="sender"></param>
+    ''' <param name="e"></param>
+    ''' <remarks></remarks>
+    Protected Sub ImageButton_MovePrevious_Click(sender As Object, e As System.EventArgs)
+        AdjustSequence(sender, MoveType.Previous)
+        Me.LoadCategorySpec()
+    End Sub
+    
+    ''' <summary>
+    ''' Spec item was moved next sequence
+    ''' </summary>
+    ''' <param name="sender"></param>
+    ''' <param name="e"></param>
+    ''' <remarks></remarks>
+    Protected Sub ImageButton_MoveNext_Click(sender As Object, e As System.EventArgs)
+        AdjustSequence(sender, MoveType.Next)
+        Me.LoadCategorySpec()
+    End Sub
+    
+    ''' <summary>
+    ''' Spec item was moved last sequence
+    ''' </summary>
+    ''' <param name="sender"></param>
+    ''' <param name="e"></param>
+    ''' <remarks></remarks>
+    Protected Sub ImageButton_MoveLast_Click(sender As Object, e As System.EventArgs)
+        AdjustSequence(sender, MoveType.Last)
+        Me.LoadCategorySpec()
+    End Sub
+    
+    
+    Protected Sub GV_SpecEditor_RowDataBound(ByVal sender As Object, ByVal e As System.Web.UI.WebControls.GridViewRowEventArgs)
+        If e.Row.RowType = DataControlRowType.DataRow Then
+
+            If e.Row.RowState <> DataControlRowState.Edit Then
+
+                If e.Row.RowIndex = 0 Then
+                    CType(e.Row.FindControl("ImageButton_MoveFirst"), ImageButton).Enabled = False
+                    CType(e.Row.FindControl("ImageButton_MovePrevious"), ImageButton).Enabled = False
+                End If
+            
+                If e.Row.RowIndex = CType(Me.GV_SpecEditor.DataSource, DataTable).Rows.Count - 1 Then
+                    CType(e.Row.FindControl("ImageButton_MoveNext"), ImageButton).Enabled = False
+                    CType(e.Row.FindControl("ImageButton_MoveLast"), ImageButton).Enabled = False
+                End If
+            End If
+            
+            If (e.Row.RowState And DataControlRowState.Edit) = DataControlRowState.Edit Then
+                
+                Dim _OriginalVal = Me.GV_SpecEditor.DataKeys(e.Row.RowIndex)
+                Dim _OriginalAttrCatid As Integer = _OriginalVal("AttrCatID"), _OriginalAttrID As Integer = _OriginalVal("AttrID")
+                
+                Dim _ddl_attrCatName As DropDownList = CType(e.Row.FindControl("GV_DDL_AttrCatName"), DropDownList)
+                If _ddl_attrCatName IsNot Nothing Then
+                    Dim _dt As DataTable = GetAttributeCategory()
+                    _ddl_attrCatName.DataValueField = "AttrCatID"
+                    _ddl_attrCatName.DataTextField = "AttrCatName"
+                    _ddl_attrCatName.DataSource = _dt
+                    _ddl_attrCatName.DataBind()
+                    _ddl_attrCatName.SelectedValue = _OriginalAttrCatid
+                    
+                End If
+                Dim _ddl_attrName As DropDownList = CType(e.Row.FindControl("GV_DDL_AttrName"), DropDownList)
+                If _ddl_attrName IsNot Nothing Then
+                    Dim _AttrCatID As Integer = _ddl_attrCatName.SelectedValue
+                    Dim _dt As DataTable = GetAttributeByAttributeCategory(_AttrCatID)
+                    _ddl_attrName.DataValueField = "AttrID"
+                    _ddl_attrName.DataTextField = "AttrName"
+                    _ddl_attrName.DataSource = _dt
+                    _ddl_attrName.DataBind()
+                    _ddl_attrName.SelectedValue = _OriginalAttrID
+                End If
+
+            End If
+
+        End If
+
+    End Sub
+    
+    Protected Sub GV_DDL_AttrCatName_SelectedIndexChanged(sender As Object, e As System.EventArgs)
+        
+        Dim _ddl As DropDownList = CType(sender, DropDownList)
+        
+        Dim _dt As DataTable = GetAttributeByAttributeCategory(_ddl.SelectedValue)
+        
+        Dim row As GridViewRow = CType(_ddl.NamingContainer, GridViewRow)
+        
+        Dim _ddl_attr As DropDownList = CType(row.FindControl("GV_DDL_AttrName"), DropDownList)
+        
+        _ddl_attr.DataValueField = "AttrID"
+        _ddl_attr.DataTextField = "AttrName"
+        _ddl_attr.DataSource = _dt
+        _ddl_attr.DataBind()
+
+        
+    End Sub
+
+    
+    Protected Sub GV_SpecEditor_RowEditing(sender As Object, e As System.Web.UI.WebControls.GridViewEditEventArgs)
+        Me.GV_SpecEditor.EditIndex = e.NewEditIndex
+        Me.LoadCategorySpec()
+    End Sub
+    
+    Protected Sub GV_SpecEditor_RowCancelingEdit(sender As Object, e As System.Web.UI.WebControls.GridViewCancelEditEventArgs)
+        Me.GV_SpecEditor.EditIndex = -1
+        Me.LoadCategorySpec()
+    End Sub
+
+    Protected Sub GV_SpecEditor_RowUpdating(sender As Object, e As System.Web.UI.WebControls.GridViewUpdateEventArgs)
+
+        Dim _OriginalVal = Me.GV_SpecEditor.DataKeys(e.RowIndex), _SQL As New StringBuilder
+        Dim _OriginalAttrCatid As String = _OriginalVal("AttrCatID"), _OriginalAttrID As String = _OriginalVal("AttrID")
+        
+        Dim _NewValue = e.NewValues
+        
+        Dim _ddlAttrCatID As DropDownList = Me.GV_SpecEditor.Rows(e.RowIndex).FindControl("GV_DDL_AttrCatName")
+        Dim _ddlAttrID As DropDownList = Me.GV_SpecEditor.Rows(e.RowIndex).FindControl("GV_DDL_AttrName")
+        Dim _NewAttrCatID As String = _ddlAttrCatID.SelectedValue, _NewAttrID As String = _ddlAttrID.SelectedValue
+        Dim _lbmsg As Label = CType(Me.GV_SpecEditor.Rows(e.RowIndex).FindControl("Label_AttrEditingMsg"), Label)
+        _lbmsg.Text = ""
+        If IsAttributeExist(_NewAttrCatID, _NewAttrID) Then
+            'show message
+            _lbmsg = CType(Me.GV_SpecEditor.Rows(e.RowIndex).FindControl("Label_AttrEditingMsg"), Label)
+            _lbmsg.Text = "This attribute already existed."
+            Exit Sub
+        End If
+        
+        
+        _SQL.Append("Update Category_SpecTable_V2 set AttrCatID=" & _NewAttrCatID & ",AttrID=" & _NewAttrID)
+        _SQL.Append(" Where Category_ID='" & Me.HF_Category_ID.Value & "' And AttrCatID=" & _OriginalAttrCatid & " And AttrID=" & _OriginalAttrID)
+        dbUtil.dbExecuteNoQuery("PIS", _SQL.ToString)
+        
+        _SQL.Clear()
+        _SQL.Append(" Update Model_Spec_V2 set AttrCatID=" & _NewAttrCatID & ",AttrID=" & _NewAttrID)
+        _SQL.Append(" Where Model_Name in ( ")
+        _SQL.Append("  Select Model_Name From Category_Model ")
+        _SQL.Append("  Where Category_id='" & Me.HF_Category_ID.Value & "' ")
+        _SQL.Append(" )")
+        _SQL.Append(" And AttrCatID=" & _OriginalAttrCatid & " And AttrID=" & _OriginalAttrID)
+        dbUtil.dbExecuteNoQuery("PIS", _SQL.ToString)
+        
+        _SQL.Clear()
+        _SQL.Append(" Update Part_Spec_V2 set AttrCatID=" & _NewAttrCatID & ",AttrID=" & _NewAttrID)
+        _SQL.Append(" Where Part_No in ( ")
+        _SQL.Append("  Select PART_NO  ")
+        _SQL.Append("  From model_product ")
+        _SQL.Append("  Where model_name in ( ")
+        _SQL.Append("  Select Model_Name From Category_Model ")
+        _SQL.Append("  Where Category_id='" & Me.HF_Category_ID.Value & "' ")
+        _SQL.Append("  )")
+        _SQL.Append(" )")
+        _SQL.Append(" And AttrCatID=" & _OriginalAttrCatid & " And AttrID=" & _OriginalAttrID)
+        dbUtil.dbExecuteNoQuery("PIS", _SQL.ToString)
+
+        Me.GV_SpecEditor.EditIndex = -1
+        Me.LoadCategorySpec()
+        
+    End Sub
+
+    'Private Sub LoadAttributeCategory_ForUpdate()
+        
+    '    Dim _dt As DataTable = GetAttributeCategory()
+            
+    '    Me.DropDownList_AttributeCategoryID.DataValueField = "AttrCatID"
+    '    Me.DropDownList_AttributeCategoryID.DataTextField = "AttrCatName"
+    '    Me.DropDownList_AttributeCategoryID.DataSource = _dt
+    '    Me.DropDownList_AttributeCategoryID.DataBind()
+        
+    'End Sub
+
+    'Private Sub LoadAttribute_ForUpdate()
+        
+    '    Dim _AttrCatid As Integer = Me.DropDownList_AttributeCategoryID.SelectedItem.Value
+    '    Dim _dt As DataTable = GetAttributeByAttributeCategory(_AttrCatid)
+        
+    '    Me.DropDownList_CategoryID.DataValueField = "AttrID"
+    '    Me.DropDownList_CategoryID.DataTextField = "AttrName"
+    '    Me.DropDownList_CategoryID.DataSource = _dt
+    '    Me.DropDownList_CategoryID.DataBind()
+        
+    'End Sub
+
+    
+    'Protected Sub GV_SpecEditor_RowCommand(sender As Object, e As System.Web.UI.WebControls.GridViewCommandEventArgs) Handles GV_SpecEditor.RowCommand
+    '    If e.CommandName = "Edit" Then
+    '        GV_SpecEditor.EditIndex = 0
+    '        Me.LoadAttributeCategory()
+    '    End If
+    'End Sub
+
+</script>
+<asp:Content runat="server" ID="_main" ContentPlaceHolderID="_main">
+    <script type="text/javascript" src="../../Includes/jquery-1.4.1.js"></script>
+    
+    <script type="text/javascript">
+        function GetAllCheckBox(cbAll) {
+            var items = document.getElementsByTagName("input");
+            for (i = 0; i < items.length; i++) {
+                if (items[i].type == "checkbox" && items[i].className!='') {
+                    items[i].checked = cbAll.checked;
+                }
+            }
+        }
+
+    </script>
+    <br />
+    <table border="0" cellpadding="2" width="100%">
+        <tr runat="server" visible="false">
+            <td align="left">
+                Model Name：<asp:TextBox ID="TextBox_ModelName" runat="server" Text="" />
+                <asp:Button ID="Button_SearchModel" runat="server" Text="Search" OnClick="Button_SearchModel_Click" />
+            </td>
+        </tr>
+        <tr>
+            <td align="left">
+                <asp:HyperLink ID="HyperLink_CategoryTitle" NavigateUrl="CategoryNavigation.aspx" runat="server">Category：</asp:HyperLink>
+                <asp:Label ID="Label_CategoryPath" runat="server" Text="" />
+                <asp:HiddenField ID="HF_Category_ID" runat="server" />
+            </td>
+        </tr>
+        <tr>
+            <td align="left">
+                <asp:UpdatePanel runat="server" ID="upAddSpec" UpdateMode="Conditional">
+                    <ContentTemplate>
+                        <asp:Panel runat="server" ID="PanelAddSpec" Visible="true">
+                            <asp:DropDownList ID="DropDownList_AttributeCategoryID" AutoPostBack="true" Width="250px"
+                                runat="server" OnSelectedIndexChanged="DropDownList_AttributeCategoryID_SelectedIndexChanged">
+                            </asp:DropDownList>
+                            <asp:DropDownList ID="DropDownList_CategoryID" runat="server" Width="250px">
+                            </asp:DropDownList>
+                            <asp:Button ID="Button_AddCategorySpecItem" runat="server" Text="Add New Spec" OnClick="Button_AddCategorySpecItem_Click" />
+                            <asp:Label ID="Label_AttrAddMsg" runat="server" Text="" ForeColor="Red" />
+                        </asp:Panel>
+                    </ContentTemplate>
+                    <Triggers>
+                        <%--                        <asp:AsyncPostBackTrigger ControlID="cbForward" EventName="CheckedChanged" />
+                        --%>
+                        <asp:AsyncPostBackTrigger ControlID="DropDownList_AttributeCategoryID" EventName="selectedindexchanged" />
+                        <asp:PostBackTrigger ControlID="Button_AddCategorySpecItem" />
+                    </Triggers>
+                </asp:UpdatePanel>
+            </td>
+        </tr>
+        <tr runat="server" id="tr_DeleteAndAddAttr">
+            <td align="left" width="100px">
+                <asp:Button ID="Button_RemoveCategorySpecItem" runat="server" Text="Delete Checked Spec Records"
+                    OnClick="Button_RemoveCategorySpecItem_Click" />
+            </td>
+        </tr>
+    </table>
+    <asp:Panel DefaultButton="Button_SearchModel" runat="server" ID="Panel1">
+        <asp:GridView ID="GV_SpecEditor" runat="server" AutoGenerateColumns="false" DataKeyNames="AttrCatID,AttrID"
+            EmptyDataText="No search results were found." OnRowDataBound="GV_SpecEditor_RowDataBound"
+            Width="100%" OnRowEditing="GV_SpecEditor_RowEditing" OnRowCancelingEdit="GV_SpecEditor_RowCancelingEdit"
+            OnRowUpdating="GV_SpecEditor_RowUpdating">
+            <Columns>
+                <asp:TemplateField ItemStyle-HorizontalAlign="Center" HeaderStyle-HorizontalAlign="Center"
+                    ItemStyle-Width="100px">
+                    <HeaderTemplate>
+                        <%--<asp:CheckBox ID="checkAllAuto" runat="server" Text="Check All" onClick="jqCheckAll2('aa','bb');" />--%>
+                        <asp:CheckBox ID="CheckBox1" runat="server" Text="Check All" OnClick="GetAllCheckBox(this)" />
+                    </HeaderTemplate>
+                    <ItemTemplate>
+                        <%--<asp:CheckBox ID="chkKey" class="chkIsDeleteItem" runat="server" />--%>
+                        <input type="CheckBox" id="chkKey" class="chkIsDeleteItem" runat="server" />
+                    </ItemTemplate>
+                </asp:TemplateField>
+                <asp:TemplateField ItemStyle-HorizontalAlign="left" HeaderText="Attribute Category ID"
+                    HeaderStyle-HorizontalAlign="left" ItemStyle-Width="50px" Visible="false">
+                    <ItemTemplate>
+                        <asp:Label runat="server" ID="Label_AttrCatID" Text='<%#Bind("AttrCatID") %>' />
+                    </ItemTemplate>
+                </asp:TemplateField>
+                <asp:TemplateField ItemStyle-HorizontalAlign="left" HeaderText="Category"
+                    HeaderStyle-HorizontalAlign="Center" ItemStyle-Width="200px">
+                    <ItemTemplate>
+                        <asp:Label runat="server" ID="Label_AttrCatName" Text='<%#Bind("AttrCatName") %>' />
+                    </ItemTemplate>
+                    <EditItemTemplate>
+                        <asp:DropDownList ID="GV_DDL_AttrCatName" runat="server" AutoPostBack="true" OnSelectedIndexChanged="GV_DDL_AttrCatName_SelectedIndexChanged">
+                        </asp:DropDownList>
+                    </EditItemTemplate>
+                </asp:TemplateField>
+                <asp:TemplateField ItemStyle-HorizontalAlign="left" HeaderText="Attribute ID" HeaderStyle-HorizontalAlign="left"
+                    ItemStyle-Width="50px" Visible="false">
+                    <ItemTemplate>
+                        <asp:Label runat="server" ID="Label_AttrID" Text='<%#Bind("AttrID") %>' />
+                    </ItemTemplate>
+                </asp:TemplateField>
+                <asp:TemplateField ItemStyle-HorizontalAlign="left" HeaderText="Attribute" HeaderStyle-HorizontalAlign="Center"
+                    ItemStyle-Width="200px">
+                    <ItemTemplate>
+                        <asp:Label runat="server" ID="Label_AttrName" Text='<%#Bind("AttrName") %>' />
+                    </ItemTemplate>
+                    <EditItemTemplate>
+                        <asp:DropDownList ID="GV_DDL_AttrName" runat="server">
+                        </asp:DropDownList>
+                    </EditItemTemplate>
+                </asp:TemplateField>
+                <%--                <asp:TemplateField ItemStyle-HorizontalAlign="Center" HeaderText="Change Attribute" HeaderStyle-HorizontalAlign="Center"
+                    ItemStyle-Width="250px">
+                    <ItemTemplate>
+                        <asp:ImageButton ID="ImageButton_Edit" ImageUrl="~/Images/EditDocument.png" Width="20px"
+                            runat="server" AlternateText="Edit" CommandName="Edit" />
+                    </ItemTemplate>
+                    <EditItemTemplate>
+                        <asp:LinkButton ID="LinkButton_Update" runat="server" CausesValidation="False" CommandName="Update"
+                            Text="Update" CssClass="btnlink"></asp:LinkButton>
+                        <asp:LinkButton ID="LinkButton_Cancel" runat="server" CausesValidation="False" CommandName="Cancel"
+                            Text="Cancel" CssClass="btnlink"></asp:LinkButton>
+                    </EditItemTemplate>
+                </asp:TemplateField>
+                --%>
+                <asp:TemplateField ItemStyle-HorizontalAlign="Center" HeaderText="Is eStore Filter" HeaderStyle-HorizontalAlign="Center"
+                    ItemStyle-Width="100px">
+                    <ItemTemplate>
+                        <asp:CheckBox ID="chk_Filter" name="chk_Filter" runat="server" AutoPostBack="true" OnCheckedChanged="chk_Filter_CheckedChanged"
+                            Checked='<%#Bind("Is_Navigation") %>' />
+                    </ItemTemplate>
+                </asp:TemplateField>
+                <asp:TemplateField ItemStyle-HorizontalAlign="Center" HeaderText="Seq." HeaderStyle-HorizontalAlign="Center"
+                    ItemStyle-Width="50px" Visible="false">
+                    <ItemTemplate>
+                        <asp:Label runat="server" ID="Label_Sequence" Text='<%#Bind("DataSheet_Sequence") %>' />
+                    </ItemTemplate>
+                </asp:TemplateField>
+                <asp:TemplateField ItemStyle-HorizontalAlign="Center" HeaderText="Action" HeaderStyle-HorizontalAlign="Center"
+                    ItemStyle-Width="250px">
+                    <ItemTemplate>
+                        <asp:ImageButton ID="ImageButton_MoveFirst" ImageUrl="~/Images/control-double-up-icon.png"
+                            runat="server" AlternateText="Move First" OnClick="ImageButton_MoveFirst_Click" />
+                        <asp:ImageButton ID="ImageButton_MovePrevious" ImageUrl="~/Images/control-up-icon.png"
+                            runat="server" AlternateText="Move Previous" OnClick="ImageButton_MovePrevious_Click" />
+                        <asp:ImageButton ID="ImageButton_MoveNext" ImageUrl="~/Images/control-down-icon.png"
+                            runat="server" AlternateText="Move Next" OnClick="ImageButton_MoveNext_Click" />
+                        <asp:ImageButton ID="ImageButton_MoveLast" ImageUrl="~/Images/control-double-down-icon.png"
+                            runat="server" AlternateText="Move Last" OnClick="ImageButton_MoveLast_Click" />
+                        <asp:ImageButton ID="ImageButton_Edit" ImageUrl="~/Images/EditDocument.png" Width="20px"
+                            runat="server" AlternateText="Edit" CommandName="Edit" />
+                    </ItemTemplate>
+                    <EditItemTemplate>
+                        <asp:LinkButton ID="LinkButton_Update" runat="server" CausesValidation="False" CommandName="Update"
+                            Text="Update" CssClass="btnlink"></asp:LinkButton>
+                        <asp:LinkButton ID="LinkButton_Cancel" runat="server" CausesValidation="False" CommandName="Cancel"
+                            Text="Cancel" CssClass="btnlink"></asp:LinkButton>
+                        <br />
+                        <asp:Label ID="Label_AttrEditingMsg" runat="server" Text="" ForeColor="Red" />
+                    </EditItemTemplate>
+                </asp:TemplateField>
+            </Columns>
+        </asp:GridView>
+    </asp:Panel>
+</asp:Content>

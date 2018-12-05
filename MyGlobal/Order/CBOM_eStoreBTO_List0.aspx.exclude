@@ -1,0 +1,32 @@
+﻿<%@ Page Title="" Language="VB" MasterPageFile="~/Includes/MyMaster.master" %>
+
+<script runat="server">
+
+    Protected Sub Page_Load(sender As Object, e As System.EventArgs)
+        If Not IsPostBack Then
+            Dim sql As New StringBuilder
+            sql.AppendLine(" SELECT     Product.StoreID, Product.SProductID, ProductCategory.CategoryName as CategoryName1, ProductCategory_1.CategoryName AS CategoryName2, ")
+            sql.AppendLine(" ProductCategory_2.CategoryName AS CategoryName3, ProductCategory_3.CategoryName AS CategoryName4,case  when ProductCategory_1.CategoryName is null then 1 when ProductCategory_2.CategoryName is null then 2 when ProductCategory_3.CategoryName IS NULL then 3 else 4  end as [level]")
+            sql.AppendLine(" FROM         Product INNER JOIN ")
+            sql.AppendLine("  Parts ON Product.StoreID = Parts.StoreID AND Product.SProductID = Parts.SProductID INNER JOIN ")
+            sql.AppendLine(" Product_Ctos ON Product.StoreID = Product_Ctos.StoreID AND Product.SProductID = Product_Ctos.SProductID INNER JOIN ")
+            sql.AppendLine("  ProductCategroyMapping ON Product.StoreID = ProductCategroyMapping.StoreID AND Product.SProductID = ProductCategroyMapping.SProductID INNER JOIN ")
+            sql.AppendLine(" ProductCategory ON ProductCategroyMapping.StoreID = ProductCategory.Storeid AND ProductCategroyMapping.CategoryID = ProductCategory.CategoryID INNER JOIN ")
+            sql.AppendLine("  ProductCategory AS ProductCategory_1 ON ProductCategory.ParentCategoryID = ProductCategory_1.CategoryID AND ")
+            sql.AppendLine("        ProductCategory.Storeid = ProductCategory_1.Storeid left JOIN ")
+            sql.AppendLine(" ProductCategory AS ProductCategory_2 ON ProductCategory_1.ParentCategoryID = ProductCategory_2.CategoryID AND  ")
+            sql.AppendLine("   ProductCategory_1.Storeid = ProductCategory_2.Storeid left JOIN  ")
+            sql.AppendLine(" ProductCategory AS ProductCategory_3 ON ProductCategory_2.ParentCategoryID = ProductCategory_3.CategoryID AND  ")
+            sql.AppendLine(" ProductCategory_2.Storeid = ProductCategory_3.Storeid ")
+            sql.AppendLine(" where  Product.PublishStatus=1   and   Product.Storeid='aus'    ")
+            sql.AppendLine("  ")
+            sql.AppendLine("  ")
+        End If
+    End Sub
+</script>
+
+<asp:Content ID="Content1" ContentPlaceHolderID="_main" Runat="Server">
+</asp:Content>
+<asp:Content ID="Content2" ContentPlaceHolderID="cph1" Runat="Server">
+</asp:Content>
+

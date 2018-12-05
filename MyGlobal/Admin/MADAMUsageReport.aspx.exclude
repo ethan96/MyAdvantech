@@ -1,0 +1,198 @@
+﻿<%@ Page Title="MyAdvantech - MADAM Your Way Usage Report" Language="VB" MasterPageFile="~/Includes/MyMaster.master" %>
+
+<script runat="server">
+
+    Protected Sub Page_Load(ByVal sender As Object, ByVal e As System.EventArgs)
+        If Not Page.IsPostBack Then
+            'If Request.IsAuthenticated = False OrElse Util.IsInternalUser(Session("user_id")) = False Then
+            '    Response.End() : Exit Sub
+            'End If
+            Dim nextMonthDate As Date = DateAdd(DateInterval.Month, 1, Now)
+            nextMonthDate = New Date(nextMonthDate.Year, nextMonthDate.Month, 1)
+            hd_StatDate.Value = DateAdd(DateInterval.Day, -1, nextMonthDate).ToString("yyyy/MM/dd")
+            DrawChart()
+        End If
+    End Sub
+    
+    Sub DrawChart()
+        Dim months() As String = {"Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"}
+        Dim values() As Double = Nothing
+        Dim labels() As String = Nothing
+        Dim FromDate As Date = CDate(hd_StatDate.Value), ToDate As Date = CDate(hd_StatDate.Value)
+        Select Case dlDateView.SelectedIndex
+            Case 0
+                FromDate = DateAdd(DateInterval.Day, -7, ToDate)
+                values = {0, 0, 0, 0, 0, 0, 0}
+                ReDim labels(7)
+                For i As Integer = 0 To values.Length - 1
+                    labels(i) = DateAdd(DateInterval.Day, i, FromDate).ToString("yyyy/MM/dd")
+                Next
+                Dim dt As DataTable = dbUtil.dbGetDataTable("MY", String.Format( _
+              " select dbo.DateOnly(LOGIN_TIME) as ST, COUNT(SESSIONID) as c from V_MADAM_USER_LOG where LOGIN_TIME between " + _
+              " '{0}' and '{1}' group by dbo.DateOnly(LOGIN_TIME) order by dbo.DateOnly(LOGIN_TIME) ", _
+              FromDate.ToString("yyyy-MM-dd"), ToDate.ToString("yyyy-MM-dd")))
+                For i As Integer = 0 To values.Length - 1
+                    Dim rs() As DataRow = dt.Select("ST='" + DateAdd(DateInterval.Day, i, FromDate).ToString("yyyy-M-d") + "'")
+                    If rs.Length > 0 Then
+                        values(i) = rs(0).Item("c")
+                    End If
+                Next
+                gv2.DataSource = dt : gv2.DataBind()
+            Case 1
+                FromDate = New Date(ToDate.Year, ToDate.Month, 1)
+                ReDim values(DateDiff(DateInterval.Day, FromDate, ToDate))
+                'values = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}
+                ReDim labels(DateDiff(DateInterval.Day, FromDate, ToDate))
+                For i As Integer = 0 To values.Length - 1
+                    values(i) = 0
+                    labels(i) = DateAdd(DateInterval.Day, i, FromDate).ToString("MM/dd")
+                Next
+                Dim dt As DataTable = dbUtil.dbGetDataTable("MY", String.Format( _
+                " select dbo.DateOnly(LOGIN_TIME) as ST, COUNT(SESSIONID) as c from V_MADAM_USER_LOG where LOGIN_TIME between " + _
+                " '{0}' and '{1}' group by dbo.DateOnly(LOGIN_TIME) order by dbo.DateOnly(LOGIN_TIME) ", _
+                FromDate.ToString("yyyy-MM-dd"), ToDate.ToString("yyyy-MM-dd")))
+                For i As Integer = 0 To values.Length - 1
+                    Dim rs() As DataRow = dt.Select("ST='" + DateAdd(DateInterval.Day, i, FromDate).ToString("yyyy-M-d") + "'")
+                    If rs.Length > 0 Then
+                        values(i) = rs(0).Item("c")
+                    End If
+                Next
+                gv2.DataSource = dt : gv2.DataBind()
+            Case 2
+                FromDate = DateAdd(DateInterval.Month, -11, ToDate)
+                values = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}
+                ReDim labels(12)
+                For i As Integer = 0 To values.Length - 1
+                    labels(i) = DateAdd(DateInterval.Month, i, FromDate).ToString("yyyy/MM")
+                Next
+                Dim dt As DataTable = dbUtil.dbGetDataTable("MY", String.Format( _
+                 " select dbo.DateOnly(LOGIN_TIME) as ST, COUNT(SESSIONID) as c from V_MADAM_USER_LOG where LOGIN_TIME between " + _
+                 " '{0}' and '{1}' group by dbo.DateOnly(LOGIN_TIME) order by dbo.DateOnly(LOGIN_TIME) ", _
+                 FromDate.ToString("yyyy-MM-dd"), ToDate.ToString("yyyy-MM-dd")))
+                For i As Integer = 0 To values.Length - 1
+                    Dim rs() As DataRow = dt.Select("ST='" + DateAdd(DateInterval.Month, i, FromDate).Month.ToString() + "'")
+                    If rs.Length > 0 Then
+                        values(i) = rs(0).Item("c")
+                    End If
+                Next
+                gv2.DataSource = dt : gv2.DataBind()
+        End Select
+       
+        Dim c As XYChart = New XYChart(1200, 430, &HFFFFFF, &HC7D5F1)
+        With c
+            .setPlotArea(80, 70, 1100, 320, &HFFFFFF, -1, -1, &HC0C0C0, -1) : .addLegend(35, 20, False, "", 8).setBackground(Chart.Transparent)
+            .addTitle(FromDate.Year.ToString() + " " + months(FromDate.Month - 1) + " MADAM Yourway Usage ", "Arial Bold Italic", 11, &H333333).setBackground(&HECECEC, &HC7D5F1) : .yAxis().setTitle("Visits")
+            .xAxis().setLabels(labels) : .xAxis().setTitle(" ")
+        End With
+        Dim layer As LineLayer = c.addLineLayer2()
+        With layer
+            .setLineWidth(2)
+            .addDataSet(values)
+        End With
+        WebChartViewer1.Image = c.makeWebImage(Chart.PNG) : WebChartViewer1.ImageMap = c.getHTMLImageMap("", "", "title='[{dataSetName}] Month {xLabel}: {value} Account'")
+     
+    End Sub
+    
+    Protected Sub btnNext_Click(ByVal sender As Object, ByVal e As System.EventArgs)
+        Dim curDate As Date = CDate(hd_StatDate.Value)
+        Select Case dlDateView.SelectedIndex
+            Case 0
+                hd_StatDate.Value = DateAdd(DateInterval.Day, 7, curDate).ToString("yyyy/MM/dd")
+            Case 1
+                Dim nextMonthDate As Date = DateAdd(DateInterval.Month, 2, CDate(hd_StatDate.Value))
+                nextMonthDate = New Date(nextMonthDate.Year, nextMonthDate.Month, 1)
+                hd_StatDate.Value = DateAdd(DateInterval.Day, -1, nextMonthDate).ToString("yyyy/MM/dd")
+            Case 2
+                hd_StatDate.Value = DateAdd(DateInterval.Year, 1, curDate).ToString("yyyy/MM/dd")
+        End Select
+        DrawChart()
+    End Sub
+
+    Protected Sub btnPrev_Click(ByVal sender As Object, ByVal e As System.EventArgs)
+        Dim curDate As Date = CDate(hd_StatDate.Value)
+        Select Case dlDateView.SelectedIndex
+            Case 0
+                hd_StatDate.Value = DateAdd(DateInterval.Day, -7, curDate).ToString("yyyy/MM/dd")
+            Case 1
+                Dim nextMonthDate As Date = CDate(hd_StatDate.Value)
+                nextMonthDate = New Date(nextMonthDate.Year, nextMonthDate.Month, 1)
+                hd_StatDate.Value = DateAdd(DateInterval.Day, -1, nextMonthDate).ToString("yyyy/MM/dd")
+            Case 2
+                hd_StatDate.Value = DateAdd(DateInterval.Year, -1, curDate).ToString("yyyy/MM/dd")
+        End Select
+        DrawChart()
+    End Sub
+
+    Protected Sub dlDateView_SelectedIndexChanged(ByVal sender As Object, ByVal e As System.EventArgs)
+        DrawChart()
+    End Sub
+
+    Protected Sub btnXls_Click(ByVal sender As Object, ByVal e As System.Web.UI.ImageClickEventArgs)
+        Dim dt As DataTable = dbUtil.dbGetDataTable("MY", src1.SelectCommand)
+        Util.DataTable2ExcelDownload(dt, "AEUIT_MADAMLog.xls")
+    End Sub
+</script>
+
+<asp:Content ID="Content1" ContentPlaceHolderID="_main" Runat="Server">    
+    <table width="100%">
+        <tr>
+            <td>
+                <table width="1000px">                    
+                    <tr valign="top">
+                        <td>
+                            <asp:UpdatePanel runat="server" ID="upChart" UpdateMode="Conditional">
+                                <ContentTemplate>
+                                    <asp:HiddenField runat="server" ID="hd_StatDate" />
+                                    <chartdir:WebChartViewer runat="server" ID="WebChartViewer1" />
+                                    <asp:GridView runat="server" ID="gv2" Visible="false" />
+                                </ContentTemplate>
+                                <Triggers>
+                                    <asp:AsyncPostBackTrigger ControlID="btnPrev" EventName="Click" />
+                                    <asp:AsyncPostBackTrigger ControlID="btnNext" EventName="Click" />
+                                    <asp:AsyncPostBackTrigger ControlID="dlDateView" EventName="SelectedIndexChanged" />
+                                </Triggers>
+                            </asp:UpdatePanel>                            
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <table width="100%">
+                                <td align="left"><asp:Button runat="server" ID="btnPrev" Text="<" OnClick="btnPrev_Click" /></td>
+                                <td align="center" style="display:none">
+                                    <asp:DropDownList runat="server" ID="dlDateView" OnSelectedIndexChanged="dlDateView_SelectedIndexChanged" AutoPostBack="true">
+                                        <asp:ListItem Text="Week"  />
+                                        <asp:ListItem Text="Month" Selected="True" />  
+                                        <asp:ListItem Text="Year" />                                      
+                                    </asp:DropDownList>
+                                </td>
+                                <td align="right"><asp:Button runat="server" ID="btnNext" Text=">" OnClick="btnNext_Click" /></td>
+                            </table>
+                        </td>
+                    </tr>
+                </table>                
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <asp:UpdatePanel runat="server" ID="up1" UpdateMode="Conditional">
+                    <ContentTemplate>
+                        <asp:ImageButton runat="server" ID="btnXls" ImageUrl="~/Images/excel.gif" AlternateText="Download" OnClick="btnXls_Click" />
+                        <asp:GridView runat="server" ID="gv1" AutoGenerateColumns="false" AllowPaging="true" AllowSorting="true" Width="1200px" 
+                            DataSourceID="src1" PageSize="100" PagerSettings-Position="TopAndBottom">
+                            <Columns>
+                                <asp:BoundField HeaderText="Access Time" DataField="LOGIN_TIME" SortExpression="LOGIN_TIME" ItemStyle-HorizontalAlign="Center" />
+                                <asp:BoundField HeaderText="User Id" DataField="USERID" SortExpression="USERID" />
+                                <asp:BoundField HeaderText="Stayed Duration (Min.)" DataField="STAY_MINUTES" SortExpression="STAY_MINUTES" ItemStyle-HorizontalAlign="Center" />                                
+                            </Columns>
+                        </asp:GridView>
+                        <asp:SqlDataSource runat="server" ID="src1" ConnectionString="<%$ConnectionStrings:MY %>" 
+                            SelectCommand="SELECT top 10000 USERID, LOGIN_TIME, LOGOUT_TIME, STAY_MINUTES FROM V_MADAM_USER_LOG order by LOGIN_TIME desc" />
+                    </ContentTemplate>
+                    <Triggers>
+                        <asp:PostBackTrigger ControlID="btnXls" />
+                    </Triggers>
+                </asp:UpdatePanel>
+            </td>
+        </tr>
+    </table>
+</asp:Content>

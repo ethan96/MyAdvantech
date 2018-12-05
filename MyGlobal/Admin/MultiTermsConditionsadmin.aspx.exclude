@@ -1,0 +1,93 @@
+﻿<%@ Page Title="" Language="VB" ValidateRequest="false" MasterPageFile="~/Includes/MyMaster.master" %>
+
+<%@ Import Namespace="System.Data.SqlClient" %>
+
+<%@ Import Namespace="System.IO" %>
+
+<script runat="server">
+   
+    Protected Sub tj_Click(ByVal sender As Object, ByVal e As System.EventArgs)
+        If TBrow_id.Text = "" Then
+           ' Response.Write("chu  cuo")
+            Exit Sub
+        End If
+        Dim sqlConn As New SqlConnection(ConfigurationManager.ConnectionStrings("MY").ConnectionString)
+        Dim sqlComm As New SqlCommand("update Terms_Conditions set  File_Data =@File_Data where row_id = '" + TBrow_id.Text.Trim + "'", sqlConn)
+        sqlComm.Parameters.Add("@File_Data", SqlDbType.NText) '添加参数
+        sqlComm.Parameters("@File_Data").Value = file_data.Content.Trim.Replace("'", "''") '为参数赋值
+        sqlConn.Open()
+        sqlComm.ExecuteNonQuery()
+        sqlConn.Close()
+    End Sub
+    Protected Sub gv1_RowUpdating(ByVal sender As Object, ByVal e As System.Web.UI.WebControls.GridViewUpdateEventArgs)
+
+    End Sub
+    Protected Sub gv1_RowDataBound(ByVal sender As Object, ByVal e As System.Web.UI.WebControls.GridViewRowEventArgs)
+        If e.Row.RowType = DataControlRowType.DataRow Then
+            e.Row.Attributes.Add("onmouseover", "currentcolor=this.style.backgroundColor;this.style.backgroundColor='#FFEEAA'")
+            e.Row.Attributes.Add("onmouseout", "this.style.backgroundColor=currentcolor")
+            e.Row.Cells(11).Text = "<a  href='./MultiTermsConditionsadmin.aspx?row_id=" & e.Row.Cells(1).Text & "'>" & "Update(File_Data)" & "</a>"
+            'If Not IsDBNull(e.Row.DataItem("File_image")) Then
+            '    e.Row.Cells(11).Text = System.Text.Encoding.Unicode.GetString(CType(e.Row.DataItem("File_image"), Byte())).ToString 
+            'End If           
+        End If
+    End Sub
+
+  
+    Protected Sub Page_Load(ByVal sender As Object, ByVal e As System.EventArgs)
+        If Not IsPostBack Then
+            If Request("row_id") IsNot Nothing AndAlso Request("row_id").ToString.Trim <> "" Then
+                Dim sql As String = "select * from Terms_Conditions where row_id ='" + Request("row_id").ToString.Trim + "'"
+                Dim dt As DataTable = dbUtil.dbGetDataTable("my", sql)
+                If dt.Rows.Count > 0 Then
+                    TBrow_id.Text = dt.Rows(0).Item("Row_ID").ToString.Trim
+                    If Not IsDBNull(dt.Rows(0).Item("File_Data")) Then
+                        file_data.Content = dt.Rows(0).Item("File_Data").ToString.Trim
+                    End If
+                  
+                End If
+            End If
+        End If
+    End Sub
+</script>
+
+<asp:Content ID="Content1" ContentPlaceHolderID="_main" Runat="Server">
+  <asp:GridView runat="server" ID="gv1" AutoGenerateColumns="false" AllowPaging="false" AllowSorting="false" 
+                DataSourceID="src1" DataKeyNames="ROW_ID" OnRowUpdating="gv1_RowUpdating" Width="95%" OnRowDataBound="gv1_RowDataBound">
+                <Columns>
+                    <asp:CommandField ShowEditButton="true" EditText="Edit" ShowCancelButton="true" CancelText="Cancel" ShowDeleteButton="false" />
+                    <asp:BoundField HeaderText="Row_ID" DataField="Row_ID" ReadOnly="true" SortExpression="Row_ID" />
+                    <asp:BoundField HeaderText="ORG" DataField="ORG" SortExpression="ORG" />
+                    <asp:BoundField HeaderText="Language" DataField="Language" SortExpression="Language" />
+                    <asp:BoundField HeaderText="Img_Url" DataField="Img_Url" SortExpression="Img_Url" />
+                    <asp:BoundField HeaderText="Pdf_url" DataField="Pdf_url" SortExpression="Pdf_url" />
+                    <asp:BoundField HeaderText="File_Data" DataField="File_Data" ReadOnly="true" SortExpression="File_Data" />
+                    <asp:BoundField HeaderText="IsDefault" DataField="IsDefault" SortExpression="IsDefault" />
+                    <asp:BoundField HeaderText="Order by" DataField="IsAvailable" SortExpression="IsAvailable" />
+                    <asp:BoundField HeaderText="LAST_UPD_BY" DataField="LAST_UPD_BY" SortExpression="LAST_UPD_BY"  Visible="false"/>
+                    <asp:BoundField HeaderText="LAST_UPD_DATE" DataField="LAST_UPD_DATE" SortExpression="LAST_UPD_DATE"  Visible="false"/>
+                    <asp:BoundField HeaderText="" DataField="LAST_UPD_DATE" SortExpression="LAST_UPD_DATE" />
+                     <%--  <asp:TemplateField HeaderText="">
+                        <ItemTemplate>                                                   
+                        </ItemTemplate>
+                     </asp:TemplateField>--%>
+                </Columns>
+            </asp:GridView>
+            <asp:SqlDataSource runat="server" ID="src1" ConnectionString="<%$ConnectionStrings:MY %>" 
+                SelectCommand="SELECT [Row_ID],[ORG],[Language],[Img_Url] ,[Pdf_url] ,substring(File_Data,1,10) as [File_Data]  ,[IsDefault] ,[IsAvailable] ,LAST_UPD_BY, LAST_UPD_DATE FROM Terms_Conditions order by ORG"
+                UpdateCommand="UPDATE Terms_Conditions SET ORG = @ORG, Language = @Language, Img_Url = @Img_Url,Pdf_url = @Pdf_url, IsDefault = @IsDefault,IsAvailable = @IsAvailable, LAST_UPD_DATE = GETDATE(), LAST_UPD_BY = @UID where row_id=@ROW_ID">
+                <UpdateParameters>
+                    <asp:SessionParameter ConvertEmptyStringToNull="false" SessionField="user_id" Name="UID" />
+                </UpdateParameters>
+            </asp:SqlDataSource> 
+            <hr />
+    <asp:TextBox ID="TBrow_id" runat="server"></asp:TextBox>
+
+        <ajaxToolkit:Editor runat="server" ID="file_data" Width="800px" Height="350px" />
+
+<asp:Button runat="server" ID="tj" Text="Update" OnClick="tj_Click" />
+
+</asp:Content>
+
+
+

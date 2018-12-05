@@ -1,0 +1,112 @@
+﻿<%@ Page Title="" Language="VB" MasterPageFile="~/Includes/MyMaster.master" %>
+
+<script runat="server">
+    Sub Paging()
+        Dim dt As DataTable = dbUtil.dbGetDataTable("MYLOCAL", "SELECT top 1000 ROW_ID,SRC_VALUE,IP,REFERRER,TIMESTAMP FROM [MADAM_LOGIN] ORDER BY [TIMESTAMP] DESC")
+        Dim objPds As PagedDataSource = New PagedDataSource
+        objPds.DataSource = dt.DefaultView
+        objPds.AllowPaging = True
+        objPds.PageSize = 20
+
+        Dim CurPage As Integer
+
+        If Not (Request.QueryString("Page") Is Nothing) Then
+            CurPage = Convert.ToInt32(Request.QueryString("Page"))
+        Else
+            CurPage = 1
+        End If
+
+        objPds.CurrentPageIndex = CurPage - 1
+        Dim Page_Area As Int32 = CurPage \ (10 + 1)
+      
+    
+        Dim Page_Area_FirstNum As Int32 = Page_Area * 10 + 1
+        
+        '-----------------------------Pre Bt
+        If Page_Area_FirstNum > 10 Then
+            Dim PageHLinkNext As New HyperLink
+            PageHLinkNext.Text = " << "
+            Dim PageLit As New Literal
+            ' PageLit.Text = " | "
+            PageLit.Text = "  "
+            PageHLinkNext.NavigateUrl = Request.CurrentExecutionFilePath + "?Page=" + Convert.ToString(Page_Area_FirstNum - 1)
+            PH1.Controls.Add(PageHLinkNext) : PH1.Controls.Add(PageLit)
+            ' Exit Do
+        End If
+        '-----------------------------    
+        Dim i As Integer = Page_Area_FirstNum
+        If CurPage = 10 Then
+        End If
+        Do While i <= Page_Area_FirstNum + 9
+            If i <= objPds.PageCount Then
+                '-----------------------------          
+                Dim PageHLink As New HyperLink
+                PageHLink.Text = Convert.ToString(i)
+                PageHLink.NavigateUrl = Request.CurrentExecutionFilePath + "?Page=" + Convert.ToString(i)
+                If CurPage = i Then
+                    'PageHLink.Enabled = False
+                    PageHLink.ForeColor = Drawing.Color.Red
+                End If
+                Dim PageLit As New Literal
+                ' PageLit.Text = " | "
+                PageLit.Text = "  "
+                PH1.Controls.Add(PageHLink) : PH1.Controls.Add(PageLit)
+                'End If
+                '-----------------------------                                  
+                If i = Page_Area_FirstNum + 9 Then
+                    Exit Do
+                End If
+                i = i + 1
+            Else
+                Exit Do
+            End If
+        Loop
+        
+        '-----------------------------Next BT
+        If (Page_Area_FirstNum + 9) < objPds.PageCount Then
+            Dim PageHLinkNext As New HyperLink
+            PageHLinkNext.Text = " >> "
+            PageHLinkNext.NavigateUrl = Request.CurrentExecutionFilePath + "?Page=" + Convert.ToString(i + 1)
+            PH1.Controls.Add(PageHLinkNext)
+            ' Exit Do
+        End If
+        '-----------------------------     
+        '----------------------------------------------------------------------------------------------------------------------------
+        
+        If Not objPds.IsFirstPage Then
+            lnkPrev.HRef = Request.CurrentExecutionFilePath + "?Page=" + Convert.ToString(CurPage - 1)
+        Else
+            lnkPrev.HRef = ""
+        End If
+
+        If Not objPds.IsLastPage Then
+            lnkNext.HRef = Request.CurrentExecutionFilePath + "?Page=" + Convert.ToString(CurPage + 1)
+        Else
+            lnkNext.HRef = ""
+        End If
+        gv1.DataSource = objPds : gv1.DataBind()
+    End Sub
+    Protected Sub Page_Load(ByVal sender As Object, ByVal e As System.EventArgs)
+    Paging()
+    End Sub
+</script>
+
+<asp:Content ID="Content1" ContentPlaceHolderID="_main" Runat="Server">
+   <asp:GridView runat="server" ID="gv1" Width="900px" AutoGenerateColumns="false" DataKeyNames="ROW_ID">
+        <Columns>
+            <asp:BoundField HeaderText="SRC" DataField="SRC_VALUE" SortExpression="SRC_VALUE"  HeaderStyle-HorizontalAlign="Center"/>
+            <asp:BoundField HeaderText="IP" DataField="IP" SortExpression="IP"  HeaderStyle-HorizontalAlign="Center"/>
+            <asp:BoundField HeaderText="REFERRER" DataField="REFERRER" SortExpression="REFERRER" HeaderStyle-HorizontalAlign="Center"/>
+            <asp:BoundField HeaderText="TIME" DataField="TIMESTAMP" SortExpression="TIMESTAMP" HeaderStyle-HorizontalAlign="Center" />                   
+        </Columns>
+   </asp:GridView>
+        <a runat="server" id="lnkPrev">
+             Previous 
+         </a>　
+        <asp:PlaceHolder  ID="PH1" runat="server"></asp:PlaceHolder>
+        <a runat="server" id="lnkNext" >
+            Next
+        </a>
+</asp:Content>
+
+

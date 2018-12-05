@@ -1,0 +1,178 @@
+﻿<%@ Page Title="Request low GP approval Form" Language="VB" MasterPageFile="~/Includes/MyMaster.master" %>
+
+<script runat="server">
+    Dim mycart As New CartList("b2b", "cart_detail")
+    Dim myCartHistory As New cart_history("b2b", "cart_history")
+    Dim CartId As String = ""
+    Protected Sub Page_Load(ByVal sender As Object, ByVal e As System.EventArgs)
+        CartId = Session("cart_id")
+        If Request.ServerVariables("SERVER_PORT").ToString() <> "80" Then Me.txtSeverName.Visible = True
+        'If Session("Org_id") = "EU10" Then
+        '    GPControl()
+        'Else
+        '    Response.Redirect("~/Order/OrderInfo.aspx?ISESE=" & Request("ISESE") & "&ERE=" & Request("ERE") & "&EC=" & Request("EC") & "&PAR1=" & Request("PAR1"))
+        'End If
+    End Sub
+    'Protected Function GPControl() As Integer
+    '    If mycart.CheckCartGPByCartId(CartId) = True Then
+    '        '
+    '    Else
+    '        Response.Redirect("~/Order/OrderInfo.aspx")
+    '    End If
+    '    Return 1
+    'End Function
+    
+    '/GP
+    Protected Sub btnConfirm_Click(ByVal sender As Object, ByVal e As System.EventArgs)
+        If Me.txtCartName.Text.Trim = "" Then
+            Glob.ShowInfo("Please input the Cart Name!")
+            Exit Sub
+        End If
+        Dim ws As New quote.quoteExit
+        ws.Timeout = -1
+        Dim detail As New List(Of quote.struct_Quote_Detail)
+        Dim dt As DataTable = mycart.GetDT(String.Format("Cart_id='{0}'", CartId), "line_no")
+        If dt.Rows.Count <= 0 Then
+            Response.Redirect("~/Order/Cart_list.aspx")
+        End If
+        
+        For Each x As DataRow In dt.Rows
+            Dim Detail_Line As New quote.struct_Quote_Detail
+            Detail_Line.quoteId = ""
+            Detail_Line.lineNo = x.Item("line_no")
+            Detail_Line.partNo = x.Item("Part_No")
+            Detail_Line.description = x.Item("Description")
+            Detail_Line.qty = x.Item("Qty")
+            Detail_Line.listPrice = x.Item("List_Price")
+            Detail_Line.unitPrice = x.Item("oUnit_Price")
+            Detail_Line.newUnitPrice = x.Item("Unit_Price")
+            Detail_Line.itp = x.Item("Itp")
+            Detail_Line.newItp = x.Item("Itp")
+            Detail_Line.deliveryPlant = x.Item("Delivery_Plant")
+            Detail_Line.category = x.Item("Category")
+            Detail_Line.classABC = x.Item("class")
+            Detail_Line.rohs = x.Item("rohs")
+            Detail_Line.ewFlag = x.Item("Ew_Flag")
+            Detail_Line.reqDate = x.Item("req_date")
+            Detail_Line.dueDate = x.Item("due_date")
+            Detail_Line.satisfyFlag = x.Item("SatisfyFlag")
+            Detail_Line.canBeConfirmed = x.Item("CanbeConfirmed")
+            Detail_Line.custMaterial = x.Item("CustMaterial")
+            Detail_Line.inventory = x.Item("inventory")
+            Detail_Line.oType = x.Item("otype")
+            Detail_Line.modelNo = x.Item("Model_No")
+            Detail_Line.SPRNO = ""
+            detail.Add(Detail_Line)
+        Next
+        Dim isRptOrder As Integer = 0
+        If chxIsRepOrder.Checked = True Then
+            isRptOrder = 1
+        End If
+        
+        Dim quoteId As String = ws.toQuotation(Session("company_id"), Session("user_id"), Util.ReplaceSQLStringFunc(Me.txtCartName.Text.Trim), Util.ReplaceSQLStringFunc(Me.txtReason.Text.Trim), isRptOrder, Session("org_Id"), detail.ToArray)
+        If quoteId <> "" Then
+            Dim RURL As String = HttpContext.Current.Server.UrlEncode(String.Format("/quote/Quotation2Siebel.aspx?UID={0}", quoteId))
+            Dim strS As String = "eq.advantech.com"
+            If Me.txtSeverName.Visible = True Then strS = Me.txtSeverName.Text.Trim
+            Response.Redirect(String.Format("http://" & strS & "/SSOENTER.ASPX?ID={0}&USER={1}&RURL={2}", Session("TempId"), Session("User_Id"), RURL))
+        End If
+    End Sub
+
+    Protected Sub btnCancel_Click(ByVal sender As Object, ByVal e As System.EventArgs)
+        Response.Redirect("~/Order/Cart_list.aspx")
+    End Sub
+
+    Protected Sub GridView1_RowDataBound(ByVal sender As Object, ByVal e As System.Web.UI.WebControls.GridViewRowEventArgs)
+        If e.Row.RowType = DataControlRowType.DataRow Then
+            Dim GP As Decimal = 0
+            Dim Discount As Decimal = 0.0
+            If Double.TryParse(e.Row.Cells(4).Text.Trim, 0) Then
+                GP = Double.Parse(e.Row.Cells(4).Text)
+            End If
+            Discount = FormatNumber(GP, 2)
+            e.Row.Cells(4).Text = Discount * 100 & "%"
+        End If
+    End Sub
+</script>
+<asp:Content ID="Content1" ContentPlaceHolderID="_main" runat="Server">
+    <center>
+    <br />
+    <br />
+    <div id="divComment" style="width:90%; text-align:left">This order has low GP and must be approved in eQuotation before checkout.<br />
+Please fill in reason of low GP then click confirm button to initiate eFlowER GP control flow, or click cancel to go back to shopping cart.
+ </div>
+        <br />
+        <br />
+        <table>
+            <tr>
+                <td valign="top" align="left">
+                    Cart Name:
+                </td>
+                <td align="left">
+                    <asp:TextBox runat="server" ID="txtCartName" ></asp:TextBox>
+                </td>
+            </tr>
+            <tr>
+                <td valign="top" align="left">
+                    Reason of Below GP:
+                </td>
+                <td align="left">
+                    <asp:TextBox runat="server" ID="txtReason"  TextMode="MultiLine" Width="300"
+                        Height="100"></asp:TextBox>
+                </td>
+            </tr>
+        </table>
+        <table>
+            <tr>
+                <td align="center">
+               <asp:CheckBox ID="chxIsRepOrder" runat="server" Text=" Repeated Order? " />
+                    <asp:Button runat="server" Text="Confirm" ID="btnConfirm" OnClick="btnConfirm_Click" />
+                    |
+                    <asp:Button runat="server" Text="Cancel" ID="btnCancel" OnClick="btnCancel_Click" />
+                    <asp:TextBox runat="server" ID="txtSeverName" Visible="false"></asp:TextBox>
+                </td>
+            </tr>
+        </table>
+         <table align="center"  style="width:50%">
+            <tr>
+                <td align="center">
+                    <asp:GridView ID="GridView1" AutoGenerateColumns="false"  runat="server" Visible="false" OnRowDataBound="GridView1_RowDataBound" Width="90%">
+                        <Columns>
+                            <asp:BoundField DataField="line_No" HeaderText="Line No" ItemStyle-HorizontalAlign="center" />
+                            <asp:BoundField DataField="Part_No" HeaderText="Part No" ItemStyle-HorizontalAlign="Left" />                            
+                            <asp:TemplateField ItemStyle-HorizontalAlign="right" HeaderStyle-HorizontalAlign="Center">
+                                <HeaderTemplate>
+                                    Unit Price
+                                </HeaderTemplate>
+                                <ItemTemplate>
+                                    <asp:Label runat="server" Text='<%# Session("company_currency_sign")%>' ID="lbListPriceSign"></asp:Label>
+                                    <asp:Label runat="server" Text='<%#FormatNumber(Eval("Unit_Price"),2) %>' ID="lbListPrice"></asp:Label>
+                                </ItemTemplate>
+                           </asp:TemplateField>
+                            <asp:TemplateField ItemStyle-HorizontalAlign="right" HeaderStyle-HorizontalAlign="Center">
+                                <HeaderTemplate>
+                                    Qty
+                                </HeaderTemplate>
+                                <ItemTemplate>
+                                    <asp:Label runat="server" Text='<%#FormatNumber(Eval("Qty"),2) %>' ID="lbListPrice"></asp:Label>
+                                </ItemTemplate>
+                           </asp:TemplateField>
+                           <asp:TemplateField ItemStyle-HorizontalAlign="right" HeaderStyle-HorizontalAlign="Center">
+                                <HeaderTemplate>
+                                    ITP
+                                </HeaderTemplate>
+                                <ItemTemplate>
+                                    <asp:Label runat="server" Text='<%# Session("company_currency_sign")%>' ID="lbListPriceSign"></asp:Label>
+                                    <asp:Label runat="server" Text='<%#FormatNumber(Eval("ITP"),2) %>' ID="lbListPrice"></asp:Label>
+                                </ItemTemplate>
+                           </asp:TemplateField>
+                           <asp:BoundField DataField="gp" HeaderText="GP%" ItemStyle-HorizontalAlign="Right" />
+                        </Columns>
+                    </asp:GridView>
+                </td>
+            </tr>
+        </table>
+    </center>
+</asp:Content>
+<asp:Content ID="Content2" ContentPlaceHolderID="cph1" runat="Server">
+</asp:Content>

@@ -1,0 +1,124 @@
+﻿.gdtotal
+{
+    font-size: 12px;
+    border: solid 1px #468ebe;
+    line-height: 22px;
+}
+
+
+.gdtotal td
+{
+    border-bottom: dashed 1px #d1e2f3;
+}
+
+.HeaderStyle
+{
+    background: url(images/head_bg.jpg);
+    background-repeat: repeat-x;
+    height: 25px;
+    border: solid 1px #468ebe;
+    color: White;
+    font-size: 12px;
+    font-weight: bold;
+    text-align: center;
+}
+
+
+
+.RowStyle
+{
+    font-size: 12px;
+    height: 24px;
+    line-height: 22px;
+    text-align: left;
+}
+
+.PageStyle
+{
+    padding-right: 3px;
+    padding-left: 3px;
+    padding-bottom: 3px;
+    margin: 3px;
+    padding-top: 3px;
+    text-align: left;
+}
+.PageStyle A
+{
+    border-right: #9aafe5 1px solid;
+    padding-right: 5px;
+    border-top: #9aafe5 1px solid;
+    padding-left: 5px;
+    padding-bottom: 2px;
+    border-left: #9aafe5 1px solid;
+    color: #2e6ab1;
+    margin-right: 2px;
+    padding-top: 2px;
+    border-bottom: #9aafe5 1px solid;
+    text-decoration: none;
+}
+.PageStyle A:hover
+{
+    border-right: #2b66a5 1px solid;
+    border-top: #2b66a5 1px solid;
+    border-left: #2b66a5 1px solid;
+    color: #000;
+    border-bottom: #2b66a5 1px solid;
+    background-color: lightyellow;
+}
+DIV.pagination A:active
+{
+    border-right: #2b66a5 1px solid;
+    border-top: #2b66a5 1px solid;
+    border-left: #2b66a5 1px solid;
+    color: #000;
+    border-bottom: #2b66a5 1px solid;
+    background-color: lightyellow;
+}
+.PageStyle span
+{
+    border-right: navy 1px solid;
+    padding-right: 5px;
+    border-top: navy 1px solid;
+    padding-left: 5px;
+    font-weight: bold;
+    padding-bottom: 2px;
+    border-left: navy 1px solid;
+    color: #fff;
+    margin-right: 2px;
+    padding-top: 2px;
+    border-bottom: navy 1px solid;
+    background-color: #2e6ab1;
+}
+
+.PageStyle td
+{border-style:none;}
+
+
+.FixedTitleRow   
+{   
+    position: relative;    
+    table-layout:fixed;
+    top: expression(this.offsetParent.scrollTop-2);
+    background-color:White;
+    z-index: 10;   
+}   
+
+.FixedTitleRow th
+{
+    text-overflow:ellipsis;
+    overflow:hidden;
+    white-space: nowrap;
+    padding:2px;
+}
+   
+.FixedTitleColumn   
+{   
+    position: relative;    
+    left: expression(this.parentElement.offsetParent.scrollLeft-2);   
+}   
+   
+.FixedDataColumn   
+{   
+    position: relative;   
+    left: expression(this.parentElement.offsetParent.offsetParent.scrollLeft-2);   
+} 

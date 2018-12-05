@@ -1,0 +1,159 @@
+﻿<%@ Page Title="MyAdvantech - CBOM List" ValidateRequest="false" Language="VB" MasterPageFile="~/Includes/MyMaster.master" %>
+
+<script runat="server">
+    Dim CATEGORY3_title As String = "", CATEGORY2_title As String = ""
+    Protected Sub Page_Load(ByVal sender As Object, ByVal e As System.EventArgs)
+        If Session("org_id") Is Nothing OrElse Session("org_id").ToString <> "US01" Then
+            Response.End()
+        End If
+        If Request("CATEGORY2") IsNot Nothing AndAlso Request("CATEGORY3") IsNot Nothing Then
+            SqlDataSource1.SelectCommand = "SELECT distinct CATEGORY1,'" + Request("CATEGORY2").ToString.Trim + "' as CATEGORY2,'" + Request("CATEGORY3").ToString.Trim + "' as CATEGORY3 from ESTORE_BTOS where CATEGORY2='" + Request("CATEGORY2").ToString.Trim + "' AND CATEGORY3='" + Request("CATEGORY3").ToString.Trim + "' and storeid='AUS'"
+            CATEGORY3_title = Request("CATEGORY3").ToString.Trim
+            CATEGORY2_title = Request("CATEGORY2").ToString.Trim
+        End If
+    End Sub
+    Protected Function GetData(ByVal obj As Object) As DataTable
+        Dim sql As String = "SELECT  distinct top 2 * from ESTORE_BTOS where CATEGORY2='" + Request("CATEGORY2").ToString.Trim + "' AND CATEGORY3='" + Request("CATEGORY3").ToString.Trim + "'  AND CATEGORY1='" + obj.ToString() + "' and storeid='AUS'"
+        Dim dt As DataTable = dbUtil.dbGetDataTable("MY", sql)
+        Return dt
+    End Function
+    Protected Function GetURL(ByVal obj As Object) As String
+        If obj Is Nothing Then Return ""
+        Dim Url As String = HttpUtility.UrlEncode(obj.ToString.Trim)
+        Return Url
+    End Function
+    Protected Sub Button1_Click(ByVal sender As Object, ByVal e As System.EventArgs)
+        'Dim item As RepeaterItem = CType(CType(sender, Button).NamingContainer, RepeaterItem)
+        'Dim i As Integer = item.ItemIndex
+        Dim partno As String = CType(sender, Button).CommandArgument
+        ' Dim DISPLAYPARTNO As DataRowView = CType(item.DataItem, DataRowView)
+        Response.Redirect("./Configurator.aspx?BTOITEM=" + partno + "&QTY=1")
+    End Sub
+</script>
+<asp:Content ID="Content1" ContentPlaceHolderID="_main" runat="Server">
+    <style type="text/css">
+        .eStoreList
+        {
+            padding: 5px 5px 5px 15px;
+            list-style-image: url(../IMAGES/arrow_black2.jpg);
+            vertical-align: top;
+        }
+        .dotlinemidial
+        {
+            width: 30px;
+            background-image: url(../IMAGES/DOTLINE_Mid.gif);
+            background-repeat: repeat-y;
+        }
+        .viewConfigbutton
+        {
+            background: url(../IMAGES/Complete196.gif) left top;
+            background-repeat: no-repeat;
+            display: inline-block;
+            font-weight: bold;
+            line-height: 22px;
+            text-decoration: none;
+            float: left;
+            padding: 0px 0px 0px 15px;
+            cursor: pointer;
+            white-space: nowrap;
+        }
+        .viewConfigbutton span
+        {
+            background: url(../IMAGES/Complete196.gif) right top;
+            background-repeat: no-repeat;
+            float: left;
+            padding: 0px 25px 0px 0px;
+            display: inline-block;
+        }
+        .Pimg
+        {
+            max-width: 70px;
+            max-height: 70px;
+            display: block;
+        }
+        .tdb
+        {
+            border-bottom-width: 1px;
+            border-bottom-style: dotted;
+            border-bottom-color: #999;
+        }
+    </style>
+    <table width="100%" border="0" align="center">
+        <tr>
+            <td>
+                <h3>
+                    <img src="../images/title-dot.gif" width="25" height="17" /><a href="./CBOM_eStoreBTO_List1.aspx">
+                        <%= CATEGORY3_title%></a> >>
+                    <%= CATEGORY2_title%></h3>
+            </td>
+        </tr>
+        <tr>
+            <td height="2">
+            </td>
+        </tr>
+        <tr>
+            <td valign="top">
+                <table width="100%" border="0" align="center" cellpadding="0" cellspacing="0" bgcolor="#CCCCCC"
+                    style="vertical-align: top;">
+                    <tr>
+                        <td bgcolor="#FFFFFF" valign="top">
+                            <asp:DataList ID="DataList1" runat="server" RepeatColumns="3" DataSourceID="SqlDataSource1"
+                                Width="100%" RepeatDirection="Horizontal" ItemStyle-Width="33.3%" ItemStyle-HorizontalAlign="Center"
+                                ItemStyle-VerticalAlign="Top" CellPadding="0" RepeatLayout="Table" CaptionAlign="Top">
+                                <ItemTemplate>
+                                    <table border="0" align="center" cellpadding="0" cellspacing="0" height="250">
+                                        <tr>
+                                            <td colspan="2" height="12">
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td width="230px" valign="top" height="25" >
+                                                <div style="overflow: hidden;height:31px;"><img src="../images/arrow_01.jpg" alt="" />
+                                                <b style="color: tomato;">
+                                                    <%# Eval("CATEGORY1")%></b></div>
+                                            </td>
+                                            <td rowspan="3" class="dotlinemidial">
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td valign="top">
+                                                <table width="100%" border="0" cellpadding="0" cellspacing="0" height="194">
+                                                    <asp:Repeater ID="Repeater1" runat="server" DataSource='<%# GetData(Eval("CATEGORY1")) %>'>
+                                                        <ItemTemplate>
+                                                            <tr>
+                                                                <td class="tdb">
+                                                                    <img alt="" class="Pimg" src="<%# Eval("ImageURL") %>" />
+                                                                    <%# Eval("DISPLAYPARTNO") %>
+                                                                </td>
+                                                                <td align="center" class="tdb">
+                                                                    <asp:Button ID="Button1" runat="server" Text="Customize it" OnClick="Button1_Click"
+                                                                        CommandArgument='<%# Eval("DISPLAYPARTNO")  %>' />
+                                                                </td>
+                                                            </tr>
+                                                            <tr>
+                                                                <td colspan="2" height="8">
+                                                                </td>
+                                                            </tr>
+                                                        </ItemTemplate>
+                                                    </asp:Repeater>
+                                                </table>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td valign="bottom">
+                                                <a href="./CBOM_eStoreBTO_List5.aspx?CATEGORY1=<%# GetURL(Eval("CATEGORY1"))%>&CATEGORY2=<%# Eval("CATEGORY2")%>&CATEGORY3=<%# Eval("CATEGORY3")%>"
+                                                    class="viewConfigbutton"><span>View More Complete Selection Now</span></a>
+                                            </td>
+                                        </tr>
+                                    </table>
+                                </ItemTemplate>
+                            </asp:DataList>
+                            <asp:SqlDataSource ID="SqlDataSource1" runat="server" ConnectionString="<%$ ConnectionStrings:MY %>">
+                            </asp:SqlDataSource>
+                        </td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+    </table>
+</asp:Content>

@@ -1,0 +1,148 @@
+@charset "utf-8";
+/* CSS Document */
+
+.rightcontant3{
+	width:100%;
+	height:100%;
+	border-style:solid;
+	border-color:#d7d0d0;
+	border-top-width:1px;
+	border-left-width:1px;
+	border-right-width:1px;
+	border-bottom-width:1px;
+
+}
+
+.root {
+   padding-left:2px;
+   color:#8c8c8c;
+   font-size:11px;
+}
+
+.root a{
+   text-decoration: none;
+}
+
+.root a:hover{
+    text-decoration:underline;
+	}
+
+
+.h5{
+	font-family:Arial, Helvetica, sans-serif;
+	font-size:12px;
+	color:#333333;
+	font-weight:bold;
+	}
+.date_word{
+font-size:10px;
+color:#999999;
+}
+
+
+#Third_table{
+    width:890px; 
+	height:300px;
+	overflow:auto;
+	border: 1px solid #ccc;
+	font-size:10px;
+}
+
+#Third_table thead tr th {
+    background:#dcdcdc;
+	padding:.2em;
+	text-align: center;
+	color: #311e90;
+	font-weight: bold;
+	border-right:#ccc .1em solid;
+}
+
+#Third_table tbody tr.odd1 td{
+	border-bottom:#ccc .1em solid;
+    text-align: center;
+	background: #fff;
+	color: #333;
+	height: 3em;
+	border-right:#ccc .1em solid;
+}
+
+#Third_table tbody tr.odd2 td{
+    text-align: center;
+	background: #ebebeb;
+	color: #333;
+	height: 3em;
+	border-bottom:#ccc .1em solid;
+	border-right:#ccc .1em solid;
+}
+
+
+#datalog_table{
+    width:707px; 
+	height:auto;
+	overflow:auto;
+	border: 1px solid #ccc;
+	font-size:10px;
+	line-height:14px;
+}
+
+#datalog_table thead tr th {
+    background:#dcdcdc;
+	padding:.2em;
+	text-align: center;
+	color: #311e90;
+	font-weight: bold;
+	border-right:#ccc .1em solid;
+}
+
+#datalog_table tbody tr.odd1 td{
+	border-bottom:#ccc .1em solid;
+    text-align: center;
+	background: #fff;
+	color: #333;
+	height: 4em;
+	border-right:#ccc .1em solid;
+}
+
+#datalog_table tbody tr.odd2 td{
+    text-align: center;
+	background: #ebebeb;
+	color: #333;
+	height: 4em;
+	border-bottom:#ccc .1em solid;
+	border-right:#ccc .1em solid;
+}
+.menu_title11{
+ color:#004181;
+ font-weight:bold;
+ font-size:12px;
+ padding-left:16px;
+}
+.projecttitle
+{
+    font-weight: bolder;
+    font-size: medium;
+    padding-top: 8px;
+    padding-bottom: 8px;
+    text-align: left;
+}
+.btwidth{
+ width:90px;
+}
+.Tnowrap
+{
+white-space:nowrap;
+}
+#biuuu_button
+{
+    border: 2px solid #0066CC;
+    padding: 2px 15px 2px 15px;
+    float: right;
+    background-color: #DBDAD7;
+    color: #003399;
+    text-align: center;
+    vertical-align: middle;
+    line-height: 20px;
+    font-weight: bold;
+    cursor: pointer;
+    display: inline-block;
+}

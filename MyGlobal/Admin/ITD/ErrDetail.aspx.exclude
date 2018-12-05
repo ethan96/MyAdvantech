@@ -1,0 +1,50 @@
+﻿<%@ Page Title="MyAdvantech - Error Detail" Language="VB" MasterPageFile="~/Includes/MyMaster.master" %>
+
+<script runat="server">
+
+    Protected Sub Page_Load(sender As Object, e As System.EventArgs)
+        If Not Page.IsPostBack AndAlso Request("RID") IsNot Nothing Then
+            hd_ROWID.Value = Trim(Request("RID"))
+            Dim dt As DataTable = dbUtil.dbGetDataTable("MyLocal", _
+                                                        " select ROW_ID, USERID, URL, QSTRING, EXMSG, ERRDATE, IS_FIXED, APPID, OWNER " + _
+                                                        " from MY_ERR_LOG where ROW_ID='" + hd_ROWID.Value + "'")
+            If dt.Rows.Count > 0 Then
+                If CInt(dt.Rows(0).Item("IS_FIXED")) = 0 Then
+                    cbIsFixed.Checked = False
+                Else
+                    cbIsFixed.Checked = True
+                End If
+                dlOwner.SelectedValue = dt.Rows(0).Item("OWNER")
+            End If
+        End If
+    End Sub
+
+    Protected Sub cbIsFixed_CheckedChanged(sender As Object, e As System.EventArgs)
+        dbUtil.dbExecuteNoQuery("MyLocal", "update MY_ERR_LOG set IS_FIXED=" + IIf(cbIsFixed.Checked, 1, 0).ToString() + " where row_id='" + hd_ROWID.Value + "'")
+    End Sub
+
+    Protected Sub btnUpdOwner_Click(sender As Object, e As System.EventArgs)
+        dbUtil.dbExecuteNoQuery("MyLocal", "update MY_ERR_LOG set OWNER='" + Replace(Trim(dlOwner.SelectedValue), "'", "''") + "' where row_id='" + hd_ROWID.Value + "'")
+    End Sub
+</script>
+
+<asp:Content ID="Content1" ContentPlaceHolderID="_main" runat="Server">
+    <asp:HiddenField runat="server" ID="hd_ROWID" />
+    Fixed?<asp:CheckBox runat="server" ID="cbIsFixed" AutoPostBack="true" OnCheckedChanged="cbIsFixed_CheckedChanged" /><br />
+    Owner:<asp:DropDownList runat="server" ID="dlOwner">
+        <asp:ListItem Value="tc.chen@advantech.com.tw" />
+        <asp:ListItem Value="rudy.wang@advantech.com.tw" />
+        <asp:ListItem Value="nada.liu@advantech.com.cn" />
+        <asp:ListItem Value="ming.zhao@advantech.com.cn" />
+    </asp:DropDownList>
+    &nbsp;<asp:Button runat="server" ID="btnUpdOwner" Text="Update" OnClick="btnUpdOwner_Click" /><br />
+    <asp:GridView runat="server" ID="gv1" DataSourceID="src1">
+    </asp:GridView>
+    <asp:SqlDataSource runat="server" ID="src1" ConnectionString="<%$ConnectionStrings:MyLocal %>"
+        SelectCommand="select ROW_ID, USERID, URL, QSTRING, EXMSG, ERRDATE, IS_FIXED, APPID, OWNER from MY_ERR_LOG where ROW_ID=@RID">
+        <SelectParameters>
+            <asp:ControlParameter ControlID="hd_ROWID" ConvertEmptyStringToNull="false" Name="RID"
+                PropertyName="Value" />
+        </SelectParameters>
+    </asp:SqlDataSource>
+</asp:Content>

@@ -1,0 +1,51 @@
+﻿<%@ Page Title="" Language="VB" MasterPageFile="~/Includes/MyMaster.master" %>
+
+<script runat="server">
+
+    Protected Sub gv1_RowDataBound(sender As Object, e As System.Web.UI.WebControls.GridViewRowEventArgs)
+        If e.Row.RowType = DataControlRowType.DataRow Then
+            Dim gvPNList As GridView = e.Row.FindControl("gvPNList")
+            Dim Mpn As String = CType(e.Row.FindControl("hdRowMPN"), HiddenField).Value
+            gvPNList.DataSource = dbUtil.dbGetDataTable("MY", _
+                                    " select z1.PART_NO, z2.EGROUP, z2.EDIVISION, z2.PRODUCT_HIERARCHY, z2.MATERIAL_GROUP, z2.PRODUCT_DESC " + _
+                                    " from SAP_PRODUCT_CAPS z1 inner join SAP_PRODUCT z2 on z1.PART_NO=z2.PART_NO " + _
+                                    " where z1.MPN=N'" + Replace(Mpn, "'", "''") + "' order by z1.PART_NO ")
+            gvPNList.DataBind()
+        End If
+    End Sub
+
+    Protected Sub Page_Load(sender As Object, e As System.EventArgs)
+        If Not Page.IsPostBack Then
+            gv1.DataSource = dbUtil.dbGetDataTable("MY", _
+                                                " select a.MPN, COUNT(distinct b.PART_NO) as [PN count] " + _
+                                                " from SAP_PRODUCT_CAPS a inner join SAP_PRODUCT b on a.PART_NO=b.PART_NO  " + _
+                                                " where b.EGROUP='PAPS' and a.mpn not in ('#N/A') " + _
+                                                " group by a.MPN  " + _
+                                                " having COUNT(distinct b.PART_NO)>1 order by a.MPN ")
+            gv1.DataBind()
+        End If
+    End Sub
+</script>
+<asp:Content ID="Content1" ContentPlaceHolderID="_main" runat="Server">
+    <asp:GridView runat="server" ID="gv1" Width="100%" OnRowDataBound="gv1_RowDataBound" AutoGenerateColumns="false">
+        <Columns>
+            <asp:TemplateField HeaderText="MPN" ItemStyle-Width="20%">
+                <ItemTemplate>
+                    <%#"'" + Eval("MPN")%>
+                </ItemTemplate>
+            </asp:TemplateField>
+            <asp:BoundField HeaderText="# of Advantech PN" DataField="PN count" ItemStyle-HorizontalAlign="Center" ItemStyle-Width="10%" Visible="false" />
+            <asp:TemplateField HeaderText="Advantech PN List" ItemStyle-Width="70%">
+                <ItemTemplate>
+                    <asp:HiddenField runat="server" ID="hdRowMPN" Value='<%#Eval("MPN") %>' />
+                    <asp:GridView runat="server" ID="gvPNList" Width="100%" AutoGenerateColumns="false" ShowHeader="false">
+                        <Columns>
+                            <asp:BoundField HeaderText="Part No." DataField="part_no" ItemStyle-Width="30%" />
+                            <asp:BoundField HeaderText="Desc." DataField="product_desc" ItemStyle-Width="70%" />
+                        </Columns>
+                    </asp:GridView>
+                </ItemTemplate>
+            </asp:TemplateField>
+        </Columns>
+    </asp:GridView>
+</asp:Content>

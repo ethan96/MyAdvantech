@@ -1,0 +1,604 @@
+﻿<%@ Page Language="VB" MasterPageFile="~/Includes/MyMaster.master" Title="MyAdvantech - Product Specification editor"
+    ValidateRequest="false" %>
+
+<%@ Import Namespace="System.Data.SqlClient" %>
+<script runat="server">
+
+    'Private _Model_Name As String = "TREK-753", _Category_ID As String = "1-2JSJ5T"
+    Private _ModelSpecTable As String = "Model_Spec_V2", _PartSpecTable As String = "Part_Spec_V2", _SpecColumnIndex As Integer = 2
+    
+    Protected Sub Page_Load(sender As Object, e As System.EventArgs)
+        
+        'If Me.TextBox_ModelName.Text = "" Then Me.TextBox_ModelName.Text = "PCM-9343"
+        
+        '_Category_ID = "1-2JKFEI" '<-- x86-based Digital Signage Platform
+        '_Model_Name = "ARK-DS220"
+        '_Model_Name = "ARK-DS350(AM3)"
+
+        
+        
+        '_Model_Name = Me.TextBox_ModelName.Text
+        Me.HF_Model_Name.Value = Request("Model_Name")
+        Me.HF_Category_ID.Value = Request("Category_ID")
+        
+        'If Not String.IsNullOrEmpty(_Model_Name) then _Model_Name=_Model_Name.Replace("'","''")
+        
+        'Show Category path
+        Me.ShowCategoryPath()
+
+        Dim postbackControl = GetPostBackControl(Page)
+        
+        Dim _IsLoadSpec As Boolean = False
+        
+        If postbackControl IsNot Nothing Then
+            'Frank: If update button was clicked, spec table need to be reloaded.
+            If postbackControl.ID = "ButtonUpdate" Then _IsLoadSpec = True
+            'If postbackControl.ID = "Button_SearchModel" Then _IsLoadSpec = True
+        End If
+        
+        If Not Page.IsPostBack Or _IsLoadSpec Then
+            'Load Spec
+            Me.LoadSpec()
+        End If
+
+    End Sub
+    
+    
+    Public Function GetPostBackControl(ByVal page As System.Web.UI.Page) As System.Web.UI.Control
+        ' Find which control caused the postback  
+        Dim control As Control = Nothing
+        Dim ctrlname As String = page.Request.Params("__EVENTTARGET")
+        If Not (ctrlname Is Nothing) AndAlso Not (ctrlname = String.Empty) Then
+            control = page.FindControl(ctrlname)
+        Else
+            Dim ctrlStr As String = String.Empty
+            Dim c As Control = Nothing
+            For Each ctl As String In page.Request.Form
+                If ctl.EndsWith(".x") OrElse ctl.EndsWith(".y") Then
+                    ctrlStr = ctl.Substring(0, ctl.Length - 2)
+                    c = page.FindControl(ctrlStr)
+                Else
+                    c = page.FindControl(ctl)
+                End If
+                If TypeOf c Is System.Web.UI.WebControls.Button OrElse TypeOf c Is System.Web.UI.WebControls.ImageButton Then
+                    control = c
+                    ' break  
+                End If
+            Next
+        End If
+        Return control
+    End Function
+    
+    Private Sub LoadSpec()
+        
+        If String.IsNullOrEmpty(Me.HF_Category_ID.Value) Then
+            Me.GV_SpecEditor.DataSource = Nothing : Me.GV_SpecEditor.DataBind() : Me.ButtonUpdate.Visible = False
+            Me.UP_SpecEditor.Update() : Exit Sub
+        End If
+        Me.ButtonUpdate.Visible = True
+        Dim _SQL As New StringBuilder
+        
+        '=====Get Spec item by category id=========================
+        _SQL.Clear()
+        _SQL.Append(" Select a.AttrCatID,b.AttrCatName,a.AttrID,c.AttrName ")
+        _SQL.Append(" From category_spectable_v2 a left join tbShareAttributeCat_V2 b on a.AttrCatID=b.AttrCatID ")
+        _SQL.Append(" Left join tbShareAttribute c on a.AttrID=c.AttrID ")
+        _SQL.Append(" Where a.Category_ID=@Parent_Category_Id And b.AttrCatName<>'' And c.AttrName<>'' ")
+        _SQL.Append(" Order by a.DataSheet_Sequence,b.AttrCatName,c.AttrName ")
+
+        
+        Dim apt As New SqlDataAdapter(_SQL.ToString, _
+        New SqlConnection(ConfigurationManager.ConnectionStrings("PIS").ConnectionString))
+        apt.SelectCommand.Parameters.AddWithValue("Parent_Category_Id", Me.HF_Category_ID.Value)
+        Dim _dt_SpecMainTable As New DataTable
+        apt.Fill(_dt_SpecMainTable)
+        apt.SelectCommand.Connection.Close()
+            
+        _dt_SpecMainTable.PrimaryKey = New DataColumn() {_dt_SpecMainTable.Columns("AttrCatID"), _dt_SpecMainTable.Columns("AttrID")}
+        '=====Get category spec table End=========================
+            
+        '=====Get model and part spce=============================
+        'Import model spec data sql statement from old table
+        'select a.model_name, b.CatID as attrcatid, b.AttrID, c.AttrValueName as attrvalue
+        ', '' as attrvalue_unit,'' as attrvalue_type,0 as datasheet_sequence
+        ',GETDATE() as last_updated,'' as last_updated_by
+        'from model_product a left join tbProductSpec_V2 b on a.part_no=b.ProductNo
+        'left join tbShareAttributeValue c on b.AttrValueID=c.AttrValueID
+        'where a.relation='product' 
+        'and a.status='active' and b.AttrValueID<>''
+        'group by a.model_name, b.CatID, b.AttrID, c.AttrValueName
+        
+        'Import part spec data from old table
+        'select a.ProductNo as part_no, a.CatID as attrcatid, a.AttrID, b.AttrValueName as attrvalue
+        ', '' as attrvalue_unit,'' as attrvalue_type,0 as datasheet_sequence,0 as is_navigation,0 as navigation_sequence,GETDATE() as last_updated,'' as last_updated_by
+        'from tbProductSpec_V2 a left join tbShareAttributeValue b on a.AttrValueID=b.AttrValueID
+
+        
+        _SQL.Clear()
+        _SQL.Append(" SELECT Model_Name as Product_No,AttrCatID,AttrID,isnull(AttrValue,'') as AttrValue,AttrValue_Unit,AttrValue_Type ")
+        _SQL.Append(" FROM Model_Spec_V2 ")
+        _SQL.Append(" Where Model_Name=@model_name ")
+        _SQL.Append(" UNION ")
+        _SQL.Append(" Select a.PART_NO as Product_No,b.AttrCatID,b.AttrID,b.AttrValue,b.AttrValue_Unit,b.AttrValue_Type ")
+        _SQL.Append(" From model_product a left join Part_Spec_V2 b on a.part_no=b.PART_NO ")
+        _SQL.Append(" Where a.relation='product' And a.status='active' and a.model_name=@model_name ")
+        '_SQL.Append(" And b.AttrCatID<>'' ")
+            
+        apt = New SqlDataAdapter(_SQL.ToString, _
+        New SqlConnection(ConfigurationManager.ConnectionStrings("PIS").ConnectionString))
+        'apt.SelectCommand.Parameters.AddWithValue("Parent_Category_Id", _Category_ID)
+        apt.SelectCommand.Parameters.AddWithValue("model_name", Me.HF_Model_Name.Value)
+        Dim _dt_SpecListTable As New DataTable
+        apt.Fill(_dt_SpecListTable)
+        apt.SelectCommand.Connection.Close()
+        '=====Get model and part spce End=============================
+            
+        _SQL = Nothing
+
+        Dim _NewRow As DataRow = _dt_SpecListTable.NewRow
+        _NewRow.Item(0) = Me.HF_Model_Name.Value
+        Dim _ModelRow As DataRow() = _dt_SpecListTable.Select("Product_No='" & Me.HF_Model_Name.Value & "'")
+        If _ModelRow.Length = 0 Then
+
+            _dt_SpecListTable.Rows.InsertAt(_NewRow, 0)
+            
+        End If
+        
+        'Fill model and part spec value into SpecMainTable
+        Me.FillSpecMainTable(_dt_SpecMainTable, _dt_SpecListTable)
+            
+        Dim customField As TemplateField = Nothing
+
+        'remove old column
+        If Me.GV_SpecEditor.Columns.Count > Me._SpecColumnIndex Then
+            For h As Integer = Me.GV_SpecEditor.Columns.Count - 1 To Me._SpecColumnIndex Step -1
+                'Me.GV_SpecEditor.Columns.RemoveAt(h)
+                Me.GV_SpecEditor.Columns.Remove(Me.GV_SpecEditor.Columns(h))
+            Next
+        End If
+        
+        ' Create the dynamic templates and assign them to
+        ' the appropriate template property.
+        For i = 4 To _dt_SpecMainTable.Columns.Count - 1
+            'Frank: An unknow exception will be throw if column count more that 12
+            'For i = 2 To 12
+            customField = New TemplateField
+            If i = 4 Then
+                customField.HeaderStyle.BackColor = System.Drawing.ColorTranslator.FromHtml("#FF6600")
+            Else
+                customField.HeaderStyle.BackColor = System.Drawing.ColorTranslator.FromHtml("#FF9966")
+            End If
+            customField.ItemTemplate = New GridViewTemplate(DataControlRowType.DataRow, _dt_SpecMainTable.Columns(i).ColumnName)
+            customField.HeaderTemplate = New GridViewTemplate(DataControlRowType.Header, _dt_SpecMainTable.Columns(i).ColumnName)
+            ' Add the field column to the Columns collection of the
+            ' GridView control.
+            Me.GV_SpecEditor.Columns.Add(customField)
+        Next
+
+        Me.GV_SpecEditor.DataSource = _dt_SpecMainTable
+        Me.GV_SpecEditor.DataBind()
+        
+        'Update update-panel
+        Me.UP_SpecEditor.Update()
+        
+    End Sub
+    
+    Private Sub ShowCategoryPath()
+        
+        'category_name1,category_name2,category_name3,category_name4,category_name5,category_name6
+        Dim _SQL As New StringBuilder
+        _SQL.Clear()
+        _SQL.Append(" SELECT parent_category_id1,model_no,category_name1,category_name2,category_name3,category_name4,category_name5,category_name6 ")
+        _SQL.Append(" FROM CATEGORY_HIERARCHY ")
+        _SQL.Append(" Where model_no=@model_name ")
+        _SQL.Append(" And parent_category_id1=@parent_category_id1 ")
+        
+        Dim apt As SqlDataAdapter = New SqlDataAdapter(_SQL.ToString, _
+        New SqlConnection(ConfigurationManager.ConnectionStrings("PIS").ConnectionString))
+        apt.SelectCommand.Parameters.AddWithValue("model_name", Me.HF_Model_Name.Value)
+        apt.SelectCommand.Parameters.AddWithValue("parent_category_id1", Me.HF_Category_ID.Value)
+        Dim _dt As New DataTable
+        apt.Fill(_dt)
+        apt.SelectCommand.Connection.Close()
+
+        'Me.Label_CategoryPath.Text = "Category："
+        Me.Label_CategoryPath.Text = ""
+        
+        If _dt.Rows.Count = 0 Then
+            Me.HF_Category_ID.Value = "" : Exit Sub
+        End If
+        
+        For i As Integer = _dt.Columns.Count - 1 To 1 Step -1
+            If String.IsNullOrEmpty(_dt.Rows(0).Item(i).ToString) Then Continue For
+            Me.Label_CategoryPath.Text &= " " & _dt.Rows(0).Item(i).ToString & " >"
+        Next
+
+        Me.Label_CategoryPath.Text = Me.Label_CategoryPath.Text.TrimEnd(">")
+        
+    End Sub
+    
+    
+    Private Sub FillSpecMainTable(ByRef _MainTable As DataTable, ByVal _SpeclistTable As DataTable)
+
+        Dim _ProcessingPartNo As String = String.Empty, _WritingColumnIndex As Integer = 0
+        Dim _SearchKey(1) As String, _FoundRow As DataRow = Nothing, _IsNoModelSpec As Boolean = True
+        For Each _row As DataRow In _SpeclistTable.Rows
+            If Not _ProcessingPartNo.Equals(_row.Item("Product_No").ToString, StringComparison.InvariantCultureIgnoreCase) Then
+                _ProcessingPartNo = _row.Item("Product_No").ToString
+                _MainTable.Columns.Add(_ProcessingPartNo)
+                _WritingColumnIndex = _MainTable.Columns.Count - 1
+            End If
+            
+            'Perpare search key
+            _SearchKey(0) = _row.Item("AttrCatID").ToString
+            _SearchKey(1) = _row.Item("AttrID").ToString
+            
+            If String.IsNullOrEmpty(_SearchKey(0)) OrElse String.IsNullOrEmpty(_SearchKey(1)) Then Continue For
+            
+            _FoundRow = _MainTable.Rows.Find(_SearchKey)
+            If _FoundRow Is Nothing Then Continue For
+            _FoundRow.Item(_WritingColumnIndex) = _row.Item("AttrValue").ToString
+            
+        Next
+
+        _MainTable.AcceptChanges()
+        
+    End Sub
+    
+    
+    'Protected Sub GV_SpecEditor_RowDataBound(sender As Object, e As System.Web.UI.WebControls.GridViewRowEventArgs)
+    '    '    If e.Row.RowType = DataControlRowType.DataRow Then
+    '    '        Dim data As DataRowView = e.Row.DataItem
+    '    '        For i As Integer = 2 To e.Row.Cells.Count - 1
+    '    '            Dim _txt As New TextBox
+    '    '            _txt.Text = data(i) & ""
+    '    '            '_txt.ID = Me.GV_SpecEditor.Columns
+    '    '            _txt.Width = New Unit(150)
+    '    '            _txt.AutoPostBack = True
+    '    '            '_txt.Attributes.Add("style", "width:50%")
+    '    '            AddHandler _txt.TextChanged, AddressOf AttributeChanged
+                
+    '    '            e.Row.Cells(i).Controls.Add(_txt)
+    '    '        Next
+            
+    '    '    End If
+    'End Sub
+
+    Protected Sub Button_SearchModel_Click(sender As Object, e As System.EventArgs)
+        Me.LoadSpec()
+        'Me.UP_SpecEditor.Update()
+    End Sub
+
+    
+    'Protected Sub Button_AddCategorySpecItem_Click(sender As Object, e As System.EventArgs)
+
+    'End Sub
+
+    'Protected Sub Button_RemoveCategorySpecItem_Click(sender As Object, e As System.EventArgs)
+
+    '    Dim count As Integer = 0, _removePartNo As String = "", _SQL As String = String.Empty
+    '    Dim _AttrCatid As String = String.Empty, _AttrID As String = String.Empty
+        
+    '    Using _Con As New SqlConnection(ConfigurationManager.ConnectionStrings("PIS").ConnectionString)
+            
+    '        Dim _transaction As SqlTransaction = Nothing, command As SqlCommand = Nothing
+    '        If _Con.State <> ConnectionState.Open Then _Con.Open()
+    '        command = _Con.CreateCommand() : _transaction = _Con.BeginTransaction("SampleTransaction")
+    '        command.Transaction = _transaction
+
+    '        Try
+    '            _SQL = " Delete From category_spectable_v2 Where Category_ID='" & Me._Category_ID & "' "
+        
+    '            For Each _row As GridViewRow In Me.GV_SpecEditor.Rows
+    '                Dim chk As CheckBox = CType(_row.FindControl("chkKey"), CheckBox)
+    '                If chk IsNot Nothing AndAlso chk.Checked Then
+                
+    '                    Dim _key = Me.GV_SpecEditor.DataKeys(_row.RowIndex).Values
+                
+    '                    _AttrCatid = _key("AttrCatID")
+    '                    _AttrID = _key("AttrID")
+
+    '                    command.CommandText = _SQL & " And AttrCatID='" & _AttrCatid & "' And AttrID='" & _AttrID & "'"
+    '                    command.ExecuteNonQuery()
+                        
+    '                End If
+    '            Next
+                
+    '        Catch ex As Exception
+    '            _transaction.Rollback()
+    '            Dim _err As String = ex.Message
+    '        Finally
+    '            _transaction.Commit()
+    '        End Try
+                
+    '    End Using
+
+    '    Me.LoadSpec()
+        
+    'End Sub
+
+    
+    Protected Sub ButtonUpdate_Click(sender As Object, e As System.EventArgs)
+        
+        Dim _IsUpdate As Boolean = True
+        Dim _AttrCatid As String = String.Empty, _AttrID As String = String.Empty, _AttrValue As String = String.Empty
+        Dim _part_no As String = String.Empty, _DataSheet_Seq As Integer = 0
+        Dim _InsertSQL As String = String.Empty, _AllSQL As New StringBuilder
+        
+        Using _Con As New SqlConnection(ConfigurationManager.ConnectionStrings("PIS").ConnectionString)
+            
+            Dim _transaction As SqlTransaction = Nothing, command As SqlCommand = Nothing
+            If _Con.State <> ConnectionState.Open Then _Con.Open()
+            command = _Con.CreateCommand() : _transaction = _Con.BeginTransaction("SampleTransaction")
+            command.Transaction = _transaction
+
+            Try
+            
+                For i As Integer = Me._SpecColumnIndex To Me.GV_SpecEditor.Columns.Count - 1
+            
+                    _AllSQL.Clear()
+                    _DataSheet_Seq = 0
+                    If i = Me._SpecColumnIndex Then
+                        _AllSQL.Append("Delete From " & _ModelSpecTable & " Where Model_Name='" & Me.HF_Model_Name.Value & "';")
+                    Else
+                        _part_no = Me.GV_SpecEditor.Columns(i).HeaderText
+                        
+                        _part_no = DirectCast(DirectCast(Me.GV_SpecEditor.Columns(i), System.Web.UI.WebControls.TemplateField).HeaderTemplate, GridViewTemplate).ColumnName()
+                        
+                        _AllSQL.Append("Delete From " & _PartSpecTable & " Where Part_No='" & _part_no & "';")
+                    End If
+            
+                    For j As Integer = 0 To Me.GV_SpecEditor.Rows.Count - 1
+                        _AttrCatid = CType(Me.GV_SpecEditor.DataSource, DataTable).Rows(j).Item("AttrCatID")
+                        _AttrID = CType(Me.GV_SpecEditor.DataSource, DataTable).Rows(j).Item("AttrID")
+                        '_AttrValue = CType(Me.GV_SpecEditor.Rows(j).Cells(i).Controls(0), TextBox).Text.Trim
+                        _AttrValue = CType(Me.GV_SpecEditor.Rows(j).Cells(i).Controls(0), eBizAEUControls.NoToolBarEditor2).Content.Trim
+                        '_AttrValue = Server.HtmlEncode(CType(Me.GV_SpecEditor.Rows(j).Cells(i).Controls(0), eBizAEUControls.NoToolBarEditor2).Content.Trim)
+                        '_AttrValue = HttpUtility.HtmlEncode(CType(Me.GV_SpecEditor.Rows(j).Cells(i).Controls(0), eBizAEUControls.NoToolBarEditor2).Content.Trim)
+                        If String.IsNullOrEmpty(_AttrValue) Then Continue For
+                        _DataSheet_Seq += 1
+                        If i = Me._SpecColumnIndex Then
+                            _InsertSQL = " Insert into " & _ModelSpecTable & " Values("
+                            _InsertSQL &= "'" & Me.HF_Model_Name.Value & "'"
+                            _InsertSQL &= "," & _AttrCatid
+                            _InsertSQL &= "," & _AttrID
+                            _InsertSQL &= ",N'" & _AttrValue.Replace("'", "''") & "'"
+                            _InsertSQL &= ",''"
+                            _InsertSQL &= ",''"
+                            _InsertSQL &= "," & _DataSheet_Seq
+                            _InsertSQL &= ",getDate()"
+                            _InsertSQL &= ",'" & Session("user_id") & "'"
+                            _InsertSQL &= ");"
+                        Else
+                            _InsertSQL = " Insert into " & _PartSpecTable & " Values("
+                            _InsertSQL &= "'" & _part_no & "'"
+                            _InsertSQL &= "," & _AttrCatid
+                            _InsertSQL &= "," & _AttrID
+                            _InsertSQL &= ",'" & _AttrValue.Replace("'", "''") & "'"
+                            _InsertSQL &= ",''"
+                            _InsertSQL &= ",''"
+                            _InsertSQL &= "," & _DataSheet_Seq
+                            _InsertSQL &= ",0"
+                            _InsertSQL &= ",0"
+                            _InsertSQL &= ",getDate()"
+                            _InsertSQL &= ",'" & Session("user_id") & "'"
+                            _InsertSQL &= ");"
+                        End If
+                
+                        _AllSQL.Append(_InsertSQL)
+                    Next
+                
+                    command.CommandText = _AllSQL.ToString
+                    command.ExecuteNonQuery()
+                    
+                Next
+
+                _transaction.Commit()
+                Me.Label_UpdateMsg.Text = "Updated"
+
+            Catch ex As Exception
+                _transaction.Rollback()
+                Throw ex
+                'Me.Label_UpdateMsg.Text = "Update failed!"
+            End Try
+        
+        End Using
+        
+        Me.LoadSpec()
+        
+    End Sub
+
+    
+    Public Class GridViewTemplate
+        Implements ITemplate
+
+        Private templateType As DataControlRowType
+        Private _ColumnName As String
+
+        Public ReadOnly Property ColumnName() As String
+            Get
+                Return _ColumnName
+            End Get
+        End Property
+        
+        
+        
+        Sub New(ByVal type As DataControlRowType, ByVal colname As String)
+
+            templateType = type
+            _ColumnName = colname
+
+        End Sub
+
+        Sub InstantiateIn(ByVal container As System.Web.UI.Control) _
+          Implements ITemplate.InstantiateIn
+
+            ' Create the content for the different row types.
+            Select Case templateType
+
+                Case DataControlRowType.Header
+                    ' Create the controls to put in the header
+                    ' section and set their properties.
+                    Dim lc As New Literal
+                    lc.Text = "<b>" & _ColumnName & "</b>"
+
+                    ' Add the controls to the Controls collection
+                    ' of the container.
+                    container.Controls.Add(lc)
+
+                Case DataControlRowType.DataRow
+                    ' Create the controls to put in a data row
+                    ' section and set their properties.
+                    Dim firstName As New Label
+                    Dim lastName As New Label
+
+                    'Dim _TxtSpecItem As New TextBox
+                    
+                    Dim _TxtSpecItem As New eBizAEUControls.NoToolBarEditor2
+                    _TxtSpecItem.Height = 40
+                    _TxtSpecItem.NoUnicode = True
+                    
+                    Dim spacer = New Literal
+                    spacer.Text = " "
+
+                    ' To support data binding, register the event-handling methods
+                    ' to perform the data binding. Each control needs its own event
+                    ' handler.
+                    'AddHandler firstName.DataBinding, AddressOf FirstName_DataBinding
+                    'AddHandler lastName.DataBinding, AddressOf LastName_DataBinding
+
+                    AddHandler _TxtSpecItem.DataBinding, AddressOf SpecItem_DataBinding
+                    'AddHandler _TxtSpecItem.TextChanged, AddressOf SpecItem_AttributeChanged
+                    AddHandler _TxtSpecItem.ContentChanged, AddressOf SpecItem_AttributeChanged
+                    
+                    ' Add the controls to the Controls collection
+                    ' of the container.
+                    'container.Controls.Add(firstName)
+                    'container.Controls.Add(spacer)
+                    'container.Controls.Add(lastName)
+                    container.Controls.Add(_TxtSpecItem)
+
+                    ' Insert cases to create the content for the other 
+                    ' row types, if desired.
+
+                Case Else
+
+                    ' Insert code to handle unexpected values. 
+
+            End Select
+
+        End Sub
+
+
+        
+        Private Sub SpecItem_AttributeChanged(sender As Object, e As System.EventArgs)
+
+            'Dim _c As String = CType(sender, TextBox).Text
+            'Dim _a = 2
+        End Sub
+
+        
+        'Private Sub SpecItem_DataBinding(ByVal sender As Object, ByVal e As EventArgs)
+
+        '    ' Get the Label control to bind the value. The Label control
+        '    ' is contained in the object that raised the DataBinding 
+        '    ' event (the sender parameter).
+        '    Dim l As TextBox = CType(sender, TextBox)
+
+        '    ' Get the GridViewRow object that contains the Label control. 
+        '    Dim row As GridViewRow = CType(l.NamingContainer, GridViewRow)
+
+        '    ' Get the field value from the GridViewRow object and 
+        '    ' assign it to the Text property of the Label control.
+        '    l.Text = DataBinder.Eval(row.DataItem, _ColumnName).ToString()
+
+        'End Sub
+        Private Sub SpecItem_DataBinding(ByVal sender As Object, ByVal e As EventArgs)
+
+            ' Get the Label control to bind the value. The Label control
+            ' is contained in the object that raised the DataBinding 
+            ' event (the sender parameter).
+            Dim l As eBizAEUControls.NoToolBarEditor2 = CType(sender, eBizAEUControls.NoToolBarEditor2)
+
+            ' Get the GridViewRow object that contains the Label control. 
+            Dim row As GridViewRow = CType(l.NamingContainer, GridViewRow)
+
+            ' Get the field value from the GridViewRow object and 
+            ' assign it to the Text property of the Label control.
+            'l.Content = DataBinder.Eval(row.DataItem, _ColumnName).ToString()
+            l.Content = DataBinder.Eval(row.DataItem, _ColumnName).ToString()
+            'l.Content = HttpUtility.HtmlDecode(DataBinder.Eval(row.DataItem, _ColumnName).ToString())
+        End Sub
+
+        
+        
+        'Private Sub FirstName_DataBinding(ByVal sender As Object, ByVal e As EventArgs)
+
+        '    ' Get the Label control to bind the value. The Label control
+        '    ' is contained in the object that raised the DataBinding 
+        '    ' event (the sender parameter).
+        '    Dim l As Label = CType(sender, Label)
+
+        '    ' Get the GridViewRow object that contains the Label control. 
+        '    Dim row As GridViewRow = CType(l.NamingContainer, GridViewRow)
+
+        '    ' Get the field value from the GridViewRow object and 
+        '    ' assign it to the Text property of the Label control.
+        '    l.Text = DataBinder.Eval(row.DataItem, columnName).ToString()
+
+        'End Sub
+
+        'Private Sub LastName_DataBinding(ByVal sender As Object, ByVal e As EventArgs)
+
+        '    ' Get the Label control to bind the value. The Label control
+        '    ' is contained in the object that raised the DataBinding 
+        '    ' event (the sender parameter).
+        '    Dim l As Label = CType(sender, Label)
+
+        '    ' Get the GridViewRow object that contains the Label control.
+        '    Dim row As GridViewRow = CType(l.NamingContainer, GridViewRow)
+
+        '    ' Get the field value from the GridViewRow object and 
+        '    ' assign it to the Text property of the Label control.
+        '    l.Text = DataBinder.Eval(row.DataItem, columnName).ToString()
+
+        'End Sub
+
+    End Class
+    
+</script>
+<asp:Content runat="server" ID="_main" ContentPlaceHolderID="_main">
+    <br />
+    <asp:Panel DefaultButton="ButtonUpdate" runat="server" ID="Panel1">
+        <asp:UpdatePanel ID="UP_SpecEditor" runat="server" UpdateMode="Conditional" Visible="true">
+            <ContentTemplate>
+                <asp:HyperLink ID="HyperLink_CategoryTitle" NavigateUrl="CategoryNavigation.aspx"
+                    runat="server">Category：</asp:HyperLink>
+                <asp:Label ID="Label_CategoryPath" runat="server" Text="" />
+                <br />
+                <asp:HiddenField ID="HF_Model_Name" runat="server" />
+                <asp:HiddenField ID="HF_Category_ID" runat="server" />
+                <div style="overflow: scroll; width: 900px" id="DivMainContent">
+                    <asp:GridView ID="GV_SpecEditor" runat="server" AutoGenerateColumns="false" DataKeyNames="AttrCatID,AttrID"
+                        EmptyDataText="No search results were found." Width="100%">
+                        <Columns>
+                            <asp:BoundField ItemStyle-Width="150px" HeaderText="Attribute Category" DataField="AttrCatName"
+                                ItemStyle-HorizontalAlign="left" />
+                            <asp:BoundField ItemStyle-Width="200px" HeaderText="Attribute" DataField="AttrName"
+                                ItemStyle-HorizontalAlign="left" />
+                        </Columns>
+                    </asp:GridView>
+                </div>
+                <asp:Table ID="Table_Model" runat="server" Width="100%">
+                    <asp:TableRow ID="TableRow1" runat="server">
+                        <asp:TableCell Width="50%" HorizontalAlign="Right">
+                            <asp:Button ID="ButtonUpdate" runat="server" Text="Update" Visible="false" OnClick="ButtonUpdate_Click" />
+                        </asp:TableCell>
+                        <asp:TableCell Width="50%" HorizontalAlign="Left">
+                            <asp:Label ID="Label_UpdateMsg" runat="server" ForeColor="Red" />
+                        </asp:TableCell></asp:TableRow></asp:Table></ContentTemplate><Triggers>
+                <asp:AsyncPostBackTrigger ControlID="ButtonUpdate" EventName="Click" />
+            </Triggers>
+        </asp:UpdatePanel>
+    </asp:Panel>
+</asp:Content>

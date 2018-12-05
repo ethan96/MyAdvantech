@@ -1,0 +1,83 @@
+﻿<div class="main-intro">
+                <div class="intro-heading">
+                    Regional Program Criteria
+                </div>
+                <!-- end .main-intro -->
+            </div>
+            <div class="main-content">
+                <div class="content-heading">
+                    Gaming Rules:</div>
+                <div id="Opp_table">
+                    <table width="100%">
+                        <thead>
+                            <tr>
+								<th>Rule #</th>
+                                <th width="60%" scope="col" style="padding: 10px; text-align: left">
+                                    Sales Revenue 1K = 1 Point
+                                </th>
+                                <th width="20%" scope="col" style="padding: 10px; text-align: left">
+								    Calculation
+                                </th>
+                                <th width="20%" scope="col" style="padding: 10px; text-align: left">
+                                    Example
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr class="odd1">
+								<td>1</td>
+                                <td style="padding: 10px; text-align: left">
+                                    Minimum Threshold of Quarterly Revenue Achievement for Redemption
+                                </td>
+                                <td style="padding: 10px; text-align: left">
+                                    1K = 2 points
+                                </td>
+                                <td style="padding: 10px; text-align: left">
+								    Sales Revenue = 10K</br></br>
+									Total points = 10 x 2 = 20 points
+                                </td>
+                            </tr>
+                            <tr class="odd2">
+								<td>2</td>
+                                <td style="padding: 10px; text-align: left">
+                                    Special Offering (Limited period or selected products)<br />
+                                    Minimum Threshold of Special Offering for Redemption
+                                </td>
+                                <td style="padding: 10px; text-align: left">
+                                    1K = 4 points
+                                </td>
+                                <td style="padding: 10px; text-align: left">
+                                    Sales Revenue = 10K</br></br>
+									Total points = 10 x 4 = 40 points
+                                </td>
+                            </tr>
+                            <tr class="odd1">
+								<td>3</td>
+                                <td style="padding: 10px; text-align: left">
+                                    Point Submission<br />
+                                    Minimum Threshold for Big Project
+                                </td>
+                                <td style="padding: 10px; text-align: left">
+                                    1K = 3 points
+                                </td>
+                                <td style="padding: 10px; text-align: left">
+                                    Sales Revenue = 10K</br></br>
+									Total points = 10 x 3 = 30 points
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="main-content">
+                <div class="content-heading">
+                    Point Accumulate Regulations:</div>
+                <p>
+                    When overlap between above rules, participant can only select for the best rule
+                    to apply for exchanging the points.
+                </p>
+				<p>(The calculation will base on the best fit rule from the revenue achievement to get for more points as possible)</p>
+                <div class="sure">
+                    <a href="PersonalInfo.aspx">Join Us</a></div>
+            </div>
+

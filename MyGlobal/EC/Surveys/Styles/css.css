@@ -1,0 +1,266 @@
+﻿*{ margin:0; padding:0; list-style:none;word-wrap: break-word;word-break: break-all;}
+body{margin:0;font-size:12px;color:#1A4C7F;font-family:Arial,"宋体";text-align:center;}
+body, div, dl, dt, dd, ul, ol, li, h1, h2, h3, h4, h5, h6, pre, form, fieldset, button, p, blockquote ,img{
+    margin: 0;
+    padding: 0;
+  border:none;
+}
+div {display: block;text-align: left;}
+img{ border:0;}
+.clearfix {clear: both;height:1px;margin-top:-1px;overflow:hidden;
+}
+.clearfix:after {
+       content: "";
+       display: block;
+       clear: both;
+       visibility: hidden;
+       font-size: 0;
+       height: 0; 
+      }   
+ul, li,dl,dt {list-style:none; padding:0px; margin:0px;}
+a
+{
+    text-decoration: none;
+}
+a:link, a:visited
+{
+    color: #194D7D;
+    text-decoration: none;
+    cursor: pointer;
+}
+.blank8{ clear:both; height:8px; font-size:1px;}
+
+/*  div middle */
+.divmid
+{    width: 900px;
+ /*   border: 1px solid #C0C0C0;*/
+    text-align: left;
+    margin: 0 auto;
+    vertical-align: top;
+}
+.divtitle
+{
+    width: 900px; /*   border: 1px solid #C0C0C0;*/
+    text-align: center;
+    margin: 0 auto;
+    vertical-align: top;
+    line-height: 45px;
+    height: 45px;
+    font-weight: bold;
+    font-size: 22px; margin-bottom:5px;
+}
+.myul
+{ 
+    margin-top: 10px;
+    margin-bottom: 5px;
+    margin-left: 5px;
+
+}
+.myul li
+{
+    list-style-type: circle;
+    list-style-position: inside;
+}
+em
+{
+    color: #FF3300;
+    padding-right: 3px;
+}
+.title
+{
+        font-weight: bold; 
+    font-size: 13px;
+    }
+.title span
+{
+    font-weight: bold; 
+    font-size: 13px;
+
+}
+.rbt
+{
+    color: #ea8e64;  padding-left:3px;
+}
+.con
+{
+    margin-top: 10px; margin-left:30px;
+    margin-bottom: 5px;
+}
+.con td{height:30px; line-height:30px;}
+.Rela
+{
+    position: relative;
+}
+.Abs
+{
+    position: absolute; 
+}
+.AbsQ2
+{
+    left: 265px;
+    top: 200px;
+}
+.AbsQ3
+{
+      left: 80px;
+    top: 167px;
+    }
+.AbsQ5
+{
+      left: 80px;
+    top: 135px;
+    }
+        .AbsQ4
+{
+      left: 80px;
+    top: 200px;
+    }
+    .AbsQ6
+{
+      left: 80px;
+    top: 150px;
+    }
+        .AbsQ10
+{
+      left: 80px;
+    top: 104px;
+    }
+    .AbsQ11
+    { left: 80px;
+    top: 170px;
+        
+        }
+.myrblist td
+{
+    vertical-align: middle;
+    text-align: center;
+}
+.mytd
+{
+    width:200px;
+    }
+
+    .Q12
+{
+    width: 860PX; 
+    float: RIGHT;
+}
+    #labw
+{
+    float: left;width:100%;
+    height: 20px;
+    vertical-align: bottom;
+    line-height: 20px;
+display:block;
+}
+.footer
+{ text-align:center;    margin: 0 auto;
+    width: 900px;
+    vertical-align: top;
+    }
+    #myQ13 P
+{
+    
+}
+  #myQ13 span
+{ 
+}
+.btitle
+{
+    font-weight: bold;
+}
+        #Global_Loading
+{
+    background: #CC3300 none repeat-x scroll 0 0;
+    height: 38px;
+    line-height: 36px;
+    left: 30%;
+    overflow: visible;
+    position: fixed;
+    top: 0;
+    width: 40%;
+    z-index: 999;
+    text-align: center;
+    color: #FFFFFF;
+    display: none;
+    font-weight: bold;
+    font-size: 14px;
+    vertical-align: middle;
+}
+#TimeSpan
+{font-size: 12px;
+    padding-left: 15px;
+}
+.adiv
+{
+    padding: 10px;
+    background: none repeat scroll 0 0 #FEF8E7;
+    border: 1px solid #CDC4AA;
+     text-align: left;
+    margin: 0 auto;
+    width: 900px;
+    vertical-align: top;
+}
+.bt
+{
+    width: 180px;
+    height: 30px;
+    font-size: 14px;
+    font-weight: bold;
+}
+.myrp
+{
+    width: 970px;
+    padding: 0px 0px 10px 0px;
+    border: 1px solid #1A4C7F;
+    margin-top: 20px;
+}
+.myrp span
+{
+    display: block;
+    font-weight: bolder;
+    padding-left: 5px; height:25px; line-height:25px;
+    background-color: #1A4C7F;
+    color: #FFFFFF;
+}
+ul, li,dl,dt {list-style:none; padding:0px; margin:0px;}
+.myrp ul
+{
+ margin-left:5px;
+    }
+    .mytb
+    {
+         margin-left:5px;   margin-top: 5px;
+        }
+        .mytb tr
+        {
+             line-height:25px; vertical-align:middle;
+            }
+    .myrp li
+{
+    display:block;
+    float: left;
+    margin-right: 13px;
+    line-height: 18px;
+    margin-top: 5px;
+    padding-left: 5px;
+    padding-right: 5px;
+}
+tr.ge
+{
+        background-color: #e1e1e1;
+    }
+ .myrp li.ge
+{
+    background-color: #e1e1e1;
+}
+.clearfix {clear: both;height:1px;margin-top:-1px;overflow:hidden;
+}
+.clearfix:after {
+       content: "";
+       display: block;
+       clear: both;
+       visibility: hidden;
+       font-size: 0;
+       height: 0; 
+      } 

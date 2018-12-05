@@ -1,0 +1,79 @@
+﻿<%@ Page Title="MyAdvantech - Admin - Query SAP DB" Language="VB" MasterPageFile="~/Includes/MyMaster.master" %>
+
+<script runat="server">
+
+    Protected Sub btn1_Click(ByVal sender As Object, ByVal e As System.EventArgs)
+        lbMsg.Text = ""
+        gv1.DataSource = Nothing : gv1.DataBind()
+        Try
+            Dim dt As DataTable = OraDbUtil.dbGetDataTable("SAP_PRD", txtSql.Text)
+            gv1.DataSource = dt : gv1.DataBind()
+        Catch ex As Exception
+            lbMsg.Text = ex.ToString()
+        End Try
+    End Sub
+
+    Protected Sub Page_Error(ByVal sender As Object, ByVal e As System.EventArgs)
+        lbMsg.Text = Server.GetLastError().ToString()
+    End Sub
+
+    Protected Sub Page_Load(ByVal sender As Object, ByVal e As System.EventArgs)
+        If Not Page.IsPostBack Then
+            If Util.IsAdmin() = False Then Response.End()
+        End If
+    End Sub
+
+    Protected Sub btnXls_Click(ByVal sender As Object, ByVal e As System.Web.UI.ImageClickEventArgs)
+        Util.DataTable2ExcelDownload(OraDbUtil.dbGetDataTable("SAP_PRD", txtSql.Text), "table.xls")
+    End Sub
+
+    'Protected Sub ming_Click(ByVal sender As Object, ByVal e As System.EventArgs)
+    '    Dim dt As DataTable = OraDbUtil.dbGetDataTable("SAP_PRD", " select  JAHR,MON01,  MON02,MON03,MON04,MON05,MON06,MON07,MON08,MON09,MON10,MON11,MON12 ,IDENT    from saprdp.tfacs ")
+    '    Dim bk As New SqlClient.SqlBulkCopy(ConfigurationManager.ConnectionStrings("B2B").ConnectionString)
+    '    bk.DestinationTableName = "ShippingCalendar_new"
+    '    bk.WriteToServer(dt)
+    '    ' OrderUtilities.showDT(dt)
+    'End Sub
+</script>
+
+<asp:Content ID="Content1" ContentPlaceHolderID="_main" Runat="Server">
+    <table width="100%">
+        <tr valign="top">
+            <td>
+                <asp:TextBox runat="server" ID="txtSql" Width="90%" Height="200px" TextMode="MultiLine" />
+            </td>
+        </tr>
+        <tr>
+            <td><asp:Button runat="server" ID="btn1" Text="Query" OnClick="btn1_Click" /></td>
+        </tr>
+        <tr>
+            <td>
+                <asp:UpdatePanel runat="server" ID="UpdatePanel1" UpdateMode="Conditional">
+                    <ContentTemplate>
+                        <asp:Label runat="server" ID="lbMsg" Font-Bold="true" ForeColor="Tomato" />
+                    </ContentTemplate>
+                    <Triggers>
+                        <asp:AsyncPostBackTrigger ControlID="btn1" EventName="Click" />
+                    </Triggers>
+                </asp:UpdatePanel>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <asp:ImageButton runat="server" ID="btnXls" ImageUrl="~/Images/excel.gif" AlternateText="Download Excel" OnClick="btnXls_Click" />
+                <asp:UpdatePanel runat="server" ID="up1" UpdateMode="Conditional">
+                    <ContentTemplate>
+                        <asp:Panel runat="server" ID="panel1" Width="1200px" Height="200px" ScrollBars="Auto">
+                            <asp:GridView runat="server" ID="gv1" Width="95%" />
+                        </asp:Panel>                        
+                    </ContentTemplate>
+                    <Triggers>
+                        <asp:AsyncPostBackTrigger ControlID="btn1" EventName="Click" />
+                    </Triggers>
+                </asp:UpdatePanel>
+            </td>
+            
+        </tr>
+       <%-- <tr><td><asp:Button runat="server" ID="ming" Text="Button" OnClick="ming_Click" /></td></tr>--%>
+    </table>
+</asp:Content>

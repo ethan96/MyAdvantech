@@ -1,0 +1,43 @@
+﻿// JScript File
+
+    //avoid errors when the internal switch teh tabs
+    var pageTracker;
+    var pageTracker1;
+    function GoogleTracking(pathInfo,action,Optional_label) {
+        if ((typeof (pageTracker) != "undefined") && (typeof (pageTracker1) != "undefined")) {
+            if ((typeof (pageTracker._trackPageview)) == "function" && (typeof (pageTracker1._trackPageview)) == "function") {
+                pageTracker._trackEvent(pathInfo, action, Optional_label);
+                pageTracker1._trackEvent(pathInfo, action, Optional_label);
+                return;
+            }
+        }else{
+            return false;
+        }
+    }
+    function search(id) {
+        var searchText = document.getElementById(id);
+        if ((typeof (searchText) != "undefined")) {
+            if (searchText.value == "") {
+                alert("Please enter search string,thank you!!");
+                return false;
+            } else {
+                GoogleTracking("/", "Search", "Go to Serach");
+                var searchString = "http://buy.advantech.com/products/search.aspx?keyword=" + searchText.value;
+                window.open(searchString);
+               // window.location.href = searchString;
+                return;
+            }
+        }
+    }
+
+
+
+
+
+				
+
+
+
+    
+  
+    

@@ -1,0 +1,200 @@
+﻿<%@ Page Language="VB" MasterPageFile="~/Includes/MyMaster.master" Title="MyAdvantech - Product Family Association editor"
+    ValidateRequest="false" %>
+
+<%@ Import Namespace="System.Data.SqlClient" %>
+<script runat="server">
+    Protected Sub btnUpload_Click(ByVal sender As Object, ByVal e As System.EventArgs)
+        Dim filename As System.IO.Stream = upload()
+        If Not IsNothing(filename) Then
+            preview(filename)
+            
+            Button_Search_Click(sender, e)
+        End If
+    End Sub
+
+    Function upload() As System.IO.Stream
+        If Me.FileUpload1.PostedFile.ContentLength > 0 Then
+            Dim MSM As New System.IO.MemoryStream(Me.FileUpload1.FileBytes)
+            'Me.FileUpload1.SaveAs(fileName)
+            Return MSM
+        End If
+        Return Nothing
+    End Function
+
+    Sub preview(ByVal fileName As System.IO.Stream)
+        
+        Dim tempdt As DataTable = Util.ExcelFile2DataTable(fileName, 1, 0)
+        If tempdt.Rows.Count <= 0 Then
+            Glob.ShowInfo("No data be uploaded.")
+            Exit Sub
+        End If
+        If tempdt.Columns.Count < 2 Then
+            Glob.ShowInfo("The uploaded excel file is in invalid format. Please download and use sample excel file.")
+            Exit Sub
+        End If
+            
+        Dim _sql_remove As String = "Delete From PRODUCT_FAMILY_GROUP_RELATION Where ", _sql_remove_Where As String = ""
+        Dim _sql_insert As String = "Insert into PRODUCT_FAMILY_GROUP_RELATION values ", _sql_insert_values As String = ""
+        
+        For Each _row As DataRow In tempdt.Rows
+            
+            Dim _family_name As String = _row.Item(0).ToString, _Relate_Family_Name As String = _row.Item(1).ToString
+            
+            If String.IsNullOrEmpty(_Relate_Family_Name) OrElse String.IsNullOrEmpty(_family_name) Then Continue For
+            
+            _family_name = _family_name.Replace("'", "''") : _Relate_Family_Name = _Relate_Family_Name.Replace("'", "''")
+            
+            '_sql_remove_Where = " FAMILY_NAME='" & _family_name & "' and Relate_Family_Name='" & _Relate_Family_Name & "'"
+            _sql_remove_Where = " FAMILY_NAME='" & _family_name & "' "
+            _sql_insert_values = " ('" & _family_name & "','" & _Relate_Family_Name & "','" & Session("user_id") & "',getDate())"
+            
+            'Remove current record
+            dbUtil.dbExecuteNoQuery("PIS", _sql_remove & _sql_remove_Where)
+            'Insert new record
+            dbUtil.dbExecuteNoQuery("PIS", _sql_insert & _sql_insert_values)
+            
+            
+        Next
+            
+        
+    End Sub
+
+    Protected Sub Button_Search_Click(sender As Object, e As System.EventArgs)
+        Dim _Relate_Family_Name As String = Me.TextBox_Relate_Family_Name.Text, _family_name As String = Me.TextBox_FAMILY_NAME.Text
+        
+        Dim _sql As String = "SELECT FAMILY_NAME,Relate_Family_Name FROM PRODUCT_FAMILY_GROUP_RELATION", _order_by = " Order by LAST_UPDATED desc,FAMILY_NAME,Relate_Family_Name"
+        Dim _SQLCondition As String = String.Empty
+        
+        If Not String.IsNullOrEmpty(_family_name) Then
+            _SQLCondition &= " FAMILY_NAME like '%" & _family_name.Replace("'", "''") & "%'"
+        End If
+
+        If Not String.IsNullOrEmpty(_Relate_Family_Name) Then
+            If Not String.IsNullOrEmpty(_SQLCondition) Then _SQLCondition &= " And "
+            _SQLCondition &= " Relate_Family_Name like '%" & _Relate_Family_Name.Replace("'", "''") & "%'"
+        End If
+
+        
+        If Not String.IsNullOrEmpty(_SQLCondition) Then _sql &= " Where " & _SQLCondition
+        Me.SqlDataSource_ProductFamily.SelectCommand = _sql & _order_by
+        Me.GV_ProductFamily.DataBind()
+        
+    End Sub
+
+    Protected Sub Button_Delet_Click(sender As Object, e As System.EventArgs)
+        Dim count As Integer = 0, _Relate_Family_Name As String = String.Empty, _Family_Name As String = String.Empty
+        Dim _sql As String = String.Empty, chk As CheckBox = Nothing
+
+        For i As Integer = 0 To Me.GV_ProductFamily.Rows.Count - 1
+            chk = Me.GV_ProductFamily.Rows(i).FindControl("CheckBox_SelecedPart")
+            
+            _Family_Name = Me.GV_ProductFamily.Rows(i).Cells(1).Text
+            _Relate_Family_Name = Me.GV_ProductFamily.Rows(i).Cells(2).Text
+            
+            If chk.Checked AndAlso String.IsNullOrEmpty(_Relate_Family_Name) = False AndAlso String.IsNullOrEmpty(_Family_Name) = False Then
+                
+                _Relate_Family_Name = HttpUtility.HtmlDecode(_Relate_Family_Name).Replace("'", "''")
+                _Family_Name = HttpUtility.HtmlDecode(_Family_Name).Replace("'", "''")
+                
+                _sql = "Delete FROM PRODUCT_FAMILY_GROUP_RELATION WHERE Relate_Family_Name=N'" & _Relate_Family_Name & "' And FAMILY_NAME=N'" & _Family_Name & "'"
+                dbUtil.dbExecuteNoQuery("PIS", _sql)
+            End If
+        Next
+        Me.CheckBox_IsCheckAll.Checked = False
+        Button_Search_Click(sender, e)
+        
+    End Sub
+</script>
+<asp:Content runat="server" ID="_main" ContentPlaceHolderID="_main">
+    <script type="text/javascript">
+        function GetAllCheckBox(cbAll) {
+            var items = document.getElementsByTagName("input");
+            for (i = 0; i < items.length; i++) {
+                if (items[i].type == "checkbox") {
+                    items[i].checked = cbAll.checked;
+                }
+            }
+        }
+    </script>
+    <div class="root">
+        <asp:HyperLink runat="server" ID="hlHome" NavigateUrl="~/home.aspx" Text="Home" />
+        > Maintain Product Family Association</div>
+    <br />
+    <div class="menu_title">
+        Maintain Product Family Association</div>
+    <br />
+    <asp:Panel DefaultButton="Button_Search" runat="server" ID="Panel1">
+        <table width="100%" class="rightcontant3">
+            <tr>
+                <td align="left">
+                    Upload Product Family Association：
+                </td>
+                <td align="left">
+                    <asp:FileUpload ID="FileUpload1" runat="server" />
+                    <asp:Button ID="btnUpload" runat="server" Text="Upload" OnClick="btnUpload_Click" />
+                    <br />
+                </td>
+                <td>
+                    <asp:HyperLink NavigateUrl="~/Files/ProductFamilyAssociationSample.xlsx" runat="server" ID="HyperLink1"
+                        Text="Click Here for Downloadable Sample (MS Excel)"></asp:HyperLink>
+                    <br />
+                    <asp:Image ID="Image2" runat="server" ImageUrl="~/Images/ProductFamilyAssociationExcelSample.png" />
+                </td>
+            </tr>
+        </table>
+        <br />
+        <table width="100%" class="rightcontant3">
+            <tr>
+                <td align="left" style="width: 110px">
+                    Famliy Name：
+                </td>
+                <td align="left" style="width: 220px">
+                    <asp:TextBox ID="TextBox_FAMILY_NAME" runat="server" Width="170px" />
+                </td>
+                <td align="left" style="width: 150px">
+                    Accociate Family Name：
+                </td>
+                <td align="left" style="width: 220px">
+                    <asp:TextBox ID="TextBox_Relate_Family_Name" runat="server" Width="170px" />
+                </td>
+                <td align="left">
+                    <asp:Button ID="Button_Search" runat="server" Text="Search" OnClick="Button_Search_Click" />
+                </td>
+            </tr>
+            <tr>
+                <td align="left" style="width: 107px">
+                    <asp:CheckBox ID="CheckBox_IsCheckAll" runat="server" Text="Check All" OnClick="GetAllCheckBox(this)" />
+                </td>
+                <td align="left" style="width: 227px">
+                    <asp:Button ID="Button_Delet" runat="server" Text="Delete" OnClick="Button_Delet_Click" />
+                </td>
+                <td align="left" style="width: 122px">
+                </td>
+                <td align="left">
+                </td>
+                <td align="left">
+                </td>
+            </tr>
+        </table>
+        <asp:GridView ID="GV_ProductFamily" runat="server" AutoGenerateColumns="False" EmptyDataText="No search results were found."
+            Width="100%" AllowPaging="True" AllowSorting="True" DataSourceID="SqlDataSource_ProductFamily"
+            PageSize="20">
+            <Columns>
+                <asp:TemplateField ItemStyle-Width="30px" ItemStyle-HorizontalAlign="Center">
+                    <HeaderTemplate>
+                        Check
+                    </HeaderTemplate>
+                    <ItemTemplate>
+                        <asp:CheckBox ID="CheckBox_SelecedPart" runat="server" />
+                    </ItemTemplate>
+                </asp:TemplateField>
+                <asp:BoundField ItemStyle-Width="200px" HeaderText="Family Name" DataField="FAMILY_NAME"
+                    ItemStyle-HorizontalAlign="left" SortExpression="FAMILY_NAME" />
+                <asp:BoundField ItemStyle-Width="200px" HeaderText="Associate Family Name" DataField="Relate_Family_Name"
+                    ItemStyle-HorizontalAlign="left" SortExpression="Relate_Family_Name" />
+            </Columns>
+        </asp:GridView>
+        <asp:SqlDataSource ID="SqlDataSource_ProductFamily" runat="server" ConnectionString="<%$ ConnectionStrings:PIS %>"
+            SelectCommand="SELECT FAMILY_NAME,Relate_Family_Name FROM PRODUCT_FAMILY_GROUP_RELATION Order by LAST_UPDATED desc,FAMILY_NAME,Relate_Family_Name" />
+    </asp:Panel>
+</asp:Content>

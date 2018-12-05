@@ -1,0 +1,941 @@
+﻿<%@ Page Language="VB" MasterPageFile="~/Includes/MyMaster.master" Title="MyAdvantech - Order Recovery" %>
+
+<script runat="server">
+    Protected Sub Page_Load(ByVal sender As Object, ByVal e As System.EventArgs)
+        'Me.GlobalInc.ValidationStateCheck()
+        
+        Dim strSQLFailedOrderList As String = ""
+        
+        strSQLFailedOrderList = "select distinct a.ORDER_NO, a.SOLDTO_ID, a.ORDER_DATE, a.CREATED_BY, 'Failed' as STATUS from ORDER_MASTER a " & _
+                 " INNER JOIN ORDER_PROC_STATUS b " & _
+                 " ON b.ORDER_NO = a.ORDER_NO and b.STATUS = 0" & _
+                 " where a.ORDER_DATE between getdate()-90 and getdate() and a.ORDER_NO not in (select distinct c.ORDER_NO from ORDER_PROC_STATUS c where c.STATUS = 1)"
+        Me.SqlDataSource1.SelectCommand = strSQLFailedOrderList
+        
+        If Not Page.IsPostBack Then
+            
+            If Request("Order_No") = "" Then
+                Me.trUpdateTop.Visible = False
+                Me.trErrMsg.Visible = False
+                Me.trOrderHeader.Visible = False
+                Me.trOrderItem.Visible = False
+                Me.trdgFailedOrderList.Visible = True
+                Me.trUpdateBottom.Visible = False
+                Me.Order_No.Text = ""
+                Call DisplayFailedOrderList()
+            Else
+                Me.trUpdateTop.Visible = True
+                Me.trErrMsg.Visible = True
+                Me.trOrderHeader.Visible = True
+                Me.trOrderItem.Visible = True
+                Me.trdgFailedOrderList.Visible = False
+                Me.trUpdateBottom.Visible = True
+                Me.Order_No.Text = Request("Order_No")
+                'Response.Write(Me.re_GenetateXML(Request("Order_No")).ToString) : Response.End()
+                If Me.re_GenetateXML(Request("Order_No")) <> 0 Then
+                    Call DisplayOrderInfo()
+                Else
+                    Response.Write("Invalid Order No!") : Response.End()
+                End If
+            end if
+        End If
+    End Sub
+    
+    Protected Function re_GenetateXML(ByVal OrderNo As String) As Integer
+        Dim obj_FSO As System.IO.FileInfo = New System.IO.FileInfo("C:\MYADVANTECH\FILES\SO\" & OrderNo & ".XML")
+        If Not obj_FSO.Exists Then
+            Dim orderId As String = dbUtil.dbExecuteScalar("b2b", "select order_Id from order_master where order_NO='" & OrderNo & "'")
+            If orderId <> "" Then
+                Try
+                    OrderUtilities.OrderXML_Create("SO", orderId, "EU10")
+                    Return 2
+                Catch
+                    Return 0
+                End Try
+            End If
+            Return 0
+        End If
+        Return 1
+    End Function
+    
+    Protected Sub Query_Click(ByVal sender As Object, ByVal e As System.EventArgs)
+        Response.Redirect("../order/Order_Recovery_V6.aspx?Order_No=" & Trim(Me.Order_No.Text) & "")
+    End Sub
+
+    Protected Sub Recovery_Click(ByVal sender As Object, ByVal e As System.EventArgs)
+        Dim retValue As Integer = 0
+        Dim Order_Status_Xml As String = ""
+        Dim strOrderID As String = ""
+        Dim strOrderNo As String = Trim(Me.Order_No.Text)
+        If strOrderNo = "" Then
+            Response.Redirect("../order/Order_Recovery_V6.aspx?")
+        End If
+
+        '--{2005-10-20}--Daive: avoid insert the Order existing in SAP to SAP again.
+        '-----------------------------------------------------------------------------
+        'retValue = Me.Order_Utilities1.GetERPOrderStatus(strOrderNo, Order_Status_Xml)
+        If retValue = 1 Then
+
+            Response.Redirect("../order/Order_Recovery_V6.aspx?Order_No=" & strOrderNo & "")
+        End If
+        '-----------------------------------------------------------------------------
+        'Dim adoConn As New SqlClient.SqlConnection
+        Dim dr As DataTable = dbUtil.dbGetDataTable("B2B", _
+        "select ORDER_ID from ORDER_MASTER where ORDER_NO='" & strOrderNo & "'")
+        If dr.Rows.Count > 0 Then
+            strOrderID = dr.Rows(0).Item("ORDER_ID")
+        End If
+        ERPOrder_Integrate_Again("SO", strOrderNo)
+        'Me.Order_Utilities1.UnifyBTOSLineDueDate(strOrderID)
+
+        Response.Redirect("../order/Order_Confirm_V6.aspx?flag=NO&order_no=" & strOrderNo & "&order_id=" & strOrderID & "&msg_id=")
+
+    End Sub
+
+    Protected Sub UpdateTop_Click(ByVal sender As Object, ByVal e As System.EventArgs)
+        '--Update the item in XML file (START)
+        Dim xmlDoc As New System.Xml.XmlDocument
+        Dim xmlNode As System.Xml.XmlNodeList = Nothing
+        Dim subxmlNode As System.Xml.XmlNodeList = Nothing
+        Dim tempXMLNode As System.Xml.XmlNode = Nothing
+        xmlDoc.Load("c:/MyAdvantech/files/so/" & Trim(Me.Order_No.Text) & ".xml")
+        '//--Order Header
+        xmlNode = xmlDoc.GetElementsByTagName("Customer_PO_Number")
+        xmlNode.Item(0).InnerText = Request("txtPO_NO")
+        xmlNode = xmlDoc.GetElementsByTagName("Ship_To_ID")
+        xmlNode.Item(0).InnerText = Request("txtShipTo")
+        
+        '//--Order Detail
+        xmlNode = xmlDoc.GetElementsByTagName("Order_Line")
+        Dim j As Integer = 0
+        While j <= xmlNode.Count - 1
+            subxmlNode = xmlNode.Item(j).ChildNodes
+            If Request("chkDelete$$$" & subxmlNode.Item(4).InnerText) = "Yes" Then
+                tempXMLNode = xmlNode.Item(j)
+                xmlNode.Item(j).ParentNode.RemoveChild(tempXMLNode)
+            Else
+                'If Not Me.Order_Utilities1.Add2CartCheck(Trim(Request("txtPartNO$$$" & subxmlNode.Item(5).InnerText).ToUpper), Session("user_role")) Then
+                '    Me.lblErrorMsg.Text = "<font color=""red"">Please make sure all the input items are allowed!</font>"
+                'Else
+                subxmlNode.Item(6).InnerText = Global_Inc.IsNumericItem_Expand(Trim(Request("txtPartNO$$$" & subxmlNode.Item(4).InnerText).ToUpper))
+                subxmlNode.Item(7).InnerText = CInt(Trim(Request("txtQTY$$$" & subxmlNode.Item(4).InnerText)))
+                subxmlNode.Item(8).InnerText = FormatNumber(CDec(Trim(Request("txtPrice$$$" & subxmlNode.Item(4).InnerText))), 4)
+                subxmlNode.Item(9).InnerText = Global_Inc.FormatDate(Trim(Request("txtDueDate$$$" & subxmlNode.Item(4).InnerText)))
+                subxmlNode.Item(10).InnerText = Global_Inc.FormatDate(Trim(Request("txtRequiredDate$$$" & subxmlNode.Item(4).InnerText)))
+                'End If
+                j = j + 1
+            End If
+            
+        End While
+        
+        xmlDoc.Save("c:/MyAdvantech/files/so/" & Trim(Me.Order_No.Text) & ".xml")
+        xmlDoc = Nothing
+        '--Update the item in XML file (END)
+        Response.Redirect("../order/Order_Recovery_V6.aspx?Order_No=" & Trim(Me.Order_No.Text) & "")
+    End Sub
+    
+    
+    Protected Sub UpdateBottom_Click(ByVal sender As Object, ByVal e As System.EventArgs)
+        '--Update the item in XML file (START)
+        Dim xmlDoc As New System.Xml.XmlDocument
+        Dim xmlNode As System.Xml.XmlNodeList = Nothing
+        Dim subxmlNode As System.Xml.XmlNodeList = Nothing
+        Dim tempXMLNode As System.Xml.XmlNode = Nothing
+        xmlDoc.Load("c:/MyAdvantech/files/so/" & Trim(Me.Order_No.Text) & ".xml")
+        '//--Order Header
+        xmlNode = xmlDoc.GetElementsByTagName("Customer_PO_Number")
+        xmlNode.Item(0).InnerText = Request("txtPO_NO")
+        xmlNode = xmlDoc.GetElementsByTagName("Ship_To_ID")
+        xmlNode.Item(0).InnerText = Request("txtShipTo")
+        
+        '//--Order Detail
+        xmlNode = xmlDoc.GetElementsByTagName("Order_Line")
+        Dim j As Integer = 0
+        While j <= xmlNode.Count - 1
+            subxmlNode = xmlNode.Item(j).ChildNodes
+            If Request("chkDelete$$$" & subxmlNode.Item(4).InnerText) = "Yes" Then
+                tempXMLNode = xmlNode.Item(j)
+                xmlNode.Item(j).ParentNode.RemoveChild(tempXMLNode)
+            Else
+                'If Not Me.Order_Utilities1.Add2CartCheck(Trim(Request("txtPartNO$$$" & subxmlNode.Item(5).InnerText).ToUpper), Session("user_role")) Then
+                '    Me.lblErrorMsg.Text = "<font color=""red"">Please make sure all the input items are allowed!</font>"
+                'Else
+                subxmlNode.Item(6).InnerText = Global_Inc.IsNumericItem_Expand(Trim(Request("txtPartNO$$$" & subxmlNode.Item(4).InnerText).ToUpper))
+                subxmlNode.Item(7).InnerText = CInt(Trim(Request("txtQTY$$$" & subxmlNode.Item(4).InnerText)))
+                subxmlNode.Item(8).InnerText = FormatNumber(CDec(Trim(Request("txtPrice$$$" & subxmlNode.Item(4).InnerText))), 4)
+                subxmlNode.Item(9).InnerText = Global_Inc.FormatDate(Trim(Request("txtDueDate$$$" & subxmlNode.Item(4).InnerText)))
+                subxmlNode.Item(10).InnerText = Global_Inc.FormatDate(Trim(Request("txtRequiredDate$$$" & subxmlNode.Item(4).InnerText)))
+                'End If
+                j = j + 1
+            End If
+            
+        End While
+        
+        xmlDoc.Save("c:/MyAdvantech/files/so/" & Trim(Me.Order_No.Text) & ".xml")
+        xmlDoc = Nothing
+        '--Update the item in XML file (END)
+        Response.Redirect("../order/Order_Recovery_V6.aspx?Order_No=" & Trim(Me.Order_No.Text) & "")
+    End Sub
+    
+    Private Sub DisplayFailedOrderList()
+        
+        GridView1.DataBind()
+    End Sub
+    
+    Private Sub DisplayOrderInfo()
+        Dim ErrMsgDT As DataTable
+        Dim strErrMsgSQL As String = ""
+        strErrMsgSQL = "select IsNull(max(LINE_SEQ),0) as MAXLINE_SEQ from ORDER_PROC_STATUS where ORDER_NO='" & Trim(Me.Order_No.Text) & "'"
+        ErrMsgDT = dbUtil.dbGetDataTable("B2B", strErrMsgSQL)
+        Dim MaxLine_Seq As Integer = 0
+        MaxLine_Seq = CInt(ErrMsgDT.Rows(0).Item(0))
+        'response.write(MaxLine_Seq):response.end
+        If MaxLine_Seq < 1 Then
+            Me.trErrMsg.Visible = False
+            Call DisplayErrMsg(MaxLine_Seq)
+            Call DisplayOrder()
+        Else
+            Call DisplayErrMsg(MaxLine_Seq)
+            Call DisplayOrder()
+            
+        End If
+    End Sub
+    Protected Sub GridView1_RowDataBound(ByVal sender As Object, ByVal e As System.Web.UI.WebControls.GridViewRowEventArgs)
+
+        
+        If e.Row.RowType = DataControlRowType.DataRow Then
+            Dim xOrderNo As String = ""
+            xOrderNo = UCase(e.Row.Cells(0).Text)
+            e.Row.Cells(0).Text = "<a href='../Order/Order_Recovery_V6.aspx?Order_NO=" & xOrderNo & "'>" & xOrderNo & "</a>"
+        End If
+    End Sub
+    'Protected Sub DataGrid_ItemBound(ByVal sender As Object, ByVal e As System.Web.UI.WebControls.DataGridItemEventArgs)
+    '    If e.
+    '        Dim xOrderNO As String = ""
+    '        xOrderNO = UCase(retValue(1))
+    '        Me.dgFailedOrderList.VxUserFormat(xDgItem, 1, "<a href='../Order/Order_Recovery_V6.aspx?Order_NO=" & xOrderNO & "'>" & xOrderNO & "</a>")
+    '    End If
+    'End Sub
+    
+    Protected Sub DisplayErrMsg(ByVal LineSEQ As Integer)
+        Dim strSQL As String = ""
+        Dim DT As DataTable
+        strSQL = "select * from ORDER_PROC_STATUS where LINE_SEQ=" & LineSEQ & " and ORDER_NO='" & Trim(Me.Order_No.Text) & "'"
+        DT = dbUtil.dbGetDataTable("B2B", strSQL)
+        
+        Dim xRow As New TableRow
+        Dim xCell As New TableCell
+        
+        Dim i As Integer = 0
+        While i <= DT.Rows.Count - 1
+            xRow = New TableRow
+            xCell = New TableCell
+            xCell.Style.Value = "width:100%"
+            xCell.Text = "&nbsp;+&nbsp;<font color=""black"" size=""3"">" & DT.Rows(i).Item("NUMBER") & "&nbsp;>>>>>&nbsp;</font><font color=""red"" size=""3"">" & DT.Rows(i).Item("Message") & "</font>"
+            xRow.Cells.Add(xCell)
+            Me.ErrMsg.Rows.Add(xRow)
+            i = i + 1
+        End While
+    End Sub
+    
+    Protected Sub DisplayOrder()
+        Dim xRow As New TableRow
+        Dim xCell As New TableCell
+        Dim yRow As New TableRow
+        Dim yCell As New TableCell
+        Dim strXML As String = ""
+        '---Read data from xml file 
+        Dim Fso As System.IO.FileInfo = New System.IO.FileInfo("c:/MyAdvantech/files/so/" & Trim(Me.Order_No.Text) & ".xml")
+        Dim strmRd As System.IO.StreamReader
+        strmRd = Fso.OpenText
+        strXML = strmRd.ReadToEnd
+        strmRd.Close()
+        
+        '---Load data from xml string
+        Dim xmlDoc As New System.Xml.XmlDocument
+        Dim xmlNode As System.Xml.XmlNodeList = Nothing
+        Dim subxmlNode As System.Xml.XmlNodeList = Nothing
+        xmlDoc.LoadXml(strXML)
+        '//---Order Header
+        xRow = New TableRow
+        '-----11
+        xCell = New TableCell
+        xCell.Style.Value = "background-color:#f0f0f0;width:15%"
+        xCell.VerticalAlign = VerticalAlign.Middle
+        xCell.HorizontalAlign = HorizontalAlign.Center
+        xCell.Text = "Order NO"
+        xRow.Cells.Add(xCell)
+        '-----12
+        xCell = New TableCell
+        xCell.Style.Value = "background-color:#f0f0f0;width:15%"
+        xCell.VerticalAlign = VerticalAlign.Middle
+        xCell.HorizontalAlign = HorizontalAlign.Center
+        xCell.Text = "PO NO"
+        xRow.Cells.Add(xCell)
+        '-----13
+        xCell = New TableCell
+        xCell.Style.Value = "background-color:#f0f0f0;width:15%"
+        xCell.VerticalAlign = VerticalAlign.Middle
+        xCell.HorizontalAlign = HorizontalAlign.Center
+        xCell.Text = "Ship To"
+        xRow.Cells.Add(xCell)
+        '-----14
+        xCell = New TableCell
+        xCell.Style.Value = "background-color:#f0f0f0;width:15%"
+        xCell.VerticalAlign = VerticalAlign.Middle
+        xCell.HorizontalAlign = HorizontalAlign.Center
+        xCell.Text = "Order Date"
+        xRow.Cells.Add(xCell)
+        '-----15
+        xCell = New TableCell
+        xCell.Style.Value = "background-color:#f0f0f0;width:15%"
+        xCell.VerticalAlign = VerticalAlign.Middle
+        xCell.HorizontalAlign = HorizontalAlign.Center
+        xCell.Text = "Required Date"
+        xRow.Cells.Add(xCell)
+        Me.OrderHeader.Rows.Add(xRow)
+        xRow = New TableRow
+        '-----21        
+        xCell = New TableCell
+        xCell.Style.Value = "background-color:#ffffff;width:15%"
+        xCell.VerticalAlign = VerticalAlign.Middle
+        xCell.HorizontalAlign = HorizontalAlign.Center
+        xCell.Text = "<a href=""../file/so/" & Trim(Me.Order_No.Text) & ".xml"">" & Trim(Me.Order_No.Text) & "</a>"
+        xRow.Cells.Add(xCell)
+        '-----22
+        xmlNode = xmlDoc.GetElementsByTagName("Customer_PO_Number")
+        xCell = New TableCell
+        xCell.Style.Value = "background-color:#ffffff;width:15%"
+        xCell.VerticalAlign = VerticalAlign.Middle
+        xCell.HorizontalAlign = HorizontalAlign.Center
+        xCell.Text = "<input type=""text"" name=""txtPO_NO"" value=""" & xmlNode.Item(0).InnerText & """ style=""text-align: left"">"
+        xRow.Cells.Add(xCell)
+        '-----23
+        xmlNode = xmlDoc.GetElementsByTagName("Ship_To_ID")
+        xCell = New TableCell
+        xCell.Style.Value = "background-color:#ffffff;width:15%"
+        xCell.VerticalAlign = VerticalAlign.Middle
+        xCell.HorizontalAlign = HorizontalAlign.Center
+        xCell.Text = "<input type=""text"" name=""txtShipTo"" value=""" & xmlNode.Item(0).InnerText & """ style=""text-align: left"">"
+        xRow.Cells.Add(xCell)
+        '-----23
+        xmlNode = xmlDoc.GetElementsByTagName("Order_Date")
+        xCell = New TableCell
+        xCell.Style.Value = "background-color:#ffffff;width:15%"
+        xCell.VerticalAlign = VerticalAlign.Middle
+        xCell.HorizontalAlign = HorizontalAlign.Center
+        xCell.Text = xmlNode.Item(0).InnerText
+        xRow.Cells.Add(xCell)
+        '-----23
+        xmlNode = xmlDoc.GetElementsByTagName("Require_Date")
+        xCell = New TableCell
+        xCell.Style.Value = "background-color:#ffffff;width:15%"
+        xCell.VerticalAlign = VerticalAlign.Middle
+        xCell.HorizontalAlign = HorizontalAlign.Center
+        xCell.Text = xmlNode.Item(0).InnerText
+        xRow.Cells.Add(xCell)
+        Me.OrderHeader.Rows.Add(xRow)
+        '//---Order Detail
+        xRow = New TableRow
+        '-----11
+        xCell = New TableCell
+        xCell.Style.Value = "background-color:#f0f0f0;width:5%"
+        xCell.VerticalAlign = VerticalAlign.Middle
+        xCell.HorizontalAlign = HorizontalAlign.Center
+        xCell.Text = "Index"
+        xRow.Cells.Add(xCell)
+        '-----12
+        xCell = New TableCell
+        xCell.Style.Value = "background-color:#f0f0f0;width:8%"
+        xCell.VerticalAlign = VerticalAlign.Middle
+        xCell.HorizontalAlign = HorizontalAlign.Center
+        xCell.Text = "Line&nbsp;NO"
+        xRow.Cells.Add(xCell)
+        '-----13
+        xCell = New TableCell
+        xCell.Style.Value = "background-color:#f0f0f0;width:10%"
+        xCell.VerticalAlign = VerticalAlign.Middle
+        xCell.HorizontalAlign = HorizontalAlign.Center
+        xCell.Text = "Order&nbsp;NO"
+        xRow.Cells.Add(xCell)
+        '-----14
+        xCell = New TableCell
+        xCell.Style.Value = "background-color:#f0f0f0;width:15%"
+        xCell.VerticalAlign = VerticalAlign.Middle
+        xCell.HorizontalAlign = HorizontalAlign.Center
+        xCell.Text = "Item&nbsp;NO"
+        xRow.Cells.Add(xCell)
+        '-----15
+        xCell = New TableCell
+        xCell.Style.Value = "background-color:#f0f0f0;width:10%"
+        xCell.VerticalAlign = VerticalAlign.Middle
+        xCell.HorizontalAlign = HorizontalAlign.Center
+        xCell.Text = "QTY"
+        xRow.Cells.Add(xCell)
+        '-----16
+        xCell = New TableCell
+        xCell.Style.Value = "background-color:#f0f0f0;width:10%"
+        xCell.VerticalAlign = VerticalAlign.Middle
+        xCell.HorizontalAlign = HorizontalAlign.Center
+        xCell.Text = "Price"
+        xRow.Cells.Add(xCell)
+        '-----17
+        xCell = New TableCell
+        xCell.Style.Value = "background-color:#f0f0f0;width:10%"
+        xCell.VerticalAlign = VerticalAlign.Middle
+        xCell.HorizontalAlign = HorizontalAlign.Center
+        xCell.Text = "Required&nbsp;Date"
+        xRow.Cells.Add(xCell)
+        '-----18
+        xCell = New TableCell
+        xCell.Style.Value = "background-color:#f0f0f0;width:10%"
+        xCell.VerticalAlign = VerticalAlign.Middle
+        xCell.HorizontalAlign = HorizontalAlign.Center
+        xCell.Text = "Due&nbsp;Date"
+        xRow.Cells.Add(xCell)
+        '-----19
+        xCell = New TableCell
+        xCell.Style.Value = "background-color:#f0f0f0;width:10%"
+        xCell.VerticalAlign = VerticalAlign.Middle
+        xCell.HorizontalAlign = HorizontalAlign.Center
+        xCell.Text = "Delete"
+        xRow.Cells.Add(xCell)
+        Me.OrderItem.Rows.Add(xRow)
+        
+        xmlNode = xmlDoc.GetElementsByTagName("Order_Line")
+        Dim j As Integer = 0
+        While j <= xmlNode.Count - 1
+            subxmlNode = xmlNode.Item(j).ChildNodes
+            xRow = New TableRow
+            '-----11
+            xCell = New TableCell
+            xCell.Style.Value = "background-color:#ffffff;width:5%"
+            xCell.VerticalAlign = VerticalAlign.Middle
+            xCell.HorizontalAlign = HorizontalAlign.Center
+            xCell.Text = j + 1
+            xRow.Cells.Add(xCell)
+            '-----12
+            xCell = New TableCell
+            xCell.Style.Value = "background-color:#ffffff;width:8%"
+            xCell.VerticalAlign = VerticalAlign.Middle
+            xCell.HorizontalAlign = HorizontalAlign.Center
+            xCell.Text = subxmlNode.Item(4).InnerText
+            xRow.Cells.Add(xCell)
+            '-----13
+            xCell = New TableCell
+            xCell.Style.Value = "background-color:#ffffff;width:10%"
+            xCell.VerticalAlign = VerticalAlign.Middle
+            xCell.HorizontalAlign = HorizontalAlign.Center
+            xCell.Text = "<a href=""../file/so/" & Trim(Me.Order_No.Text) & ".xml"">" & Trim(Me.Order_No.Text) & "</a>"
+            xRow.Cells.Add(xCell)
+            '-----14
+            xCell = New TableCell
+            xCell.Style.Value = "background-color:#ffffff;width:15%"
+            xCell.VerticalAlign = VerticalAlign.Middle
+            xCell.HorizontalAlign = HorizontalAlign.Center
+            'xCell.Text = subxmlNode.Item(7).InnerText
+            xCell.Text = "<input type=""text"" name=""txtPartNO$$$" & subxmlNode.Item(4).InnerText & """ value=""" & Global_Inc.DeleteZeroOfStr(subxmlNode.Item(6).InnerText) & """ style=""text-align: left"">"
+            xRow.Cells.Add(xCell)
+            '-----15
+            xCell = New TableCell
+            xCell.Style.Value = "background-color:#ffffff;width:10%"
+            xCell.VerticalAlign = VerticalAlign.Middle
+            xCell.HorizontalAlign = HorizontalAlign.Center
+            'xCell.Text = subxmlNode.Item(8).InnerText
+            xCell.Text = "<input type=""text"" name=""txtQTY$$$" & subxmlNode.Item(4).InnerText & """ value=""" & subxmlNode.Item(7).InnerText & """ style=""text-align: right"">"
+            xRow.Cells.Add(xCell)
+            '-----16
+            xCell = New TableCell
+            xCell.Style.Value = "background-color:#ffffff;width:10%"
+            xCell.VerticalAlign = VerticalAlign.Middle
+            xCell.HorizontalAlign = HorizontalAlign.Center
+            'xCell.Text = subxmlNode.Item(9).InnerText
+            xCell.Text = "<input type=""text"" name=""txtPrice$$$" & subxmlNode.Item(4).InnerText & """ value=""" & subxmlNode.Item(8).InnerText & """ style=""text-align: right"">"
+            xRow.Cells.Add(xCell)
+            '-----17
+            xCell = New TableCell
+            xCell.Style.Value = "background-color:#ffffff;width:10%"
+            xCell.VerticalAlign = VerticalAlign.Middle
+            xCell.HorizontalAlign = HorizontalAlign.Center
+            'xCell.Text = subxmlNode.Item(10).InnerText
+            xCell.Text = "<input type=""text"" name=""txtDueDate$$$" & subxmlNode.Item(4).InnerText & """ value=""" & subxmlNode.Item(9).InnerText & """ style=""text-align: right"">"
+            xRow.Cells.Add(xCell)
+            '-----18
+            xCell = New TableCell
+            xCell.Style.Value = "background-color:#ffffff;width:10%"
+            xCell.VerticalAlign = VerticalAlign.Middle
+            xCell.HorizontalAlign = HorizontalAlign.Center
+            'xCell.Text = subxmlNode.Item(11).InnerText
+            xCell.Text = "<input type=""text"" name=""txtRequiredDate$$$" & subxmlNode.Item(4).InnerText & """ value=""" & subxmlNode.Item(10).InnerText & """ style=""text-align: right"">"
+            xRow.Cells.Add(xCell)
+            '-----19
+            xCell = New TableCell
+            xCell.Style.Value = "background-color:#ffffff;width:10%"
+            xCell.VerticalAlign = VerticalAlign.Middle
+            xCell.HorizontalAlign = HorizontalAlign.Center
+            'xCell.Text = "<input type=""checkbox"" name=""chkDelete$$$" & subxmlNode.Item(6).InnerText & """ value=""Yes"">"
+            xCell.Text = "<input type=""checkbox"" name=""chkDelete$$$" & subxmlNode.Item(4).InnerText & """ value=""Yes"" />"
+            xRow.Cells.Add(xCell)
+            Me.OrderItem.Rows.Add(xRow)
+            j = j + 1
+        End While
+        xmlDoc = Nothing
+    End Sub
+    
+    Function ERPOrder_Integrate_Again(ByVal strOrder_Type As String, ByVal strOrder_No As String) As Integer
+        Dim strOrderFileName As String = ""
+        Dim exeFunc As Integer = 0
+        Dim retValue As Integer = 0
+        Select Case strOrder_Type
+            Case "PO"
+                			
+            Case "SO"
+                Dim strERPHost As String = ""
+                Dim strERPSOFolder As String = ""
+                Dim strSOFolder As String = ""
+                Dim strERPIntegrateId As String = ""
+                Global_Inc.SiteDefinition_Get("ERPHost", strERPHost)
+                Global_Inc.SiteDefinition_Get("ERPSOFolder", strERPSOFolder)
+                Global_Inc.SiteDefinition_Get("SOFolder", strSOFolder)
+                strOrderFileName = strOrder_No & ".xml"
+                Global_Inc.SiteDefinition_Get("ERPIntegrateId", strERPIntegrateId)
+                '--{2006-03-27}--Daive: Avoid order without item into SAP
+                Dim order_xmlString As String
+                Dim obj_FSO As System.IO.FileInfo = New System.IO.FileInfo(strSOFolder & UCase(strOrderFileName))
+                Dim objFStrm As System.IO.StreamReader
+                Try
+                    objFStrm = obj_FSO.OpenText
+                    order_xmlString = objFStrm.ReadToEnd
+                    objFStrm.Close()
+                    If order_xmlString.IndexOf("<Order_Line>") < 1 Then
+                        ERPOrder_Integrate_Again = 0
+                        Response.Redirect("../order/Order_Recovery_V6.aspx?Order_No=" & strOrder_No & "")
+                        Exit Function
+                    End If
+                Catch ex As Exception
+                    ERPOrder_Integrate_Again = 0
+                    Exit Function
+                End Try
+                'Start to transfer order to SAP
+                Dim Proc_Status_Xml As String = ""
+                Dim Order_Status_Xml As String = ""
+                retValue = OrderUtilities.ERPOrder_Process(strSOFolder, strOrderFileName, Proc_Status_Xml)
+                'retValue=1
+                Dim xFunc As Integer = 0
+                Dim xStatus As Integer = 0
+                If retValue = -1 Then
+                    If Proc_Status_Xml = "" Then
+				
+                    Else
+                        xStatus = 0
+                        xFunc = OrderUtilities.ProcStatus_Save(Proc_Status_Xml, strOrder_No, xStatus)
+                    End If
+                    Response.Write("Order creation process failed. Please contact myadvantech@advantech.com.tw.")
+                    Response.Redirect("../order/Order_Recovery_V6.aspx?Order_No=" & strOrder_No & "")
+                    'exit function
+                Else
+                    If retValue = 0 Then
+                        If Proc_Status_Xml = "" And retValue = 1 Then
+				
+                        Else
+                            xStatus = 0
+                            xFunc = OrderUtilities.ProcStatus_Save(Proc_Status_Xml, strOrder_No, xStatus)
+                        End If
+                        Response.Redirect("../order/Order_Recovery_V6.aspx?Order_No=" & strOrder_No & "")
+                    End If
+                End If
+                '20060816 TC: Start to insert warranty flag to SAP table for sales order(VBAP-ZZ_GUARA)
+                'If GlobalInc.IsB2BOwner(Session("user_id")) Then 
+                
+                If 1 = 1 Then
+
+                    'Dim edt As DataTable = GlobalInc.dbGetDataTable("172.21.34.33", "b2b_aesc_sap", _
+                    '" select IsNull(a.order_no,'') as so_no, IsNull(b.line_no,'1') as line_no, " + _
+                    '" b.exwarranty_flag " + _
+                    '" from order_master a, order_detail b " + _
+                    '" where a.order_id=b.order_id and " + _
+                    '" (b.exwarranty_flag<>'0' or b.part_no like 'AGS-EW-%') and " + _
+                    '" a.order_no='" + strOrder_No + "' order by b.line_no")
+        
+                    'Dim ew_status As String = "", retCode As Boolean = False
+        
+                    'If edt.Rows.Count > 0 Then
+            
+                    '    Dim EW_Ws As New ACLBI2_WS.B2B_AEU_WS
+                    '    'If LCase(Session("USER_ID")) = "daive.wang@advantech.com.cn" Or LCase(Session("USER_ID")) = "tc.chen@advantech.com.tw" Or LCase(Session("USER_ID")) = "jackie.wu@advantech.com.cn" Then
+                    '    If 1 <> 1 Then
+                    '        EW_Ws.UpdateSOWarrantyFlag_TEST(GlobalInc.DataTableToADOXML(edt), ew_status, retCode)
+                    '    Else
+                    '        EW_Ws.UpdateSOWarrantyFlag(GlobalInc.DataTableToADOXML(edt), ew_status, retCode)
+                    '    End If
+                        
+                    '    If Not retCode Then
+                    '        Response.Write(ew_status) : Response.End()
+                    '    End If
+            
+                    'End If
+                    'Jackie add 2007/06/29
+                    Dim ew_tb As New DataTable
+                    ew_tb = dbUtil.dbGetDataTable("B2B", "select part_no from order_detail where order_id='" & Session("order_id") & "' and line_no<100 and part_no like 'AGS-EW-%' ")
+                    If ew_tb.Rows.Count > 0 Then
+                        Dim edt As DataTable = dbUtil.dbGetDataTable("B2B", _
+                        " select IsNull(a.order_no,'') as so_no, IsNull(b.line_no,'1') as line_no, " + _
+                        " IsNull(b.exwarranty_flag,'') as exwarranty_flag " + _
+                        " from order_master a, order_detail b " + _
+                        " where a.order_id=b.order_id and " + _
+                        " (b.exwarranty_flag='00' or b.exwarranty_flag='0') and " + _
+                        " a.order_no='" + strOrder_No + "' order by b.line_no")
+                        ' jackie revise 2006/8/31
+                        '" where a.order_id=b.order_id and b.line_no<100 and " + _
+                        Dim ew_status As String = "", retCode As Boolean = False
+                        If edt.Rows.Count > 0 Then
+                            Dim EW_Ws As New aeu_ebus_dev9000.B2B_AEU_WS
+                            EW_Ws.Timeout = 999999999
+                            'If LCase(Session("USER_ID")) = "daive.wang@advantech.com.cn" Or LCase(Session("USER_ID")) = "tc.chen@advantech.com.tw" Then
+                            If 1 <> 1 Then
+                                'EW_Ws.UpdateSOWarrantyFlag_TEST( _
+                                'Global_Inc.DataTableToADOXML(edt), ew_status, retCode)
+                            Else
+                                EW_Ws.UpdateSOWarrantyFlag( _
+                                Global_Inc.DataTableToADOXML(edt), ew_status, retCode)
+                            End If
+                            If Not retCode Then
+                                Response.Write(ew_status) : Response.End()
+                            End If
+            
+                        End If
+                        'Response.Write(ew_status) : Response.End()
+                    End If
+
+                End If
+                ''If LCase(Session("USER_ID")) = "jackie.wu@advantech.com.cn" Then
+                ''    Return 1
+                ''    Exit Function
+                ''End If
+                'End of insert warranty flag
+                If Proc_Status_Xml = "" And retValue = 1 Then
+				
+                Else
+                    xStatus = 1
+                    xFunc = OrderUtilities.ProcStatus_Save(Proc_Status_Xml, strOrder_No, xStatus)
+                End If
+                'Get SAP order status to compare with B2B order status
+                'exeFunc = Me.GlobalInc.Pause(5)
+                retValue = OrderUtilities.GetERPOrderStatus(strOrder_No, Order_Status_Xml)
+                If retValue = -1 Then
+                    Response.Write("Query order status failed. Please contact myadvantech@advantech.com.tw.")
+                    '--{2005-10-7}--Daive:
+                    'send one mail to administrator to tell us B2B didn't get Data from SAP because of ...
+                    'Response.End
+                    Response.Redirect("../order/Order_Recovery_V6.aspx?Order_No=" & strOrder_No & "")
+                Else
+                    If retValue = 0 Then
+                        Response.Write("No order record in SAP.")
+                        '--{2005-10-7}--Daive:
+                        'send one mail to administrator to tell us Order insert successfully, but B2B didn't get Data from SAP because of ...
+                        'Response.End
+                        Response.Redirect("../order/Order_Recovery_V6.aspx?Order_No=" & strOrder_No & "")
+                    End If
+                End If
+                'Response.End
+                'Use this xml to compare SAP and B2B order status
+                'Create Table "ORDER_DETAIL_CHANGED_IN_SAP"
+                'Save the changed Records in Table "ORDER_DETAIL_CHANGED_IN_SAP" and change the ORDER_DATAIL
+                exeFunc = Rec_OrderDetailChangedInSAP_Save(strOrder_No, Order_Status_Xml)
+                'End of SAP order part			
+            Case "SupplierSO"
+
+        End Select
+        ERPOrder_Integrate_Again = 1
+    End Function
+    
+    '===================================================================================
+    '  Function: Save Item changed in SAP to ORDER_DETAIL_CHANGED_IN_SAP
+    '  little Skills: 
+    '       1> Set All Item "Changed_Flag=2"    
+    '       2> Set Item which exists in SAP_Order_Status_Xml "Changed_Flag=0" 
+    '       3> Set Changed Item "Changed_Flag=1"
+    '  Changed_Flag: 0--->Not Changed Item    1---> Changed Item    2---> Item Deleted
+    '===================================================================================
+    Function Rec_OrderDetailChangedInSAP_Save(ByVal strOrder_No As String, ByVal SAP_Order_Status_Xml As String) As Integer
+       
+        Dim OrderID_DR As DataTable = dbUtil.dbGetDataTable("B2B", "select ORDER_ID from ORDER_MASTER where ORDER_NO='" & strOrder_No & "'")
+        Dim strOrder_ID As String = ""
+        If OrderID_DR.Rows.Count > 0 Then
+            strOrder_ID = OrderID_DR.Rows(0).Item("ORDER_ID")
+        End If
+        
+        Dim FlagDataTable As DataTable
+        FlagDataTable = dbUtil.dbGetDataTable("B2B", "select * from ORDER_DETAIL_CHANGED_IN_SAP where order_id='" & strOrder_ID & "' and order_no='" & strOrder_No & "'")
+        If FlagDataTable.Rows.Count > 0 Then
+            dbUtil.dbExecuteNoQuery("B2B", "delete from ORDER_DETAIL_CHANGED_IN_SAP where order_id='" & strOrder_ID & "' and order_no='" & strOrder_No & "'")
+        End If
+        
+        Dim Order_Detail_DT As DataTable
+        Order_Detail_DT = dbUtil.dbGetDataTable("B2B", "Select LINE_NO,PART_NO,QTY,DUE_DATE,UNIT_PRICE from ORDER_DETAIL where ORDER_ID = '" & strOrder_ID & "' order by LINE_NO")
+        If Order_Detail_DT.Rows.Count > 0 Then
+            Dim strInsertSQL As String = ""
+            Dim i As Integer = 0
+            While i <= Order_Detail_DT.Rows.Count - 1
+                strInsertSQL = "Insert into ORDER_DETAIL_CHANGED_IN_SAP " & _
+                               "Values('" & strOrder_ID & "','" & strOrder_No & "'," & Order_Detail_DT.Rows(i).Item("LINE_NO") & ",0,'" & Order_Detail_DT.Rows(i).Item("PART_NO") & "'," & Order_Detail_DT.Rows(i).Item("QTY") & ",'" & Order_Detail_DT.Rows(i).Item("DUE_DATE") & "'," & Order_Detail_DT.Rows(i).Item("UNIT_PRICE") & "," & Order_Detail_DT.Rows(i).Item("QTY") & ",'" & Order_Detail_DT.Rows(i).Item("DUE_DATE") & "'," & Order_Detail_DT.Rows(i).Item("UNIT_Price") & ",2)"
+                dbUtil.dbExecuteNoQuery("B2B", strInsertSQL)
+                i = i + 1
+            End While
+        End If
+  
+        If Not IsDBNull(SAP_Order_Status_Xml) And Trim(SAP_Order_Status_Xml) <> "" Then
+            Dim xmlDoc As New System.Xml.XmlDocument
+            xmlDoc.LoadXml(SAP_Order_Status_Xml)
+            Dim xmlNR As System.Xml.XmlNodeReader = New System.Xml.XmlNodeReader(xmlDoc)
+            Dim xDataSet As New DataSet
+            xDataSet.ReadXml(xmlNR)
+        
+            Dim SAP_Order_Status_DT As DataTable
+            SAP_Order_Status_DT = xDataSet.Tables(7)
+            SAP_Order_Status_DT.DefaultView.Sort = "Itm_Number"
+            
+            '--{2006-08-21}-Daive: For Component Order, hide AGS-EW-**
+            'If Me.GlobalInc.IsB2BOwner(Session("user_id")) Then 
+            If 1 = 1 Then
+                If SAP_Order_Status_DT.Rows.Count > 0 Then
+                    If CInt(SAP_Order_Status_DT.Rows(0).Item("Itm_Number")) < 100 Then
+                        dbUtil.dbExecuteNoQuery("B2B", "Update ORDER_DETAIL_CHANGED_IN_SAP Set CHANGED_FLAG =0 where ORDER_NO='" & strOrder_No & "' and line_no < 100 and part_no like 'AGS-EW-%' ")
+                        Dim xRow As DataRow()
+                        xRow = SAP_Order_Status_DT.Select("(Itm_Number < '000100' or ITM_NUMBER < 100) and MATERIAL like 'AGS-EW-%'")
+                        For i As Integer = 0 To xRow.Length - 1
+                            SAP_Order_Status_DT.Rows.Remove(xRow(i))
+                        Next
+                        SAP_Order_Status_DT.AcceptChanges()
+                    End If
+                End If
+            End If
+            '--End------
+            
+            Dim Order_Detail_DR11 As DataTable = Nothing
+            If SAP_Order_Status_DT.Rows.Count > 0 Then
+                Dim j As Integer = 0
+ 
+                While j <= SAP_Order_Status_DT.Rows.Count - 1
+  	    
+                    'Dim g_adoConn1 As New SqlClient.SqlConnection
+                    Order_Detail_DR11 = dbUtil.dbGetDataTable("B2B", "select * from Order_Detail where ORDER_ID = '" & strOrder_ID & "' and line_no=" & CInt(SAP_Order_Status_DT.Rows(j).Item("Itm_Number")))
+                    If Order_Detail_DR11.Rows.Count > 0 Then
+                        dbUtil.dbExecuteNoQuery("B2B", "Update ORDER_DETAIL_CHANGED_IN_SAP Set CHANGED_FLAG =0 where ORDER_NO='" & strOrder_No & "' and line_no=" & CInt(SAP_Order_Status_DT.Rows(j).Item("Itm_Number")) & "")
+                        '--{2005-01-18}--Daive: Insert the new item to DB and replace the error item
+                        If UCase(Trim(OrderUtilities.IsNumericItem_Shrink(SAP_Order_Status_DT.Rows(j).Item("Material")))) <> UCase(Trim(Order_Detail_DR11.Rows(0).Item("PART_NO"))) Then
+                            dbUtil.dbExecuteNoQuery("B2B", "Update ORDER_DETAIL_CHANGED_IN_SAP Set PART_NO = '" & OrderUtilities.IsNumericItem_Shrink(SAP_Order_Status_DT.Rows(j).Item("Material")) & "',CHANGED_FLAG =1 where ORDER_NO='" & strOrder_No & "' and line_no=" & CInt(SAP_Order_Status_DT.Rows(j).Item("Itm_Number")) & "")
+                            dbUtil.dbExecuteNoQuery("B2B", "Update ORDER_DETAIL Set PART_NO = '" & OrderUtilities.IsNumericItem_Shrink(SAP_Order_Status_DT.Rows(j).Item("Material")) & "' where ORDER_ID='" & strOrder_ID & "' and line_no=" & CInt(SAP_Order_Status_DT.Rows(j).Item("Itm_Number")) & "")
+                        End If
+                        If CInt(SAP_Order_Status_DT.Rows(j).Item("Req_Qty")) <> CInt(Order_Detail_DR11.Rows(0).Item("QTY")) Then
+                            dbUtil.dbExecuteNoQuery("B2B", "Update ORDER_DETAIL Set QTY = '" & SAP_Order_Status_DT.Rows(j).Item("Req_Qty") & "' where ORDER_ID = '" & strOrder_ID & "' and PART_NO='" & OrderUtilities.IsNumericItem_Shrink(SAP_Order_Status_DT.Rows(j).Item("Material")) & "' and line_no=" & CInt(SAP_Order_Status_DT.Rows(j).Item("Itm_Number")) & "")
+                            dbUtil.dbExecuteNoQuery("B2B", "Update ORDER_DETAIL_CHANGED_IN_SAP Set NEW_QTY=" & SAP_Order_Status_DT.Rows(j).Item("Req_Qty") & ",CHANGED_FLAG =1 where ORDER_NO='" & strOrder_No & "' and line_no=" & CInt(SAP_Order_Status_DT.Rows(j).Item("Itm_Number")) & "")
+                        End If
+                        If DateDiff("d", SAP_Order_Status_DT.Rows(j).Item("Req_Date"), Order_Detail_DR11.Rows(0).Item("DUE_DATE")) <> 0 Then
+                            dbUtil.dbExecuteNoQuery("B2B", "Update ORDER_DETAIL Set DUE_DATE = '" & SAP_Order_Status_DT.Rows(j).Item("Req_Date") & "' where ORDER_ID = '" & strOrder_ID & "' and PART_NO='" & OrderUtilities.IsNumericItem_Shrink(SAP_Order_Status_DT.Rows(j).Item("Material")) & "' and (Line_no<=100 or Line_no=900) and line_no=" & CInt(SAP_Order_Status_DT.Rows(j).Item("Itm_Number")) & "")
+                            dbUtil.dbExecuteNoQuery("B2B", "Update ORDER_DETAIL_CHANGED_IN_SAP Set NEW_DUE_DATE='" & SAP_Order_Status_DT.Rows(j).Item("Req_Date") & "',CHANGED_FLAG =1 where ORDER_NO='" & strOrder_No & "' and (Line_no<=100 or Line_no=900) and line_no=" & CInt(SAP_Order_Status_DT.Rows(j).Item("Itm_Number")) & "")
+                        End If
+                        If FormatNumber(SAP_Order_Status_DT.Rows(j).Item("Net_Price"), 2) <> FormatNumber(Order_Detail_DR11.Rows(0).Item("UNIT_PRICE"), 2) Then
+                            dbUtil.dbExecuteNoQuery("B2B", "Update ORDER_DETAIL Set UNIT_PRICE = " & SAP_Order_Status_DT.Rows(j).Item("Net_Price") & " where ORDER_ID = '" & strOrder_ID & "' and PART_NO='" & OrderUtilities.IsNumericItem_Shrink(SAP_Order_Status_DT.Rows(j).Item("Material")) & "' and line_no=" & CInt(SAP_Order_Status_DT.Rows(j).Item("Itm_Number")) & "")
+                            dbUtil.dbExecuteNoQuery("B2B", "Update ORDER_DETAIL_CHANGED_IN_SAP Set NEW_UNIT_PRICE=" & SAP_Order_Status_DT.Rows(j).Item("Net_Price") & ",CHANGED_FLAG =1 where ORDER_NO='" & strOrder_No & "' and line_no=" & CInt(SAP_Order_Status_DT.Rows(j).Item("Itm_Number")) & "")
+                        End If
+                    End If
+                    j = j + 1
+                End While
+            End If
+            Dim strDeleteSQL As String = ""
+            strDeleteSQL = "Delete from Order_Detail where ORDER_ID = '" & strOrder_ID & "' and PART_NO in " & _
+                           "(Select PART_NO from ORDER_DETAIL_CHANGED_IN_SAP where ORDER_NO='" & strOrder_No & "' and CHANGED_FLAG=2)"
+            dbUtil.dbExecuteNoQuery("B2B", strDeleteSQL)
+        End If
+        If SAP_Order_Status_Xml = "" Then
+            dbUtil.dbExecuteNoQuery("B2B", "Update ORDER_DETAIL_CHANGED_IN_SAP Set CHANGED_FLAG =0 where ORDER_NO='" & strOrder_No & "'")
+        End If
+        Return 1
+    End Function
+
+    Protected Sub ShowFailedOrderList_Click(ByVal sender As Object, ByVal e As System.EventArgs)
+        Response.Redirect("../order/Order_Recovery_V6.aspx")
+    End Sub
+</script>
+
+<asp:Content ID="Content1" ContentPlaceHolderID="_main" Runat="Server">
+<table width="100%" height="100%" border="0" cellspacing="0" cellpadding="0">
+        <tr>
+           <td colspan="3">
+             
+           </td>
+        </tr>
+        <tr>
+        	 <td width="20px"></td>
+           <td width="100%" align="center"  valign="top">
+              <table cellpadding="0" cellspacing="0" width="100%" id="Table2">
+                 <tr>
+                    <td height="2">
+                        &nbsp;
+                    </td>
+                 </tr>
+                 <tr>
+                    <td class="euPageTitle" align="left">
+                        Order Recovery&nbsp;&nbsp;&nbsp;
+                    </td>
+                  </tr>
+                  <tr>
+                    <td height="2">
+                            &nbsp;
+                    </td>
+                  </tr>
+                  <tr>
+                    <td align="left">
+                       <!--form name="FormQuery" method="POST" action="Order_Recovery_sap.asp"-->
+                            &nbsp;&nbsp;&nbsp;<font color="#00008B" size="3"><b>Order&nbsp;NO:</b></font>&nbsp;<asp:TextBox runat="server" ID="Order_No" Width="100px"></asp:TextBox>
+                            &nbsp;&nbsp;<asp:Button runat="server" ID="ShowFailedOrderList" Text="ShowFailedOrderList" OnClick="ShowFailedOrderList_Click" />
+                            &nbsp;&nbsp;<asp:Button runat="server" ID="Query" Text="Query" OnClick="Query_Click" />
+                            &nbsp;&nbsp;<asp:Button runat="server" ID="Recovery" Text="Recover" OnClick="Recovery_Click" />
+                       <!--/form-->
+                     </td>
+                  </tr>
+                  <tr>
+                     <td height="2">
+                            <hr>
+                     </td>
+                  </tr>
+                  <tr runat="server" id="trUpdateTop">
+                     <td height="2" align="left">
+                            <asp:Button runat="server" ID="UpdateTop" Text="Update" OnClick="UpdateTop_Click" />
+                     </td>
+                  </tr>
+                  <tr>
+                     <td height="2">
+                            &nbsp;
+                     </td>
+                  </tr>
+                  <tr runat="server" id="trErrMsg">
+                      <td height="2" align="left">
+                         <table width="100%" border="0" cellspacing="0" cellspadding="0">
+                             <tr>
+                                <td style="padding-left:10px;border-bottom:#ffffff 1px solid" valign="middle" height="20" bgcolor="#6699CC">
+  	                             &nbsp;<font size=3 color="#ffffff"><b>Message</b></font>
+                                </td>
+                             </tr> 
+  	                         <tr>
+  		                       <td width="100%" valign="top" cellspacing="1" cellspadding="1" style="background-color:#bec4e3"> 
+                                  <asp:Table runat="server" ID="ErrMsg" Width="100%" CellPadding="1" CellSpacing="1" BackColor="#ffffff"></asp:Table>
+                               </td>
+                             </tr>  	                           
+  	                         <tr>
+  	                           <td height="5" bgcolor="#ffffff">
+  	                              &nbsp;
+  	                           </td>
+  	                         </tr>
+  	                      </table>
+                      </td>
+                  </tr>
+                  <tr runat="server" id="trOrderHeader">
+                      <td height="2" align="left">
+                          <table width="100%" border="0" cellspacing="0" cellspadding="0">
+                             <tr>
+                                <td style="padding-left:10px;border-bottom:#ffffff 1px solid" valign="middle" height="20" bgcolor="#6699CC">
+  	                             &nbsp;<font size=3 color="#ffffff"><b>Order Header</b></font>
+                                </td>
+                             </tr> 
+  	                         <tr>
+  		                       <td width="100%" valign="top" cellspacing="1" cellspadding="1" style="background-color:#bec4e3"> 
+                                  <asp:Table runat="server" ID="OrderHeader" Width="100%" CellPadding="1" CellSpacing="1" BackColor="#bec4e3"></asp:Table>
+                               </td>
+                             </tr>  	                           
+  	                         <tr>
+  	                           <td height="5" bgcolor="#ffffff">
+  	                              &nbsp;
+  	                           </td>
+  	                         </tr>
+  	                      </table>                            
+                      </td>
+                  </tr>
+                  <tr runat="server" id="trOrderItem">
+                      <td height="2" align="left">
+                           <table width="100%" border="0" cellspacing="0" cellspadding="0">
+                             <tr>
+                                <td style="padding-left:10px;border-bottom:#ffffff 1px solid" valign="middle" height="20" bgcolor="#6699CC">
+  	                             &nbsp;<font size=3 color="#ffffff"><b>Order Detail</b></font>
+                                </td>
+                             </tr> 
+  	                         <tr>
+  		                       <td width="100%" valign="top" cellspacing="1" cellspadding="1" style="background-color:#bec4e3"> 
+                                   <asp:Table runat="server" ID="OrderItem" Width="100%" CellPadding="1" CellSpacing="1" BackColor="#bec4e3"></asp:Table>
+                               </td>
+                             </tr>  	                           
+  	                         <tr>
+  	                           <td height="5" bgcolor="#ffffff">
+  	                              &nbsp;
+  	                           </td>
+  	                         </tr>
+  	                      </table>
+                      </td>
+                  </tr>       
+                  <tr runat="server" id="trdgFailedOrderList">
+                      <td height="2" align="left">
+                            <table width="100%" border="0" cellspacing="0" cellspadding="0">
+                             <tr>
+  		                       <td width="100%" valign="top" cellspacing="0" cellspadding="0">
+  		                       
+  		                       
+  		                       <table cellpadding="1"  width="100%"><tr><td style="background-color:#666666">
+			<table width="100%" border="0" cellspacing="0" cellpadding="0" align="center" style="vertical-align:middle" ID="Table1">
+                    <tr>
+                        <td style="padding-left:10px;border-bottom:#ffffff 1px solid;height:20px;background-color:#6699CC" align="left" valign="middle" class="text">
+                        <font color="#ffffff"><b>Failed Order List</b></font></td></tr>
+                        <tr><td>
+										
+														<!-- include virtual = "/cart/carthistory_list_new_main.asp" -->
+												<asp:GridView runat="server" Width="100%" ID="GridView1" AutoGenerateColumns = "true" 
+                                                            DataSourceID ="SqlDataSource1" onrowdatabound="GridView1_RowDataBound" 
+                                                            AllowPaging="True" PageIndex="0" PageSize="20"></asp:GridView>		
+								
+								
+								
+														
+                                            <asp:SqlDataSource ID="SqlDataSource1" runat="server" ConnectionString="<%$ ConnectionStrings:B2B %>"></asp:SqlDataSource>
+								   
+                </td></tr><tr><td id="tdTotal" align="right" style="background-color:#ffffff" runat="server"></td></tr></table>
+				</td></tr></table>  
+                                 <%-- <adl:AdxDatagrid runat="server" ID="dgFailedOrderList" xConnectionString="ADLSERVER" xTitleText="Failed Order List" xNaviPage="true" xShowCount="true" xDebugSQL="false" xImgUrl="../Images/" xPageSize="50"  OnItemDataBound="DataGrid_ItemBound">
+                                     <adl:AdxColumn runat="server" ID="colORDER_NO" xDataSource="ORDER_NO" xHeaderText="Order NO."></adl:AdxColumn>
+                                     <adl:AdxColumn runat="server" ID="colSOLDTO_ID" xDataSource="SOLDTO_ID" xHeaderText="Sold To"></adl:AdxColumn>
+                                     <adl:AdxColumn runat="server" ID="colORDER_DATE" xDataSource="ORDER_DATE" xHeaderText="Order Date"></adl:AdxColumn>
+                                     <adl:AdxColumn runat="server" ID="colCREATED_BY" xDataSource="CREATED_BY" xHeaderText="Created By"></adl:AdxColumn>
+                                     <adl:AdxColumn runat="server" ID="colSTATUS" xDataSource="STATUS" xHeaderText="Status"></adl:AdxColumn>
+                                  </adl:AdxDatagrid> --%>                                 
+                               </td>
+                             </tr>  	                           
+  	                         <tr>
+  	                           <td height="5" bgcolor="#ffffff">
+  	                              &nbsp;<asp:Label runat="server" ID="lblErrorMsg" Text=""></asp:Label>
+  	                           </td>
+  	                         </tr>
+  	                      </table>
+                      </td>
+                  </tr>
+                  <tr runat="server" id="trUpdateBottom">
+                     <td height="2" align="left">
+                            <asp:Button runat="server" ID="UpdateBottom" Text="Update" OnClick="UpdateBottom_Click" />
+                     </td>
+                  </tr>
+                </table>
+              
+            </td>
+            <td width="20px"></td>
+        </tr>
+        <tr>
+            <td height="3">
+                &nbsp;
+            </td>
+        </tr>
+        <tr>
+            <td colspan="3">
+                
+            </td>
+        </tr>
+    </table>
+</asp:Content>
+

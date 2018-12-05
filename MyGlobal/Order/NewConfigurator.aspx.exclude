@@ -1,0 +1,631 @@
+﻿<%@ Page Title="MyAdvantech - eConfigurator" ValidateRequest="false" EnableEventValidation="false"
+    Language="VB" MasterPageFile="~/Includes/MyMaster.master" %>
+
+<%@ Register Src="../Includes/HierarchyConfigUI.ascx" TagName="HierarchyConfigUI"
+    TagPrefix="uc1" %>
+<%@ Register TagPrefix="dbwc" Namespace="DBauer.Web.UI.WebControls" Assembly="DBauer.Web.UI.WebControls.DynamicControlsPlaceholder" %>
+<%@ Register TagPrefix="obout" Namespace="OboutInc.Flyout2" Assembly="obout_Flyout2_NET" %>
+<script runat="server">
+    Dim CBOMWS As New MyCBOMDAL, _IsAEUeStore As Boolean = False
+    Protected Sub Page_Load(ByVal sender As Object, ByVal e As System.EventArgs)
+        If Not Page.IsPostBack Then
+            If Request("BTOITEM") = "SBC-BTO" Then
+                Me.btnConfig_Click(Me.btnConfig, Nothing)
+            End If
+
+            '20130627 TC: Redirect user to New eConfigurator
+            Dim strBTOItem As String = "", strQty As String = "1"
+            If Request("BTOITEM") IsNot Nothing Then strBTOItem = Trim(Request("BTOITEM"))
+            If Request("QTY") IsNot Nothing AndAlso Integer.TryParse(Request("QTY"), 1) Then strQty = Request("QTY")
+            Response.Redirect(String.Format("Configurator.aspx?BTOItem={0}&QTY={1}", strBTOItem, strQty))
+            
+            'Frank 2013/02/19:If Catalog local name is Pre-Configuration for AEU eStore (buy.advantech.eu) Configuration,
+            'then it's a AEU eStore bom
+            If Session("org_id").ToString().StartsWith("EU", StringComparison.OrdinalIgnoreCase) Then
+                Dim _sql As New StringBuilder
+                _sql.AppendLine(" Select a.Catalog_Org,a.CATALOG_TYPE,b.LOCAL_NAME,a.CATALOG_ID,a.CATALOG_NAME,a.CATALOG_DESC, a.CREATED ")
+                _sql.AppendLine(" From CBOM_CATALOG a inner join CBOM_CATALOG_LOCALNAME b on a.CATALOG_TYPE=b.CATALOG_TYPE ")
+                _sql.AppendLine(" Where a.Catalog_Org='EU' and a.CATALOG_TYPE like '%Pre-Configuration' and a.CATALOG_NAME ='" & Request("BTOITEM") & "' ")
+                Dim _dt As DataTable = dbUtil.dbGetDataTable("MY", _sql.ToString)
+                If Not IsNothing(_dt) AndAlso _dt.Rows.Count > 0 AndAlso _
+                    _dt.Rows(0).Item("LOCAL_NAME").ToString.Equals("Pre-Configuration for AEU eStore (buy.advantech.eu) Configuration", _
+                    StringComparison.InvariantCultureIgnoreCase) Then
+                    _IsAEUeStore = True
+                End If
+            End If
+
+        End If
+    End Sub
+    Protected Function CheckBTO(ByVal BtosName As String, ByVal orgid As String) As Boolean
+        Dim dt As DataTable = dbUtil.dbGetDataTable("MY", String.Format(" select TOP 1 PART_NO FROM  SAP_PRODUCT_ORG WHERE PART_NO ='{0}' AND  ORG_ID ='{1}'", BtosName.Trim, orgid.Trim))
+        If dt.Rows.Count > 0 Then  Return True
+        Return False
+    End Function
+    Protected Sub Page_PreRender(ByVal sender As Object, ByVal e As System.EventArgs)
+        If Not Page.IsPostBack AndAlso Request("BTOITEM") IsNot Nothing AndAlso Request("BTOITEM") <> "" Then
+            If Request("Qty") IsNot Nothing AndAlso Integer.TryParse(Request("QTY"), 0) Then
+                hd_Qty.Value = Math.Abs(CInt(Request("Qty")))
+            End If
+            hd_BTOItem.Value = Trim(Request("BTOITEM")).ToUpper()
+            '20130611 TC: Comment because there is bug. almost all eStore BTO root items are invalid by below code
+            'If Not CheckBTO(hd_BTOItem.Value, Session("org_id")) Then
+            '    Glob.ShowInfo(String.Format("{0} is invalid for {1}", hd_BTOItem.Value, Session("org_id")))
+            '    btnConfig.Visible = False:  ImageButton1.Visible = False:   btnConfig2.Visible = False
+            '    Exit Sub 
+            'End If
+            Dim CbomDt As CBOMDS.CBOM_CATALOG_CATEGORYDataTable = CBOMWS.GetCBOM2(Replace(hd_BTOItem.Value, "'", "''").Trim(), _
+                                                                                  HttpContext.Current.Session("RBU").ToString.ToUpper, Session("org_id"))
+            'OrderUtilities.showDT(dt)
+            For Each CbomRow As CBOMDS.CBOM_CATALOG_CATEGORYRow In CbomDt.Rows
+                Dim ctrl As New HierarchyConfigUI
+                AddHandler ctrl.SelectedComponentChanged, AddressOf CompSelected
+                ph1.Controls.Add(ctrl) : ctrl.CatName = CbomRow.CATEGORY_ID
+                If CbomRow.CONFIGURATION_RULE.Equals("REQUIRED", StringComparison.OrdinalIgnoreCase) Then ctrl.IsRequired = True
+                ctrl.Level = 1
+                'If hd_BTOItem.Value.StartsWith("SYS-") Then
+                '    ctrl.IsSYSBOM = True
+                'Else
+                '    ctrl.IsSYSBOM = False
+                'End If
+                ctrl.IsSYSBOM = isOnly1Level(hd_BTOItem.Value)
+            Next
+
+            
+            ''Frank 2013/02/20:
+            ''===Extended warranty option is applied to all the configuration system====
+            'Dim EW_Ctrl As New HierarchyConfigUI
+            'AddHandler EW_Ctrl.SelectedComponentChanged, AddressOf CompSelected
+            'ph1.Controls.Add(EW_Ctrl) : EW_Ctrl.CatName = "Extended Warranty for " & hd_BTOItem.Value
+            'EW_Ctrl.IsRequired = False
+            'EW_Ctrl.Level = 1
+            'EW_Ctrl.IsSYSBOM = True
+            ''=====================================================================
+            
+            
+            tv1.Nodes.Add(New TreeNode(hd_BTOItem.Value, hd_BTOItem.Value))
+            If isOnly1Level(hd_BTOItem.Value) Then
+                Me.TimerExpandAll.Enabled = True
+            End If
+            If hd_BTOItem.Value IsNot Nothing AndAlso Not String.IsNullOrEmpty(hd_BTOItem.Value) Then
+                'Frank 2012/06/04: Stop using Session("org") and replacing by Left(Session("org_id"), 2)
+                'If Session("org").ToString().StartsWith("EU", StringComparison.OrdinalIgnoreCase) Then
+                '    divAddOtherPartNo.Visible = False : divOthers.Visible = False
+                'End If
+                If Session("org_id").ToString().StartsWith("EU", StringComparison.OrdinalIgnoreCase) Then
+                    divAddOtherPartNo.Visible = False : divOthers.Visible = False
+                End If
+
+            End If
+            Source_path()
+        End If
+    End Sub
+    Public Function isOnly1Level(ByVal RootID As String) As Boolean
+        Dim F As Boolean = False
+
+        If IsEstoreBom(RootID) Then
+            F = True
+        End If
+
+        'If (RootID.StartsWith("C-CTOS") Or RootID.StartsWith("SYS-")) And (Not RootID.StartsWith("C-CTOS-UUAAESC")) Then
+        If RootID.StartsWith("C-CTOS") Or RootID.StartsWith("SYS-") Then
+            F = True
+        End If
+        Return F
+    End Function
+    Public Function IsEstoreBom(ByVal BTORootID As String) As Boolean
+        
+        'Frank 2013/02/19
+        If _IsAEUeStore = True Then Return _IsAEUeStore
+        
+        If BTORootID.StartsWith("EZ-", StringComparison.OrdinalIgnoreCase) Then
+            Return True
+        End If
+        Dim ObjectEZ_FLAG As Object = dbUtil.dbExecuteScalar("B2B",
+                                                             String.Format("SELECT ISNULL(COUNT(BTONo),0) as Bcount  FROM  ESTORE_BTOS_CATEGORY WHERE  DisplayPartno ='{1}' and StoreID like '%{0}'", _
+                                                                   Left(Session("org_id").ToUpper, 2), BTORootID.Trim))
+        If ObjectEZ_FLAG IsNot Nothing AndAlso Integer.TryParse(ObjectEZ_FLAG, 0) AndAlso Integer.Parse(ObjectEZ_FLAG) > 0 Then
+            Return True
+        End If
+        Return False
+    End Function
+    Protected Sub CompSelected()
+        CatFlyOut.AttachTo = ""
+        Dim rootCfg As New HierarchyConfig(Me.hd_BTOItem.Value, HierarchyConfig.CATTYPE.Root)
+        Dim dt As DataTable = GetConfigDt(Nothing, rootCfg)
+        'gv1.DataSource = dt : gv1.DataBind()
+        'ShowConfigDt(dt)
+        ShowConfigDt2(rootCfg)
+        tv1.ExpandAll()
+        Dim tp As Decimal = 0, mdate As Date = Date.MinValue
+        For Each r As DataRow In dt.Rows
+            If r.Item("category_price") IsNot DBNull.Value Then
+                tp += r.Item("category_price")
+            End If
+            If r.Item("ATP_DATE") IsNot DBNull.Value Then
+                If DateDiff(DateInterval.Day, mdate, r.Item("ATP_DATE")) > 0 Then
+                    mdate = r.Item("ATP_DATE")
+                End If
+            End If
+        Next
+        lbTotalPrice.Text = Session("company_currency_sign") + tp.ToString() : lbMaxDueDate.Text = DateAdd(DateInterval.Day, CInt(Glob.getBTOWorkingDate()), mdate).ToString("yyyy/MM/dd")
+    End Sub
+     
+    Protected Sub btnExpandAll_Click(ByVal sender As Object, ByVal e As System.EventArgs)
+        For Each ctrl As HierarchyConfigUI In ph1.Controls
+            If btnExpandAll.Text = "Expand All" Then
+                ctrl.ExpandAll()
+            Else
+                ctrl.CollapseAll()
+            End If
+        Next
+        If btnExpandAll.Text = "Expand All" Then
+            btnExpandAll.Text = "Collapse All"
+        Else
+            btnExpandAll.Text = "Expand All"
+        End If
+    End Sub
+    
+    Function GetConfigDt(ByRef NotSelCat As HierarchyConfigUI, ByRef rootHcfg As HierarchyConfig) As DataTable
+        Dim dt As DataTable = Util.GetConfigOrderCartDt()
+        For Each c As Control In ph1.Controls
+            If TypeOf (c) Is HierarchyConfigUI Then
+                Dim subCtrl As HierarchyConfigUI = CType(c, HierarchyConfigUI)
+                'Dim childHcfg As New HierarchyConfig
+                Dim subDt As DataTable = subCtrl.GetSelectedItems(NotSelCat, rootHcfg)
+                For Each r As DataRow In subDt.Rows
+                    If r.Item("category_type") = "Category" AndAlso r.Item("Level") = 1 Then
+                        r.Item("PARENT_CATEGORY_ID") = hd_BTOItem.Value
+                    End If
+                Next
+                dt.Merge(subDt)
+            End If
+        Next
+        Return dt
+    End Function
+    
+    Sub ShowConfigDt2(ByRef RootCfg As HierarchyConfig, Optional ByRef tn As TreeNode = Nothing)
+        Dim pid As String = ""
+        If tn Is Nothing Then
+            pid = hd_BTOItem.Value : tv1.Nodes.Clear()
+            tv1.Nodes.Add(New TreeNode(hd_BTOItem.Value, hd_BTOItem.Value))
+        Else
+            pid = tn.Value
+        End If
+        'Dim rs() As DataRow = dt.Select("parent_category_id='" + Replace(pid, "'", "''") + "'")
+        For Each r As HierarchyConfig In RootCfg.ChildHierarchyConfigs
+            Dim n As New TreeNode(r.CATEGORY_ID, r.CATEGORY_ID)
+            If tn Is Nothing Then
+                tv1.Nodes(0).ChildNodes.Add(n)
+            Else
+                tn.ChildNodes.Add(n)
+            End If
+            ShowConfigDt2(r, n)
+        Next
+    End Sub
+    
+    Sub ShowConfigDt_old(ByRef dt As DataTable, Optional ByRef tn As TreeNode = Nothing)
+        Dim pid As String = ""
+        If tn Is Nothing Then
+            pid = hd_BTOItem.Value : tv1.Nodes.Clear()
+            tv1.Nodes.Add(New TreeNode(hd_BTOItem.Value, hd_BTOItem.Value))
+        Else
+            pid = tn.Value
+        End If
+        Dim rs() As DataRow = dt.Select("parent_category_id='" + Replace(pid, "'", "''") + "'")
+        'Util.SendEmail("nada.liu@advantech.com.cn", "ebiz.aeu@advantech.eu", "EZConfig_SaveCart Error by " + HttpContext.Current.Session("user_id"), OrderUtilities.getDTHtml(dt), False, "", "")
+        For Each r As DataRow In rs
+            Dim n As New TreeNode(r.Item("category_id"), r.Item("category_id"))
+            If tn Is Nothing Then
+                tv1.Nodes(0).ChildNodes.Add(n)
+            Else
+                tn.ChildNodes.Add(n)
+            End If
+            'ShowConfigDt2(dt, n)
+        Next
+        'gv1.DataSource = dt : gv1.DataBind()
+    End Sub
+
+    Protected Sub ph1_PostRestore(ByVal sender As Object, ByVal e As System.EventArgs)
+        For Each ctrl As Control In ph1.Controls
+            If TypeOf (ctrl) Is HierarchyConfigUI Then
+                Dim c As HierarchyConfigUI = ctrl
+                RemoveHandler c.SelectedComponentChanged, AddressOf CompSelected
+                AddHandler c.SelectedComponentChanged, AddressOf CompSelected
+            End If
+        Next
+    End Sub
+    Private Sub Source_path()
+        Dim strhtml As String = ""
+        If Not Page.IsPostBack AndAlso Request("BTOITEM") IsNot Nothing AndAlso Request("BTOITEM") <> "" Then
+            If get_catalog_type(Trim(Request("BTOITEM"))).ToLower = "iservices group" Then
+                If Not Util.ISIServices_Group_Account() Then
+                    Response.Redirect("~/home.aspx")
+                End If
+            End If
+            If Request("UID") IsNot Nothing AndAlso Trim(Request("UID")) <> "" Then
+                strhtml = "<font color='Navy'>■</font>&nbsp;&nbsp;<a href='../eQuotation/QuotationDetail.aspx?UID=" + Trim(Request("UID")) + "' target='_self' style='color:Navy;font-weight:bold; text-decoration:none;'>Quotation Detail</a><b>&nbsp;&nbsp;>&nbsp;&nbsp;</b>" + _
+                "<a href='./btos_portal.aspx?UID=" + Trim(Request("UID")) + "' target='_self' style='color:Navy;font-weight:bold; text-decoration:none;'>BTOS/CTOS Portal</a> <b>&nbsp;&nbsp;>&nbsp;&nbsp;</b>" + _
+                "<a href='./CBOM_List.aspx?Catalog_Type=" + get_catalog_type(Trim(Request("BTOITEM"))) + "&UID=" + Trim(Request("UID")) + "&SPR=' target='_self' style='color:Navy;font-weight:bold; text-decoration:none;'>" + get_catalog_type(Trim(Request("BTOITEM")), 1) + "</a> <b>&nbsp;&nbsp;>&nbsp;&nbsp;</b>" + _
+                "<a href='./Configurator.aspx?BTOITEM=" + Trim(Me.hd_BTOItem.Value) + "&QTY=" + Trim(Me.hd_Qty.Value) + "' target='_self' style='color:Navy;font-weight:bold; text-decoration:none;'>" + Trim(Me.hd_BTOItem.Value) + "</a>"
+           
+            Else
+                strhtml = "<font color='Navy'>■</font>&nbsp;&nbsp;<a href='./btos_portal.aspx' target='_self' style='color:Navy;font-weight:bold; text-decoration:none;'>System Configuration/Ordering Portal</a><strong>&nbsp;&nbsp;>&nbsp;&nbsp;</strong>"
+                If IsEstoreBom(hd_BTOItem.Value) Then
+                    strhtml += "<a href='./CBOM_eStoreBTO_List1.aspx' target='_self' style='color:Navy;font-weight:bold;text-decoration:none;'>" + "eStore BTOS" + "</a><strong>&nbsp;&nbsp;>&nbsp;&nbsp;</strong>"
+                Else
+                    strhtml += "<a href='./CBOM_List.aspx?Catalog_Type=" + get_catalog_type(Trim(Request("BTOITEM"))) + "' target='_self' style='color:Navy;font-weight:bold;text-decoration:none;'>" + get_catalog_type(Trim(Request("BTOITEM")), 1) + "</a><strong>&nbsp;&nbsp;>&nbsp;&nbsp;</strong>"
+                End If
+                strhtml += "<a href='./Configurator.aspx?BTOITEM=" + Trim(Me.hd_BTOItem.Value) + "&QTY=" + Trim(Me.hd_Qty.Value) + "' target='_self' style='color:Navy;font-weight:bold; text-decoration:none;'>" + Trim(Me.hd_BTOItem.Value) + "</a>"
+            End If
+        End If
+        page_path.InnerHtml = strhtml
+    End Sub
+    
+    Private Shared Function get_catalog_type(ByVal name As String, Optional ByVal Flag As Integer = 0) As String
+        Dim catalog_name As String = ""
+        'Frank 2012/06/04: Stop using Session("org") and replacing by Left(Session("org_id"), 2)
+        'Dim dt As DataTable = dbUtil.dbGetDataTable("MY", "select catalog_type from CBOM_CATALOG where Catalog_org='" & HttpContext.Current.Session("Org").ToString.ToUpper & "' and CATALOG_NAME = '" + name + "'")
+        Dim dt As DataTable = dbUtil.dbGetDataTable("MY", "select catalog_type from CBOM_CATALOG where Catalog_org='" & Left(HttpContext.Current.Session("Org_id").ToString.ToUpper, 2) & "' and CATALOG_NAME = '" + name + "'")
+        If dt.Rows.Count > 0 Then
+            If Not Convert.IsDBNull(dt.Rows(0).Item("catalog_type")) Then
+                catalog_name = dt.Rows(0).Item("catalog_type").ToString.Trim
+            End If
+        End If
+        If Flag = 1 Then
+            Dim CBOMWS As New MyCBOMDAL
+            'Frank 2012/06/04: Stop using Session("org") and replacing by Left(Session("org_id"), 2)
+            'Return CBOMWS.getCatalogLocalName(catalog_name, HttpContext.Current.Session("Org").ToString.ToUpper)
+            Return CBOMWS.getCatalogLocalName(catalog_name, Left(HttpContext.Current.Session("Org_id").ToString.ToUpper, 2))
+        Else
+            Return catalog_name 
+        End If
+    End Function
+    
+    Protected Sub btnConfig_Click(ByVal sender As Object, ByVal e As System.Web.UI.ImageClickEventArgs)
+        Dim NotSelCtrl As HierarchyConfigUI = Nothing
+        Dim rootCfg As New HierarchyConfig(hd_BTOItem.Value, HierarchyConfig.CATTYPE.Root)
+        Dim ConfigDt As DataTable = GetConfigDt(NotSelCtrl, rootCfg)
+        If NotSelCtrl IsNot Nothing Then
+            FlyOutTargetClientId.Value = NotSelCtrl.lbCategoryClientID
+        Else
+            Dim isquote As Integer = 0
+            If save2Cart(ConfigDt, isquote) = 0 Then
+                If isquote = 1 Then
+                    Response.Redirect("~/eQuotation/QuotationDetail.aspx?UID=" & Request("UID"))
+                Else
+                    Response.Redirect("~/order/Cart_List.aspx?UID=" & Request("UID") & "&QUOTE=" & Request("QUOTE"))
+                End If
+            End If
+            
+            'Dim ConfigDt As DataTable = GetConfigDt()
+            'lbConfigMsg.Text = "Good!"
+        End If
+        
+    End Sub
+    
+    Protected Sub TimerExpandAll_Tick(ByVal sender As Object, ByVal e As System.EventArgs)
+        TimerExpandAll.Interval = 99999
+        btnExpandAll_Click(Me.btnExpandAll(), New EventArgs)
+        TimerExpandAll.Enabled = False
+    End Sub
+    
+    Function save2Cart(ByVal DTCOM As DataTable, ByRef isquote As Integer) As Integer
+      
+        If Not IsNothing(Request("QUOTE")) AndAlso Not IsNothing(Request("UID")) _
+            AndAlso Request("QUOTE") = 1 AndAlso Request("UID") <> "" Then
+        Else
+            isquote = 0
+            Dim cart_id As String = Session("cart_id")
+            Dim company As String = Session("company_id")
+            Dim plant As String = OrderUtilities.getPlant()
+            Dim ORG As String = HttpContext.Current.Session("ORG_ID")
+            Dim ewFLAG As Integer = 0
+            Dim mycart As New CartList("b2b", "cart_detail")
+            mycart.Delete(String.Format("cart_id='{0}'", cart_id))
+            mycart.ADD2CART(cart_id, Request("BTOITEM").ToUpper, Request("QTY"), 0, -1, "", 0, 0)
+                
+            If DTCOM.Rows.Count > 0 Then
+                Dim cartSt As Integer = 0
+                For Each R As DataRow In DTCOM.Select("CATEGORY_TYPE='Component'")
+                    If R.Item("CATEGORY_ID").ToString.Contains("|") Then
+                        Dim ps() As String = Split(R.Item("CATEGORY_ID").ToString.ToUpper(), "|")
+                        For Each p As String In ps
+                            Dim cate As String = R.Item("PARENT_CATEGORY_ID").ToString.Replace("'", "''").ToUpper
+                            cartSt = mycart.ADD2CART(cart_id, p.ToUpper, Request("Qty"), 0, 1, cate, 0, 1)
+                               
+                        Next
+                    Else
+                        If R.Item("CATEGORY_ID").ToString.ToUpper().StartsWith("AGS-EW") Then
+                            ewFLAG = Glob.getMonthByEWItem(R.Item("CATEGORY_ID").ToString.ToUpper())
+                        Else
+                            Dim p As String = R.Item("CATEGORY_ID").ToString.ToUpper()
+                            Dim cate As String = R.Item("PARENT_CATEGORY_ID").ToString.Replace("'", "''").ToUpper
+                            cartSt = mycart.ADD2CART(cart_id, p.ToUpper, Request("Qty"), 0, 1, cate, 0, 1)
+                               
+                        End If
+                    End If
+                       
+                    If cartSt = 0 Then Return -1
+                Next
+            End If
+
+            'add Other Item               
+            Dim partNoStrOther As String = Me.HOtherCom.Value.Trim().Trim("|").ToUpper.Replace("'", "''")
+            If partNoStrOther <> "" Then
+                Dim part_noArr() As String = partNoStrOther.Split("|")
+                For Each N As String In part_noArr
+                    Dim p As String = N.ToUpper()
+                    Dim cate As String = "OTHERS"
+                    mycart.ADD2CART(cart_id, p.ToUpper, Request("Qty"), 0, 1, cate, 0, 1)
+                       
+                Next
+            End If
+            '/add Other Item
+            
+            'update
+            Dim cartDT As DataTable = mycart.GetDT(String.Format("cart_id='{0}' and otype<>'-1'", cart_id), "line_no")
+            Dim partNoStr As String = ""
+            For Each r As DataRow In cartDT.Rows
+                partNoStr &= r.Item("part_no") & "|"
+            Next
+            Dim priceTB As New DataTable
+            SAPtools.getSAPPriceByTable(partNoStr, ORG, company, priceTB)
+            'Response.Write(partNoStr)
+            'OrderUtilities.showDT(priceTB)
+            'Response.End()
+            If priceTB.Rows.Count > 0 Then
+                For Each r As DataRow In priceTB.Rows
+                    mycart.Update(String.Format("cart_id='{0}' and part_no='{1}'", cart_id, r.Item("MATNR").ToString.TrimStart("0")), String.Format("list_price='{0}',unit_price='{1}',ew_flag='{2}',ounit_price='{1}'", r.Item("Kzwi1"), r.Item("Netwr"), ewFLAG))
+                Next
+            End If
+            If IsDate(Me.lbMaxDueDate.Text) Then
+                mycart.Update(String.Format("cart_id='{0}' and otype='-1'", cart_id), String.Format("due_date='{0}'", CDate(Me.lbMaxDueDate.Text)))
+            End If
+            '/update
+        End If
+        
+        Return 0
+    End Function
+    
+    Shared Function addItemQuote(ByVal quote_id As String, ByVal pn As String, ByVal company As String, ByVal plant As String, ByVal qty As Integer, ByVal cate As String) As Integer
+        Dim myquotation As New quotation_detail("b2b", "quotation_detail")
+        Dim p As String = pn
+        Dim reqDate As Date = Now.Date
+        Dim DueDate As Date = Now.Date
+        Dim inventory As Integer = 0
+        Dim satisfyflag As Integer = 0
+        Dim canbeconfirmed As Integer = 0
+        SAPtools.getInventoryAndATPTable(p, plant, qty, DueDate, inventory, New DataTable, reqDate, satisfyflag, canbeconfirmed)
+        myquotation.Add(quote_id, myquotation.getMaxLineNo(quote_id) + 1, p.ToUpper, qty, 0, 0, 1, 0, DueDate, canbeconfirmed, reqDate, 0, 0, 0, 0, cate)
+        Return 1
+    End Function
+</script>
+<asp:Content ID="Content1" ContentPlaceHolderID="_main" runat="Server">
+    <asp:UpdatePanel runat="server" ID="up1">
+        <ContentTemplate>
+            <asp:Timer runat="server" ID="TimerExpandAll" Interval="200" Enabled="false" OnTick="TimerExpandAll_Tick" />
+            <asp:HiddenField runat="server" ID="hd_BTOItem" />
+            <asp:HiddenField runat="server" ID="hd_Qty" Value="1" />
+            <asp:HiddenField runat="server" ID="FlyOutTargetClientId" />
+            <table width="100%">
+                <tr>
+                    <td style="height: 30px">
+                        <span style="width: 41%;" id="page_path" runat="server"></span>
+                        <asp:ImageButton runat="server" ID="btnConfig" ImageUrl="~/Images/ebiz.aeu.face/btn_save2con.gif"
+                            AlternateText="Go" OnClick="btnConfig_Click" />&nbsp;
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <asp:LinkButton runat="server" ID="btnExpandAll" Text="Expand All" OnClick="btnExpandAll_Click" />
+                    </td>
+                </tr>
+                <tr valign="top">
+                    <td align="center" style="width: 90%">
+                        <obout:Flyout runat="server" ID="CatFlyOut" CloseEvent="NONE" Position="BOTTOM_CENTER">
+                            <asp:Panel runat="server" ID="lbFlyPanel" Width="350px" Height="25px" BackColor="Gray"
+                                ForeColor="White" Font-Bold="true">
+                                <h3>
+                                    Please select one component of this category</h3>
+                            </asp:Panel>
+                        </obout:Flyout>
+                        <div style="text-align: left">
+                            <dbwc:DynamicControlsPlaceholder runat="server" ID="ph1" ControlsWithoutIDs="Persist"
+                                OnPostRestore="ph1_PostRestore" />
+                        </div>
+                    </td>
+                    <td>
+                        <ajaxToolkit:AlwaysVisibleControlExtender runat="server" ID="avcext1" TargetControlID="panel1"
+                            HorizontalOffset="50" VerticalOffset="200" HorizontalSide="Right" />
+                        <asp:Panel runat="server" ID="panel1" Width="300px" Height="300px" ScrollBars="Auto"
+                            BackColor="LightGray">
+                            <table width="100%">
+                                <tr valign="top">
+                                    <td>
+                                        <table>
+                                            <tr>
+                                                <th align="left">
+                                                    Total Price:
+                                                </th>
+                                                <td>
+                                                    <asp:Label runat="server" ID="lbTotalPrice" />
+                                                </td>
+                                                <th align="left">
+                                                    Max Due Date:
+                                                </th>
+                                                <td>
+                                                    <asp:Label runat="server" ID="lbMaxDueDate" />
+                                                </td>
+                                            </tr>
+                                        </table>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <asp:ImageButton runat="server" ID="btnConfig2" ImageUrl="~/Images/ebiz.aeu.face/btn_save2con.gif"
+                                            AlternateText="Go" OnClick="btnConfig_Click" />
+                                    </td>
+                                </tr>
+                                <tr valign="top">
+                                    <td>
+                                        <asp:TreeView runat="server" ID="tv1" />
+                                    </td>
+                                </tr>
+                            </table>
+                        </asp:Panel>
+                                <ajaxToolkit:AlwaysVisibleControlExtender runat="server" ID="avcext2" TargetControlID="panel2"
+                             HorizontalSide="Center" />
+                            <asp:Panel runat="server" ID="panel2" Width="600px"  ScrollBars="Auto"
+                            BackColor="LightGray" BorderWidth="8px" BorderColor="orange" Visible="false">
+                                <style type="text/css">
+                                    .lhlab
+                                    {
+                                        line-height: 30px;
+                                        padding: 8px;
+                                    }
+                                </style>
+                                <asp:Label runat="server" id ="LbMessage" Text=""  CssClass="lhlab"></asp:Label>
+                            </asp:Panel>
+                
+                    </td>
+                </tr>
+            </table>
+        </ContentTemplate>
+    </asp:UpdatePanel>
+    <table width="100%">
+        <tr>
+            <td style="height: 30px" align="center">
+                <asp:ImageButton runat="server" ID="ImageButton1" ImageUrl="~/Images/ebiz.aeu.face/btn_save2con.gif"
+                    AlternateText="Go" OnClick="btnConfig_Click" />&nbsp;
+            </td>
+        </tr>
+    </table>
+    <hr />
+    <div runat="server" id="divAddOtherPartNo">
+        Part No:<asp:TextBox runat="server" ID="txtNewItem"></asp:TextBox>
+        <ajaxToolkit:AutoCompleteExtender ID="AutoCompleteExtender1" runat="server" TargetControlID="txtNewItem"
+            ServicePath="~/Services/AutoComplete.asmx" ServiceMethod="GetPartNo" MinimumPrefixLength="2">
+        </ajaxToolkit:AutoCompleteExtender>
+        <input type="button" name="Submit" value="Add" onclick="AddSignRow()" />
+        <input type="button" name="Submit2" value="Clear" onclick="ClearAllSign()" />
+        <input type="hidden" id="HOtherCount" name="HOtherCount" value="0" />
+        <asp:HiddenField ID="HOtherCom" runat="server" />
+    </div>
+    <div id="divOthers" runat="server">
+        <table width="600px" border="0" cellpadding="2" cellspacing="1" id="SignFrame">
+            <tr id="trHeader">
+                <td width="25px" bgcolor="#336699" style="color: #ffffff">
+                    NO.
+                </td>
+                <td width="275px" bgcolor="#336699" style="color: #ffffff">
+                    Part No.
+                </td>
+                <td width="100px" align="center" bgcolor="#336699" style="color: #ffffff">
+                    Del
+                </td>
+            </tr>
+        </table>
+    </div>
+    <script type="text/javascript">
+        
+        function ShowFlyOut() { 
+            <%=CatFlyOut.ClientID %>.Close();
+            if(document.getElementById('<%=FlyOutTargetClientId.ClientID %>').value!=''){
+                var at = document.getElementById('<%=FlyOutTargetClientId.ClientID %>').value;
+                <%=CatFlyOut.ClientID %>.AttachTo(at);
+                <%=CatFlyOut.ClientID %>.Open();     
+                ScrollToElement(document.getElementById(at));
+                document.getElementById('<%=FlyOutTargetClientId.ClientID %>').value='';
+                setTimeout(function(){ShowFlyOut();},5000);   
+            }         
+            else{
+                setTimeout(function(){ShowFlyOut();},700);   
+            }            
+        }
+        setTimeout(function(){ShowFlyOut();},3000);
+
+        function ScrollToElement(theElement) {
+            var selectedPosX = 0;
+            var selectedPosY = 0;
+            while (theElement != null) {
+                selectedPosX += theElement.offsetLeft;
+                selectedPosY += theElement.offsetTop;
+                theElement = theElement.offsetParent;
+            }
+            window.scrollTo(selectedPosX, selectedPosY-50);
+        }
+
+
+       
+
+        function findObj(theObj, theDoc) { var p, i, foundObj; if (!theDoc) theDoc = document; if ((p = theObj.indexOf("?")) > 0 && parent.frames.length) { theDoc = parent.frames[theObj.substring(p + 1)].document; theObj = theObj.substring(0, p); } if (!(foundObj = theDoc[theObj]) && theDoc.all) foundObj = theDoc.all[theObj]; for (i = 0; !foundObj && i < theDoc.forms.length; i++) foundObj = theDoc.forms[i][theObj]; for (i = 0; !foundObj && theDoc.layers && i < theDoc.layers.length; i++) foundObj = findObj(theObj, theDoc.layers[i].document); if (!foundObj && document.getElementById) foundObj = document.getElementById(theObj); return foundObj; }
+         function showCom(){
+        var txtCom = findObj('<%=Me.HOtherCom.ClientID%>', document);
+        alert(txtCom.value);
+        }
+        function AddSignRow() {
+            var txtNewItem = findObj('<%=Me.txtNewItem.ClientID%>', document)
+            if (txtNewItem.value == '') {
+            txtNewItem.style.backgroundColor = '#ff0000';
+            return;}
+            var txtTRLastIndex = findObj("HOtherCount", document);
+            var txtCom = findObj('<%=Me.HOtherCom.ClientID%>', document);
+            var rowID = parseInt(txtTRLastIndex.value);
+            //alert(rowID);
+            var signFrame = findObj("SignFrame", document);
+            txtCom.value=txtCom.value + "|" + txtNewItem.value;
+            rowID = rowID + 1;
+            var newTR = signFrame.insertRow(signFrame.rows.length);
+            newTR.id = "SignItem" + rowID;
+
+            var newNameTD = newTR.insertCell(0);
+            newNameTD.innerHTML = newTR.rowIndex.toString();
+
+            var newNameTD = newTR.insertCell(1);
+            newNameTD.innerHTML = "<input name='txtPartNo" + rowID + "' id='txtPartNo" + rowID + "' readonly='true' type='text' value='" + txtNewItem.value + "' size='20' />";
+
+//            var newEmailTD = newTR.insertCell(2);
+//            newEmailTD.innerHTML = '<%=Request("QTY") %>';
+
+            var newDeleteTD = newTR.insertCell(2);
+            newDeleteTD.innerHTML = "<div align='center' style='width:40px'><a href='javascript:;' onclick=\"DeleteSignRow('" + rowID + "')\">delete</a></div>";
+            txtTRLastIndex.value = (rowID).toString();
+
+        }
+        function DeleteSignRow(rowid) {
+            var txtCom = findObj('<%=Me.HOtherCom.ClientID%>', document);
+            var txtTRLastIndex = findObj("HOtherCount", document);
+            var signFrame = findObj("SignFrame", document);
+            var signItem = findObj("SignItem" + rowid, document);
+            var partNo = findObj("txtPartNo" + rowid,document).value;
+
+            var rowIndex = signItem.rowIndex;
+            signFrame.deleteRow(rowIndex);
+            txtCom.value=txtCom.value.replace("|" + partNo,"");
+            txtTRLastIndex.value =  txtTRLastIndex.value-1;
+
+            for (i = rowIndex; i < signFrame.rows.length; i++) {
+                signFrame.rows[i].cells[0].innerHTML = i.toString();
+            }
+        }
+        function ClearAllSign() {
+            if (confirm('Are your sure to delete all items？')) {
+                var signFrame = findObj("SignFrame", document);
+                var rowscount = signFrame.rows.length;
+                for (i = rowscount - 1; i > 0; i--) {
+                    signFrame.deleteRow(i);
+                }
+                var txtTRLastIndex = findObj("HOtherCount", document);
+                txtTRLastIndex.value = "0";
+                  var txtCom = findObj('<%=Me.HOtherCom.ClientID%>', document);
+                  txtCom.value="";
+            }
+        } 
+
+//        window.onload = function() { 
+//               find('Panel11').hide()
+
+//        }; 
+
+    </script>
+</asp:Content>

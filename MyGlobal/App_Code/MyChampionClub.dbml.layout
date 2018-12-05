@@ -1,0 +1,60 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<ordesignerObjectsDiagram dslVersion="1.0.0.0" absoluteBounds="0, 0, 13, 8.5" name="MyChampionClub">
+  <DataContextMoniker Name="/MyChampionClubDataContext" />
+  <nestedChildShapes>
+    <classShape Id="456e1d93-e002-4471-b91a-312b1eeaed6d" absoluteBounds="5.875, 0.75, 2, 2.1554996744791666">
+      <DataClassMoniker Name="/MyChampionClubDataContext/ChampionClub_File" />
+      <nestedChildShapes>
+        <elementListCompartment Id="7b16d841-7846-480a-842f-f3bcba17637e" absoluteBounds="5.89, 1.21, 1.9700000000000002, 1.5954996744791665" name="DataPropertiesCompartment" titleTextColor="Black" itemTextColor="Black" />
+      </nestedChildShapes>
+    </classShape>
+    <classShape Id="e54cd21d-6d0a-4e93-ab24-ef9e56e3151b" absoluteBounds="9.875, 3.625, 2, 1.1939925130208327">
+      <DataClassMoniker Name="/MyChampionClubDataContext/ChampionClub_PCP_Marcom" />
+      <nestedChildShapes>
+        <elementListCompartment Id="801158d8-4692-4a0f-8a2f-b978803f5025" absoluteBounds="9.89, 4.085, 1.9700000000000002, 0.63399251302083326" name="DataPropertiesCompartment" titleTextColor="Black" itemTextColor="Black" />
+      </nestedChildShapes>
+    </classShape>
+    <classShape Id="bdd5f715-de55-4fea-8fda-4a2f7ed7bf46" absoluteBounds="8.375, 0.75, 2, 2.5401025390625">
+      <DataClassMoniker Name="/MyChampionClubDataContext/ChampionClub_Action_Achievement" />
+      <nestedChildShapes>
+        <elementListCompartment Id="3a6e2c80-7663-4f31-abd9-5943473d552d" absoluteBounds="8.39, 1.21, 1.9700000000000002, 1.9801025390625" name="DataPropertiesCompartment" titleTextColor="Black" itemTextColor="Black" />
+      </nestedChildShapes>
+    </classShape>
+    <classShape Id="5b745924-c1e9-4146-b372-a2822a587b99" absoluteBounds="3, 0.75, 2, 2.5401025390625">
+      <DataClassMoniker Name="/MyChampionClubDataContext/ChampionClub_Action" />
+      <nestedChildShapes>
+        <elementListCompartment Id="b5eb0cb0-3400-4ba9-a28f-4b2aa56717b0" absoluteBounds="3.015, 1.21, 1.9700000000000002, 1.9801025390625" name="DataPropertiesCompartment" titleTextColor="Black" itemTextColor="Black" />
+      </nestedChildShapes>
+    </classShape>
+    <classShape Id="8da56564-a904-40e1-a734-3434e2dbe4f4" absoluteBounds="0.5, 0.5, 2, 4.6554182942708326">
+      <DataClassMoniker Name="/MyChampionClubDataContext/ChampionClub_PersonalInfo" />
+      <nestedChildShapes>
+        <elementListCompartment Id="fe07d2a7-c65d-44c2-b5d0-ddcd80fd2903" absoluteBounds="0.51499999999999968, 0.96, 1.9700000000000002, 4.095418294270833" name="DataPropertiesCompartment" titleTextColor="Black" itemTextColor="Black" />
+      </nestedChildShapes>
+    </classShape>
+    <classShape Id="f57feb94-2be2-47f7-88f4-6b7752c4e02d" absoluteBounds="5.125, 3.75, 2, 2.3478011067708326">
+      <DataClassMoniker Name="/MyChampionClubDataContext/ChampionClub_Prize" />
+      <nestedChildShapes>
+        <elementListCompartment Id="c7cc9cfc-494f-45db-a48f-f3013ceece79" absoluteBounds="5.14, 4.21, 1.9700000000000002, 1.7878011067708333" name="DataPropertiesCompartment" titleTextColor="Black" itemTextColor="Black" />
+      </nestedChildShapes>
+    </classShape>
+    <classShape Id="5a242ca6-068a-4650-b6e1-90c9eb11d6f2" absoluteBounds="10.75, 0.75, 2, 2.5401025390625">
+      <DataClassMoniker Name="/MyChampionClubDataContext/ChampionClub_SendMail_History" />
+      <nestedChildShapes>
+        <elementListCompartment Id="cbece8dd-1a97-4f3d-811f-05987e70747a" absoluteBounds="10.765, 1.21, 1.9700000000000002, 1.9801025390625" name="DataPropertiesCompartment" titleTextColor="Black" itemTextColor="Black" />
+      </nestedChildShapes>
+    </classShape>
+    <classShape Id="d1500be2-5e8d-4efc-a8b1-2709ee6f7989" absoluteBounds="2.875, 3.75, 2, 2.3478011067708335">
+      <DataClassMoniker Name="/MyChampionClubDataContext/ChampionClub_Reddem" />
+      <nestedChildShapes>
+        <elementListCompartment Id="170f3de3-2b34-4e39-a23a-49596153a7f5" absoluteBounds="2.89, 4.21, 1.9700000000000002, 1.7878011067708335" name="DataPropertiesCompartment" titleTextColor="Black" itemTextColor="Black" />
+      </nestedChildShapes>
+    </classShape>
+    <classShape Id="b604694b-4c46-4b82-89ba-34c4236fc3b5" absoluteBounds="7.5, 3.75, 2, 1.9631982421875">
+      <DataClassMoniker Name="/MyChampionClubDataContext/ChampionClub_Admin" />
+      <nestedChildShapes>
+        <elementListCompartment Id="6a72cacc-388f-47aa-b83a-7ec8b9560f04" absoluteBounds="7.515, 4.21, 1.9700000000000002, 1.4031982421875" name="DataPropertiesCompartment" titleTextColor="Black" itemTextColor="Black" />
+      </nestedChildShapes>
+    </classShape>
+  </nestedChildShapes>
+</ordesignerObjectsDiagram>

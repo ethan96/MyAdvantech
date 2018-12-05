@@ -1,0 +1,425 @@
+﻿<%@ Page Title="DataMining - Campaign Creation" Language="VB" MasterPageFile="~/Includes/MyMaster.master" %>
+<%@ Register namespace="eBizAEUControls" tagprefix="uc1" %>
+
+<script runat="server">
+    
+    Protected Sub gvRowCreated(ByVal sender As Object, ByVal e As System.Web.UI.WebControls.GridViewRowEventArgs)
+        If Not (e.Row Is Nothing) AndAlso e.Row.RowType = DataControlRowType.Header Then
+            Dim GridView1 As GridView = sender
+            For Each cell As TableCell In e.Row.Cells
+                If cell.HasControls Then
+                    Dim button As LinkButton = DirectCast(cell.Controls(0), LinkButton)
+                    If Not (button Is Nothing) Then
+                        Dim image As New ImageButton
+                        image.ImageUrl = "/Images/sort_1.jpg"
+                        image.CommandArgument = button.CommandArgument : image.CommandName = button.CommandName
+                        If GridView1.SortExpression = button.CommandArgument Then
+                            If GridView1.SortDirection = SortDirection.Ascending Then
+                                image.ImageUrl = "/Images/sort_2.jpg"
+                            Else
+                                image.ImageUrl = "/Images/sort_1.jpg"
+                            End If
+                        End If
+                        cell.Controls.Add(image)
+                    End If
+                End If
+            Next
+        End If
+    End Sub
+    
+    Public Function GetSql() As String
+        Dim sb As New System.Text.StringBuilder
+        With sb
+            .AppendLine(String.Format(" SELECT top 1000 a.ROW_ID, a.EMAIL_ADDRESS, a.ACCOUNT, a.FirstName, a.LastName, a.WorkPhone, a.JOB_TITLE,  "))
+            .AppendLine(String.Format(" a.JOB_FUNCTION, a.ERPID, a.ACCOUNT_STATUS, a.Salutation, a.ACCOUNT_ROW_ID, IsNull(c.PRIMARY_SALES_EMAIL,'') as PRIMARY_SALES_EMAIL, IsNull(d.CRITERIA,'') as CRITERIA "))
+            .AppendLine(String.Format(" FROM SIEBEL_CONTACT AS a INNER JOIN TM_TMP_CONTACT AS b ON a.ROW_ID = b.CONTACT_ROW_ID " + _
+                                      " left join SIEBEL_ACCOUNT c on a.ACCOUNT_ROW_ID=c.ROW_ID left join TM_TMP_ACCOUNT d on a.ACCOUNT_ROW_ID=d.ACCOUNT_ROW_ID "))
+            .AppendLine(String.Format(" WHERE c.PRIMARY_SALES_EMAIL like '%@%.%' and b.SESSIONID = '{0}' and d.SESSIONID='{0}' ", Session.SessionID))
+            .AppendLine(" order by a.ROW_ID ")
+        End With
+        Return sb.ToString()
+    End Function
+
+    Protected Sub Page_Load(sender As Object, e As System.EventArgs)
+        'If Util.IsAEUIT() = False Then Response.End()
+        If Not Page.IsPostBack Then
+            srcContact.SelectCommand = GetSql()
+            txtSenderEmail.Text = User.Identity.Name
+            txtCallStartDate.Text = Now.ToString("yyyy/MM/dd")
+            txtCallEndDate.Text = DateAdd(DateInterval.Month, 1, Now).ToString("yyyy/MM/dd")
+            txtEDMSendDate.Text = DateAdd(DateInterval.Month, 1, Now).ToString("yyyy/MM/dd")
+            txtSenderName.Text = Util.GetNameVonEmail(User.Identity.Name)
+            'SendOwnerCallSummary()
+        End If
+    End Sub
+
+    Protected Sub gvContact_PageIndexChanging(sender As Object, e As System.Web.UI.WebControls.GridViewPageEventArgs)
+        srcContact.SelectCommand = GetSql()
+    End Sub
+
+    Protected Sub gvContact_Sorting(sender As Object, e As System.Web.UI.WebControls.GridViewSortEventArgs)
+        srcContact.SelectCommand = GetSql()
+    End Sub
+
+    Protected Sub btnContactSelection_Click(sender As Object, e As System.EventArgs)
+        Response.Redirect("ContactSelection.aspx")
+    End Sub
+
+    Protected Sub btnCreate_Click(sender As Object, e As System.EventArgs)
+        'Response.Write(tabcon1.ActiveTabIndex.ToString())
+        lbMsg.Text = ""
+        If String.IsNullOrEmpty(txtCampaignName.Text) Then
+            lbMsg.Text = "Please enter campaign name" : Exit Sub
+        End If
+        Try
+            Select Case tabcon1.ActiveTabIndex
+                Case 0
+                    If Not Date.TryParse(txtCallStartDate.Text, Now) Then
+                        lbMsg.Text = "Please enter call start date in yyyy/mm/dd format" : Exit Sub
+                    End If
+                    If Not Date.TryParse(txtCallEndDate.Text, Now) Then
+                        lbMsg.Text = "Please enter call end date in yyyy/mm/dd format" : Exit Sub
+                    End If
+                    Dim sdate As Date = CDate(txtCallStartDate.Text), edate As Date = CDate(txtCallEndDate.Text)
+                    If DateDiff(DateInterval.Day, sdate, edate) < 0 Then
+                        lbMsg.Text = "End date should not be earlier than start date" : Exit Sub
+                    End If
+                    CreateCallCampaign()
+                    lbMsg.Text = "Call campaign and activities are created on Siebel"
+                Case 1
+                    If Not Date.TryParse(txtEDMSendDate.Text, Now) Then
+                        lbMsg.Text = "Please enter ecampaign send date in yyyy/mm/dd format" : Exit Sub
+                    End If
+                    If String.IsNullOrEmpty(txtEmailSubject.Text) Then
+                        lbMsg.Text = "Please enter email subject" : Exit Sub
+                    End If
+                    If String.IsNullOrEmpty(txtSenderName.Text) Then
+                        lbMsg.Text = "Please enter email sender name" : Exit Sub
+                    End If
+                    If String.IsNullOrEmpty(txtSenderName.Text) Or Util.IsValidEmailFormat(txtSenderEmail.Text) = False Or _
+                        Not (LCase(txtSenderEmail.Text) Like "*@advantech*.*") Then
+                        lbMsg.Text = "Please enter valid sender email" : Exit Sub
+                    End If
+                    CreateECampaign()
+                    lbMsg.Text = "Campaign is created on eCampaign"
+            End Select
+        Catch ex As Exception
+            lbMsg.Text = ex.ToString()
+        End Try
+    End Sub
+    
+    Function CreateCallCampaign() As Boolean
+        Dim ws As New eCoverageWS.WSSiebel
+        ws.Timeout = 500 * 1000
+        Dim emp As New eCoverageWS.EMPLOYEE, camp As New eCoverageWS.CAMPAIGN
+        emp.USER_ID = ConfigurationManager.AppSettings("CRMHQId") : emp.PASSWORD = ConfigurationManager.AppSettings("CRMHQPwd")
+        With camp
+            .NAME = txtCampaignName.Text : .OBJECTIVE = txtCampaignName.Text
+            .ORG = "ATW" : .TYPE = "eDM/eNews" : .START = CDate(txtCallStartDate.Text) : .END = CDate(txtCallEndDate.Text)
+        End With
+
+        Dim res As eCoverageWS.RESULT = ws.AddCampaign(emp, camp)
+        With res
+            If .ERR_MSG <> "" Then
+                'Response.Write("create siebel source error:" + .ERR_MSG)
+                Util.SendEmail("rudy.wang@advantech.com.tw", "tc.chen@advantech.com.tw", _
+                       "Create SIEBEL source WS return error message by " + HttpContext.Current.User.Identity.Name, .ERR_MSG, _
+                       False, "tc.chen@advantech.com.tw", "")
+            Else
+                If res.ROW_ID <> "" Then
+                    'Util.SendEmail("tc.chen@advantech.com.tw", "tc.chen@advantech.com.tw", _
+                    '   "Create camapign " + txtCampaignName.Text + " by " + HttpContext.Current.User.Identity.Name, res.ROW_ID, _
+                    '   False, "tc.chen@advantech.com.tw", "")
+                    CreateSiebelActivity()
+                End If
+            End If
+            Return True
+        End With
+    End Function
+    
+    Function CreateECampaign() As Boolean
+        Dim dt As DataTable = dbUtil.dbGetDataTable("MY", GetSql()), contacts As New ArrayList
+        For Each r As DataRow In dt.Rows
+            Dim email As String = r.Item("EMAIL_ADDRESS")
+            If Util.IsValidEmailFormat(email) Then
+                contacts.Add(email)
+            End If
+        Next
+        If contacts.Count > 0 Then
+            Dim contactObj(contacts.Count - 1) As Object
+            For i As Integer = 0 To contacts.Count - 1
+                contactObj(i) = contacts(i)
+            Next
+            Dim u As Object = dbUtil.dbExecuteScalar("MY", String.Format( _
+            " select top 1 c.DOMAIN+'\'+c.CN as cname from ADVANTECH_ADDRESSBOOK a " + _
+            " inner join ADVANTECH_ADDRESSBOOK_ALIAS b on a.ID=b.ID inner join ADEMPLOYEE c " + _
+            " on (a.Name=c.CN or a.Name=c.DISPLAYNAME) where b.Email='{0}'", User.Identity.Name))
+            Dim uname As String = User.Identity.Name
+            If u IsNot Nothing Then uname = u.ToString()
+            Dim ws As New eCampaign_New.EC
+            Dim rid As String = ws.CreateCampaign( _
+                txtCampaignName.Text, CDate(txtEDMSendDate.Text), "ATW", u, txtEmailSubject.Text, _
+                txtSenderName.Text, txtSenderEmail.Text, contactObj)
+            If rid <> "" Then Return True
+        End If
+        Return False
+    End Function
+    
+    Public Function CreateSiebelActivity() As Boolean
+        Dim dt As DataTable = dbUtil.dbGetDataTable("MY", GetSql())
+        Dim arrActRowId As New ArrayList
+        'Dim StrActivityID As String        
+        Dim Description As String = txtCampaignName.Text + "-call out action", Display As String = "To Do and Activities", Status As String = "Scheduled"
+        Dim Comments As String = "", Source As String = txtCampaignName.Text, Org As String = "ATW"
+        Dim ws As New aeu_eai2000.Siebel_WS
+        For Each r As DataRow In dt.Rows
+            Dim actId As String = ws.CreateSiebelActivity("To - Do", Status, Display, Description, "", r.Item("ACCOUNT_ROW_ID"), _
+                                    r.Item("ROW_ID"), txtCampaignName.Text, "ATW", r.Item("PRIMARY_SALES_EMAIL"))
+            'Util.SendEmail("tc.chen@advantech.com.tw", "tc.chen@advantech.com.tw", "AOnline TM ActID by " + User.Identity.Name, actId + " " + Description, False, "", "")
+            'Exit For
+        Next
+        'Response.Write("activity ID:" + String.Join(";", arrActRowId.ToArray()))
+        Return True
+        'Util.SendEmail("rudy.wang@advantech.com.tw", "eBiz.AEU@advantech.eu", "Activity", "Type:" + Type + "<br/>" + "Status:" + Status + "<br/>" + "Display:" + Display + "<br/>" + "Desc:" + Description + "<br/>" + "Comment:" + Comments + "<br/>" + "Account ID:" + AccountRowID + "<br/>" + "Contact ID:" + ContactRowID + "<br/>" + "Source:" + Source + "<br/>" + "Org:" + Org + "<br/>" + "Owner:" + OwnerEmail, True, "", "")          
+    End Function
+    
+    Public Function SendOwnerCallSummary() As Boolean
+        Dim sdate As Date = CDate(txtCallStartDate.Text)
+        Dim edate As Date = CDate(txtCallEndDate.Text)
+        Dim diffDays As Integer = DateDiff(DateInterval.Day, sdate, edate)
+        Dim sm As New Net.Mail.SmtpClient(ConfigurationManager.AppSettings("SMTPServer"))
+        Dim dt As DataTable = dbUtil.dbGetDataTable("MY", GetSql())
+        Dim salesArray As New ArrayList
+        For Each r As DataRow In dt.Rows
+            If salesArray.Contains(r.Item("primary_sales_email")) = False Then salesArray.Add(r.Item("primary_sales_email"))
+        Next
+        For Each salesEmail As String In salesArray
+            Dim rec() As DataRow = dt.Select("primary_sales_email='" + salesEmail + "'")
+            Dim sb As New System.Text.StringBuilder
+            With sb
+                .AppendLine("<h3>Program Information</h3>")
+                .AppendFormat("<b style='color:Navy'>Name</b>&nbsp;&nbsp;{0}<br />", txtCampaignName.Text)
+                .AppendLine(String.Format("<b style='color:Navy'>Goal</b>&nbsp;&nbsp;{0}<br />", txtCallGoal.Text))
+                .AppendLine(String.Format("<b style='color:Navy'>Criteria of Target Customer</b>&nbsp;&nbsp;{0}<br />", txtCriteriaTarget.Content))
+                .AppendLine(String.Format("<b style='color:Navy'>eDM</b>&nbsp;&nbsp;{0}<br />", txtEDMUrl.Text))
+                .AppendLine(String.Format("<b style='color:Navy'>Sales Kit</b>&nbsp;&nbsp;{0}<br />", txtSalesKitPath.Text))
+                .Append("<hr />")
+                .AppendLine("<h4>Call List Summary</h4>")
+                .Append(" <table style='border-style:groove'> ")
+                .Append("   <tr valign='top'> ")
+                .Append("       <th align='left'>" + Util.GetNameVonEmail(salesEmail) + "</th> ")
+                .Append("       <td> ")
+                .Append("           <table style='border-style:groove'> ")
+                .Append("               <tr> ")
+                .Append("                   <th>Call List</th><th>Start Date</th><th>End Date</th> ")
+                .Append("               </tr> ")
+                .Append("               <tr> ")
+                .AppendFormat("             <td>{0}</td><td>{1}</td><td>{2}</td> ", rec.Length.ToString(), sdate.ToString("yyyy/MM/dd"), edate.ToString("yyyy/MM/dd"))
+                .Append("               </tr> ")
+                .Append("           </table> ")
+                .Append("       </td> ")
+                .Append("   </tr> ")
+                .Append(" </table> ")
+                .Append("<hr />")
+                .AppendLine("<h4>Call List</h4>")
+                .Append(" <table style='border-style:groove'> ")
+                .Append("   <tr valign='top'> ")
+                .Append("       <th>Est. End Date</th><th>Account</th><th>Key Contact</th><th>Criteria</th> ")
+                .Append("   </tr> ")
+                For i As Integer = 0 To rec.Length - 1
+                    Dim r As DataRow = rec(i)
+                    Dim callDate As Date = DateAdd(DateInterval.Day, i Mod diffDays, sdate)
+                    If callDate.DayOfWeek = DayOfWeek.Saturday Then
+                        callDate = DateAdd(DateInterval.Day, 2, callDate)
+                    ElseIf callDate.DayOfWeek = DayOfWeek.Sunday Then
+                        callDate = DateAdd(DateInterval.Day, 1, callDate)
+                    End If
+                    .AppendFormat("<tr><td>{0}</td><td>{1}</td><td>{2}</td><td>{3}</td></tr>", _
+                                  callDate.ToString("yyyy/MM/dd"), r.Item("ACCOUNT"), r.Item("FirstName") + " " + r.Item("LastName"), r.Item("CRITERIA"))
+                Next
+                .Append(" </table> ")
+            End With
+            Dim msg As New Net.Mail.MailMessage("myadvantech@advantech.com", "tc.chen@advantech.com.tw", "Call List Summary for " + txtCampaignName.Text + " (sent to " + salesEmail + ")", sb.ToString())
+            msg.Bcc.Add("serita.lin@advantech.com.tw")
+            msg.Bcc.Add("tc.chen@advantech.com.tw")
+            msg.IsBodyHtml = True
+            sm.Send(msg)
+        Next
+       
+        Return True
+    End Function
+    
+</script>
+<asp:Content ID="Content1" ContentPlaceHolderID="_main" runat="Server">
+    <table width="100%">
+        <tr>
+            <td>
+                <table>
+                    <tr>
+                        <th align="left">
+                            Campaign Name:
+                        </th>
+                        <td>
+                            <asp:TextBox runat="server" ID="txtCampaignName" Width="400px" />
+                        </td>
+                    </tr>
+                    <tr>
+                        <td colspan="2">
+                            <ajaxToolkit:TabContainer runat="server" ID="tabcon1">
+                                <ajaxToolkit:TabPanel runat="server" ID="tabCall" HeaderText="Create Call Action List">
+                                    <ContentTemplate>
+                                        <table>
+                                            <tr>
+                                                <th align="left">Estimated Period:</th>
+                                                <td>
+                                                    <table>
+                                                        <tr>
+                                                            <td>
+                                                                <ajaxToolkit:CalendarExtender runat="server" ID="calext1" TargetControlID="txtCallStartDate"
+                                                                    Format="yyyy/MM/dd" />
+                                                                <asp:TextBox runat="server" ID="txtCallStartDate" Width="80px" />
+                                                            </td>
+                                                            <th align="left">
+                                                                ~
+                                                            </th>
+                                                            <td>
+                                                                <ajaxToolkit:CalendarExtender runat="server" ID="calext2" TargetControlID="txtCallEndDate"
+                                                                    Format="yyyy/MM/dd" />
+                                                                <asp:TextBox runat="server" ID="txtCallEndDate" Width="80px" />
+                                                            </td>
+                                                        </tr>
+                                                    </table>
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <th align="left">Goal:</th>
+                                                <td>
+                                                    <asp:TextBox runat="server" ID="txtCallGoal" Width="300px" />
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <th align="left">Criteria of Target Customer:</th>
+                                                <td>
+                                                    <uc1:NoToolBarEditor runat="server" ID="txtCriteriaTarget" 
+                                                        Width="600px" Height="150px" ActiveMode="Design" />       
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <th align="left">eDM URL:</th>
+                                                <td>
+                                                    <asp:TextBox runat="server" ID="txtEDMUrl" Width="600px" />
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <th align="left">Sales Kit Path:</th>
+                                                <td>
+                                                    <asp:TextBox runat="server" ID="txtSalesKitPath" Width="500px" />
+                                                </td>
+                                            </tr>
+                                        </table>
+                                    </ContentTemplate>
+                                </ajaxToolkit:TabPanel>
+                                <ajaxToolkit:TabPanel runat="server" ID="tabEDM" HeaderText="Create an eCampaign">
+                                    <ContentTemplate>
+                                        <table width="100%">
+                                            <tr>
+                                                <th align="left">
+                                                    Planned Send Date:
+                                                </th>
+                                                <td>
+                                                    <ajaxToolkit:CalendarExtender runat="server" ID="CalendarExtender1" TargetControlID="txtEDMSendDate" Format="yyyy/MM/dd" />
+                                                    <asp:TextBox runat="server" ID="txtEDMSendDate" Width="80px" />
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <th align="left">
+                                                    Email Subject:
+                                                </th>
+                                                <td>
+                                                    <asp:TextBox runat="server" ID="txtEmailSubject" Width="300px" />
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <th align="left">
+                                                    Sender Name:
+                                                </th>
+                                                <td>
+                                                    <asp:TextBox runat="server" ID="txtSenderName" Width="100px" />
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <th align="left">
+                                                    Sender Email:
+                                                </th>
+                                                <td>
+                                                    <asp:TextBox runat="server" ID="txtSenderEmail" Width="160px" />
+                                                </td>
+                                            </tr>
+                                        </table>
+                                    </ContentTemplate>
+                                </ajaxToolkit:TabPanel>
+                            </ajaxToolkit:TabContainer>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td colspan="2">
+                            <asp:Button runat="server" ID="btnCreate" Text="Create" OnClick="btnCreate_Click" />
+                        </td>
+                    </tr>
+                    <tr>
+                        <td colspan="2">
+                            <asp:Label runat="server" ID="lbMsg" Font-Bold="true" ForeColor="Tomato" />
+                        </td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <table width="100%">
+                    <tr>
+                        <td>
+                            <hr />
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <h3>
+                                Contact List</h3>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <asp:Button runat="server" ID="btnContactSelection" Text="Back to Contact Selection"
+                                OnClick="btnContactSelection_Click" />
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <asp:UpdatePanel runat="server" ID="up1" UpdateMode="Conditional">
+                                <ContentTemplate>
+                                    <asp:GridView runat="server" ID="gvContact" Width="100%" DataSourceID="srcContact"
+                                        AutoGenerateColumns="false" AllowPaging="true" AllowSorting="true" PageSize="50"
+                                        OnRowCreated="gvRowCreated" PagerSettings-Position="TopAndBottom" OnPageIndexChanging="gvContact_PageIndexChanging"
+                                        OnSorting="gvContact_Sorting">
+                                        <Columns>
+                                            <asp:BoundField HeaderText="Account Name" DataField="ACCOUNT" SortExpression="ACCOUNT" />
+                                            <asp:BoundField HeaderText="Account Status" DataField="ACCOUNT_STATUS" SortExpression="ACCOUNT_STATUS" />
+                                            <asp:BoundField HeaderText="First Name" DataField="FirstName" SortExpression="FirstName" />
+                                            <asp:BoundField HeaderText="Last Name" DataField="LastName" SortExpression="LastName" />
+                                            <asp:BoundField HeaderText="Job Function" DataField="JOB_FUNCTION" SortExpression="JOB_FUNCTION" />
+                                            <asp:BoundField HeaderText="Job Title" DataField="JOB_TITLE" SortExpression="JOB_TITLE" />
+                                            <asp:BoundField HeaderText="Email" DataField="EMAIL_ADDRESS" SortExpression="EMAIL_ADDRESS" />
+                                            <asp:BoundField HeaderText="Phone #" DataField="WorkPhone" SortExpression="WorkPhone" />
+                                        </Columns>
+                                    </asp:GridView>
+                                    <asp:SqlDataSource runat="server" ID="srcContact" ConnectionString="<%$ConnectionStrings:MY %>" />
+                                </ContentTemplate>
+                            </asp:UpdatePanel>
+                        </td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+    </table>
+</asp:Content>

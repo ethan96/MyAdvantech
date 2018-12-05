@@ -1,0 +1,80 @@
+﻿<%@ Page Title="USA Contact Privilege" Language="VB" MasterPageFile="~/Includes/MyMaster.master" %>
+
+<script runat="server">
+
+    Protected Sub Page_Load(ByVal sender As Object, ByVal e As System.EventArgs)
+        If Session("user_id") = "rudy.wang@advantech.com.tw" Then btnUpdate.Visible = True
+    End Sub
+
+    Protected Sub ToXlsBtn_Click(ByVal sender As Object, ByVal e As System.Web.UI.ImageClickEventArgs)
+        Dim dt As DataTable = dbUtil.dbGetDataTable("MY", sql1.SelectCommand)
+        Util.DataTable2ExcelDownload(dt, "ContactList.xls")
+    End Sub
+
+    Protected Sub ToXlsLink_Click(ByVal sender As Object, ByVal e As System.EventArgs)
+        ToXlsBtn_Click(sender, New ImageClickEventArgs(0, 0))
+    End Sub
+
+    Protected Sub btnUpdate_Click(ByVal sender As Object, ByVal e As System.EventArgs)
+        Dim dt As DataTable = dbUtil.dbGetDataTable("MY", "select * from temp_contact where email in (select email_address from SIEBEL_CONTACT) order by email")
+        For Each row As DataRow In dt.Rows
+            Dim email As String = row.Item("email").ToString
+            Dim can_see_order As Boolean = CBool(row.Item("can_see_order"))
+            Dim can_place_order As Boolean = CBool(row.Item("can_place_order"))
+            Dim ws As New aeu_eai2000.Siebel_WS
+            ws.UseDefaultCredentials = True : ws.Timeout = 500 * 1000
+            ws.UpdateContactInfoByMyAdvantechProfile_New(email, "", "", "", "", "", "", "", "", "", "", "", "", can_see_order, can_place_order, False, False, "", "")
+            'MailUtil.SendEmail("Sync Privilege", email)
+            Dim dt1 As DataTable = dbUtil.dbGetDataTable("MY", String.Format("select distinct row_id from siebel_contact where email_address='{0}'", email))
+            For Each row1 As DataRow In dt1.Rows
+                dbUtil.dbExecuteNoQuery("MY", String.Format("delete from siebel_contact_privilege where row_id='{0}'", row1.Item(0).ToString))
+                Dim dt2 As DataTable = dbUtil.dbGetDataTable("CRMDB75", String.Format("SELECT a.PAR_ROW_ID as ROW_ID, b.EMAIL_ADDR as EMAIL_ADDRESS, " + _
+                        "IsNull((select top 1 z.VAL from S_LST_OF_VAL z where z.TYPE = 'CONTACT_MYADVAN_PVLG' and z.ROW_ID=a.NAME),'N/A') as PRIVILEGE  " + _
+                        "FROM S_CONTACT_XM a inner join S_CONTACT b on a.PAR_ROW_ID=b.ROW_ID " + _
+                        "WHERE a.TYPE = 'CONTACT_MYADVAN_PVLG' and a.PAR_ROW_ID='{0}'", row1.Item(0).ToString))
+                If dt2.Rows.Count > 0 Then
+                    Dim BCopy As New SqlClient.SqlBulkCopy(ConfigurationManager.ConnectionStrings("MY").ConnectionString)
+                    BCopy.DestinationTableName = "SIEBEL_CONTACT_PRIVILEGE"
+                    BCopy.WriteToServer(dt2)
+                End If
+            Next
+            
+        Next
+    End Sub
+</script>
+
+<asp:Content ID="Content1" ContentPlaceHolderID="_main" Runat="Server">
+    <table>
+        <tr>
+            <td><asp:ImageButton runat="server" ID="ToXlsBtn" ImageUrl="~/Images/excel.gif" AlternateText="Export To Excel" OnClick="ToXlsBtn_Click" /></td>
+            <td><asp:LinkButton runat="server" ID="ToXlsLink" Text="Export To Excel" OnClick="ToXlsLink_Click" /></td>
+        </tr>
+    </table>
+    <asp:Button runat="server" ID="btnUpdate" Text="Update" Visible="false" OnClick="btnUpdate_Click" />
+    <asp:UpdatePanel runat="server" ID="up1">
+        <ContentTemplate>
+            <sgv:SmartGridView runat="server" ID="gv1" AutoGenerateColumns="false" DataSourceID="sql1" AllowSorting="true">
+                <Columns>
+                    <asp:TemplateField ItemStyle-Width="2%" ItemStyle-HorizontalAlign="Center">
+                        <headertemplate>
+                            No.
+                        </headertemplate>
+                        <itemtemplate>
+                            <%# Container.DataItemIndex + 1 %>
+                        </itemtemplate>
+                    </asp:TemplateField>
+                    <asp:BoundField DataField="email" HeaderText="Email" SortExpression="Email" />
+                    <asp:BoundField DataField="can_see_order" HeaderText="Can See Order?" SortExpression="can_see_order" />
+                    <asp:BoundField DataField="can_place_order" HeaderText="Can Place Order?" SortExpression="can_place_order" />
+                    <asp:BoundField DataField="ERP_ID" HeaderText="ERP ID" SortExpression="ERP_ID" />
+                    <asp:BoundField DataField="account_status" HeaderText="Account Status" SortExpression="account_status" />
+                    <asp:BoundField DataField="primary_sales" HeaderText="primary_sales" SortExpression="primary_sales" />
+                </Columns>
+            </sgv:SmartGridView>
+            <asp:SqlDataSource runat="server" ID="sql1" ConnectionString="<%$connectionStrings: MY %>"
+                 SelectCommand="SELECT distinct a.*,C.ERP_ID,b.ACCOUNT_STATUS,isnull(c.PRIMARY_SALES_EMAIL,'') as PRIMARY_SALES from temp_contact a left join SIEBEL_CONTACT b on a.email=b.email_address left join SIEBEL_ACCOUNT c on b.ACCOUNT_ROW_ID=c.ROW_ID where a.EMAIL != '' order by a.EMAIL"></asp:SqlDataSource>
+        </ContentTemplate>
+    </asp:UpdatePanel>
+    
+</asp:Content>
+

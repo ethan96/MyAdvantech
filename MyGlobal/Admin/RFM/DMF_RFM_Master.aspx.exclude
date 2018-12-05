@@ -1,0 +1,369 @@
+﻿<%@ Page Title="DMF RFM Master" Language="VB" MasterPageFile="~/Includes/MyMaster.master" %>
+
+<%@ Import Namespace="Aspose.Grid.Web.Data" %>
+<%@ Register TagPrefix="agw" Namespace="Aspose.Grid.Web" Assembly="Aspose.Grid.Web" %>
+
+<script runat="server">
+
+    Protected Sub Page_Load(ByVal sender As Object, ByVal e As System.EventArgs)
+        If Not Page.IsPostBack Then
+            ddlYearFrom.Items(ddlYearFrom.Items.Count - 2).Selected = True
+            ddlYearTo.Items(ddlYearTo.Items.Count - 1).Selected = True
+            GenerateSourceData()
+            LoadDataToGrid(True)
+        End If
+    End Sub
+    
+    Private Sub GenerateSourceData()
+        Dim g_adoConn As New SqlClient.SqlConnection(ConfigurationManager.ConnectionStrings("MYLOCAL").ConnectionString)
+        Dim da As New SqlClient.SqlDataAdapter(GetSql(), g_adoConn)
+        Dim dt As New DataTable
+        da.SelectCommand.CommandTimeout = 5 * 60
+        da.Fill(dt)
+        Dim rs() As DataRow = dt.Select("", "R")
+        Dim MaxR As Double = rs(dt.Rows.Count - 1).Item("R")
+        Dim minR As Double = rs(0).Item("R")
+        Dim avgR As Double = (MaxR - minR) / 5
+        lblMaxR.Text = MaxR.ToString : lblMinR.Text = minR.ToString : lblAvgR.Text = avgR.ToString
+            
+        rs = dt.Select("", "F")
+        Dim MaxF As Double = rs(dt.Rows.Count - 1).Item("F")
+        Dim minF As Double = rs(0).Item("F")
+        Dim avgF As Double = (MaxF - minF) / 5
+        lblMaxF.Text = MaxF.ToString : lblMinF.Text = minF.ToString : lblAvgF.Text = avgF.ToString
+        
+        rs = dt.Select("", "M")
+        Dim MaxM As Double = rs(dt.Rows.Count - 1).Item("M")
+        Dim minM As Double = rs(0).Item("M")
+        Dim avgM As Double = (MaxM - minM) / 5
+        lblMaxM.Text = MaxM.ToString : lblMinM.Text = minM.ToString : lblAvgM.Text = avgM.ToString
+        'Response.Write(MaxR.ToString + " : " + avgR.ToString + " : " + minR.ToString + "<br/>")
+        'Response.Write(MaxF.ToString + " : " + avgF.ToString + " : " + minF.ToString + "<br/>")
+        'Response.Write(MaxM.ToString + " : " + avgM.ToString + " : " + minM.ToString + "<br/>")
+        Dim dtRFM As New DataTable
+        With dtRFM.Columns
+            .Add("COMPANY_ID") : .Add("R") : .Add("F") : .Add("M") : .Add("LATEST_ORDER_DATE") : .Add("ORDERS")
+            .Add("AMOUNT") : .Add("PRIMARY_SALES")
+        End With
+        For Each row As DataRow In dt.Rows
+            Dim R As Double = row.Item("R"), R5 As Integer = 0
+            Dim F As Double = row.Item("F"), F5 As Integer = 0
+            Dim M As Double = row.Item("M"), M5 As Integer = 0
+            If avgR * 4 < R AndAlso R <= MaxR Then R5 = 1
+            If avgR * 3 < R AndAlso R <= avgR * 4 Then R5 = 2
+            If avgR * 2 < R AndAlso R <= avgR * 3 Then R5 = 3
+            If avgR * 1 < R AndAlso R <= avgR * 2 Then R5 = 4
+            If minR <= R AndAlso R <= avgR * 1 Then R5 = 5
+            
+            If avgF * 4 < F AndAlso F <= MaxF Then F5 = 5
+            If avgF * 3 < F AndAlso F <= avgF * 4 Then F5 = 4
+            If avgF * 2 < F AndAlso F <= avgF * 3 Then F5 = 3
+            If avgF * 1 < F AndAlso F <= avgF * 2 Then F5 = 2
+            If minF <= F AndAlso F <= avgF * 1 Then F5 = 1
+            
+            If avgM * 4 < M AndAlso M <= MaxM Then M5 = 5
+            If avgM * 3 < M AndAlso M <= avgM * 4 Then M5 = 4
+            If avgM * 2 < M AndAlso M <= avgM * 3 Then M5 = 3
+            If avgM * 1 < M AndAlso M <= avgM * 2 Then M5 = 2
+            If minM <= M AndAlso M <= avgM * 1 Then M5 = 1
+            
+            Dim rr As DataRow = dtRFM.NewRow()
+            rr.Item("COMPANY_ID") = row.Item("COMPANY_ID")
+            rr.Item("R") = R5 : rr.Item("F") = F5 : rr.Item("M") = M5 ': rr.Item("RFM") = R5 + F5 + M5
+            rr.Item("LATEST_ORDER_DATE") = DateAdd(DateInterval.Day, -CInt(row.Item("R")), Now).ToString("yyyy/MM/dd") : rr.Item("ORDERS") = row.Item("F") : rr.Item("AMOUNT") = row.Item("M")
+            rr.Item("PRIMARY_SALES") = row.Item("PRIMARY_SALES_EMAIL")
+            dtRFM.Rows.Add(rr)
+            row.Item("R5") = R5 : row.Item("F5") = F5 : row.Item("M5") = M5 : row.Item("RFM") = R5 + F5 + M5
+        Next
+        dt.AcceptChanges()
+        'gv1.DataSource = dt
+        'gv1.DataBind()
+        ViewState("dt") = dtRFM
+        g_adoConn.Close()
+    End Sub
+    
+    Private Function GetSql() As String
+        Dim sb As New StringBuilder
+        With sb
+            .AppendFormat("select a.*,b.PRIMARY_SALES_EMAIL, '' as R5,'' as F5,'' as M5,'' as RFM from DMF_RFM_MASTER a inner join [ACLSQL6\sql2008r2].MyAdvantechGlobal.dbo.SAP_DIMCOMPANY b on a.COMPANY_ID=b.COMPANY_ID where 1=1 ")
+            Dim year_from As String = "", year_to As String = ""
+            If Not Page.IsPostBack Then
+                year_from = ddlYearFrom.SelectedValue : year_to = ddlYearTo.SelectedValue
+            Else
+                If CInt(ddlYearFrom.SelectedValue) < CInt(ddlYearTo.SelectedValue) Then
+                    year_from = ddlYearFrom.SelectedValue
+                    year_to = ddlYearTo.SelectedValue
+                Else
+                    year_from = ddlYearTo.SelectedValue
+                    year_to = ddlYearFrom.SelectedValue
+                End If
+            End If
+            .AppendFormat(" and a.YEAR_FROM='{0}' and YEAR_TO='{1}' ", year_from, year_to)
+        End With
+        Return sb.ToString
+    End Function
+    
+    Private Sub LoadDataToGrid(ByVal is_initial As Boolean)
+        GridWeb1.WebWorksheets.Clear()
+        GridWeb1.WebWorksheets.ImportDataView(New DataView(ViewState("dt")), New Aspose.Grid.Web.TableItemStyle, New Aspose.Grid.Web.TableItemStyle)
+        GridWeb1.WebWorksheets.PivotCaches.Clear()
+        Dim cache As PivotCache
+        'Adds a PivotCache 
+        Dim sourceSheet As WebWorksheet = GridWeb1.WebWorksheets(0)
+        Dim sourceRange As WebCellArea = New WebCellArea()
+        sourceRange.StartRow = 0
+        sourceRange.StartColumn = 0
+        sourceRange.EndRow = CType(ViewState("dt"), DataTable).Rows.Count
+        sourceRange.EndColumn = 5
+        cache = GridWeb1.WebWorksheets.PivotCaches.Add(sourceSheet, sourceRange)
+
+        Dim targetSheetIndex As Integer = GridWeb1.WebWorksheets.Add("PivotTable Report")
+        GridWeb1.WebWorksheets.DefaultFontName = "Arial"
+        GridWeb1.WebWorksheets.DefaultFontSize = New System.Web.UI.WebControls.FontUnit(10)
+
+        'Creates a PivotTable 
+        Dim pt As PivotTable = cache.CreatePivotTable(GridWeb1.WebWorksheets(targetSheetIndex), Nothing)
+        Dim pivotTable As PivotTable = GridWeb1.WebWorksheets.PivotTables(0)
+        
+        lbField.Items.Clear()
+
+        'Adds PivotFields to lbxFields box.
+        Dim fields As PivotFields = pt.PivotFields
+        Dim i As Integer
+        For i = 0 To fields.Count - 1
+            lbField.Items.Add(New ListItem(fields(i).Name, i.ToString()))
+        Next
+        
+        If is_initial Then
+            lbRowField.Items.Clear()
+            lbColField.Items.Clear()
+            lbDataField.Items.Clear()
+            
+            lbRowField.Items.Add(New ListItem("R", "R"))
+            lbRowField.Items.Add(New ListItem("F", "F"))
+            lbColField.Items.Add(New ListItem("M", "M"))
+            lbDataField.Items.Add(New ListItem("COMPANY_ID", "COMPANY_ID"))
+            
+            pivotTable.PivotFields("R").Orientation = PivotFieldOrientation.RowField
+            pivotTable.PivotFields("F").Orientation = PivotFieldOrientation.RowField
+            pivotTable.PivotFields("M").Orientation = PivotFieldOrientation.ColumnField
+            pivotTable.PivotFields("COMPANY_ID").Orientation = PivotFieldOrientation.DataField
+            pivotTable.PivotFields("COMPANY_ID").Function = PivotFieldFunction.Count
+        Else
+            i = 0
+            For i = 0 To lbRowField.Items.Count - 1
+                Dim j As Integer = 0
+                For j = 0 To pivotTable.PivotFields.Count - 1
+                    If lbRowField.Items(i).Text = pivotTable.PivotFields(j).Name Then
+                        pivotTable.PivotFields(j).Orientation = PivotFieldOrientation.RowField
+                    End If
+                Next
+            Next
+            i = 0
+            For i = 0 To lbColField.Items.Count - 1
+                Dim j As Integer = 0
+                For j = 0 To pivotTable.PivotFields.Count - 1
+                    If lbColField.Items(i).Text = pivotTable.PivotFields(j).Name Then
+                        pivotTable.PivotFields(j).Orientation = PivotFieldOrientation.ColumnField
+                    End If
+                Next
+            Next
+            i = 0
+            For i = 0 To lbDataField.Items.Count - 1
+                Dim j As Integer = 0
+                For j = 0 To pivotTable.PivotFields.Count - 1
+                    If lbDataField.Items(i).Text = pivotTable.PivotFields(j).Name Then
+                        pivotTable.PivotFields(j).Orientation = PivotFieldOrientation.DataField
+                        pivotTable.PivotFields(j).Function = PivotFieldFunction.Count
+                    End If
+                Next
+            Next
+        End If
+        
+        'Paints PivotTable report
+        pivotTable.DataBind()
+        GridWeb1.WebWorksheets.ActiveSheetIndex = GridWeb1.WebWorksheets("PivotTable Report").Index
+    End Sub
+    
+    Protected Sub gv1_Sorting(ByVal sender As Object, ByVal e As System.Web.UI.WebControls.GridViewSortEventArgs)
+
+    End Sub
+
+    Protected Sub btn1_Click(ByVal sender As Object, ByVal e As System.EventArgs)
+        ExportPivotTableToExcel()
+    End Sub
+    
+    Protected Sub GridWeb1_SaveCommand(ByVal sender As Object, ByVal e As System.EventArgs) Handles GridWeb1.SaveCommand
+        ExportPivotTableToExcel()
+    End Sub
+    
+    Private Sub ExportPivotTableToExcel()
+        Util.DataTable2PivotExcelDownload(ViewState("dt"), "R|F", "M", "COMPANY_ID", "RFM.xls")
+    End Sub
+
+    Protected Sub btnAddRowField_Click(ByVal sender As Object, ByVal e As System.EventArgs)
+        If Not lbField.SelectedItem Is Nothing Then
+            Dim item As ListItem = New ListItem(lbField.SelectedItem.Text, lbField.SelectedItem.Value)
+            lbColField.Items.Remove(item)
+            lbRowField.Items.Remove(item)
+            lbRowField.Items.Add(item)
+        End If
+    End Sub
+
+    Protected Sub btnAddColField_Click(ByVal sender As Object, ByVal e As System.EventArgs)
+        If Not lbField.SelectedItem Is Nothing Then
+            Dim item As ListItem = New ListItem(lbField.SelectedItem.Text, lbField.SelectedItem.Value)
+            lbRowField.Items.Remove(item)
+            lbColField.Items.Remove(item)
+            lbColField.Items.Add(item)
+        End If
+    End Sub
+
+    Protected Sub btnAddDataField_Click(ByVal sender As Object, ByVal e As System.EventArgs)
+        If Not lbField.SelectedItem Is Nothing Then
+            Dim item As ListItem = New ListItem(lbField.SelectedItem.Text, lbField.SelectedItem.Value)
+            lbDataField.Items.Remove(item)
+            lbDataField.Items.Add(item)
+        End If
+    End Sub
+
+    Protected Sub btnRemoveRow_Click(ByVal sender As Object, ByVal e As System.EventArgs)
+        lbRowField.Items.Clear()
+    End Sub
+
+    Protected Sub btnRemoveCol_Click(ByVal sender As Object, ByVal e As System.EventArgs)
+        lbColField.Items.Clear()
+    End Sub
+
+    Protected Sub btnRemoveData_Click(ByVal sender As Object, ByVal e As System.EventArgs)
+        lbDataField.Items.Clear()
+    End Sub
+
+    Protected Sub btnGeneratePivot_Click(ByVal sender As Object, ByVal e As System.EventArgs)
+        GenerateSourceData()
+        LoadDataToGrid(False)
+        up1.Update() : up2.Update()
+    End Sub
+
+    Protected Sub GridWeb1_CellDoubleClick(ByVal sender As Object, ByVal e As Aspose.Grid.Web.CellEventArgs)
+        Dim pivotTable As PivotTable = CType(sender, GridWeb).WebWorksheets.PivotTables(0)
+        Util.AjaxJSAlert(up1, pivotTable.PivotFields("R").Name)
+    End Sub
+</script>
+
+<asp:Content ID="Content1" ContentPlaceHolderID="_main" Runat="Server">
+    <table>
+        <tr>
+            <td>Year: from </td>
+            <td>
+                <asp:DropDownList runat="server" ID="ddlYearFrom">
+                    <asp:ListItem Text="2005" Value="2005" />
+                    <asp:ListItem Text="2006" Value="2006" />
+                    <asp:ListItem Text="2007" Value="2007" />
+                    <asp:ListItem Text="2008" Value="2008" />
+                    <asp:ListItem Text="2009" Value="2009" />
+                    <asp:ListItem Text="2010" Value="2010" />
+                    <asp:ListItem Text="2011" Value="2011" />
+                </asp:DropDownList>
+            </td>
+            <td>to </td>
+            <td>
+                <asp:DropDownList runat="server" ID="ddlYearTo">
+                    <asp:ListItem Text="2005" Value="2005" />
+                    <asp:ListItem Text="2006" Value="2006" />
+                    <asp:ListItem Text="2007" Value="2007" />
+                    <asp:ListItem Text="2008" Value="2008" />
+                    <asp:ListItem Text="2009" Value="2009" />
+                    <asp:ListItem Text="2010" Value="2010" />
+                    <asp:ListItem Text="2011" Value="2011" />
+                </asp:DropDownList>
+            </td>
+        </tr>
+    </table>
+    
+    <asp:UpdatePanel runat="server" ID="up2" UpdateMode="Conditional">
+        <ContentTemplate>
+            <table>
+                <tr>
+                    <td>Max R: </td><th><asp:Label runat="server" ID="lblMaxR" /></th><td width="5"></td>
+                    <td>Min R: </td><th><asp:Label runat="server" ID="lblMinR" /></th><td width="5"></td>
+                    <td>AVG R: </td><th><asp:Label runat="server" ID="lblAvgR" /></th>
+                </tr>
+                <tr>
+                    <td>Max F: </td><th><asp:Label runat="server" ID="lblMaxF" /></th><td width="5"></td>
+                    <td>Min F: </td><th><asp:Label runat="server" ID="lblMinF" /></th><td width="5"></td>
+                    <td>AVG F: </td><th><asp:Label runat="server" ID="lblAvgF" /></th>
+                </tr>
+                <tr>
+                    <td>Max M: </td><th><asp:Label runat="server" ID="lblMaxM" /></th><td width="5"></td>
+                    <td>Min M: </td><th><asp:Label runat="server" ID="lblMinM" /></th><td width="5"></td>
+                    <td>AVG M: </td><th><asp:Label runat="server" ID="lblAvgM" /></th>
+                </tr>
+            </table>
+        </ContentTemplate>
+    </asp:UpdatePanel>
+    
+    <asp:UpdatePanel runat="server" ID="upPivotField" UpdateMode="Conditional">
+        <ContentTemplate>
+            <table>
+                <tr>
+                    <td valign="top"><asp:ListBox id="lbField" runat="server" Width="100" Height="100" /></td>
+                    <td>
+                        <table>
+                            <tr><td><asp:Button runat="server" ID="btnAddRowField" Text="To RowFields" OnClick="btnAddRowField_Click" /></td></tr>
+                            <tr><td><asp:Button runat="server" ID="btnAddColField" Text="To ColumnFields" OnClick="btnAddColField_Click" /></td></tr>
+                            <tr><td><asp:Button runat="server" ID="btnAddDataField" Text="To DataFields" OnClick="btnAddDataField_Click" /></td></tr>
+                        </table>
+                    </td>
+                    <td>
+                        <table>
+                            <tr><td><asp:ListBox id="lbRowField" runat="server" Width="100" Height="100" /></td></tr>
+                            <tr><td><asp:Button runat="server" ID="btnRemoveRow" Text="Clear" OnClick="btnRemoveRow_Click" /></td></tr>
+                        </table>
+                    </td>
+                    <td>
+                        <table>
+                            <tr><td><asp:ListBox id="lbColField" runat="server" Width="100" Height="100" /></td></tr>
+                            <tr><td><asp:Button runat="server" ID="btnRemoveCol" Text="Clear" OnClick="btnRemoveCol_Click" /></td></tr>
+                        </table>
+                    </td>
+                    <td>
+                        <table>
+                            <tr><td><asp:ListBox id="lbDataField" runat="server" Width="100" Height="100" /></td></tr>
+                            <tr><td><asp:Button runat="server" ID="btnRemoveData" Text="Clear" OnClick="btnRemoveData_Click" /></td></tr>
+                        </table>
+                    </td>
+                </tr>
+            </table>
+        </ContentTemplate>
+    </asp:UpdatePanel>
+
+    <table>
+        <tr>
+            <td><asp:Button runat="server" ID="btnGeneratePivot" Text="Generate PivotTable Report" OnClick="btnGeneratePivot_Click" /></td>
+            <td><asp:Button runat="server" ID="btn1" Text="Export to Excel" OnClick="btn1_Click" /></td>
+        </tr>
+    </table>
+
+    <asp:UpdatePanel runat="server" ID="up1" UpdateMode="Conditional">
+        <ContentTemplate>
+            <agw:GridWeb runat="server" ID="GridWeb1" PresetStyle="Traditional1" EnablePaging="true" PageSize="50" XhtmlMode="true" ShowSaveButton="false" ShowSubmitButton="false" ShowUndoButton="false" EnableDoubleClickEvent="true" Width="800px" Height="600px" OnCellDoubleClick="GridWeb1_CellDoubleClick" />
+        </ContentTemplate>
+        <Triggers>
+            <asp:AsyncPostBackTrigger ControlID="btnGeneratePivot" EventName="Click" />
+            <asp:PostBackTrigger ControlID="btn1" />
+        </Triggers>
+    </asp:UpdatePanel>
+    
+
+    <asp:GridView runat="server" ID="gv1" AutoGenerateColumns="false" AllowPaging="true" PageSize="10000" OnSorting="gv1_Sorting">
+        <Columns>
+            <asp:BoundField DataField="COMPANY_ID" HeaderText="Customer ID" />
+            <asp:BoundField DataField="R5" HeaderText="R" />
+            <asp:BoundField DataField="F5" HeaderText="F" />
+            <asp:BoundField DataField="M5" HeaderText="M" />
+            <asp:BoundField DataField="RFM" HeaderText="RFM" />
+        </Columns>
+    </asp:GridView>
+</asp:Content>
+

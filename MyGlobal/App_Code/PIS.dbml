@@ -1,0 +1,39 @@
+﻿<?xml version="1.0" encoding="utf-8"?><Database Name="PIS" Class="PISDataContext" xmlns="http://schemas.microsoft.com/linqtosql/dbml/2007">
+  <Connection Mode="WebSettings" ConnectionString="Data Source=ACLSTNR12;Initial Catalog=PIS;Persist Security Info=True;User ID=b2bsa" SettingsObjectName="System.Configuration.ConfigurationManager.ConnectionStrings" SettingsPropertyName="PISConnectionString" Provider="System.Data.SqlClient" />
+  <Table Name="dbo.PRODUCT_LOGISTICS_NEW" Member="PRODUCT_LOGISTICS_NEWs">
+    <Type Name="PRODUCT_LOGISTICS_NEW">
+      <Column Name="PRODUCT_ID" Type="System.String" DbType="VarChar(15)" CanBeNull="true" />
+      <Column Name="PART_NO" Type="System.String" DbType="NVarChar(100)" CanBeNull="true" />
+      <Column Name="PRODUCT_DESC" Type="System.String" DbType="NVarChar(255)" CanBeNull="true" />
+      <Column Name="STATUS" Type="System.String" DbType="VarChar(30)" CanBeNull="true" />
+      <Column Name="ORG_ID" Type="System.String" DbType="VarChar(100)" CanBeNull="true" />
+      <Column Name="VERSION" Type="System.String" DbType="VarChar(30)" CanBeNull="true" />
+      <Column Name="UOM" Type="System.String" DbType="VarChar(30)" CanBeNull="true" />
+      <Column Name="MODEL_NO" Type="System.String" DbType="NVarChar(100)" CanBeNull="true" />
+      <Column Name="CERTIFICATE" Type="System.String" DbType="VarChar(50)" CanBeNull="true" />
+      <Column Name="PRODUCT_LINE" Type="System.String" DbType="VarChar(100)" CanBeNull="true" />
+      <Column Name="PRODUCT_GROUP" Type="System.String" DbType="VarChar(100)" CanBeNull="true" />
+      <Column Name="TUMBNAIL_IMAGE_ID" Type="System.String" DbType="VarChar(15)" CanBeNull="true" />
+      <Column Name="IMAGE_ID" Type="System.String" DbType="VarChar(15)" CanBeNull="true" />
+      <Column Name="PRODUCT_TYPE" Type="System.String" DbType="VarChar(30)" CanBeNull="true" />
+      <Column Name="ONLINE_PUBLISH" Type="System.String" DbType="VarChar(100)" CanBeNull="true" />
+      <Column Name="EXTENTED_DESC" Type="System.String" DbType="VarChar(255)" CanBeNull="true" />
+      <Column Name="NEW_PRODUCT_DATE" Type="System.DateTime" DbType="DateTime" CanBeNull="true" />
+      <Column Name="SHIP_WEIGHT" Type="System.Decimal" DbType="Decimal(18,2)" CanBeNull="true" />
+      <Column Name="NET_WEIGHT" Type="System.Decimal" DbType="Decimal(18,2)" CanBeNull="true" />
+      <Column Name="PRODUCT_SITE" Type="System.String" DbType="VarChar(30)" CanBeNull="true" />
+      <Column Name="LAST_UPDATED" Type="System.DateTime" DbType="DateTime" CanBeNull="true" />
+      <Column Name="LAST_UPDATED_BY" Type="System.String" DbType="VarChar(100)" CanBeNull="true" />
+      <Column Name="CREATED_DATE" Type="System.DateTime" DbType="DateTime" CanBeNull="true" />
+      <Column Name="CREATED_BY" Type="System.String" DbType="VarChar(100)" CanBeNull="true" />
+      <Column Name="Controller_Code" Type="System.String" DbType="NVarChar(50)" CanBeNull="true" />
+      <Column Name="Cost" Type="System.Decimal" DbType="Decimal(18,2)" CanBeNull="true" />
+      <Column Name="Currency" Type="System.String" DbType="VarChar(20)" CanBeNull="true" />
+      <Column Name="RoHS_Status" Type="System.String" DbType="VarChar(5)" CanBeNull="true" />
+      <Column Name="ABC_Ind" Type="System.String" DbType="VarChar(5)" CanBeNull="true" />
+      <Column Name="Region_Dim_Weight" Type="System.Decimal" DbType="Decimal(18,0)" CanBeNull="true" />
+      <Column Name="Product_Division" Type="System.String" DbType="VarChar(100)" CanBeNull="true" />
+      <Column Name="Dimension" Type="System.String" DbType="NVarChar(200)" CanBeNull="true" />
+    </Type>
+  </Table>
+</Database>

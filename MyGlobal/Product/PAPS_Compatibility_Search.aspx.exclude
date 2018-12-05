@@ -1,0 +1,157 @@
+﻿<%@ Page Title="MyAdvantech - Advantech Product Compatibility with P-trade Search" Language="VB" MasterPageFile="~/Includes/MyMaster.master" %>
+
+<script runat="server">
+    Public Function GetAdvCompatibilityResult(ByVal pStrAdvPartCompat As String, ByVal pStPTDRegionalSetting As String) As DataTable
+        Dim tmpString As String = String.Empty
+        If pStPTDRegionalSetting = "GLOBAL" Then
+            tmpString = "Select  distinct IsNull(c.category_name,'N/A') as [ProdLine] , a.category_id as [PartNo] ,  " & _
+                    "b.category_desc as [Description], b.Publish_status as [Status] from cbom_catalog_category a " & _
+                    " inner join eapro_catalog_category b on a.category_id = b.category_id " & _
+                    " inner join eapro_catalog_category c on b.parent_category_id = c.category_id " & _
+                    " where a.parent_category_id = '" & pStrAdvPartCompat & "' and a.Seq_no = 99  " & _
+                    "order by 1 , 2 , 3 , 4 "
+        Else
+            tmpString = "Select  distinct IsNull(c.category_name,'N/A') as [ProdLine] , a.category_id as [PartNo] ,  " & _
+                                    "b.category_desc as [Description], 'Available'  as [Status] from cbom_catalog_category a " & _
+                                    " inner join eapro_catalog_category b on a.category_id = b.category_id " & _
+                                    " inner join eapro_catalog_category c on b.parent_category_id = c.category_id " & _
+                                    " inner join Z_PSW_SEARCH d on  a.category_ID = d.product_no " + _
+                                    " and d.ATTR_ID = '" & pStPTDRegionalSetting & "' and d.ATTR_VALUE = 'V' " & _
+                                    " where a.parent_category_id = '" & pStrAdvPartCompat & "' and a.Seq_no = 99 " & _
+                                    "order by 1 , 2 , 3 , 4 "
+        End If
+        'Response.Write(tmpString)
+        'Response.End()
+        Return dbUtil.dbGetDataTable("PAPS", tmpString)
+    End Function
+    
+    Public Function GetAdvCompatibilityResult_Hot(ByVal pStrAdvPartCompat As String, ByVal pStPTDRegionalSetting As String) As DataTable
+        Dim tmpString As String = String.Empty
+        If pStPTDRegionalSetting = "GLOBAL" Then
+            tmpString = "Select  distinct IsNull(c.category_name,'N/A') as [ProdLine] , a.category_id as [PartNo] ,  " & _
+                    "b.category_desc as [Description], b.Publish_status as [Status] from cbom_catalog_category a " & _
+                    " inner join eapro_catalog_category b on a.category_id = b.category_id " & _
+                    " inner join eapro_catalog_category c on b.parent_category_id = c.category_id " & _
+                    " where a.parent_category_id = '" & pStrAdvPartCompat & "' and a.Seq_no<99  " & _
+                    "order by 1 , 2 , 3 , 4 "
+
+        Else
+            tmpString = "Select  distinct IsNull(c.category_name,'N/A') as [ProdLine] , a.category_id as [PartNo] ,  " & _
+                                    "b.category_desc as [Description], 'Available'  as [Status] from cbom_catalog_category a " & _
+                                    " inner join eapro_catalog_category b on a.category_id = b.category_id " & _
+                                    " inner join eapro_catalog_category c on b.parent_category_id = c.category_id " & _
+                                    " inner join Z_PSW_SEARCH d on  a.category_ID = d.product_no and d.ATTR_ID = '" & pStPTDRegionalSetting & "' and d.ATTR_VALUE = 'V' " & _
+                                    " where a.parent_category_id = '" & pStrAdvPartCompat & "' and a.Seq_no<99 " & _
+                                    "order by 1 , 2 , 3 , 4 "
+        End If
+        Return dbUtil.dbGetDataTable("PAPS", tmpString)
+    End Function
+
+    Sub Go1()
+        Try
+            gvHot.DataSource = GetAdvCompatibilityResult_Hot(hd_PN.Value, "GLOBAL") : gvHot.DataBind()
+        Catch ex As Exception
+            'Response.Write(ex.ToString())
+        End Try
+    End Sub
+    
+    Sub Go2()
+        Try
+            gvComp.DataSource = GetAdvCompatibilityResult(hd_PN.Value, "GLOBAL") : gvComp.DataBind()
+        Catch ex As Exception
+
+        End Try
+    End Sub
+    
+    Protected Sub Page_Load(sender As Object, e As System.EventArgs)
+        ';GetAdvCompatibilityResult("aa", "bbb")
+        If Not Page.IsPostBack Then
+            Me.txtPN.Attributes("autocomplete") = "off"
+            If Request("PN") IsNot Nothing AndAlso Not String.IsNullOrEmpty(Request("PN")) Then
+                Dim pn As String = Trim(Request("PN")).Replace("'", "''")
+                hd_PN.Value = pn : txtPN.Text = hd_PN.Value
+                GoAll()
+            End If
+        End If
+    End Sub
+
+    Protected Sub btnQuery_Click(sender As Object, e As System.EventArgs)
+        If String.IsNullOrEmpty(txtPN.Text) = False Then
+            hd_PN.Value = Trim(txtPN.Text).Replace("'", "''")
+            GoAll()
+        End If
+    End Sub
+    
+    Sub GoAll()
+        Dim t1 As New Threading.Thread(AddressOf Go1)
+        Dim t2 As New Threading.Thread(AddressOf Go2)
+        t1.Start() : t2.Start()
+        t1.Join() : t2.Join()
+    End Sub
+    
+    <Services.WebMethod(enablesession:=True)> _
+    <Web.Script.Services.ScriptMethod()> _
+    Public Shared Function GetPartNo(ByVal prefixText As String, ByVal count As Integer) As String()
+        Dim dt As DataTable = Nothing
+        If HttpContext.Current.Session Is Nothing Then
+            Return Nothing
+        End If
+        prefixText = Replace(Replace(Trim(prefixText), "'", "''"), "*", "%")
+        dt = dbUtil.dbGetDataTable("MY", String.Format( _
+        "select distinct top 10 parent_category_id as part_no from cbom_catalog_category where parent_category_id like '{0}%' order by parent_category_id", prefixText))
+        If dt.Rows.Count > 0 Then
+            Dim str(dt.Rows.Count - 1) As String
+            For i As Integer = 0 To dt.Rows.Count - 1
+                str(i) = dt.Rows(i).Item(0)
+            Next
+            Return str
+        End If
+        Return Nothing
+    End Function
+    
+</script>
+
+<asp:Content ID="Content1" ContentPlaceHolderID="_main" Runat="Server">
+    <asp:HiddenField runat="server" ID="hd_PN" />
+    <table width="100%">
+        <tr style="height:50px; vertical-align:top">
+            <td>                
+                <asp:Panel runat="server" ID="PanelSearch" DefaultButton="btnQuery">
+                    <b style="font-size:larger">Advantech Part Number:</b>
+                    <ajaxToolkit:AutoCompleteExtender runat="server" ID="aext1" TargetControlID="txtPN" MinimumPrefixLength="2" 
+                        CompletionInterval="200" ServiceMethod="GetPartNo" />
+                    <asp:TextBox runat="server" ID="txtPN" Width="130px" />&nbsp;<asp:Button runat="server" ID="btnQuery" Text="Search" OnClick="btnQuery_Click" />
+                </asp:Panel>                
+            </td>
+        </tr>
+        <tr>
+            <td colspan="1">
+                <h3>Hot Compatibe Products</h3>
+                <asp:GridView runat="server" ID="gvHot" Width="800px" AutoGenerateColumns="false" EmptyDataText="N/A">
+                    <Columns>
+                        <asp:BoundField HeaderText="Product Line" DataField="ProdLine" SortExpression="ProdLine" />
+                        <asp:BoundField HeaderText="Part No." DataField="PartNo" SortExpression="PartNo" />
+                        <asp:BoundField HeaderText="Description" DataField="Description" SortExpression="Description" />
+                        <asp:BoundField HeaderText="Status" DataField="Status" SortExpression="Status" />
+                    </Columns>
+                </asp:GridView>
+            </td>
+        </tr>
+        <tr>
+            <td colspan="1"><hr /></td>
+        </tr>
+        <tr>
+            <td colspan="1">
+                <h3>Product Compatibility</h3>
+                <asp:GridView runat="server" ID="gvComp" Width="800px" AutoGenerateColumns="false">
+                    <Columns>
+                        <asp:BoundField HeaderText="Product Line" DataField="ProdLine" SortExpression="ProdLine" />
+                        <asp:BoundField HeaderText="Part No." DataField="PartNo" SortExpression="PartNo" />
+                        <asp:BoundField HeaderText="Description" DataField="Description" SortExpression="Description" />
+                        <asp:BoundField HeaderText="Status" DataField="Status" SortExpression="Status" />
+                    </Columns>
+                </asp:GridView>
+            </td>
+        </tr>
+    </table>
+</asp:Content>

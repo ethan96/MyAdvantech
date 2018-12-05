@@ -1,0 +1,43 @@
+﻿SELECT          TOP 1 a.ROW_ID, ISNULL(b.ATTRIB_05, N'') AS ERP_ID, a.NAME AS ACCOUNT_NAME, 
+                            a.CUST_STAT_CD AS ACCOUNT_STATUS, ISNULL(a.MAIN_FAX_PH_NUM, N'') AS FAX_NUM, 
+                            ISNULL(a.MAIN_PH_NUM, N'') AS PHONE_NUM, ISNULL(a.OU_TYPE_CD, N'') AS OU_TYPE_CD, ISNULL(a.URL, N'') 
+                            AS URL, ISNULL(b.ATTRIB_34, N'') AS BusinessGroup, ISNULL(a.OU_TYPE_CD, N'') AS ACCOUNT_TYPE, 
+                            ISNULL(c.NAME, N'') AS RBU, ISNULL
+                                ((SELECT          EMAIL_ADDR
+                                    FROM              S_CONTACT
+                                    WHERE          (ROW_ID IN
+                                                                    (SELECT          PR_EMP_ID
+                                                                      FROM               S_POSTN
+                                                                      WHERE           (ROW_ID IN
+                                                                                                      (SELECT          PR_POSTN_ID
+                                                                                                        FROM               S_ORG_EXT
+                                                                                                        WHERE           (ROW_ID = a.ROW_ID)))))), N'') AS PRIMARY_SALES_EMAIL, 
+                            a.PAR_OU_ID AS PARENT_ROW_ID, ISNULL(b.ATTRIB_09, N'N') AS MAJORACCOUNT_FLAG, ISNULL(a.CMPT_FLG, 
+                            N'N') AS COMPETITOR_FLAG, ISNULL(a.PRTNR_FLG, N'N') AS PARTNER_FLAG, ISNULL(d.COUNTRY, N'') 
+                            AS COUNTRY, ISNULL(d.CITY, N'') AS CITY, ISNULL(d.ADDR, N'') AS ADDRESS, ISNULL(d.STATE, N'') AS STATE, 
+                            ISNULL(d.ZIPCODE, N'') AS ZIPCODE, ISNULL(d.PROVINCE, N'') AS PROVINCE, ISNULL
+                                ((SELECT          TOP (1) NAME
+                                    FROM              S_INDUST
+                                    WHERE          (ROW_ID = a.X_ANNIE_PR_INDUST_ID)), N'N/A') AS BAA, b.CREATED, 
+                            b.LAST_UPD AS LAST_UPDATED, ISNULL
+                                ((SELECT          TOP (1) e.NAME
+                                    FROM              S_PARTY AS e INNER JOIN
+                                                                S_POSTN AS f ON e.ROW_ID = f.OU_ID
+                                    WHERE          (f.ROW_ID IN
+                                                                    (SELECT          PR_POSTN_ID
+                                                                      FROM               S_ORG_EXT AS S_ORG_EXT_2
+                                                                      WHERE           (ROW_ID = a.ROW_ID)))), N'') AS PriOwnerDivision, 
+                            a.PR_POSTN_ID AS PriOwnerRowId, ISNULL
+                                ((SELECT          TOP (1) NAME
+                                    FROM              S_POSTN AS f
+                                    WHERE          (ROW_ID IN
+                                                                    (SELECT          PR_POSTN_ID
+                                                                      FROM               S_ORG_EXT AS S_ORG_EXT_1
+                                                                      WHERE           (ROW_ID = a.ROW_ID)))), N'') AS PriOwnerPosition, CAST('' AS nvarchar(10)) 
+                            AS LOCATION, CAST('' AS nvarchar(10)) AS ACCOUNT_TEAM, ISNULL(d.ADDR_LINE_2, N'') AS ADDRESS2, 
+                            ISNULL(b.ATTRIB_36, N'') AS ACCOUNT_CC_GRADE, ISNULL(a.BASE_CURCY_CD, N'') AS CURRENCY,ISNULL(b.ATTRIB_04, N'') AS VAT_NO
+FROM              S_ORG_EXT AS a LEFT OUTER JOIN
+                            S_ORG_EXT_X AS b ON a.ROW_ID = b.ROW_ID LEFT OUTER JOIN
+                            S_PARTY AS c ON a.BU_ID = c.ROW_ID LEFT OUTER JOIN
+                            S_ADDR_ORG AS d ON a.PR_ADDR_ID = d.ROW_ID
+WHERE          (a.ROW_ID = '{0}')  

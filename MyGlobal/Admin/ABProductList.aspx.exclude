@@ -1,0 +1,103 @@
+<%@ Page Language="VB" MasterPageFile="~/Includes/MyMaster.master" Title="MyAdvantech - Hot Product List" %>
+
+<script runat="server">
+
+    Protected Sub Page_Load(ByVal sender As Object, ByVal e As System.EventArgs)
+        If Not Page.IsPostBack Then
+            Me.SqlDataSource1.SelectCommand = GetSql()
+        End If
+    End Sub
+    
+    Function GetSql() As String
+        Dim sb As New System.Text.StringBuilder
+        With sb
+            .AppendLine(String.Format(" select a.PART_NO, a.PRODUCT_DESC, a.PRODUCT_LINE, b.ABC_INDICATOR as class, b.PLANT  "))
+            .AppendLine(String.Format(" from SAP_PRODUCT a left join SAP_PRODUCT_ABC b on a.PART_NO=b.PART_NO  "))
+            .AppendLine(String.Format(" where b.ABC_INDICATOR in ('A','B') and b.PLANT='{0}' ", dlPlant.SelectedValue))
+            .AppendLine(String.Format(" order by b.ABC_INDICATOR, a.PART_NO  "))
+        End With
+        Return sb.ToString()
+    End Function
+    
+    Protected Sub dlPlant_SelectedIndexChanged(ByVal sender As Object, ByVal e As System.EventArgs)
+        Me.SqlDataSource1.SelectCommand = GetSql()
+    End Sub
+
+    Protected Sub gv1_Sorting(ByVal sender As Object, ByVal e As System.Web.UI.WebControls.GridViewSortEventArgs)
+        Me.SqlDataSource1.SelectCommand = GetSql()
+    End Sub
+
+    Protected Sub gv1_RenderBegin(ByVal sender As Object, ByVal writer As System.Web.UI.HtmlTextWriter)
+        Me.SqlDataSource1.SelectCommand = GetSql()
+    End Sub
+
+    Protected Sub imgXls_Click(ByVal sender As Object, ByVal e As System.Web.UI.ImageClickEventArgs)
+        Dim dt As DataTable = dbUtil.dbGetDataTable("B2B", GetSql())
+        Util.DataTable2ExcelDownload(dt, "AEUIT_ABProduct.xls")
+    End Sub
+</script>
+
+<asp:Content ID="Content1" ContentPlaceHolderID="_main" Runat="Server">
+        <table cellpadding="0" cellspacing="0" width="100%" style="height:100%">
+            <tr>
+                <td valign="top">
+                    <table cellpadding="0" cellspacing="0" width="100%">
+                        <tr><td style="height:20px"></td></tr>
+                        <tr><td class="euPageTitle">Product List of AB Class</td></tr>
+                        <tr><td style="height:15px"></td></tr>
+                        <tr>
+                            <td>
+                                <table width="100%">
+                                    <tr>
+                                        <td>
+                                            <asp:DropDownList runat="server" ID="dlPlant" AutoPostBack="true" OnSelectedIndexChanged="dlPlant_SelectedIndexChanged">
+                                                <asp:ListItem Value="EUH1" />
+                                                <asp:ListItem Value="TWH1" />
+                                                <asp:ListItem Value="CNH1" />
+                                                <asp:ListItem Value="USH1" />
+                                            </asp:DropDownList>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td><asp:ImageButton runat="server" ID="imgXls" AlternateText="Download" ImageUrl="~/Images/excel.gif" OnClick="imgXls_Click" /></td>
+                                    </tr>
+                                    <tr>
+                                        <td>
+                                            <asp:UpdatePanel runat="server" ID="upABProduct" UpdateMode="Conditional">
+                                                <ContentTemplate>
+                                                    <asp:GridView runat="server" ID="gv1" DataSourceID="SqlDataSource1" AutoGenerateColumns="false" 
+                                                        HeaderStyle-HorizontalAlign="Center" AllowSorting="true" Width="95%" 
+                                                        OnSorting="gv1_Sorting" OnRenderBegin="gv1_RenderBegin">
+					                                    <Columns>
+					                                        <asp:TemplateField ItemStyle-Width="50px" ItemStyle-HorizontalAlign="Center">
+                                                                <headertemplate>
+                                                                    No.
+                                                                </headertemplate>
+                                                                <itemtemplate>
+                                                                    <%# Container.DataItemIndex + 1 %>
+                                                                </itemtemplate>
+                                                            </asp:TemplateField>
+                                                            <asp:HyperLinkField HeaderText="Part No." DataNavigateUrlFields="part_no" 
+                                                                DataNavigateUrlFormatString="~/DM/ProductDashboard.aspx?PN={0}" DataTextField="part_no" Target="_blank" />
+                                                            <asp:BoundField HeaderText="Product Description" DataField="product_desc" SortExpression="product_desc" />
+                                                            <asp:BoundField HeaderText="Product Line" DataField="product_line" SortExpression="product_line" ItemStyle-HorizontalAlign="Center" />
+                                                            <asp:BoundField HeaderText="Class" DataField="class" SortExpression="class" ItemStyle-HorizontalAlign="Center" />
+                                                        </Columns>
+					                                </asp:GridView>
+					                                <asp:SqlDataSource runat="server" ID="SqlDataSource1" ConnectionString="<%$ connectionStrings:B2B %>" />
+                                                </ContentTemplate>
+                                                <Triggers>
+                                                    <asp:AsyncPostBackTrigger ControlID="dlPlant" EventName="SelectedIndexChanged" />
+                                                </Triggers>
+                                            </asp:UpdatePanel> 
+                                        </td>
+                                    </tr>
+                                </table>                            
+                            </td>
+                        </tr>
+                    </table>
+                </td>
+            </tr>
+            <tr><td style="height:20px"></td></tr>
+        </table>
+</asp:Content>

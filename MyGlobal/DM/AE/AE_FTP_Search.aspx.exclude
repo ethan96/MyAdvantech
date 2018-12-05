@@ -1,0 +1,93 @@
+﻿<%@ Page Title="MyAdvantech - AE FTP Search" Language="VB" MasterPageFile="~/Includes/MyMaster.master"
+    ValidateRequest="false" EnableEventValidation="false" %>
+
+<%@ Register Namespace="eBizAEUControls" TagPrefix="uc1" %>
+<script runat="server">
+
+    Protected Sub btnSearch_Click(sender As Object, e As System.EventArgs)
+        Dim conn As New SqlClient.SqlConnection(ConfigurationManager.ConnectionStrings("MY").ConnectionString)
+        Dim sb As New System.Text.StringBuilder
+        With sb
+            .AppendLine(String.Format("  select top 20 FILE_NAME, FILE_EXT, REMOTE_PATH, FILE_DATE, FILE_CONTENT, cast(FILE_SIZE/1024  as int) as FILE_SIZE  "))
+            .AppendLine(String.Format("      from AE_FTP_CONTENT "))
+            .AppendLine(String.Format("      where FILE_NAME like N'%{0}%' or REMOTE_PATH like N'%{0}%' or FILE_CONTENT like N'%{0}%' ", _
+                                      Replace(Replace(Trim(txtKey.Text), "'", "''"), "*", "%")))
+            .AppendLine(String.Format("      order by FILE_DATE desc, REMOTE_PATH, row_id  "))
+
+        End With
+        Dim dt As New DataTable
+        Dim apt As New SqlClient.SqlDataAdapter(sb.ToString(), conn)
+        apt.Fill(dt)
+        conn.Close()
+        gv1.DataSource = dt : gv1.DataBind()
+    End Sub
+
+    Protected Sub Page_Load(sender As Object, e As System.EventArgs)
+        If Not Page.IsPostBack Then
+            If Util.IsInternalUser2() = False Then Response.Redirect("../../home.aspx")
+        End If
+    End Sub
+</script>
+<asp:Content ID="Content1" ContentPlaceHolderID="_main" runat="Server">
+    <table width="100%">
+        <tr>
+            <td>
+                <asp:Panel runat="server" ID="panel1" DefaultButton="btnSearch">
+                    <table>
+                        <tr>
+                            <th align="left">
+                                Keyword:
+                            </th>
+                            <td>
+                                <asp:TextBox runat="server" ID="txtKey" Width="200px" />
+                            </td>
+                        </tr>
+                        <tr>
+                            <td colspan="2">
+                                <asp:Button runat="server" ID="btnSearch" Text="Search" OnClick="btnSearch_Click" />
+                            </td>
+                        </tr>
+                    </table>
+                </asp:Panel>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <asp:UpdatePanel runat="server" ID="up1" UpdateMode="Conditional">
+                    <ContentTemplate>
+                        <asp:GridView runat="server" ID="gv1" Width="100%" AutoGenerateColumns="false">
+                            <Columns>                                
+                                <asp:TemplateField HeaderText="File Name">
+                                    <ItemTemplate>
+                                        <a target="_blank" href='ftp://AE:aeadvantech@ftp.advantech.com.tw<%#Eval("REMOTE_PATH")%>'>
+                                            <%#Eval("FILE_NAME")%></a>
+                                    </ItemTemplate>
+                                </asp:TemplateField>
+                                <asp:TemplateField HeaderText="Content" HeaderStyle-Width="450px" ItemStyle-Width="450px">
+                                    <ItemTemplate>
+                                        <table width="100%">
+                                            <tr valign="top">
+                                                <td><%#Eval("REMOTE_PATH")%></td>
+                                            </tr>
+                                            <tr valign="top">
+                                                <td>
+                                                    <uc1:NoToolBarEditor2 runat="server" ID="RowEditor" Content='<%# Eval("FILE_CONTENT")%>'
+                                                        Width="450px" Height="120px" ActiveMode="Preview" />
+                                                </td>
+                                            </tr>
+                                        </table>                                        
+                                    </ItemTemplate>
+                                </asp:TemplateField>
+                                <asp:BoundField HeaderText="File Size (k)" DataField="FILE_SIZE" />
+                                <asp:BoundField HeaderText="Uploaded Date" DataField="FILE_DATE" />
+                            </Columns>
+                        </asp:GridView>
+                    </ContentTemplate>
+                    <Triggers>
+                        <asp:AsyncPostBackTrigger ControlID="btnSearch" EventName="Click" />
+                    </Triggers>
+                </asp:UpdatePanel>
+            </td>
+        </tr>
+    </table>
+</asp:Content>

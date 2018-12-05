@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Countries>
+
+<Country URL="http://www.advantech.com" Name="Worldwide / USA"></Country>
+<Country URL="http://www.advantech.eu" Name="Europe"></Country>
+<Country URL="http://www.advantech.net.au" Name="Australia"></Country>
+<Country URL="http://www.advantech.be" Name="Belgium"></Country>
+<Country URL="http://www.advantech.com.br" Name="Brazil"></Country>
+<Country URL="http://www.advantech.com.cn" Name="China"></Country>
+<Country URL="http://www.advantech.fr" Name="France"></Country>
+<Country URL="http://www.advantech.de" Name="Germany"></Country>
+<Country URL="http://www.advantech-il.com/" Name="Israel"></Country>
+<Country URL="http://www.advantech.it" Name="Italy"></Country>
+<Country URL="http://www.advantech.in" Name="India"></Country>
+<Country URL="http://www.advantech.co.id" Name="Indonesia"></Country>
+<Country URL="http://www.advantech.co.jp" Name="Japan"></Country>
+<Country URL="http://www.advantechkorea.co.kr" Name="Korea"></Country>
+<Country URL="http://www.advantech.be/default_be-fr.aspx" Name="Luxembourg"></Country>
+<Country URL="http://www.advantech.com.my" Name="Malaysia"></Country>
+<Country URL="http://www.advantech.nl" Name="Netherlands"></Country>
+<Country URL="http://www.advantech.pl" Name="Poland"></Country>
+<Country URL="http://www.advantech.eu/default_pt.aspx" Name="Portugal"></Country>
+<Country URL="http://www.advantech.ru" Name="Russia"></Country>
+<Country URL="http://www.advantech.eu" Name="Scandinavia"></Country>
+<Country URL="http://www.advantechsg.com.sg" Name="Singapore"></Country>
+<Country URL="http://www.advantech.eu/default_es.aspx" Name="Spain"></Country>
+<Country URL="http://www.advantech.tw" Name="Taiwan"></Country>
+<Country URL="http://www.advantech.co.th" Name="Thailand"></Country>
+<Country URL="http://www.advantech.com.tr" Name="Turkey"></Country>
+<Country URL="http://www.advantech-uk.com" Name="U.K."></Country>
+
+
+</Countries>

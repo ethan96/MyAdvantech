@@ -1,0 +1,517 @@
+﻿<%@ Master Language="VB" %>
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<script runat="server">
+
+</script>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head id="Head1" runat="server">
+    <link runat="server" id="ebizCss" visible="true" href="ebiz.aeu.style.css"
+        rel="stylesheet" type="text/css" />
+    <link href="global.css" rel="Stylesheet" type="text/css" />
+    <link href="base.css" rel="Stylesheet" type="text/css" />
+    <link href="third.css" rel="Stylesheet" type="text/css" />
+    <style type="text/css">
+        .trEven {
+            background-color: #EBEBEB;
+        }
+
+        #CMSList .sort {
+            cursor: pointer;
+        }
+
+        #CMSList .sortASC {
+            background: no-repeat right center;
+            background-color: #dcdcdc;
+            background-image: url("/Images/sort_2.jpg");
+        }
+
+        #CMSList .sortDESC {
+            background: no-repeat right center;
+            background-color: #dcdcdc;
+            background-image: url("/Images/sort_1.jpg");
+        }
+
+        .divCMSContent.Title {
+            font-weight: bold;
+            font-size: 18px;
+            color: #cc3300;
+        }
+
+        .divCMSContent.Code {
+            border: #8b4513 1px solid;
+            padding-right: 5px;
+            padding-left: 5px;
+            color: #000066;
+            font-family: 'Courier New', Monospace;
+            background-color: #ff9933;
+        }
+
+        .ratingStar {
+            font-size: 0pt;
+            width: 13px;
+            height: 12px;
+            margin: 0px;
+            padding: 0px;
+            cursor: pointer;
+            display: block;
+            background-repeat: no-repeat;
+        }
+
+        .filledRatingStar {
+            background-image: url(../Images/FilledStar.png);
+        }
+
+        .emptyRatingStar {
+            background-image: url(../Images/EmptyStar.png);
+        }
+
+        .savedRatingStar {
+            background-image: url(../Images/SavedStar.png);
+        }
+
+        .box {
+            background: #fff;
+        }
+
+        .boxholder {
+            clear: both;
+            padding: 5px;
+            background: #E5E6F4;
+        }
+
+        .tab {
+            float: left;
+            height: 32px;
+            width: 102px;
+            margin: 0 1px 0 0;
+            text-align: center;
+            background: #E5E6F4;
+        }
+
+        .tabtxt {
+            margin: 0;
+            color: #fff;
+            font-size: 12px;
+            font-weight: bold;
+            padding: 9px 0 0 0;
+        }
+
+        BODY {
+            color: #333333;
+            font-size: 12px;
+            font-family: Arial, Helvetica, sans-serif;
+            line-height: 18px;
+        }
+
+        SELECT {
+            font: 99% arial,helvetica,clean,sans-serif;
+        }
+
+        INPUT {
+            font: 99% arial,helvetica,clean,sans-serif;
+        }
+
+        TEXTAREA {
+            font: 99% arial,helvetica,clean,sans-serif;
+        }
+
+        PRE {
+            font: 100% monospace;
+        }
+
+        CODE {
+            font: 100% monospace;
+        }
+
+        H1 {
+            padding-right: 0px;
+            padding-left: 0px;
+            padding-bottom: 0px;
+            margin: 0px;
+            padding-top: 0px;
+        }
+
+        H2 {
+            padding-right: 0px;
+            padding-left: 0px;
+            padding-bottom: 0px;
+            margin: 0px;
+            padding-top: 0px;
+        }
+
+        H3 {
+            padding-right: 0px;
+            padding-left: 0px;
+            padding-bottom: 0px;
+            margin: 0px;
+            padding-top: 0px;
+        }
+
+        H4 {
+            padding-right: 0px;
+            padding-left: 0px;
+            padding-bottom: 0px;
+            margin: 0px;
+            padding-top: 0px;
+        }
+
+        H5 {
+            padding-right: 0px;
+            padding-left: 0px;
+            padding-bottom: 0px;
+            margin: 0px;
+            padding-top: 0px;
+        }
+
+        H6 {
+            padding-right: 0px;
+            padding-left: 0px;
+            padding-bottom: 0px;
+            margin: 0px;
+            padding-top: 0px;
+        }
+
+        UL {
+            padding-right: 0px;
+            padding-left: 0px;
+            padding-bottom: 0px;
+            margin: 0px;
+            padding-top: 0px;
+        }
+
+        OL {
+            padding-right: 0px;
+            padding-left: 0px;
+            padding-bottom: 0px;
+            margin: 0px;
+            padding-top: 0px;
+        }
+
+        LI {
+            padding-right: 0px;
+            padding-left: 0px;
+            padding-bottom: 0px;
+            margin: 0px;
+            padding-top: 0px;
+        }
+
+        DL {
+            padding-right: 0px;
+            padding-left: 0px;
+            padding-bottom: 0px;
+            margin: 0px;
+            padding-top: 0px;
+        }
+
+        DT {
+            padding-right: 0px;
+            padding-left: 0px;
+            padding-bottom: 0px;
+            margin: 0px;
+            padding-top: 0px;
+        }
+
+        DD {
+            padding-right: 0px;
+            padding-left: 0px;
+            padding-bottom: 0px;
+            margin: 0px;
+            padding-top: 0px;
+        }
+
+        P {
+            padding-right: 0px;
+            padding-left: 0px;
+            padding-bottom: 0px;
+            margin: 0px;
+            padding-top: 0px;
+        }
+
+        FORM {
+            padding-right: 0px;
+            padding-left: 0px;
+            padding-bottom: 0px;
+            margin: 0px;
+            padding-top: 0px;
+        }
+
+        FIELDSET {
+            padding-right: 0px;
+            padding-left: 0px;
+            padding-bottom: 0px;
+            margin: 0px;
+            padding-top: 0px;
+        }
+
+        LEGEND {
+            padding-right: 0px;
+            padding-left: 0px;
+            padding-bottom: 0px;
+            margin: 0px;
+            padding-top: 0px;
+        }
+
+        INPUT {
+            padding-right: 0px;
+            padding-left: 0px;
+            padding-bottom: 0px;
+            margin: 0px;
+            padding-top: 0px;
+        }
+
+        IMG {
+            padding-right: 0px;
+            padding-left: 0px;
+            padding-bottom: 0px;
+            margin: 0px;
+            padding-top: 0px;
+        }
+
+        IMG {
+            border-right: 0px;
+            border-top: 0px;
+            border-left: 0px;
+            border-bottom: 0px;
+        }
+
+        FIELDSET {
+            border-right: 0px;
+            border-top: 0px;
+            border-left: 0px;
+            border-bottom: 0px;
+        }
+
+        LEGEND {
+            font-size: 0px;
+            height: 0px;
+        }
+
+        LABEL {
+            cursor: hand;
+        }
+
+        INPUT {
+            outline: none;
+        }
+
+        CITE {
+            font: 85% verdana;
+        }
+
+        EM {
+            font-style: normal;
+        }
+
+        CITE SPAN {
+            font-weight: bold;
+        }
+
+        A {
+            color: #004181;
+            text-decoration: none;
+        }
+
+            A:link {
+                text-decoration: none;
+            }
+
+            A:visited {
+                text-decoration: none;
+            }
+
+            A:hover {
+                text-decoration: underline;
+            }
+
+        .on A:hover {
+            text-decoration: none;
+        }
+    </style>
+    <link runat="server" id="Style1" rel="stylesheet" href="style-General.css"
+        type="text/css" />
+    <style type="text/css">
+        .ajax__tab_yuitabview-theme .ajax__tab_outer {
+        }
+
+        .ajax__tab_yuitabview-theme .ajax__tab_inner {
+        }
+
+        .ajax__tab_yuitabview-theme .ajax__tab_header {
+            border-bottom: solid 2px #DCDCDC;
+        }
+
+            .ajax__tab_yuitabview-theme .ajax__tab_header .ajax__tab_outer {
+                background: url(../Images/gray_right.gif) no-repeat right;
+            }
+
+            .ajax__tab_yuitabview-theme .ajax__tab_header .ajax__tab_inner {
+                background: url(../Images/gray_left.gif) no-repeat left;
+            }
+
+            .ajax__tab_yuitabview-theme .ajax__tab_header .ajax__tab_tab {
+                margin-right: 0px;
+                background: url(../Images/gray_bg1.gif);
+                width: 208px;
+                padding: 9px 0px 3px 0px;
+                text-align: center;
+                color: #4D6D94;
+                font-size: 12px;
+                display: block;
+                font-weight: bold;
+                font-family: Arial;
+            }
+
+        .ajax__tab_yuitabview-theme .ajax__tab_active .ajax__tab_tab {
+            padding: 6px 0px 3px 0px;
+            background: url(../images/fold_blue_bg1.gif);
+            height: 18px;
+            color: #FFFFFF;
+            font-size: 12px;
+            font-weight: bold;
+            font-family: Arial;
+        }
+
+        .ajax__tab_yuitabview-theme .ajax__tab_active .ajax__tab_outer {
+        }
+
+        .ajax__tab_yuitabview-theme .ajax__tab_body {
+            font-family: verdana,tahoma,helvetica;
+            font-size: 10pt;
+            padding: 0.25em 0.5em;
+            border: solid 1px #DCDCDC;
+            border-top-width: 0px;
+            color: #4D6D94;
+        }
+
+        .ajax__tab_yuitabview-theme-new .ajax__tab_outer {
+        }
+
+        .ajax__tab_yuitabview-theme-new .ajax__tab_inner {
+        }
+
+        .ajax__tab_yuitabview-theme-new .ajax__tab_header {
+            border-bottom: solid 2px #DCDCDC;
+        }
+
+            .ajax__tab_yuitabview-theme-new .ajax__tab_header .ajax__tab_outer {
+                background: url(../Images/gray_right.gif) no-repeat right;
+            }
+
+            .ajax__tab_yuitabview-theme-new .ajax__tab_header .ajax__tab_inner {
+                background: url(../Images/gray_left.gif) no-repeat left;
+            }
+
+            .ajax__tab_yuitabview-theme-new .ajax__tab_header .ajax__tab_tab {
+                margin-right: 0px;
+                background: url(../Images/gray_bg11.gif);
+                width: 145px;
+                padding: 9px 0px 3px 0px;
+                text-align: center;
+                color: #4D6D94;
+                font-size: 12px;
+                display: block;
+                font-weight: bold;
+                font-family: Arial;
+            }
+
+        .ajax__tab_yuitabview-theme-new .ajax__tab_active .ajax__tab_tab {
+            padding: 6px 0px 3px 0px;
+            background: url(../images/fold_blue_bg11.gif);
+            height: 18px;
+            width: 146px;
+            color: #FFFFFF;
+            font-size: 12px;
+            font-weight: bold;
+            font-family: Arial;
+        }
+
+        .ajax__tab_yuitabview-theme-new .ajax__tab_active .ajax__tab_outer {
+        }
+
+        .ajax__tab_yuitabview-theme-new .ajax__tab_body {
+            font-family: verdana,tahoma,helvetica;
+            font-size: 10pt;
+            padding: 0.25em 0.5em;
+            border: solid 1px #DCDCDC;
+            border-top-width: 0px;
+            color: #4D6D94;
+        }
+
+
+
+        .modalBackground {
+            background-color: Gray;
+            filter: alpha(opacity=70);
+            opacity: 0.7;
+        }
+
+        .modalPopup {
+            background-color: #ffffdd;
+            border-width: 3px;
+            border-style: solid;
+            border-color: Gray;
+            padding: 3px;
+            width: 550px;
+        }
+
+        .sampleStyleA {
+            background-color: #FFF;
+        }
+
+        .sampleStyleB {
+            background-color: #FFF;
+            font-family: monospace;
+            font-size: 10pt;
+            font-weight: bold;
+        }
+
+        .sampleStyleC {
+            background-color: #ddffdd;
+            font-family: sans-serif;
+            font-size: 10pt;
+            font-style: italic;
+        }
+
+        .sampleStyleD {
+            background-color: Blue;
+            color: White;
+            font-family: Arial;
+            font-size: 10pt;
+        }
+
+        .autocomplete {
+            background: #E0E0E0;
+            position: absolute;
+            border: solid 1px;
+            overflow-y: scroll;
+            overflow-x: auto;
+            height: 100px;
+            display: none;
+        }
+
+        a.accordionContent:link {
+            color: #ff0000;
+        }
+
+        a.accordionContent:visited {
+            color: #0000ff;
+        }
+
+        a.accordionContent:hover {
+            background: #66ff66;
+        }
+    </style>
+</head>
+<body>
+    <form id="form1" runat="server">
+    <div>
+        <asp:ContentPlaceHolder id="_main" runat="server">
+        
+        </asp:ContentPlaceHolder>
+    </div>
+    </form>
+</body>
+</html>

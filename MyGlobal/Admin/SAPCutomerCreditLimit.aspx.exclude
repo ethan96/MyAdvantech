@@ -1,0 +1,605 @@
+﻿<%@ Page Title="Request to update credit limit for an existing account" Language="VB" MasterPageFile="~/Includes/MyMaster.master" %>
+
+<%@ Register Src="~/Includes/ChangeCompany.ascx" TagName="ChgComp" TagPrefix="uc8" %>
+<script runat="server">
+
+    Protected Sub btupdate_Click(sender As Object, e As System.EventArgs)
+        Dim CompanyId As String = TBCompanyid.Text.Trim ' CType(Me.ChgComp1.FindControl("txtCh2Company"), TextBox).Text.Trim()
+        'Response.Write(CompanyId)
+        'Exit Sub 
+        If Not CreateSAPCustomerDAL.checkSAPErp(CompanyId) Then
+            Util.AjaxJSAlert(Me.up1, "CompanyId is invalid")
+            Exit Sub
+        End If
+        Dim CreditLimit As Decimal = 0.01
+        If Decimal.TryParse(TBclimit.Text.Trim, CreditLimit) = True Then
+        Else
+            Util.AjaxJSAlert(Me.up1, "Credit Limit must be numeric")
+            Exit Sub
+        End If
+        Dim CurrentCreditLimit As Decimal = 0
+        If Decimal.TryParse(labCLimit.Text.Trim, 0) Then
+            CurrentCreditLimit = Decimal.Parse(labCLimit.Text.Trim)
+        End If
+        Dim ApplicationID As String = Guid.NewGuid().ToString()
+        Dim A As New CreateSAPCustomerTableAdapters.SAPCUSTOMERCREDIRLIMITTableAdapter
+        A.Insert(ApplicationID, GetApplicationNO(), 0, CompanyId, CurrentCreditLimit, CreditLimit, HttpContext.Current.User.Identity.Name, Now, "", "", Nothing, "", Nothing, HttpContext.Current.User.Identity.Name, Now)
+        SendEmail(ApplicationID, -1)
+        SendEmail(ApplicationID, 0)
+        Dim AlertStr As String = "Your application is successfully submitted.  Once the application is approved, system will inform you via email."
+        Util.AjaxJSAlert(Me.up1, AlertStr)
+        'Util.AjaxJSAlert(Me.up1, "Update Customer Credit Limit succeeded.")
+        BindGV()
+    End Sub
+    Public Function IsAdmin() As Boolean
+        If Util.IsAEUIT() OrElse User.Identity.Name.StartsWith("michael.vanderveeken", StringComparison.CurrentCultureIgnoreCase) Then
+            Return True
+        End If
+        Return False
+    End Function
+    Protected Sub Page_Load(sender As Object, e As System.EventArgs)
+        'If Request.IsAuthenticated Then
+        '    If Not Util.IsAEUIT() AndAlso Not User.Identity.Name.StartsWith("michael.vanderveeken", StringComparison.CurrentCultureIgnoreCase) Then
+        '        Response.Write("You do not have sufficient permission to access this Page.")
+        '        Response.End()
+        '    End If
+        'End If
+        If Not IsPostBack Then
+            If Session("user_id") IsNot Nothing AndAlso String.Equals(Session("user_id"), "ming.zhao@advantech.com.cn") Then
+                trorg.Visible = True
+            End If
+            BindGV()
+            If Request("ApplicationID") IsNot Nothing AndAlso Not String.IsNullOrEmpty(Request("ApplicationID")) Then
+                If IsAdmin() Then
+                    Dim A As New CreateSAPCustomerTableAdapters.SAPCUSTOMERCREDIRLIMITTableAdapter
+                    Dim dt As New CreateSAPCustomer.SAPCUSTOMERCREDIRLIMITDataTable
+                    dt = A.GetDataByRowid(Request("ApplicationID").ToString.Trim)
+                    If dt.Rows.Count > 0 Then
+                        Dim dr As CreateSAPCustomer.SAPCUSTOMERCREDIRLIMITRow = dt.Rows(0)
+                        With dr
+                            labappno2.Text = .APLICATIONNO
+                            labCompanyId2.Text = .CompanyID
+                            labCurrentCreditLimit2.Text = .CurrentCreditLimit.ToString
+                            LabNewCreditLimit2.Text = .NewCreditLimit.ToString
+                            HiddenField1.Value = .RowID
+                            TBComment.Text = .COMMENT
+                            BtApprove.Enabled = True
+                            BtReject.Enabled = True
+                            If Integer.Parse(.STATUS) = 1 OrElse Integer.Parse(.STATUS) = 2 Then
+                                BtApprove.Enabled = False
+                                BtReject.Enabled = False
+                            End If
+                            If Not String.IsNullOrEmpty(HiddenField1.Value) Then
+                                mv1.ActiveViewIndex = 1
+                            End If
+                        End With
+                    End If
+                End If
+            End If
+            If Not IsAdmin() Then
+                mv1.ActiveViewIndex = 0
+            End If
+        End If
+    End Sub
+    Protected Sub btnPickCompany_Click(ByVal sender As Object, ByVal e As System.EventArgs)
+        ModalPopupExtender1.Show() : test.Text = GetSql()
+        sgv1.DataSource = dbUtil.dbGetDataTable("RFM", GetSql())
+        sgv1.DataBind()
+        up2.Update()
+    End Sub
+    Protected Sub btnClose_Click(ByVal sender As Object, ByVal e As System.EventArgs)
+        ModalPopupExtender1.Hide() : up2.Update()
+    End Sub
+    Protected Sub btnSearchCompanyID_Click(ByVal sender As Object, ByVal e As System.EventArgs)
+        sgv1.DataSource = dbUtil.dbGetDataTable("RFM", GetSql())
+        sgv1.DataBind()
+        up2.Update()
+    End Sub
+    Function GetSql() As String
+        Dim sb As New System.Text.StringBuilder
+        With sb
+            .AppendLine(String.Format(" select distinct top 200  a.company_id, a.company_name,  a.ORG_ID, a.SALESOFFICENAME, a.SALESGROUP  "))
+            .AppendLine(String.Format(" from sap_dimcompany a   "))
+            .AppendLine(String.Format(" where a.DELETION_FLAG<>'X' and (a.company_type ='Z001' or a.company_type ='Z002' or a.company_type ='Z003') "))
+            If txtCompanyID.Text.Trim() <> "" Then .AppendLine(String.Format(" and a.COMPANY_ID like '{0}%' ", txtCompanyID.Text.Trim().Replace("'", "").Replace("*", "%")))
+            If txtCompanyName.Text.Trim() <> "" Then .AppendLine(String.Format(" and (a.COMPANY_NAME like N'%{0}%' ) ", txtCompanyName.Text.Trim().Replace("'", "''").Replace("*", "%")))
+            If dlOrg.SelectedIndex > 0 Then .AppendLine(String.Format(" and left(a.ORG_ID,2)='{0}' ", dlOrg.SelectedValue))
+            'If txtRBU.Text.Trim() <> "" Then
+            '    .AppendLine(String.Format(" and b.RBU='{0}' ", txtRBU.Text.Trim().Replace("'", "")))
+            'End If
+            .AppendLine(" order by a.company_name ")
+        End With
+        
+        Return sb.ToString()
+    End Function
+    Protected Sub sgv1_PageIndexChanging(ByVal sender As Object, ByVal e As System.Web.UI.WebControls.GridViewPageEventArgs)
+        sgv1.DataSource = dbUtil.dbGetDataTable("RFM", GetSql())
+        sgv1.PageIndex = e.NewPageIndex
+        sgv1.DataBind()
+    End Sub
+    Protected Sub btnCompanyID_Click(ByVal sender As Object, ByVal e As System.EventArgs)
+        TBCompanyid.Text = CType(sender, LinkButton).Text
+        If Not String.IsNullOrEmpty(TBCompanyid.Text.Trim) Then
+            Dim SAPconnection As String = "SAP_PRD"
+            If Util.IsTesting() Then
+                SAPconnection = "SAP_Test"
+            End If
+            Dim dtKNKK As DataTable = OraDbUtil.dbGetDataTable(SAPconnection, "select Klimk from saprdp.knkk where kunnr='" + TBCompanyid.Text.Trim + "' and Kkber='EU01'")
+            If dtKNKK.Rows.Count > 0 Then
+                labCLimit.Text = dtKNKK.Rows(0).Item("Klimk").ToString.Trim
+            End If
+        End If
+        ModalPopupExtender1.Hide() : up1.Update()
+    End Sub
+
+    Protected Sub dlOrg_Load(sender As Object, e As System.EventArgs)
+        If Session("org_id") IsNot Nothing Then
+            For Each dlOrgitem As ListItem In dlOrg.Items
+                If String.Equals(Session("org_id").ToString.Substring(0, 2), dlOrgitem.Value) Then
+                    dlOrgitem.Selected = True
+                End If
+            Next
+        End If
+    End Sub
+    Private Function GetApplicationNO() As String
+        Dim SQL As String = String.Format(" select ISNULL(MAX(CONVERT(INT,REPLACE(APLICATIONNO,'LM',''))),0) as APLICATIONNO from SAPCUSTOMERCREDIRLIMIT  where APLICATIONNO is not null and APLICATIONNO <> '' and APLICATIONNO like 'LM%'", "")
+        Dim NUM As Object = dbUtil.dbExecuteScalar("MYLOCAL", SQL)
+        If NUM IsNot Nothing AndAlso IsNumeric(NUM) Then
+            Return "LM" & (CDbl(NUM) + 1).ToString("00000")
+        End If
+        Return ""
+    End Function
+    Public Function SendEmail(ByVal ApplicationID As String, ByVal TypeInt As Integer) As Integer
+        'If TypeInt = 0 Then
+        '    ApplicationID = dbUtil.dbExecuteScalar("MYLOCAL", String.Format("select top 1  isnull(applicationid,'') as id from SAPCUSTOMER_GENERALDATA where APLICATIONNO='{0}'", ApplicationID))
+        'End If
+        Dim A As New CreateSAPCustomerTableAdapters.SAPCUSTOMERCREDIRLIMITTableAdapter
+        Dim dt As New CreateSAPCustomer.SAPCUSTOMERCREDIRLIMITDataTable
+        dt = A.GetDataByRowid(ApplicationID)
+        Dim dr As CreateSAPCustomer.SAPCUSTOMERCREDIRLIMITRow = dt.Rows(0)
+        With dr
+            Dim strSubject As String = ""
+            Dim strFrom As String = "eBusiness.AEU@advantech.eu"
+            Dim strTo As String = ""
+            Dim strCC As String = ""
+            Dim strBcc As String = "Jay.Lee@advantech.com,tc.chen@advantech.com.tw,ming.zhao@advantech.com.cn"
+            If HttpContext.Current.Session("user_id") IsNot Nothing AndAlso HttpContext.Current.Session("user_id") = "ming.zhao@advantech.com.cn" Then
+                strBcc = "tc.chen@advantech.com.tw,ming.zhao@advantech.com.cn"
+            End If
+            Dim mailbody As String = ""
+            Select Case TypeInt
+                Case -1
+                    strSubject = String.Format("Your application is successfully submitted. Company ID: {0} ({1})", .CompanyID, .APLICATIONNO)
+                    strTo = .REQUEST_BY
+                    strCC = ""
+                    mailbody = "Your application is successfully submitted.  Once the application is approved, system will inform you via email."
+                Case 0
+                    strSubject = String.Format("A new Credit Limit Application is applied by {0} and request for your approval. Company ID: {1}({2})", .REQUEST_BY, .CompanyID, .APLICATIONNO)
+                    strTo = "AEU.Creditmanagement@advantech.nl"
+                    strCC = ""
+                    mailbody = String.Format(" Please <a href=""{0}"">click</a> to check and approve this request. Thanks.", Util.GetRuntimeSiteUrl + String.Format("/admin/SAPCutomerCreditLimit.aspx?ApplicationID={0}", _
+                                                                                         ApplicationID))
+                Case 1
+                    strSubject = String.Format("Your application Credit Limit  has been approved by {0}. Company ID: {1}({2})", .APPROVED_BY, .CompanyID, .APLICATIONNO)
+                    strTo = "AEU.Creditmanagement@advantech.nl" ' .REQUEST_BY
+                    strCC = "AEU.Creditmanagement@advantech.nl"
+                    mailbody = String.Format("New Credit Limit is ""{1}"", Please <a href=""{0}"">click</a> to check the approval comment and detail. Thanks.", Util.GetRuntimeSiteUrl + String.Format("/admin/SAPCutomerCreditLimit.aspx?AID={0}", _
+                                                                                         ApplicationID), .NewCreditLimit)
+                Case 2
+                    strSubject = String.Format("Your application Credit Limit  has been rejected by {0}. Company ID: {1}({2})", .REJECTED_BY, .CompanyID, .APLICATIONNO)
+                    strTo = .REQUEST_BY
+                    strCC = "AEU.Creditmanagement@advantech.nl"
+                    mailbody = String.Format("The reason of denial is "" {1} "", Please <a href=""{0}"">click</a> to modify the detail. Thanks.", Util.GetRuntimeSiteUrl + String.Format("/admin/SAPCutomerCreditLimit.aspx?AID={0}", _
+                                                                                         ApplicationID), .COMMENT.ToString.Trim)
+            End Select
+            Try
+                mailbody += "<br/><p></p>" + GetDetail(ApplicationID)
+            Catch ex As Exception
+            End Try
+            'If HttpContext.Current.User.Identity.Name.Equals("ming.zhao@advantech.com.cn", StringComparison.OrdinalIgnoreCase) Then
+            If Util.IsTesting() Then
+                Call MailUtil.Utility_EMailPage(strFrom, "ming.zhao@advantech.com.cn", "tc.chen@advantech.com.tw,xiaoya.hua@advantech.com.cn", "ming.zhao@advantech.com.cn", strSubject.Trim(), "", "TO:" + strTo + "<BR/>CC:" + strCC + "<BR/>BCC:" + strBcc + "<HR/>" + mailbody.Trim())
+            Else
+                Call MailUtil.Utility_EMailPage(strFrom, strTo, strCC, strBcc, strSubject.Trim(), "", mailbody.Trim())
+            End If
+        End With
+        Return 1
+    End Function
+    Public Function GetDetail(ByVal ApplicationID As String) As String
+        Dim A As New CreateSAPCustomerTableAdapters.SAPCUSTOMERCREDIRLIMITTableAdapter
+        Dim dt As New CreateSAPCustomer.SAPCUSTOMERCREDIRLIMITDataTable
+        dt = A.GetDataByRowid(ApplicationID)
+        Dim pageHolder As New TBBasePage()
+        pageHolder.IsVerifyRender = False
+        Dim Gv As New GridView
+        With pageHolder.Controls
+            .Add(New LiteralControl("Credit Limit Information:"))
+            .Add(Gv)
+        End With
+        Gv.DataSource = dt
+        Gv.DataBind()
+        Dim output As New IO.StringWriter()
+        HttpContext.Current.Server.Execute(pageHolder, output, False)
+        Return output.ToString()
+    End Function
+    Private Enum LMstatus
+        Request = 0
+        Approve = 1
+        Reject = 2
+    End Enum
+    Public Function GetSTATUS(ByVal STATUS As String) As String
+        Return [Enum].GetName(GetType(LMstatus), Integer.Parse(STATUS))
+        Return ""
+    End Function
+    Public Sub BindGV()
+        Dim SQL As String = "SELECT RowID, APLICATIONNO, CompanyID, STATUS,CurrentCreditLimit, NewCreditLimit, "
+        SQL += "  REQUEST_BY, REQUEST_DATE, COMMENT, APPROVED_BY, APPROVED_DATE, "
+        SQL += "  REJECTED_BY, REJECTED_DATE, LAST_UPD_BY, LAST_UPD_DATE FROM [SAPCUSTOMERCREDIRLIMIT] "
+        If Not IsAdmin() Then
+            SQL += String.Format(" where REQUEST_BY='{0}'", User.Identity.Name)
+        End If
+        SQL += " order by REQUEST_DATE desc"
+        gv1.DataSource = dbUtil.dbGetDataTable("MYLOCAL", SQL)
+        gv1.DataBind()
+    End Sub
+    Public Function GetComment(ByVal rowid As String) As String
+        Dim A As New CreateSAPCustomerTableAdapters.SAPCUSTOMERCREDIRLIMITTableAdapter
+        Dim dt As New CreateSAPCustomer.SAPCUSTOMERCREDIRLIMITDataTable
+        dt = A.GetDataByRowid(rowid)
+        If dt.Rows.Count > 0 Then
+            Dim dr As CreateSAPCustomer.SAPCUSTOMERCREDIRLIMITRow = dt.Rows(0)
+            With dr
+                Dim str As String = String.Empty
+                If .STATUS = 1 Then
+                    str += "Approveded by " + Util.GetNameVonEmail(.APPROVED_BY) + "<br/>"
+                    str += "Approveded on " + CDate(.APPROVED_DATE).ToString("yyyy-MM-dd") + "<br/>"
+                    str += "Approval comment: " + .COMMENT.Trim
+                End If
+                If .STATUS = 2 Then
+                    str += "Rejected by " + Util.GetNameVonEmail(.REJECTED_BY) + "<br/>"
+                    str += "Rejected on " + CDate(.REJECTED_DATE).ToString("yyyy-MM-dd") + "<br/>"
+                    str += "The reason of denial is : " + .COMMENT.Trim
+                End If
+                Return str
+            End With
+        End If
+        Return ""
+    End Function
+    Protected Sub LinkButton1_Click(sender As Object, e As System.EventArgs)
+        Dim LinkBt As LinkButton = CType(sender, LinkButton)
+        Dim A As New CreateSAPCustomerTableAdapters.SAPCUSTOMERCREDIRLIMITTableAdapter
+        Dim dt As New CreateSAPCustomer.SAPCUSTOMERCREDIRLIMITDataTable
+        dt = A.GetDataByRowid(LinkBt.CommandArgument)
+        If dt.Rows.Count > 0 Then
+            Dim dr As CreateSAPCustomer.SAPCUSTOMERCREDIRLIMITRow = dt.Rows(0)
+            With dr
+                labappno2.Text = .APLICATIONNO
+                labCompanyId2.Text = .CompanyID
+                labCurrentCreditLimit2.Text = .CurrentCreditLimit.ToString
+                LabNewCreditLimit2.Text = .NewCreditLimit.ToString
+                HiddenField1.Value = .RowID
+                TBComment.Text = .COMMENT
+                BtApprove.Enabled = True
+                BtReject.Enabled = True
+                If Integer.Parse(.STATUS) = 1 OrElse Integer.Parse(.STATUS) = 2 Then
+                    BtApprove.Enabled = False
+                    BtReject.Enabled = False
+                End If
+                If Not String.IsNullOrEmpty(HiddenField1.Value) Then
+                    mv1.ActiveViewIndex = 1
+                    lbDoneMsg2.Text = ""
+                End If
+            End With
+        End If
+    End Sub
+    Protected Sub btn2list_Click(sender As Object, e As System.EventArgs)
+        BindGV()
+        mv1.ActiveViewIndex = 0
+    End Sub
+
+    Protected Sub BtApprove_Click(sender As Object, e As System.EventArgs)
+        Dim strErr As String = String.Empty, ConnectToSAPPRD As Boolean = True
+        If Util.IsTesting() Then ConnectToSAPPRD = False
+        Dim Creditrep_group As String = String.Empty
+        Dim retbool As Boolean = False
+        retbool = MYSAPDAL.UpdateCustomerCreditLimit(labCompanyId2.Text.Trim, "EU01", Decimal.Parse(LabNewCreditLimit2.Text.Trim), "200", Creditrep_group, strErr, ConnectToSAPPRD)
+        If retbool = False Then
+            lbDoneMsg2.Text = strErr
+            Exit Sub
+        Else
+            Dim A As New CreateSAPCustomerTableAdapters.SAPCUSTOMERCREDIRLIMITTableAdapter
+            A.UpdateApplicationByRowid(TBComment.Text.Trim.Replace("'", "''"),
+                                       HttpContext.Current.User.Identity.Name, Now, "", Nothing, HttpContext.Current.User.Identity.Name, Now, 1, HiddenField1.Value.Trim)
+          
+            lbDoneMsg2.Text = "Update Customer Credit Limit succeeded."
+            SendEmail(HiddenField1.Value.Trim, 1)
+        End If
+    End Sub
+
+    Protected Sub BtReject_Click(sender As Object, e As System.EventArgs)
+        Dim A As New CreateSAPCustomerTableAdapters.SAPCUSTOMERCREDIRLIMITTableAdapter
+        A.UpdateApplicationByRowid(TBComment.Text.Trim.Replace("'", "''"),
+                                   "", Nothing, HttpContext.Current.User.Identity.Name, Now, HttpContext.Current.User.Identity.Name, Now, 2, HiddenField1.Value.Trim)
+        lbDoneMsg2.Text = "refuse to success."
+        SendEmail(HiddenField1.Value.Trim, 1)
+    End Sub
+
+    Protected Sub gv1_RowDataBound(sender As Object, e As System.Web.UI.WebControls.GridViewRowEventArgs)
+        If e.Row.RowType = DataControlRowType.DataRow Then
+            Dim dt As System.Data.DataRowView = CType(e.Row.DataItem, System.Data.DataRowView)
+            If Not IsAdmin() Then
+                e.Row.Cells(0).Text = dt.DataView(e.Row.RowIndex)("APLICATIONNO").ToString()
+            End If
+        End If
+    End Sub
+</script>
+<asp:Content ID="Content1" ContentPlaceHolderID="_main" runat="Server">
+    <asp:UpdatePanel runat="server" ID="up1" UpdateMode="Conditional">
+        <ContentTemplate>
+            <asp:MultiView runat="server" ID="mv1" ActiveViewIndex="0">
+                <asp:View runat="server" ID="View0">
+                    <table>
+                        <tr>
+                            <th align="left" width="150">
+                                Company ID:
+                            </th>
+                            <td>
+                                <asp:Label ID="TBCompanyid" runat="server" Text=""></asp:Label>
+                                <asp:Button runat="server" ID="btnPickCompany" Text="Pick" OnClick="btnPickCompany_Click"
+                                    Font-Size="X-Small" />
+                            </td>
+                        </tr>
+                        <tr>
+                            <th align="left">
+                                Current Credit Limit:
+                            </th>
+                            <td>
+                                <asp:Label ID="labCLimit" runat="server" Text="N/A"></asp:Label>
+                            </td>
+                        </tr>
+                        <tr>
+                            <th align="left">
+                                New Credit Limit:
+                            </th>
+                            <td>
+                                <asp:TextBox ID="TBclimit" runat="server"></asp:TextBox>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <asp:Button ID="btupdate" runat="server" Text="Sumbit" OnClick="btupdate_Click" />
+                            </td>
+                        </tr>
+                        <tr>
+                            <td colspan="2">
+                            </td>
+                        </tr>
+                    </table>
+                    <p>
+                    </p>
+                    <asp:GridView runat="server" ID="gv1" AutoGenerateColumns="false" AllowPaging="false"
+                        AllowSorting="false" DataKeyNames="ROWID" Width="95%" OnRowDataBound="gv1_RowDataBound">
+                        <Columns>
+                            <asp:TemplateField HeaderText="Ticket Number" ItemStyle-HorizontalAlign="Center"
+                                HeaderStyle-HorizontalAlign="Center">
+                                <ItemTemplate>
+                                    <asp:LinkButton ID="LinkButton1" runat="server" CommandArgument='<%# Eval("rowid")%>'
+                                        OnClick="LinkButton1_Click"><%# Eval("APLICATIONNO")%></asp:LinkButton>
+                                </ItemTemplate>
+                            </asp:TemplateField>
+                            <asp:BoundField HeaderText="Company ID" DataField="CompanyID" ItemStyle-HorizontalAlign="Center" />
+                            <asp:BoundField HeaderText="Current Credit Limit" DataField="CurrentCreditLimit"
+                                ItemStyle-HorizontalAlign="Center" />
+                            <asp:BoundField HeaderText="New Credit Limit" DataField="NewCreditLimit" ItemStyle-HorizontalAlign="Center" />
+                            <asp:TemplateField HeaderText="Status" ItemStyle-HorizontalAlign="Center" HeaderStyle-HorizontalAlign="Center">
+                                <ItemTemplate>
+                                    <%# GetSTATUS(Eval("STATUS"))%>
+                                </ItemTemplate>
+                            </asp:TemplateField>
+                            <asp:BoundField HeaderText="REQUEST_BY" DataField="REQUEST_BY" HeaderStyle-HorizontalAlign="Center"
+                                ItemStyle-HorizontalAlign="Center" />
+                            <asp:BoundField HeaderText="REQUEST_DATE" DataField="REQUEST_DATE" DataFormatString="{0:yyyy-MM-dd}"
+                                ItemStyle-HorizontalAlign="Center" HeaderStyle-HorizontalAlign="Center" />
+                            <asp:TemplateField HeaderText="Comment" ItemStyle-HorizontalAlign="Right" HeaderStyle-HorizontalAlign="Center">
+                                <ItemTemplate>
+                                    <%# GetComment(Eval("ROWID"))%>
+                                </ItemTemplate>
+                            </asp:TemplateField>
+                        </Columns>
+                    </asp:GridView>
+                </asp:View>
+                <asp:View runat="server" ID="View1">
+                    <table width="600">
+                        <tr>
+                            <td width="120">
+                                <b>Ticket Number:</b>
+                            </td>
+                            <td>
+                                <asp:Label ID="labappno2" runat="server" Text=""></asp:Label><asp:HiddenField ID="HiddenField1"
+                                    runat="server" />
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <b>Company ID:</b>
+                            </td>
+                            <td>
+                                <asp:Label ID="labCompanyId2" runat="server" Text=""></asp:Label>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <b>Current Credit Limit:</b>
+                            </td>
+                            <td>
+                                <asp:Label ID="labCurrentCreditLimit2" runat="server" Text=""></asp:Label>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <b>New Credit Limit:</b>
+                            </td>
+                            <td>
+                                <asp:Label ID="LabNewCreditLimit2" runat="server" Text=""></asp:Label>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <b>Comment:</b>
+                            </td>
+                            <td>
+                                <asp:TextBox runat="server" ID="TBComment" TextMode="MultiLine" Width="320" Height="50"></asp:TextBox>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td align="center" colspan="2">
+                                <asp:Button runat="server" Text="Approved" ID="BtApprove" OnClick="BtApprove_Click" />&nbsp;
+                                &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;
+                                <asp:Button runat="server" Text="Rejected" ID="BtReject" OnClick="BtReject_Click" />
+                            </td>
+                        </tr>
+                        <tr>
+                            <td colspan="2">
+                                <asp:Label runat="server" ID="lbDoneMsg2" Font-Bold="true" ForeColor="Tomato" />
+                            </td>
+                        </tr>
+                        <tr>
+                            <td colspan="2">
+                                <hr />
+                                <asp:Button runat="server" ID="btn2list" Text="Back to all Applications" OnClick="btn2list_Click" />
+                            </td>
+                        </tr>
+                        <tr>
+                            <td colspan="2" height="150">
+                            </td>
+                        </tr>
+                    </table>
+                </asp:View>
+            </asp:MultiView>
+        </ContentTemplate>
+    </asp:UpdatePanel>
+    <asp:LinkButton runat="server" ID="link1" />
+    <ajaxToolkit:ModalPopupExtender runat="server" ID="ModalPopupExtender1" PopupControlID="Panel1"
+        TargetControlID="link1" BackgroundCssClass="modalBackground" />
+    <asp:Panel runat="server" ID="Panel1">
+        <asp:UpdatePanel runat="server" ID="up2" UpdateMode="Conditional">
+            <ContentTemplate>
+                <table cellpadding="0" cellspacing="0" style="background-color: White; width: 650px">
+                    <tr style="height: 5px">
+                        <td colspan="2">
+                            &nbsp;
+                        </td>
+                    </tr>
+                    <tr>
+                        <td align="right" colspan="2">
+                            <asp:LinkButton runat="server" ID="btnClose" Text="[Close]" OnClick="btnClose_Click" />&nbsp;&nbsp;
+                        </td>
+                    </tr>
+                    <tr>
+                        <td width="10px">
+                        </td>
+                        <td align="left">
+                            <table width="400px" border="0" bgcolor="f1f2f4" style="background-color: White">
+                                <tr align="left">
+                                    <th align="left">
+                                        Company ID :
+                                    </th>
+                                    <td align="left">
+                                        <ajaxToolkit:AutoCompleteExtender runat="server" ID="auto1" TargetControlID="txtCompanyID"
+                                            MinimumPrefixLength="1" CompletionInterval="200" ServicePath="~/Services/AutoComplete.asmx"
+                                            ServiceMethod="GetERPId" />
+                                        <asp:TextBox runat="server" ID="txtCompanyID" Width="100px" />
+                                    </td>
+                                </tr>
+                                <tr align="left">
+                                    <th align="left">
+                                        Company Name :
+                                    </th>
+                                    <td align="left">
+                                        <asp:TextBox runat="server" ID="txtCompanyName" Width="150px" />
+                                        <asp:Button runat="server" ID="btnSearchCompanyID" Text="Search" OnClick="btnSearchCompanyID_Click" />
+                                    </td>
+                                </tr>
+                                <tr align="left" runat="server" visible="false" id="trorg">
+                                    <td colspan="2">
+                                        <table>
+                                            <tr>
+                                                <td>
+                                                    <b>Org:</b>
+                                                    <asp:DropDownList runat="server" ID="dlOrg" OnLoad="dlOrg_Load">
+                                                        <asp:ListItem Text="All" Value="" />
+                                                        <asp:ListItem Text="Europe" Value="EU" />
+                                                        <asp:ListItem Text="Taiwan" Value="TW" />
+                                                        <asp:ListItem Text="China" Value="CN" />
+                                                        <asp:ListItem Text="US" Value="US" />
+                                                        <asp:ListItem Text="Japan" Value="JP" />
+                                                        <asp:ListItem Text="Korea" Value="KR" />
+                                                        <asp:ListItem Text="Singapore" Value="SG" />
+                                                        <asp:ListItem Text="Malaysia" Value="MY" />
+                                                        <asp:ListItem Text="Brazil" Value="BR" />
+                                                        <asp:ListItem Text="Australia" Value="AU" />
+                                                    </asp:DropDownList>
+                                                </td>
+                                                <td>
+                                                    <b>RBU:</b>
+                                                    <asp:TextBox runat="server" ID="txtRBU" Width="60px" />
+                                                </td>
+                                                <td>
+                                                </td>
+                                            </tr>
+                                        </table>
+                                    </td>
+                                </tr>
+                            </table>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td colspan="2">
+                            <table width="100%">
+                                <tr>
+                                    <td colspan="2" valign="top" align="center">
+                                        <sgv:SmartGridView runat="server" ID="sgv1" AutoGenerateColumns="false" AllowPaging="true"
+                                            AllowSorting="true" PageSize="15" Width="97%" OnPageIndexChanging="sgv1_PageIndexChanging">
+                                            <Columns>
+                                                <asp:TemplateField ItemStyle-Width="50px" ItemStyle-HorizontalAlign="Center">
+                                                    <HeaderTemplate>
+                                                        No.
+                                                    </HeaderTemplate>
+                                                    <ItemTemplate>
+                                                        <%# Container.DataItemIndex + 1 %>
+                                                    </ItemTemplate>
+                                                </asp:TemplateField>
+                                                <asp:TemplateField HeaderText="Company ID" SortExpression="company_id" ItemStyle-HorizontalAlign="Left">
+                                                    <ItemTemplate>
+                                                        <asp:LinkButton runat="server" ID="btnCompanyID" CommandName="Select" Text='<%# Eval("company_id") %>'
+                                                            OnClick="btnCompanyID_Click" />
+                                                    </ItemTemplate>
+                                                </asp:TemplateField>
+                                                <asp:BoundField DataField="company_name" HeaderText="SAP Company Name" SortExpression="company_name"
+                                                    ItemStyle-HorizontalAlign="Left" />
+                                    <%--            <asp:BoundField DataField="account_name" HeaderText="Siebel Account Name" SortExpression="account_name"
+                                                    ItemStyle-HorizontalAlign="Left" />--%>
+                                                <asp:BoundField HeaderText="Org." DataField="org_id" SortExpression="org_id" />
+                                          <%--      <asp:BoundField HeaderText="RBU" DataField="RBU" SortExpression="RBU" />--%>
+                                <%--                <asp:BoundField HeaderText="Account Status" DataField="account_status" SortExpression="account_status" />--%>
+                                                <asp:BoundField HeaderText="Sales Group" DataField="SALESGROUP" SortExpression="SALESGROUP" />
+                                                <asp:BoundField HeaderText="Sales Office" DataField="SALESOFFICENAME" SortExpression="SALESOFFICENAME" />
+                                           <%--     <asp:HyperLinkField HeaderText="Row Id" SortExpression="ROW_ID" DataNavigateUrlFields="ROW_ID"
+                                                    DataNavigateUrlFormatString="~/DM/CustomerDashboard.aspx?ROWID={0}" DataTextField="ROW_ID"
+                                                    Target="_blank" />--%>
+                                            </Columns>
+                                            <FixRowColumn FixColumns="-1" FixRowType="Header" TableHeight="400px" />
+                                        </sgv:SmartGridView>
+                                        <asp:Label runat="server" Text="Label" ID="test" Visible="false"></asp:Label>
+                                    </td>
+                                </tr>
+                            </table>
+                        </td>
+                    </tr>
+                </table>
+            </ContentTemplate>
+        </asp:UpdatePanel>
+    </asp:Panel>
+</asp:Content>
+<asp:Content ID="Content2" ContentPlaceHolderID="cph1" runat="Server">
+</asp:Content>

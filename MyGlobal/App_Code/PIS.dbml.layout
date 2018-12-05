@@ -1,0 +1,12 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<ordesignerObjectsDiagram dslVersion="1.0.0.0" absoluteBounds="0, 0, 11, 8.5" name="PIS">
+  <DataContextMoniker Name="/PISDataContext" />
+  <nestedChildShapes>
+    <classShape Id="52115d63-954c-418e-a06b-d4c63f54e87d" absoluteBounds="1.125, 0.875, 2, 6.9200972493489576">
+      <DataClassMoniker Name="/PISDataContext/PRODUCT_LOGISTICS_NEW" />
+      <nestedChildShapes>
+        <elementListCompartment Id="5f761160-d31f-4f31-a810-eeaf0532ebfa" absoluteBounds="1.1400000000000001, 1.335, 1.9700000000000002, 6.360097249348958" name="DataPropertiesCompartment" titleTextColor="Black" itemTextColor="Black" />
+      </nestedChildShapes>
+    </classShape>
+  </nestedChildShapes>
+</ordesignerObjectsDiagram>

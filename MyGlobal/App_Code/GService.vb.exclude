@@ -1,0 +1,191 @@
+﻿' Google Maps User Control for ASP.Net version 1.0: 
+' ======================== 
+' Copyright (C) 2008 Shabdar Ghata 
+' Email : ghata2002@gmail.com 
+' URL : http://www.shabdar.org 
+
+' This program is free software: you can redistribute it and/or modify 
+' it under the terms of the GNU General Public License as published by 
+' the Free Software Foundation, either version 3 of the License, or 
+' (at your option) any later version. 
+
+' This program is distributed in the hope that it will be useful, 
+' but WITHOUT ANY WARRANTY; without even the implied warranty of 
+' MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the 
+' GNU General Public License for more details. 
+
+' You should have received a copy of the GNU General Public License 
+' along with this program. If not, see <http://www.gnu.org/licenses/>. 
+
+' This program comes with ABSOLUTELY NO WARRANTY. 
+
+Imports System
+Imports System.Web
+Imports System.Collections
+Imports System.Web.Services
+Imports System.Web.Services.Protocols
+Imports System.Web.Script.Services
+
+
+''' <summary> 
+''' Summary description for GService 
+''' </summary> 
+<WebService([Namespace]:="http://tempuri.org/")> _
+<WebServiceBinding(ConformsTo:=WsiProfiles.BasicProfile1_1)> _
+<ScriptService()> _
+Public Class GService
+    Inherits System.Web.Services.WebService
+
+
+    'Uncomment the following line if using designed components 
+    'InitializeComponent(); 
+    Public Sub New()
+    End Sub
+
+    '[WebMethod] 
+    'public string HelloWorld(string YourName) { 
+    ' return "Hello "+YourName; 
+    '} 
+    <WebMethod(EnableSession:=True)> _
+    Public Sub SetLatLon(ByVal pID As String, ByVal pLatitude As Double, ByVal pLongitude As Double)
+        Dim objGoogleNew As GoogleObject = DirectCast(System.Web.HttpContext.Current.Session("GOOGLE_MAP_OBJECT"), GoogleObject)
+        Dim objGoogleOld As GoogleObject = DirectCast(System.Web.HttpContext.Current.Session("GOOGLE_MAP_OBJECT_OLD"), GoogleObject)
+        objGoogleNew.Points(pID).Latitude = pLatitude
+        objGoogleNew.Points(pID).Longitude = pLongitude
+        objGoogleOld.Points(pID).Latitude = pLatitude
+        objGoogleOld.Points(pID).Longitude = pLongitude
+    End Sub
+
+    'This method will be used once map centering is complete. This will set RecenterMap flag to false. So next time map will not recenter automatically. 
+    <WebMethod(EnableSession:=True)> _
+    Public Sub RecenterMapComplete()
+        Dim objGoogleNew As GoogleObject = DirectCast(System.Web.HttpContext.Current.Session("GOOGLE_MAP_OBJECT"), GoogleObject)
+        Dim objGoogleOld As GoogleObject = DirectCast(System.Web.HttpContext.Current.Session("GOOGLE_MAP_OBJECT_OLD"), GoogleObject)
+        objGoogleNew.RecenterMap = False
+        objGoogleOld.RecenterMap = False
+    End Sub
+
+    <WebMethod(EnableSession:=True)> _
+    Public Function GetGoogleObject() As GoogleObject
+        Dim objGoogle As GoogleObject = DirectCast(System.Web.HttpContext.Current.Session("GOOGLE_MAP_OBJECT"), GoogleObject)
+
+        System.Web.HttpContext.Current.Session("GOOGLE_MAP_OBJECT_OLD") = New GoogleObject(objGoogle)
+        Return objGoogle
+    End Function
+
+
+    <WebMethod(EnableSession:=True)> _
+    Public Function GetOptimizedGoogleObject() As GoogleObject
+        Dim objGoogleNew As GoogleObject = DirectCast(System.Web.HttpContext.Current.Session("GOOGLE_MAP_OBJECT"), GoogleObject)
+        Dim objGoogleOld As GoogleObject = DirectCast(System.Web.HttpContext.Current.Session("GOOGLE_MAP_OBJECT_OLD"), GoogleObject)
+        Dim objGoogle As New GoogleObject()
+
+        If objGoogleOld IsNot Nothing Then
+            For i As Integer = 0 To objGoogleNew.Points.Count - 1
+                Dim pointStatus As String = ""
+                Dim NewPoint As GooglePoint = objGoogleNew.Points(i)
+                Dim OldPoint As GooglePoint = objGoogleOld.Points(NewPoint.ID)
+                'if old point not found, means this is a new point. 
+                If OldPoint Is Nothing Then
+                    'New 
+                    pointStatus = "N"
+                Else
+                    'If old point found and old not equal to new point, means it's value is changed. 
+                    If Not OldPoint.Equals(NewPoint) Then
+                        'Changed 
+                        pointStatus = "C"
+                    End If
+                    'Remove found point from old object. This is to reduce iteration in next loop. 
+                    objGoogleOld.Points.Remove(OldPoint.ID)
+                End If
+                If pointStatus <> "" Then
+                    'If new point is changed, add it in list which is to be sent to client. 
+                    NewPoint.PointStatus = pointStatus
+                    objGoogle.Points.Add(NewPoint)
+                End If
+            Next
+            For i As Integer = 0 To objGoogleOld.Points.Count - 1
+                'Loop through rest of old points to mark them as deleted. 
+                Dim OldPoint As GooglePoint = objGoogleOld.Points(i)
+                OldPoint.PointStatus = "D"
+                objGoogle.Points.Add(OldPoint)
+            Next
+            For i As Integer = 0 To objGoogleNew.Polylines.Count - 1
+
+                '******************************************** 
+                Dim lineStatus As String = ""
+                Dim NewLine As GooglePolyline = objGoogleNew.Polylines(i)
+                Dim OldLine As GooglePolyline = objGoogleOld.Polylines(NewLine.ID)
+                'if old point not found, means this is a new point. 
+                If OldLine Is Nothing Then
+                    'New 
+                    lineStatus = "N"
+                Else
+                    'If old point found and old not equal to new point, means it's value is changed. 
+                    If Not OldLine.Equals(NewLine) Then
+                        'Changed 
+                        lineStatus = "C"
+                    End If
+                    'Remove found point from old object. This is to reduce iteration in next loop. 
+                    objGoogleOld.Polylines.Remove(OldLine.ID)
+                End If
+                If lineStatus <> "" Then
+                    'If new point is changed, add it in list which is to be sent to client. 
+                    NewLine.LineStatus = lineStatus
+                    objGoogle.Polylines.Add(NewLine)
+                End If
+            Next
+            For i As Integer = 0 To objGoogleOld.Polylines.Count - 1
+                'Loop through rest of old points to mark them as deleted. 
+                Dim OldPolyline As GooglePolyline = objGoogleOld.Polylines(i)
+                OldPolyline.LineStatus = "D"
+                objGoogle.Polylines.Add(OldPolyline)
+            Next
+            For i As Integer = 0 To objGoogleNew.Polygons.Count - 1
+
+                '******************************************** 
+                Dim gonStatus As String = ""
+                Dim NewGon As GooglePolygon = objGoogleNew.Polygons(i)
+                Dim OldGon As GooglePolygon = objGoogleOld.Polygons(NewGon.ID)
+                'if old point not found, means this is a new point. 
+                If OldGon Is Nothing Then
+                    'New 
+                    gonStatus = "N"
+                Else
+                    'If old point found and old not equal to new point, means it's value is changed. 
+                    If Not OldGon.Equals(NewGon) Then
+                        'Changed 
+                        gonStatus = "C"
+                    End If
+                    'Remove found point from old object. This is to reduce iteration in next loop. 
+                    objGoogleOld.Polygons.Remove(OldGon.ID)
+                End If
+                If gonStatus <> "" Then
+                    'If new point is changed, add it in list which is to be sent to client. 
+                    NewGon.Status = gonStatus
+                    objGoogle.Polygons.Add(NewGon)
+                End If
+            Next
+            For i As Integer = 0 To objGoogleOld.Polygons.Count - 1
+                'Loop through rest of old points to mark them as deleted. 
+                Dim OldPolygon As GooglePolygon = objGoogleOld.Polygons(i)
+                OldPolygon.Status = "D"
+                objGoogle.Polygons.Add(OldPolygon)
+            Next
+        End If
+
+        objGoogle.CenterPoint = objGoogleNew.CenterPoint
+        objGoogle.ZoomLevel = objGoogleNew.ZoomLevel
+        objGoogle.ShowTraffic = objGoogleNew.ShowTraffic
+        objGoogle.RecenterMap = objGoogleNew.RecenterMap
+        objGoogle.MapType = objGoogleNew.MapType
+        objGoogle.AutomaticBoundaryAndZoom = objGoogleNew.AutomaticBoundaryAndZoom
+        'Save new Google object state in session variable. 
+        'System.Web.HttpContext.Current.Session["GOOGLE_MAP_OBJECT_OLD"] = objGoogleNew; 
+        System.Web.HttpContext.Current.Session("GOOGLE_MAP_OBJECT_OLD") = New GoogleObject(objGoogleNew)
+
+        Return objGoogle
+
+    End Function
+
+End Class

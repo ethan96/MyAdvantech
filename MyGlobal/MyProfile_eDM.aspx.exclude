@@ -1,0 +1,705 @@
+﻿<%@ Page Language="VB" Title="My Profile" %>
+
+<script runat="server">
+
+    Protected Sub Page_Load(ByVal sender As Object, ByVal e As System.EventArgs)
+        Dim email As String = ""
+        Dim dt As DataTable = dbUtil.dbGetDataTable("RFM", String.Format("select email from email_uniqueid where hashvalue='{0}'", Request("UID")))
+        If dt.Rows.Count > 0 Then email = dt.Rows(0).Item(0).ToString
+        If Request("EMAIL") IsNot Nothing And Request("EMAIL") <> "" And Request.ServerVariables("REMOTE_HOST").ToString.StartsWith("172") Then email = Request("EMAIL")
+        If Not Page.IsPostBack Then
+            If email <> "" Then
+                dt = dbUtil.dbGetDataTable("RFM", String.Format("select top 1 a.row_id, isnull(a.account_row_id,'') as account_row_id, isnull(a.firstname,'') as firstname, isnull(a.lastname,'') as lastname, isnull(a.job_function,'') as job_function, isnull(b.country,'') as country, isnull(b.city,'') as city, isnull(b.account_name,'') as account_name, isnull(b.address,'') as address, isnull(b.address2,'') as address2, isnull(b.zipcode,'') as zipcode, a.neveremail from siebel_contact a left join siebel_account b on a.account_row_id=b.row_id where a.email_address='{0}' order by a.account_row_id desc", email))
+                If dt.Rows.Count > 0 Then
+                    txtEmail.Text = email
+                    txtFirstName.Text = dt.Rows(0).Item("firstname").ToString
+                    txtLastName.Text = dt.Rows(0).Item("lastname").ToString
+                    ddlJobFunction.SelectedValue = dt.Rows(0).Item("job_function").ToString
+                    txtAddress.Text = dt.Rows(0).Item("address").ToString
+                    txtAddress2.Text = dt.Rows(0).Item("address2").ToString
+                    txtCity.Text = dt.Rows(0).Item("city").ToString
+                    txtCountry.Text = dt.Rows(0).Item("country").ToString
+                    txtCompanyName.Text = dt.Rows(0).Item("account_name").ToString
+                    txtZip.Text = dt.Rows(0).Item("zipcode").ToString
+                    ViewState("account_row_id") = dt.Rows(0).Item("account_row_id").ToString
+                Else
+                    'Util.JSAlert(Page, "This User ID not in Siebel Contact.") : txtEmail.Text = email : btnUpdate.Enabled = False
+                    Response.Redirect("http://www.advantech.eu")
+                End If
+            Else
+                Response.Redirect("http://www.advantech.eu")
+            End If
+        End If
+    End Sub
+    
+    Public Shared Function ContainsChinese(ByVal str As String) As Boolean
+        If str = "" Then Return False
+        Dim num1 As Integer = 0
+        Dim num2 As Integer = 0
+        Do
+            num2 = Char.ConvertToUtf32(str, num1)
+            If ((num2 >= CLng("&H4E00")) And (num2 <= CLng("&H9FFF"))) Then
+                Return True
+            End If
+            num1 += 1
+        Loop While (num1 < str.Length)
+        Return False
+    End Function
+
+    Protected Sub btnUpdate_Click(ByVal sender As Object, ByVal e As System.EventArgs)
+        Try
+            'Dim ws As New aeu_eai2000.Siebel_WS
+            'ws.Timeout = 500 * 1000 : ws.UseDefaultCredentials = True
+            'Dim iRet As Boolean = ws.UpdateContactProfile(txtEmail.Text, IIf(ViewState("account_row_id") IsNot Nothing And ViewState("account_row_id") <> "", ViewState("account_row_id"), ""), txtFirstName.Text.Trim, txtLastName.Text.Trim, ddlJobFunction.SelectedValue, txtCompanyName.Text.Trim, txtCountry.Text.Trim, txtCity.Text.Trim, txtAddress.Text.Trim, txtAddress2.Text.Trim, txtZip.Text.Trim)
+            'If iRet = True Then
+            'Dim sb As New StringBuilder
+            'With sb
+            '    .AppendFormat("update siebel_contact set firstname=@FIRSTNAME, lastname=@LASTNAME, job_function=@JOBFUNCTION ")
+            '    .AppendFormat("where email_address='{0}'", txtEmail.Text)
+            'End With
+            'Dim pFirstname As New SqlClient.SqlParameter("FIRSTNAME", SqlDbType.NVarChar) : pFirstname.Value = HttpUtility.HtmlEncode(txtFirstName.Text.Trim)
+            'Dim pLastname As New SqlClient.SqlParameter("LASTNAME", SqlDbType.NVarChar) : pLastname.Value = HttpUtility.HtmlEncode(txtLastName.Text.Trim)
+            'Dim pJobFunction As New SqlClient.SqlParameter("JOBFUNCTION", SqlDbType.NVarChar) : pJobFunction.Value = ddlJobFunction.SelectedValue
+            'Dim para() As SqlClient.SqlParameter = {pFirstname, pLastname, pJobFunction}
+            'Dim retInt As Integer = dbUtil.dbExecuteNoQuery2("RFM", sb.ToString, para)
+            'Dim retInt1 As Integer = 1
+            'sb = New StringBuilder
+            'If ViewState("account_row_id") IsNot Nothing And ViewState("account_row_id") <> "" Then
+            '    With sb
+            '        .AppendFormat("update siebel_account set account_name=@ACCOUNTNAME, country=@COUNTRY, city=@CITY, address=@ADDRESS, address2=@ADDRESS2, zipcode=@ZIP ")
+            '        .AppendFormat("where row_id='{0}'", ViewState("account_row_id").ToString)
+            '    End With
+            '    Dim pAccountName As New SqlClient.SqlParameter("ACCOUNTNAME", SqlDbType.NVarChar) : pAccountName.Value = HttpUtility.HtmlEncode(txtCompanyName.Text.Trim)
+            '    Dim pCountry As New SqlClient.SqlParameter("COUNTRY", SqlDbType.NVarChar) : pCountry.Value = HttpUtility.HtmlEncode(txtCountry.Text.Trim)
+            '    Dim pCity As New SqlClient.SqlParameter("CITY", SqlDbType.NVarChar) : pCity.Value = HttpUtility.HtmlEncode(txtCity.Text.Trim)
+            '    Dim pAddress As New SqlClient.SqlParameter("ADDRESS", SqlDbType.NVarChar) : pAddress.Value = HttpUtility.HtmlEncode(txtAddress.Text.Trim)
+            '    Dim pAddress2 As New SqlClient.SqlParameter("ADDRESS2", SqlDbType.NVarChar) : pAddress2.Value = HttpUtility.HtmlEncode(txtAddress2.Text.Trim)
+            '    Dim pZip As New SqlClient.SqlParameter("ZIP", SqlDbType.NVarChar) : pZip.Value = HttpUtility.HtmlEncode(txtZip.Text.Trim)
+            '    Dim para1() As SqlClient.SqlParameter = {pAccountName, pCountry, pCity, pAddress, pAddress2, pZip}
+            '    retInt1 = dbUtil.dbExecuteNoQuery2("RFM", sb.ToString, para1)
+            'End If
+            'If retInt >= 1 And retInt1 >= 1 Then
+            'Dim sb1 As New StringBuilder
+            'With sb1
+            '    .AppendFormat("insert into contact_profile_updated_log (email, account_row_id, first_name, last_name, job_function, gender, account_name, country, city, address, address2, zipcode) ")
+            '    .AppendFormat("values ('{0}', @ACCOUNTROWID, @FIRSTNAME, @LASTNAME, @JOBFUNCTION, @GENDER, @ACCOUNTNAME, @COUNTRY, @CITY, @ADDRESS, @ADDRESS2, @ZIP)", txtEmail.Text)
+            'End With
+            'Dim pAccountRowId As New SqlClient.SqlParameter("ACCOUNTROWID", SqlDbType.NVarChar) : pAccountRowId.Value = IIf(ViewState("account_row_id") IsNot Nothing And ViewState("account_row_id") <> "", ViewState("account_row_id").ToString, "")
+            'Dim pFirstname1 As New SqlClient.SqlParameter("FIRSTNAME", SqlDbType.NVarChar) : pFirstname1.Value = HttpUtility.HtmlEncode(txtFirstName.Text.Trim)
+            'Dim pLastname1 As New SqlClient.SqlParameter("LASTNAME", SqlDbType.NVarChar) : pLastname1.Value = HttpUtility.HtmlEncode(txtLastName.Text.Trim)
+            'Dim pJobFunction1 As New SqlClient.SqlParameter("JOBFUNCTION", SqlDbType.NVarChar) : pJobFunction1.Value = ddlJobFunction.SelectedValue
+            'Dim pGender As New SqlClient.SqlParameter("GENDER", SqlDbType.NVarChar) : pGender.Value = ""
+            'If rbMale.Checked Then pGender.Value = "M" : If rbFemale.Checked Then pGender.Value = "F"
+            'Dim pAccountName As New SqlClient.SqlParameter("ACCOUNTNAME", SqlDbType.NVarChar) : pAccountName.Value = HttpUtility.HtmlEncode(txtCompanyName.Text.Trim)
+            'Dim pCountry As New SqlClient.SqlParameter("COUNTRY", SqlDbType.NVarChar) : pCountry.Value = HttpUtility.HtmlEncode(txtCountry.Text.Trim)
+            'Dim pCity As New SqlClient.SqlParameter("CITY", SqlDbType.NVarChar) : pCity.Value = HttpUtility.HtmlEncode(txtCity.Text.Trim)
+            'Dim pAddress As New SqlClient.SqlParameter("ADDRESS", SqlDbType.NVarChar) : pAddress.Value = HttpUtility.HtmlEncode(txtAddress.Text.Trim)
+            'Dim pAddress2 As New SqlClient.SqlParameter("ADDRESS2", SqlDbType.NVarChar) : pAddress2.Value = HttpUtility.HtmlEncode(txtAddress2.Text.Trim)
+            'Dim pZip As New SqlClient.SqlParameter("ZIP", SqlDbType.NVarChar) : pZip.Value = HttpUtility.HtmlEncode(txtZip.Text.Trim)
+            'Dim para1() As SqlClient.SqlParameter = {pAccountRowId, pFirstname1, pLastname1, pJobFunction1, pGender, pAccountName, pCountry, pCity, pAddress, pAddress2, pZip}
+            'dbUtil.dbExecuteNoQuery2("RFM", sb1.ToString, para1)
+            'Dim body As New StringBuilder
+            'With body
+            '    .AppendFormat("<table>")
+            '    .AppendFormat("<tr><td><b>Email:</b></td><td>{0}</td></tr>", txtEmail.Text)
+            '    .AppendFormat("<tr><td><b>Account Row ID:</b></td><td>{0}</td></tr>", IIf(ViewState("account_row_id") IsNot Nothing And ViewState("account_row_id") <> "", ViewState("account_row_id").ToString, ""))
+            '    .AppendFormat("<tr><td><b>First Name:</b></td><td>{0}</td></tr>", HttpUtility.HtmlEncode(txtFirstName.Text.Trim))
+            '    .AppendFormat("<tr><td><b>Last Name:</b></td><td>{0}</td></tr>", HttpUtility.HtmlEncode(txtLastName.Text.Trim))
+            '    .AppendFormat("<tr><td><b>Job Function:</b></td><td>{0}</td></tr>", ddlJobFunction.SelectedValue)
+            '    .AppendFormat("<tr><td><b>Gender:</b></td><td>{0}</td></tr>", pGender.Value)
+            '    .AppendFormat("<tr><td><b>Account Name:</b></td><td>{0}</td></tr>", HttpUtility.HtmlEncode(txtCompanyName.Text.Trim))
+            '    .AppendFormat("<tr><td><b>Country:</b></td><td>{0}</td></tr>", HttpUtility.HtmlEncode(txtCountry.Text.Trim))
+            '    .AppendFormat("<tr><td><b>City:</b></td><td>{0}</td></tr>", HttpUtility.HtmlEncode(txtCity.Text.Trim))
+            '    .AppendFormat("<tr><td><b>Address:</b></td><td>{0}</td></tr>", HttpUtility.HtmlEncode(txtAddress.Text.Trim))
+            '    .AppendFormat("<tr><td><b>Address2:</b></td><td>{0}</td></tr>", HttpUtility.HtmlEncode(txtAddress2.Text.Trim))
+            '    .AppendFormat("<tr><td><b>Zip:</b></td><td>{0}</td></tr>", HttpUtility.HtmlEncode(txtZip.Text.Trim))
+            '    .AppendFormat("</table>")
+            'End With
+            'Util.SendEmail("eBusiness.AEU@advantech.eu", "ebiz.aeu@advantech.eu", "Contact Profile Updated.", body.ToString, True, "", "")
+            'Util.JSAlert(Page, "Thank you for updating your profile.")
+            'Else
+            'Util.JSAlert(Page, "Update Failed!!")
+            'End If
+            'Else
+            'Util.JSAlert(Page, "Siebel Contact Update Failed!!")
+            'End If
+        Catch ex As Exception
+            Util.SendEmail("Mariette.Dusseldorp@advantech.nl,tc.chen@advantech.eu,rudy.wang@advantech.com.tw", "ebiz.aeu@advantech.eu", "eDM Profile update failed", ex.ToString, True, "", "")
+        End Try
+        
+    End Sub
+
+    Protected Sub btnSave_Click(ByVal sender As Object, ByVal e As System.EventArgs)
+        Try
+            'Dim ws As New aeu_eai2000.Siebel_WS
+            'ws.UseDefaultCredentials = True : ws.Timeout = 500 * 1000
+            'If cbNeverEmail.Checked Then
+            '    ws.UpdateContactNeverEmail(txtEmail.Text, False)
+            'Else
+            '    ws.UpdateContactNeverEmail(txtEmail.Text, True)
+            'End If
+            Dim sb As New StringBuilder
+            With sb
+                .AppendFormat("insert into contact_profile_updated_log (email, account_row_id, first_name, last_name, job_function, gender, account_name, country, city, address, address2, zipcode, never_email, baa, IP, my_baa) ")
+                .AppendFormat("values ('{0}', @ACCOUNTROWID, @FIRSTNAME, @LASTNAME, @JOBFUNCTION, @GENDER, @ACCOUNTNAME, @COUNTRY, @CITY, @ADDRESS, @ADDRESS2, @ZIP, @NEVEREMAIL, @BAA, '{1}', @MYBAA)", txtEmail.Text, Request.ServerVariables("REMOTE_ADDR"))
+            End With
+            Dim pAccountRowId As New System.Data.SqlClient.SqlParameter("ACCOUNTROWID", SqlDbType.NVarChar) : pAccountRowId.Value = IIf(ViewState("account_row_id") IsNot Nothing And ViewState("account_row_id") <> "", ViewState("account_row_id").ToString, "")
+            Dim pFirstname As New System.Data.SqlClient.SqlParameter("FIRSTNAME", SqlDbType.NVarChar) : pFirstname.Value = HttpUtility.HtmlEncode(txtFirstName.Text.Trim)
+            Dim pLastname As New System.Data.SqlClient.SqlParameter("LASTNAME", SqlDbType.NVarChar) : pLastname.Value = HttpUtility.HtmlEncode(txtLastName.Text.Trim)
+            Dim pJobFunction As New System.Data.SqlClient.SqlParameter("JOBFUNCTION", SqlDbType.NVarChar) : pJobFunction.Value = ddlJobFunction.SelectedValue
+            Dim pGender As New System.Data.SqlClient.SqlParameter("GENDER", SqlDbType.NVarChar) : pGender.Value = ""
+            If rblGender.Items(0).Selected Then pGender.Value = "M" : If rblGender.Items(1).Selected Then pGender.Value = "F"
+            Dim pAccountName As New System.Data.SqlClient.SqlParameter("ACCOUNTNAME", SqlDbType.NVarChar) : pAccountName.Value = HttpUtility.HtmlEncode(txtCompanyName.Text.Trim)
+            Dim pCountry As New System.Data.SqlClient.SqlParameter("COUNTRY", SqlDbType.NVarChar) : pCountry.Value = HttpUtility.HtmlEncode(txtCountry.Text.Trim)
+            Dim pCity As New System.Data.SqlClient.SqlParameter("CITY", SqlDbType.NVarChar) : pCity.Value = HttpUtility.HtmlEncode(txtCity.Text.Trim)
+            Dim pAddress As New System.Data.SqlClient.SqlParameter("ADDRESS", SqlDbType.NVarChar) : pAddress.Value = HttpUtility.HtmlEncode(txtAddress.Text.Trim)
+            Dim pAddress2 As New System.Data.SqlClient.SqlParameter("ADDRESS2", SqlDbType.NVarChar) : pAddress2.Value = HttpUtility.HtmlEncode(txtAddress2.Text.Trim)
+            Dim pZip As New System.Data.SqlClient.SqlParameter("ZIP", SqlDbType.NVarChar) : pZip.Value = HttpUtility.HtmlEncode(txtZip.Text.Trim)
+            Dim pNeverEmail As New System.Data.SqlClient.SqlParameter("NEVEREMAIL", SqlDbType.NVarChar) : pNeverEmail.Value = IIf(cbNeverEmail.Checked, "N", "Y")
+            Dim pBAA As New System.Data.SqlClient.SqlParameter("BAA", SqlDbType.NVarChar)
+            Dim arrBaa As New ArrayList
+            For i As Integer = 0 To cblBAA.Items.Count - 1
+                If cblBAA.Items(i).Selected Then arrBaa.Add(cblBAA.Items(i).Value)
+            Next
+            pBAA.Value = String.Join("|", arrBaa.ToArray(GetType(System.String)))
+            Dim pMyBAA As New System.Data.SqlClient.SqlParameter("MYBAA", SqlDbType.NVarChar) : pMyBAA.Value = HttpUtility.HtmlEncode(txtBAA.Text.Trim)
+            Dim para() As System.Data.SqlClient.SqlParameter = {pAccountRowId, pFirstname, pLastname, pJobFunction, pGender, pAccountName, pCountry, pCity, pAddress, pAddress2, pZip, pNeverEmail, pBAA, pMyBAA}
+            Dim retInt As Integer = dbUtil.dbExecuteNoQuery2("RFM", sb.ToString, para)
+            If retInt = 1 Then Util.JSAlertRedirect(Page, "Thank you for updating your profile.", "http://www.advantech.eu")
+            Dim body As New StringBuilder
+            With body
+                .AppendFormat("<table>")
+                .AppendFormat("<tr><td><b>Email:</b></td><td>{0}</td></tr>", txtEmail.Text)
+                .AppendFormat("<tr><td><b>Account Row ID:</b></td><td>{0}</td></tr>", IIf(ViewState("account_row_id") IsNot Nothing And ViewState("account_row_id") <> "", ViewState("account_row_id").ToString, ""))
+                .AppendFormat("<tr><td><b>First Name:</b></td><td>{0}</td></tr>", HttpUtility.HtmlEncode(txtFirstName.Text.Trim))
+                .AppendFormat("<tr><td><b>Last Name:</b></td><td>{0}</td></tr>", HttpUtility.HtmlEncode(txtLastName.Text.Trim))
+                .AppendFormat("<tr><td><b>Job Function:</b></td><td>{0}</td></tr>", ddlJobFunction.SelectedValue)
+                .AppendFormat("<tr><td><b>Gender:</b></td><td>{0}</td></tr>", pGender.Value)
+                .AppendFormat("<tr><td><b>Account Name:</b></td><td>{0}</td></tr>", HttpUtility.HtmlEncode(txtCompanyName.Text.Trim))
+                .AppendFormat("<tr><td><b>Country:</b></td><td>{0}</td></tr>", HttpUtility.HtmlEncode(txtCountry.Text.Trim))
+                .AppendFormat("<tr><td><b>City:</b></td><td>{0}</td></tr>", HttpUtility.HtmlEncode(txtCity.Text.Trim))
+                .AppendFormat("<tr><td><b>Address:</b></td><td>{0}</td></tr>", HttpUtility.HtmlEncode(txtAddress.Text.Trim))
+                .AppendFormat("<tr><td><b>Address2:</b></td><td>{0}</td></tr>", HttpUtility.HtmlEncode(txtAddress2.Text.Trim))
+                .AppendFormat("<tr><td><b>Zip:</b></td><td>{0}</td></tr>", HttpUtility.HtmlEncode(txtZip.Text.Trim))
+                .AppendFormat("<tr><td><b>Never Email:</b></td><td>{0}</td></tr>", IIf(cbNeverEmail.Checked, "N", "Y"))
+                .AppendFormat("<tr><td><b>BAA:</b></td><td>{0}</td></tr>", String.Join("<br>", arrBaa.ToArray(GetType(System.String))))
+                .AppendFormat("<tr><td><b>Core business area:</b></td><td>{0}</td></tr>", HttpUtility.HtmlEncode(txtBAA.Text.Trim))
+                .AppendFormat("</table>")
+            End With
+            Util.SendEmail("eBusiness.AEU@advantech.eu", "ebiz.aeu@advantech.eu", "Contact Profile Updated.", body.ToString, True, "Mariette.Dusseldorp@advantech.nl", "")
+        Catch ex As Exception
+            Util.SendEmail("tc.chen@advantech.eu,rudy.wang@advantech.com.tw", "ebiz.aeu@advantech.eu", "Contact Profile update failed", ex.ToString, True, "", "")
+        End Try
+    End Sub
+</script>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head id="Head1" runat="server">    
+    <link runat="server" id="ebizCss" visible="true" href="../Includes/ebiz.aeu.style.css" rel="stylesheet" type="text/css" />
+    <link href="../Includes/global.css" rel="Stylesheet" type="text/css" />   
+    <style type="text/css">
+        BODY 
+        {
+	        font-size:0.8em;
+	        FONT: Calibri;
+        }
+        TABLE {
+	        FONT-WEIGHT: normal; FONT-SIZE: 100%; LINE-HEIGHT: normal; FONT-STYLE: normal; FONT-VARIANT: normal; color:Black;
+        }
+        SELECT {
+	        FONT: 99% arial,helvetica,clean,sans-serif
+        }
+        INPUT {
+	        FONT: 99% arial,helvetica,clean,sans-serif
+        }
+        TEXTAREA {
+	        FONT: 99% arial,helvetica,clean,sans-serif
+        }
+        PRE {
+	        FONT: 100% monospace
+        }
+        CODE {
+	        FONT: 100% monospace
+        }
+        BODY  {
+	        LINE-HEIGHT: 1.22em
+        }
+        BODY {
+	        COLOR: #333; DIRECTION: ltr; TEXT-ALIGN: center
+        }
+        BODY {
+	        PADDING-RIGHT: 0px; PADDING-LEFT: 0px; PADDING-BOTTOM: 0px; MARGIN: 0px; PADDING-TOP: 0px
+        }
+        H1 {
+	        PADDING-RIGHT: 0px; PADDING-LEFT: 0px; PADDING-BOTTOM: 0px; MARGIN: 0px; PADDING-TOP: 0px
+        }
+        H2 {
+	        PADDING-RIGHT: 0px; PADDING-LEFT: 0px; PADDING-BOTTOM: 0px; MARGIN: 0px; PADDING-TOP: 0px
+        }
+        H3 {
+	        PADDING-RIGHT: 0px; PADDING-LEFT: 0px; PADDING-BOTTOM: 0px; MARGIN: 0px; PADDING-TOP: 0px
+        }
+        H4 {
+	        PADDING-RIGHT: 0px; PADDING-LEFT: 0px; PADDING-BOTTOM: 0px; MARGIN: 0px; PADDING-TOP: 0px
+        }
+        H5 {
+	        PADDING-RIGHT: 0px; PADDING-LEFT: 0px; PADDING-BOTTOM: 0px; MARGIN: 0px; PADDING-TOP: 0px
+        }
+        H6 {
+	        PADDING-RIGHT: 0px; PADDING-LEFT: 0px; PADDING-BOTTOM: 0px; MARGIN: 0px; PADDING-TOP: 0px
+        }
+        UL {
+	        PADDING-RIGHT: 0px; PADDING-LEFT: 0px; PADDING-BOTTOM: 0px; MARGIN: 0px; PADDING-TOP: 0px
+        }
+        OL {
+	        PADDING-RIGHT: 0px; PADDING-LEFT: 0px; PADDING-BOTTOM: 0px; MARGIN: 0px; PADDING-TOP: 0px
+        }
+        LI {
+	        PADDING-RIGHT: 0px; PADDING-LEFT: 0px; PADDING-BOTTOM: 0px; MARGIN: 0px; PADDING-TOP: 0px
+        }
+        DL {
+	        PADDING-RIGHT: 0px; PADDING-LEFT: 0px; PADDING-BOTTOM: 0px; MARGIN: 0px; PADDING-TOP: 0px
+        }
+        DT {
+	        PADDING-RIGHT: 0px; PADDING-LEFT: 0px; PADDING-BOTTOM: 0px; MARGIN: 0px; PADDING-TOP: 0px
+        }
+        DD {
+	        PADDING-RIGHT: 0px; PADDING-LEFT: 0px; PADDING-BOTTOM: 0px; MARGIN: 0px; PADDING-TOP: 0px
+        }
+        P {
+	        PADDING-RIGHT: 0px; PADDING-LEFT: 0px; PADDING-BOTTOM: 0px; MARGIN: 0px; PADDING-TOP: 0px
+        }
+        FORM {
+	        PADDING-RIGHT: 0px; PADDING-LEFT: 0px; PADDING-BOTTOM: 0px; MARGIN: 0px; PADDING-TOP: 0px
+        }
+        FIELDSET {
+	        PADDING-RIGHT: 0px; PADDING-LEFT: 0px; PADDING-BOTTOM: 0px; MARGIN: 0px; PADDING-TOP: 0px
+        }
+        LEGEND {
+	        PADDING-RIGHT: 0px; PADDING-LEFT: 0px; PADDING-BOTTOM: 0px; MARGIN: 0px; PADDING-TOP: 0px
+        }
+        INPUT {
+	        PADDING-RIGHT: 0px; PADDING-LEFT: 0px; PADDING-BOTTOM: 0px; MARGIN: 0px; PADDING-TOP: 0px
+        }
+        IMG {
+	        PADDING-RIGHT: 0px; PADDING-LEFT: 0px; PADDING-BOTTOM: 0px; MARGIN: 0px; PADDING-TOP: 0px
+        }
+        IMG {
+	        BORDER-RIGHT: 0px; BORDER-TOP: 0px; BORDER-LEFT: 0px; BORDER-BOTTOM: 0px
+        }
+        FIELDSET {
+	        BORDER-RIGHT: 0px; BORDER-TOP: 0px; BORDER-LEFT: 0px; BORDER-BOTTOM: 0px
+        }
+        LEGEND {
+	        FONT-SIZE: 0px; HEIGHT: 0px
+        }
+        LABEL {
+	        CURSOR: hand
+        }
+        INPUT {
+	        outline: none
+        }
+        CITE {
+	        FONT: 85% verdana
+        }
+        EM {
+	        FONT-STYLE: normal
+        }
+        CITE SPAN {
+	        FONT-WEIGHT: bold
+        }
+        A {
+	        COLOR: #16387c
+        }
+        A:link {
+	        TEXT-DECORATION: none
+        }
+        A:visited {
+	        TEXT-DECORATION: none
+        }
+        A:hover {
+	        TEXT-DECORATION: underline
+        }
+        .on A:hover {
+	        TEXT-DECORATION: none
+        }    
+    </style>
+    <link runat="server" id="Style1" rel="stylesheet" href="~/includes/style-General.css" type="text/css"/>
+    <style type="text/css">
+        .ajax__tab_yuitabview-theme .ajax__tab_outer
+        {
+        	
+        }
+        .ajax__tab_yuitabview-theme .ajax__tab_inner
+        {
+            
+        }
+        .ajax__tab_yuitabview-theme .ajax__tab_header 
+        {
+            border-bottom:solid 2px #DCDCDC;
+        }
+        .ajax__tab_yuitabview-theme .ajax__tab_header .ajax__tab_outer 
+        {
+            background:url(/Images/gray_right.gif) no-repeat right;
+        }
+        .ajax__tab_yuitabview-theme .ajax__tab_header .ajax__tab_inner 
+        {
+            background:url(/Images/gray_left.gif) no-repeat left;
+        }
+        .ajax__tab_yuitabview-theme .ajax__tab_header .ajax__tab_tab
+        {    
+            margin-right:0px;
+            background:url(/Images/gray_bg1.gif);
+            width:208px;
+            padding:9px 0px 3px 0px;
+            text-align:center;    
+            color:#4D6D94;
+            font-size:12px;
+            display:block;
+            font-weight: bold;
+            font-family:Arial;
+        }
+        .ajax__tab_yuitabview-theme .ajax__tab_active .ajax__tab_tab 
+        {
+            padding:6px 0px 3px 0px;
+            background:url(/images/fold_blue_bg1.gif); height:18px;
+            color:#FFFFFF;
+            font-size:12px;
+            font-weight: bold;
+            font-family:Arial;
+        }
+        .ajax__tab_yuitabview-theme .ajax__tab_active .ajax__tab_outer
+        {
+            
+        }
+        .ajax__tab_yuitabview-theme .ajax__tab_body 
+        {
+            font-family:verdana,tahoma,helvetica;
+            font-size:10pt;
+            padding:0.25em 0.5em;    
+            border:solid 1px #DCDCDC;
+            border-top-width:0px;
+            color:#4D6D94;
+        }
+        
+        .ajax__tab_yuitabview-theme-new .ajax__tab_outer
+        {
+        	
+        }
+        .ajax__tab_yuitabview-theme-new .ajax__tab_inner
+        {
+            
+        }
+        .ajax__tab_yuitabview-theme-new .ajax__tab_header 
+        {
+            border-bottom:solid 2px #DCDCDC;
+        }
+        .ajax__tab_yuitabview-theme-new .ajax__tab_header .ajax__tab_outer 
+        {
+            background:url(/Images/gray_right.gif) no-repeat right;
+        }
+        .ajax__tab_yuitabview-theme-new .ajax__tab_header .ajax__tab_inner 
+        {
+            background:url(/Images/gray_left.gif) no-repeat left;
+        }
+        .ajax__tab_yuitabview-theme-new .ajax__tab_header .ajax__tab_tab
+        {    
+            margin-right:0px;
+            background:url(/Images/gray_bg11.gif);
+            width:145px;
+            padding:9px 0px 3px 0px;
+            text-align:center;    
+            color:#4D6D94;
+            font-size:12px;
+            display:block;
+            font-weight: bold;
+            font-family:Arial;
+        }
+        .ajax__tab_yuitabview-theme-new .ajax__tab_active .ajax__tab_tab 
+        {
+            padding:6px 0px 3px 0px;
+            background:url(/images/fold_blue_bg11.gif); height:18px;
+            width:146px;
+            color:#FFFFFF;
+            font-size:12px;
+            font-weight: bold;
+            font-family:Arial;
+        }
+        .ajax__tab_yuitabview-theme-new .ajax__tab_active .ajax__tab_outer
+        {
+            
+        }
+        .ajax__tab_yuitabview-theme-new .ajax__tab_body 
+        {
+            font-family:verdana,tahoma,helvetica;
+            font-size:10pt;
+            padding:0.25em 0.5em;    
+            border:solid 1px #DCDCDC;
+            border-top-width:0px;
+            color:#4D6D94;
+        }
+        
+        
+        
+.modalBackground {
+    background-color:Gray;
+    filter:alpha(opacity=70);
+    opacity:0.7;
+}
+ 
+.modalPopup {
+    background-color:#ffffdd;
+    border-width:3px;
+    border-style:solid;
+    border-color:Gray;
+    padding:3px;
+    width:250px;
+}
+ 
+.sampleStyleA {
+    background-color:#FFF;
+}
+ 
+.sampleStyleB {
+    background-color:#FFF;
+    font-family:monospace;
+    font-size:10pt;
+    font-weight:bold;
+}
+ 
+.sampleStyleC {
+    background-color:#ddffdd;
+    font-family:sans-serif;
+    font-size:10pt;
+    font-style:italic;
+}
+ 
+.sampleStyleD {
+    background-color:Blue;
+    color:White;
+    font-family:Arial;
+    font-size:10pt;
+} 
+.autocomplete { background:#E0E0E0; position: absolute; border: solid 1px; overflow-y:scroll; overflow-x:auto; height:100px; display: none; }
+    </style>
+</head>
+<body>
+    <form id="form1" runat="server">
+    <div>
+    <table width="100%">
+        <tr><td width="2%">&nbsp;</td>
+            <td style="width:98%">
+                <table border="0" cellspacing="0" cellpadding="0" ID="Table1" style="width: 100%">
+                    <tr><td colspan="3"><img src="/images/advantech_logo.gif" width="159" height="32" /></td></tr>
+                    <tr><td colspan="3"><img src="/images/banner_Corporate-1.jpg" width="690" height="120" /></td></tr>
+                    <tr><td height="28"></td></tr>
+		            <tr valign="middle">
+			            <td colspan="3" class="text" 
+			                style="width: 100%; color:Black; font-family:Arial;" align="left">
+			                <b>Update your data</b>
+			            </td>
+		            </tr>
+		            <tr><td colspan="3"><b>Your data is not up to date? You can change your profile for the Advantech newsletter here.</b></td></tr>
+		            <tr><td colspan="3" height="5"></td></tr>
+		            <tr>
+			            <td colspan="3" class="text" valign="top" align="left"  style="width: 100%">
+				            <table width="500" border="0" cellpadding="1" cellspacing="1" style="background-color:#ffffff" 
+				                align="left">
+					            <tr>
+						            <td bgcolor="#dcdcdc" align="right" width="120">
+							            Email Address&nbsp;:&nbsp;
+						            </td>
+						            <td bgcolor="#e6e6fa" align="left" >&nbsp;
+							            <asp:TextBox runat="server" ID="txtEmail" Enabled="false" size="50" style="font-family: Arial; font-size: 8pt; color: #3A4A8D; height: 20; text-align: left"></asp:TextBox>
+                                    </td>
+					            </tr>
+					            <tr>
+						            <td bgcolor="#dcdcdc" align="right" width="120">
+							            First&nbsp;Name&nbsp;:&nbsp;
+						            </td>
+						            <td bgcolor="#e6e6fa" align="left" >&nbsp;
+							            <asp:TextBox runat="server" ID="txtFirstName" style="font-family: Arial; font-size: 8pt; color: #3A4A8D; height: 20; text-align: left"/>
+						            </td>
+					            </tr>
+					            <tr>
+						            <td bgcolor="#dcdcdc" align="right" width="120">
+							            Last&nbsp;Name&nbsp;:&nbsp;
+						            </td>
+						            <td bgcolor="#e6e6fa" align="left" >&nbsp;
+						                <asp:TextBox runat="server" ID="txtLastName" style="font-family: Arial; font-size: 8pt; color: #3A4A8D; height: 20; text-align: left"/>
+						            </td>
+					            </tr>
+					            <tr>
+						            <td bgcolor="#dcdcdc" align="right" width="120">
+							            Gender&nbsp;:&nbsp;
+						            </td>
+						            <td bgcolor="#e6e6fa" align="left" >
+						                <asp:RadioButtonList runat="server" ID="rblGender" RepeatDirection="Horizontal" >
+						                    <asp:ListItem Text=" Male" Value="Male" />
+						                    <asp:ListItem Text=" Female" Value="Female" />
+						                </asp:RadioButtonList>
+						            </td>
+					            </tr>
+					            <tr>
+						            <td bgcolor="#dcdcdc" align="right" width="120">
+							            Job Function&nbsp;:&nbsp;
+						            </td>
+						            <td bgcolor="#e6e6fa" align="left">&nbsp;
+						                <asp:DropDownList runat="server" ID="ddlJobFunction" AppendDataBoundItems="true" DataTextField="TEXT" DataValueField="VALUE"
+						                    style="font-family: Arial; font-size: 8pt; color: #3A4A8D; height: 20;  width:300px;text-align: left">
+					                        <asp:ListItem Value="" Text="---- Please Select ----" Selected="true" />
+					                        <asp:ListItem Value="Application Engineer" Text="Application Engineer"></asp:ListItem>
+					                        <asp:ListItem Value="Business Management" Text="Business Management"></asp:ListItem>
+					                        <asp:ListItem Value="Buyer" Text="Buyer"></asp:ListItem>
+					                        <asp:ListItem Value="Design Engineering" Text="Design Engineering"></asp:ListItem>
+					                        <asp:ListItem Value="Facility Management" Text="Facility Management"></asp:ListItem>
+					                        <asp:ListItem Value="General Manager" Text="General Manager"></asp:ListItem>
+					                        <asp:ListItem Value="Hardware Development" Text="Hardware Development"></asp:ListItem>
+					                        <asp:ListItem Value="Maintenance" Text="Maintenance"></asp:ListItem>
+						                    <asp:ListItem Value="Marketing" Text="Marketing"></asp:ListItem>
+						                    <asp:ListItem Value="Product Development" Text="Product Development"></asp:ListItem>
+						                    <asp:ListItem Value="Production" Text="Production"></asp:ListItem>
+						                    <asp:ListItem Value="Project Management" Text="Project Management"></asp:ListItem>
+						                    <asp:ListItem Value="Purchasing" Text="Purchasing"></asp:ListItem>
+						                    <asp:ListItem Value="Sales" Text="Sales"></asp:ListItem>
+						                    <asp:ListItem Value="Software Development" Text="Software Development"></asp:ListItem>
+						                    <asp:ListItem Value="Tech / Service Support" Text="Tech / Service Support"></asp:ListItem>
+						                    <asp:ListItem Value="Technical Consultancy" Text="Technical Consultancy"></asp:ListItem>
+						                    <asp:ListItem Value="Technical Management" Text="Technical Management"></asp:ListItem>
+						                    <asp:ListItem Value="Technical Support" Text="Technical Support"></asp:ListItem>
+						                    <asp:ListItem Value="Test & Quality Assurance" Text="Test & Quality Assurance"></asp:ListItem>
+						                    <asp:ListItem Value="Others" Text="Others"></asp:ListItem>
+					                    </asp:DropDownList>
+						            </td>
+					            </tr>
+					            <tr>
+						            <td bgcolor="#dcdcdc" align="right" width="120">
+							            Company&nbsp;Name&nbsp;:&nbsp;
+						            </td>
+						            <td bgcolor="#e6e6fa" align="left" >&nbsp;
+						                <asp:TextBox runat="server" ID="txtCompanyName" width="250px" style="font-family: Arial; font-size: 8pt; color: #3A4A8D; height: 20; text-align: left" />
+						            </td>
+					            </tr>
+					            <tr>
+						            <td bgcolor="#dcdcdc" align="right" width="120">
+							            Address&nbsp;:&nbsp;
+						            </td>
+						            <td bgcolor="#e6e6fa" align="left" >&nbsp;
+						                <asp:TextBox runat="server" ID="txtAddress" Width="350px" style="font-family: Arial; font-size: 8pt; color: #3A4A8D; height: 20; text-align: left" />
+						            </td>
+					            </tr>
+					            <tr>
+						            <td bgcolor="#dcdcdc" align="right" width="120">
+							            Address&nbsp;Line&nbsp;2&nbsp;:&nbsp;
+						            </td>
+						            <td bgcolor="#e6e6fa" align="left" >&nbsp;
+						                <asp:TextBox runat="server" ID="txtAddress2" Width="350px" style="font-family: Arial; font-size: 8pt; color: #3A4A8D; height: 20; text-align: left" />
+						            </td>
+					            </tr>
+					            <tr>
+						            <td bgcolor="#dcdcdc" align="right" width="120">
+							            Zip&nbsp;Code&nbsp;:&nbsp;
+						            </td>
+						            <td bgcolor="#e6e6fa" align="left" >&nbsp;
+						                <asp:TextBox runat="server" ID="txtZip" style="font-family: Arial; font-size: 8pt; color: #3A4A8D; height: 20; text-align: left" />
+						            </td>
+					            </tr>
+					            <tr>
+						            <td bgcolor="#dcdcdc" align="right" width="120">
+							            City&nbsp;:&nbsp;
+						            </td>
+						            <td bgcolor="#e6e6fa" align="left" >&nbsp;
+						                <asp:TextBox runat="server" ID="txtCity" Width="250px" style="font-family: Arial; font-size: 8pt; color: #3A4A8D; height: 20; text-align: left" />
+						            </td>
+					            </tr>
+					            <tr>
+						            <td bgcolor="#dcdcdc" align="right" width="120">
+							            Country&nbsp;:&nbsp;
+						            </td>
+						            <td bgcolor="#e6e6fa" align="left" >&nbsp;
+						                <asp:TextBox runat="server" ID="txtCountry" Width="250px" style="font-family: Arial; font-size: 8pt; color: #3A4A8D; height: 20; text-align: left" />
+						            </td>
+					            </tr>
+				            </table>
+			            </td>
+		            </tr>
+		            <tr><td height="5"></td></tr>
+		            <tr>
+		                <td align="left"><asp:Button runat="server" ID="btnUpdate" Text="Change Profile" Visible="false" OnClick="btnUpdate_Click" /></td>
+		            </tr>
+		            <tr><td height="5"></td></tr>
+	            </table>
+	            <table border="0" cellspacing="0" cellpadding="0" ID="Table2" style="width: 100%">
+		            <tr valign="middle">
+			            <td colspan="3" class="text" style="width: 100%; height: 10px;">
+				            <br/>
+				            &nbsp;&nbsp;<b>Categories – Please tick your areas of interest, multiple boxes can be ticked.</b>
+			            </td>
+		            </tr>
+		            <tr>
+		                <td>
+		                    <table width="500" border="0" cellpadding="1" cellspacing="1">
+		                        <tr>
+		                            <td>
+		                                <asp:CheckBoxList runat="server" ID="cblBAA" DataTextField="value" DataValueField="value" RepeatDirection="Vertical" RepeatColumns="1">
+		                                    <asp:ListItem Text=" Agriculture & Food" Value="Agriculture & Food" />
+		                                    <asp:ListItem Text=" Building & Home" Value="Building & Home" />
+		                                    <asp:ListItem Text=" Business Services" Value="Business Services" />
+		                                    <asp:ListItem Text=" Chemical, Pharmaceutical & Plastics" Value="Chemical, Pharmaceutical & Plastics" />
+		                                    <asp:ListItem Text=" Electrical & Electronic Equipment" Value="Electrical & Electronic Equipment" />
+		                                    <asp:ListItem Text=" Information Technology" Value="Information Technology" />
+		                                    <asp:ListItem Text=" Machinery & Equipment" Value="Machinery & Equipment" />
+		                                    <asp:ListItem Text=" Medical" Value="Medical" />
+		                                    <asp:ListItem Text=" Metal" Value="Metal" />
+		                                    <asp:ListItem Text=" Power & Energy" Value="Power & Energy" />
+		                                    <asp:ListItem Text=" Research, Test & Development" Value="Research, Test & Development" />
+		                                    <asp:ListItem Text=" Telecommunications, Broadcasting & Media" Value="Telecommunications, Broadcasting & Media" />
+		                                    <asp:ListItem Text=" Textile & Paper" Value="Textile & Paper" />
+		                                    <asp:ListItem Text=" Transportation, Logistics & Storage" Value="Transportation, Logistics & Storage" />
+		                                    <asp:ListItem Text=" Travel & Leisure" Value="Travel & Leisure" />
+		                                    <asp:ListItem Text=" Wholesale & Distribution" Value="Wholesale & Distribution" />
+		                                </asp:CheckBoxList>
+		                            </td>
+		                        </tr>
+		                        <tr><td height="5"></td></tr>
+		                        <tr><td><b>Core business area of your company: </b></td></tr>
+		                        <tr><td><asp:TextBox runat="server" ID="txtBAA" Width="400px" /></td></tr>
+		                    </table>
+		                </td>
+		            </tr>
+		            <tr><td height="20"></td></tr>
+		            <tr>
+		                <td width="500">
+		                    <table width="100%">
+		                        <tr>
+		                            <td valign="top"><asp:CheckBox runat="server" ID="cbNeverEmail" Text=" " Checked="true" /></td>
+		                            <td><b>I would like to receive the Advantech newsletter which informs me about specific products and news related to the categories ticked above. <br />If you no longer wish to receive our information, you can cancel the newsletter at any time using the unsubscribe link in the bottom of the newsletter.</b></td>
+		                        </tr>
+		                    </table>
+		                </td>
+		            </tr>
+		            <tr><td height="10"></td></tr>
+		            <tr><td><asp:Button runat="server" ID="btnSave" Text="Save Changes" OnClick="btnSave_Click" /></td></tr>
+	                <tr><td height="10"></td></tr>
+	            </table>
+            </td>
+        </tr>
+    </table>
+    <table width="100%" style="background-color:#9c9fae;height:17px;border:0" cellspacing="0" cellpadding="0">
+        <tr>
+            <td height="19" bgcolor="7B8396"> <div align="center">
+              <table width="509" height="17"  border="0" cellpadding="0" cellspacing="0">
+                <tr>
+                  <td width="420"><div align="right"><span class="text_mini"><a href="/about" class="text_mini"><font color=#ffffff>Copyright &copy; 1983-2008 Advantech Co., Ltd. All Rights Reserved</font></a></span></div></td>
+                  <td width="9">&nbsp;</td>
+                  <td width="80" class="text_mini"><a href="#"><font color="#FFFFFF">Feedback</font></a></td>
+                </tr>
+              </table>
+              <span class="text_mini"><a href="/about" class="text_mini"></a></span></div></td>
+          </tr>
+    </table>
+    </div>
+    </form>
+</body>
+</html>
+

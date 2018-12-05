@@ -1,0 +1,112 @@
+﻿<%@ Page Language="VB" %>
+
+<%@ Import Namespace="system" %>
+<%@ Import Namespace="system.data" %>
+<%@ Import Namespace="system.data.SqlClient" %>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<script runat="server">
+
+    Protected Sub Page_Load(ByVal sender As Object, ByVal e As System.EventArgs)
+        Dim T_strselect, l_strSQLCmd As String
+        Dim l_strWhere As String = ""
+        l_strSQLCmd = "Select Company_id ,CalendarName,(select company_name from company where company_id=a.company_id) as Company_NAME from cust_calendar_mapping a "
+
+        '"from em_dim_sales where userid like '%" & request("manager") & "%' and parent_userid1 like '%@%' " & _
+        '"from em_dim_sales where userid like '%" & request("manager") & "%' and parent_userid2 like '%@%' "
+
+        T_strselect = l_strSQLCmd + l_strWhere + "order by company_id asc"
+        'If Session("user_id").ToString.ToLower = "jackie.wu@advantech.com.cn" Then
+        '    Response.Write(T_strselect)
+        'End If
+        Me.SqlDataSource1.SelectCommand = T_strselect
+        If Not Page.IsPostBack Then
+         
+            GridView1.DataBind()
+        End If
+    End Sub
+    Protected Sub GridView1_RowDataBound(ByVal sender As Object, ByVal e As System.Web.UI.WebControls.GridViewRowEventArgs)
+        If e.Row.RowType = DataControlRowType.Header Then
+            e.Row.Cells(0).Text = "Company ID"
+            e.Row.Cells(1).Text = "Calendar ID"
+            e.Row.Cells(2).Text = "Company Name"
+        End If
+        If e.Row.RowType = DataControlRowType.DataRow Then
+            e.Row.Cells(0).HorizontalAlign = HorizontalAlign.Left
+            e.Row.Cells(1).HorizontalAlign = HorizontalAlign.Left
+            e.Row.Cells(0).Text = "<a href="""" onclick=""copopulate('" & e.Row.Cells(0).Text & "')"">" & e.Row.Cells(0).Text & "</a>"
+            
+            If InStr(e.Row.Cells(1).Text, "@") > 0 Then
+                Dim xName() As String
+                Dim xFullName As String = ""
+                xName = e.Row.Cells(1).Text.Split("@")
+                xFullName = xName(0)
+                xFullName = xFullName.Replace(".", " ")
+                e.Row.Cells(1).Text = xFullName
+            End If
+        End If
+    End Sub
+   
+</script>
+
+<script type="text/javascript" language="javascript">
+function copopulate(xManagerName){
+    window.opener.updateFromChildWindow1(xManagerName);
+   self.close();
+}
+</script>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head id="Head1" runat="server">
+    <title>Pick Company</title>
+    <meta content="Microsoft Visual Studio .NET 7.1" name="GENERATOR" />
+    <meta content="Visual Basic .NET 7.1" name="CODE_LANGUAGE" />
+    <meta content="JavaScript" name="vs_defaultClientScript" />
+    <meta content="http://schemas.microsoft.com/intellisense/ie5" name="vs_targetSchema" />
+    <link href="/Includes/ebiz.aeu.style.css" rel="Stylesheet" type="text/css" />
+</head>
+<body>
+    <form id="form1" runat="server">
+    <div>
+        <table width="100%" border="0" cellspacing="0" cellpadding="0" id="Table1">
+            <tr>
+                <td width="100%" valign="top" align="center">
+                    <!--include file="srOrderChangePickManager_main.asp"-->
+                    <table cellpadding="1" width="100%">
+                        <tr>
+                            <td style="background-color: #666666">
+                                <table width="100%" border="0" cellspacing="0" cellpadding="0" align="center" style="vertical-align: middle"
+                                    id="Table4">
+                                    <tr>
+                                        <td style="padding-left: 10px; border-bottom: #ffffff 1px solid; height: 20px; background-color: #2979c4"
+                                            align="left" valign="middle" class="text">
+                                            <font color="#ffffff"><b>
+                                                <asp:Label ID="gheader" runat="server" Text="Company List"></asp:Label></b></font>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>
+                                            <!-- include virtual = "/cart/carthistory_list_new_main.asp" -->
+                                            <asp:GridView runat="server" Width="100%" ID="GridView1" AutoGenerateColumns="true"
+                                                OnRowDataBound="GridView1_RowDataBound" DataSourceID="SqlDataSource1" AllowPaging="True"
+                                                PageIndex="0" PageSize="30">
+                                            </asp:GridView>
+                                            <asp:SqlDataSource ID="SqlDataSource1" runat="server" ConnectionString="<%$ ConnectionStrings:B2B %>">
+                                            </asp:SqlDataSource>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td id="tdTotal" align="right" style="background-color: #ffffff" runat="server">
+                                        </td>
+                                    </tr>
+                                </table>
+                            </td>
+                        </tr>
+                    </table>
+                </td>
+            </tr>
+        </table>
+    </div>
+    </form>
+</body>
+</html>

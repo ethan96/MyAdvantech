@@ -1,0 +1,1191 @@
+﻿
+Partial Class Lab_CreateSAPCustomer
+    Inherits System.Web.UI.Page
+
+
+#Region "Enum Definitions"
+    Public Enum EnumCompanyType
+        Enum_Z001 ' Customer
+        Enum_Z002 ' ShipTo
+    End Enum
+
+    Public Enum EnumIndustryCode
+        Enum_1000 ' Taiwan
+        Enum_2000 ' America
+        Enum_3000 ' Europe
+        Enum_4000 ' China
+        Enum_5000 ' Asia - Others
+        Enum_BRCT ' Brazil
+        Enum_BRNC ' Non-Contribu.
+    End Enum
+
+    Public Enum EnumRegionWestEast
+        Enum_0000000001 ' East
+        Enum_0000000002 ' West
+    End Enum
+
+    Public Enum EnumCustomerClass
+        Enum_01 'AXSC
+        Enum_02 'RBU
+        Enum_03 'External
+        Enum_04 'Joint Venture
+    End Enum
+
+    Public Enum EnumCreditTerm
+        Enum_NONE
+        Enum_07D4
+        Enum_10D1
+        Enum_10D2
+        Enum_10D5
+        Enum_15D1
+        Enum_15D2
+        Enum_15D5
+        Enum_30D3
+        Enum_CN01
+        Enum_CN02
+        Enum_CN04
+        Enum_CN05
+        Enum_CN07
+        Enum_CN10
+        Enum_CN15
+        Enum_COD
+        Enum_CODC
+        Enum_CODM
+        Enum_EC30
+        Enum_ECBD
+        Enum_ECBO
+        Enum_ECOB
+        Enum_ECOO
+        Enum_I001
+        Enum_I007
+        Enum_I010
+        Enum_I014
+        Enum_I015
+        Enum_I021
+        Enum_I028
+        Enum_I030
+        Enum_I035
+        Enum_I045
+        Enum_I060
+        Enum_I070
+        Enum_I075
+        Enum_I090
+        Enum_I120
+        Enum_LC00
+        Enum_M014
+        Enum_M015
+        Enum_M025
+        Enum_M030
+        Enum_M045
+        Enum_M060
+        Enum_M075
+        Enum_M090
+        Enum_M120
+        Enum_M150
+        Enum_M20
+        Enum_M25
+        Enum_M30
+        Enum_MA15
+        Enum_MA30
+        Enum_MB60
+        Enum_MC30
+        Enum_MC60
+        Enum_NM25
+        Enum_P007
+        Enum_P015
+        Enum_P030
+        Enum_P045
+        Enum_P060
+        Enum_PPD
+        Enum_PPDW
+        Enum_T030
+        Enum_T045
+        Enum_T060
+        Enum_T075
+        Enum_T090
+        Enum_T120
+        Enum_TN01
+    End Enum
+
+    Public Enum EnumIncoTerm
+        Enum_AIR
+        Enum_CFR
+        Enum_CIF
+        Enum_CIP
+        Enum_CPT
+        Enum_DDP
+        Enum_DDU
+        Enum_DHL
+        Enum_EW1
+        Enum_EW3
+        Enum_EWS
+        Enum_EXW
+        Enum_FB1
+        Enum_FB2
+        Enum_FB4
+        Enum_FB5
+        Enum_FCA
+        Enum_FEX
+        Enum_FOB
+        Enum_LEX
+        Enum_MOE
+        Enum_OTR
+        Enum_TBD
+        Enum_UPS
+    End Enum
+
+    Public Enum EnumReconciliationAccount
+        Enum_0000113997
+        Enum_0000121001
+        Enum_0000121002
+        Enum_0000121003
+        Enum_0000121005
+        Enum_0000121006
+        Enum_0000121007
+        Enum_0000121008
+        Enum_0000121009
+        Enum_0000123100
+        Enum_0000142000
+        Enum_0000148009
+        Enum_0000245000
+        Enum_0000248000
+    End Enum
+
+    Public Enum EnumVerticalMarket
+        Enum_NONE
+        Enum_080
+        Enum_081
+        Enum_082
+        Enum_083
+        Enum_084
+        Enum_100
+        Enum_101
+        Enum_103
+        Enum_104
+        Enum_105
+        Enum_106
+        Enum_107
+        Enum_108
+        Enum_109
+        Enum_130
+        Enum_131
+        Enum_132
+        Enum_133
+        Enum_140
+        Enum_141
+        Enum_142
+        Enum_143
+        Enum_144
+        Enum_145
+        Enum_146
+        Enum_150
+        Enum_151
+        Enum_152
+        Enum_153
+        Enum_154
+        Enum_155
+        Enum_156
+        Enum_157
+        Enum_158
+        Enum_170
+        Enum_200
+        Enum_201
+        Enum_202
+        Enum_203
+        Enum_204
+        Enum_221
+        Enum_222
+        Enum_224
+        Enum_227
+        Enum_260
+        Enum_261
+        Enum_262
+        Enum_263
+        Enum_265
+        Enum_266
+        Enum_270
+        Enum_400
+        Enum_401
+        Enum_590
+        Enum_591
+        Enum_592
+        Enum_593
+        Enum_594
+        Enum_610
+        Enum_611
+        Enum_612
+        Enum_614
+        Enum_615
+        Enum_700
+        Enum_710
+        Enum_720
+        Enum_730
+        Enum_740
+        Enum_750
+        Enum_760
+        Enum_770
+        Enum_780
+        Enum_790
+        Enum_800
+        Enum_810
+        Enum_999
+    End Enum
+
+    Public Enum EnumShippingCondition
+        Enum_01
+        Enum_02
+        Enum_03
+        Enum_04
+        Enum_05
+        Enum_06
+        Enum_07
+        Enum_08
+        Enum_09
+        Enum_10
+        Enum_11
+        Enum_12
+        Enum_13
+        Enum_14
+        Enum_15
+        Enum_16
+        Enum_17
+        Enum_18
+        Enum_19
+        Enum_20
+        Enum_22
+        Enum_23
+    End Enum
+
+    Public Enum EnumPlanningGroup
+        Enum_A1
+        Enum_A2
+        Enum_E1
+        Enum_E2
+        Enum_E3
+        Enum_E4
+        Enum_P1
+        Enum_P3
+        Enum_R1
+        Enum_R2
+        Enum_R3
+    End Enum
+
+    Public Enum EnumAccountingClerk
+        Enum_01
+        Enum_02
+        Enum_03
+        Enum_04
+        Enum_05
+        Enum_06
+        Enum_07
+        Enum_08
+        Enum_09
+        Enum_10
+        Enum_11
+        Enum_12
+        Enum_13
+        Enum_14
+        Enum_15
+        Enum_16
+        Enum_17
+        Enum_18
+        Enum_19
+        Enum_20
+        Enum_21
+        Enum_22
+        Enum_23
+        Enum_24
+        Enum_25
+        Enum_26
+        Enum_27
+        Enum_28
+        Enum_29
+        Enum_30
+        Enum_31
+        Enum_32
+        Enum_33
+        Enum_34
+        Enum_35
+        Enum_36
+        Enum_37
+        Enum_38
+        Enum_39
+        Enum_40
+        Enum_41
+        Enum_42
+        Enum_43
+        Enum_44
+        Enum_45
+        Enum_46
+        Enum_47
+        Enum_48
+        Enum_49
+        Enum_50
+        Enum_51
+        Enum_52
+        Enum_53
+        Enum_54
+        Enum_55
+        Enum_56
+        Enum_57
+        Enum_58
+        Enum_59
+        Enum_60
+        Enum_61
+        Enum_62
+        Enum_63
+        Enum_64
+        Enum_65
+        Enum_66
+        Enum_67
+        Enum_68
+        Enum_69
+        Enum_70
+        Enum_71
+        Enum_72
+        Enum_73
+        Enum_74
+        Enum_75
+        Enum_76
+        Enum_77
+        Enum_78
+        Enum_79
+        Enum_81
+        Enum_82
+        Enum_83
+        Enum_84
+        Enum_85
+        Enum_86
+        Enum_87
+        Enum_88
+        Enum_89
+        Enum_90
+        Enum_91
+        Enum_93
+        Enum_94
+        Enum_95
+        Enum_96
+        Enum_97
+        Enum_98
+        Enum_AC
+        Enum_AI
+        Enum_CT
+        Enum_EI
+        Enum_OP
+        Enum_TI
+        Enum_Z1
+    End Enum
+
+    Public Enum EnumSalesDistrict
+        Enum_010
+        Enum_020
+        Enum_030
+        Enum_040
+        Enum_050
+        Enum_060
+        Enum_070
+        Enum_080
+        Enum_090
+        Enum_100
+        Enum_110
+        Enum_120
+        Enum_130
+        Enum_140
+        Enum_150
+        Enum_160
+        Enum_170
+        Enum_180
+        Enum_190
+        Enum_200
+        Enum_210
+        Enum_220
+        Enum_230
+        Enum_240
+        Enum_250
+        Enum_260
+        Enum_270
+        Enum_280
+        Enum_290
+        Enum_330
+        Enum_D10
+        Enum_D15
+        Enum_D20
+        Enum_D21
+        Enum_D25
+        Enum_D30
+        Enum_D35
+        Enum_D36
+        Enum_D39
+        Enum_D40
+        Enum_D41
+        Enum_D45
+        Enum_D46
+        Enum_D50
+        Enum_D51
+        Enum_D52
+        Enum_D55
+        Enum_D56
+        Enum_D60
+        Enum_D61
+        Enum_D70
+        Enum_D75
+        Enum_D80
+        Enum_D85
+        Enum_D90
+        Enum_D91
+        Enum_D94
+        Enum_D95
+        Enum_D97
+        Enum_D98
+        Enum_DLG
+        Enum_DMS
+        Enum_E01
+        Enum_E02
+        Enum_E03
+        Enum_E04
+        Enum_E05
+        Enum_E06
+        Enum_E07
+        Enum_E08
+        Enum_E09
+        Enum_E10
+        Enum_I20
+        Enum_I90
+        Enum_L10
+        Enum_L20
+        Enum_L30
+        Enum_L40
+        Enum_L50
+        Enum_L60
+        Enum_M10
+        Enum_M15
+        Enum_M20
+        Enum_M25
+        Enum_M30
+        Enum_M35
+        Enum_M40
+        Enum_M45
+        Enum_M50
+        Enum_M55
+        Enum_M65
+        Enum_M70
+        Enum_M75
+        Enum_M80
+        Enum_PC0
+    End Enum
+
+    Public Enum EnumCustomerGroup
+        Enum_01
+        Enum_02
+        Enum_03
+        Enum_04
+        Enum_05
+        Enum_06
+        Enum_07
+        Enum_08
+        Enum_09
+        Enum_10
+        Enum_11
+        Enum_12
+        Enum_13
+        Enum_15
+        Enum_20
+        Enum_30
+        Enum_B1
+        Enum_D1
+        Enum_K1
+    End Enum
+
+    Public Enum EnumCurrency
+        Enum_AUD
+        Enum_BRL
+        Enum_CNY
+        Enum_EUR
+        Enum_GBP
+        Enum_JPY
+        Enum_KRW
+        Enum_MYR
+        Enum_SGD
+        Enum_THB
+        Enum_TWD
+        Enum_USD
+    End Enum
+
+    Public Enum EnumOrgId
+        Enum_AU01
+        Enum_BR01
+        Enum_CN01
+        Enum_CN02
+        Enum_CN10
+        Enum_CN11
+        Enum_CN12
+        Enum_CN13
+        Enum_CN20
+        Enum_CN30
+        Enum_CN40
+        Enum_EU10
+        Enum_EU33
+        Enum_EU34
+        Enum_EU50
+        Enum_HK05
+        Enum_JP01
+        Enum_KR01
+        Enum_MY01
+        Enum_SG01
+        Enum_TL01
+        Enum_TW01
+        Enum_TW02
+        Enum_TW03
+        Enum_TW04
+        Enum_TW05
+        Enum_TWCP
+        Enum_US01
+    End Enum
+
+    Public Enum EnumCountryCode
+        Enum_AE
+        Enum_AL
+        Enum_AM
+        Enum_AN
+        Enum_AO
+        Enum_AR
+        Enum_AT
+        Enum_AU
+        Enum_AZ
+        Enum_BA
+        Enum_BD
+        Enum_BE
+        Enum_BF
+        Enum_BG
+        Enum_BH
+        Enum_BM
+        Enum_BN
+        Enum_BO
+        Enum_BR
+        Enum_BS
+        Enum_BW
+        Enum_BY
+        Enum_BZ
+        Enum_CA
+        Enum_CH
+        Enum_CL
+        Enum_CN
+        Enum_CO
+        Enum_CR
+        Enum_CY
+        Enum_CZ
+        Enum_DE
+        Enum_DK
+        Enum_DM
+        Enum_DO
+        Enum_DZ
+        Enum_EC
+        Enum_EE
+        Enum_EG
+        Enum_ES
+        Enum_FI
+        Enum_FJ
+        Enum_FK
+        Enum_FR
+        Enum_GB
+        Enum_GD
+        Enum_GE
+        Enum_GL
+        Enum_GR
+        Enum_GT
+        Enum_HK
+        Enum_HN
+        Enum_HR
+        Enum_HU
+        Enum_ID
+        Enum_IE
+        Enum_IL
+        Enum_IN
+        Enum_IQ
+        Enum_IR
+        Enum_IS
+        Enum_IT
+        Enum_JM
+        Enum_JO
+        Enum_JP
+        Enum_KE
+        Enum_KG
+        Enum_KH
+        Enum_KR
+        Enum_KW
+        Enum_KY
+        Enum_KZ
+        Enum_LA
+        Enum_LB
+        Enum_LI
+        Enum_LK
+        Enum_LT
+        Enum_LU
+        Enum_LV
+        Enum_LY
+        Enum_MA
+        Enum_MC
+        Enum_MD
+        Enum_MF
+        Enum_MG
+        Enum_MK
+        Enum_MM
+        Enum_MN
+        Enum_MO
+        Enum_MR
+        Enum_MT
+        Enum_MU
+        Enum_MV
+        Enum_MW
+        Enum_MX
+        Enum_MY
+        Enum_NA
+        Enum_NC
+        Enum_NE
+        Enum_NG
+        Enum_NI
+        Enum_NL
+        Enum_NO
+        Enum_NP
+        Enum_NZ
+        Enum_OM
+        Enum_PA
+        Enum_PE
+        Enum_PH
+        Enum_PK
+        Enum_PL
+        Enum_PR
+        Enum_PT
+        Enum_PY
+        Enum_QA
+        Enum_RO
+        Enum_RS
+        Enum_RU
+        Enum_SA
+        Enum_SB
+        Enum_SE
+        Enum_SG
+        Enum_SI
+        Enum_SK
+        Enum_SL
+        Enum_SV
+        Enum_SY
+        Enum_SZ
+        Enum_TF
+        Enum_TH
+        Enum_TJ
+        Enum_TN
+        Enum_TR
+        Enum_TT
+        Enum_TW
+        Enum_UA
+        Enum_UG
+        Enum_US
+        Enum_UY
+        Enum_UZ
+        Enum_VA
+        Enum_VE
+        Enum_VG
+        Enum_VI
+        Enum_VN
+        Enum_YU
+        Enum_ZA
+        Enum_ZM
+        Enum_ZW
+    End Enum
+
+    Public Enum EnumCustomerType
+        Enum_NONE
+        Enum_312
+        Enum_315
+        Enum_321
+        Enum_322
+        Enum_323
+        Enum_324
+        Enum_325
+        Enum_327
+    End Enum
+#End Region
+
+    <Serializable()> _
+    Public Class SAPCustomerGeneralData
+        Public CompanyId As String, CompanyName As String, Address As String, City As String, PostCode As String, SearchTerm1 As String, VATNumber As String
+        Public SearchTerm2 As String, TelNumber As String, FaxNumber As String, OrgId As EnumOrgId
+        Public CountryCode As EnumCountryCode, CustomerClass As EnumCustomerClass, IndustryCode As EnumIndustryCode
+        Public CompanyType As EnumCompanyType, RegionWestEast As EnumRegionWestEast, CustomerType As EnumCustomerType
+        Public CondGrp1 As String, CondGrp2 As String, CondGrp3 As String, CondGrp4 As String, CondGrp5 As String
+        Public Attribute1 As String, Attribute2 As String, Attribute3 As String, Attribute4 As String, Attribute5 As String, Attribute6 As String
+        Public Attribute8 As String, Attribute10 As String
+        Public WebSiteUrl As String, ContactPersonName As String, ContactPersonEmail As String
+        Public IncoTerm1 As EnumIncoTerm, IncoTerm2 As String
+        Public SalesGroup As String, SalesOffice As String, SalesCode As String, InsideSalesCode As String
+        Public VerticalMarket As EnumVerticalMarket
+    End Class
+
+    <Serializable()> _
+    Public Class SAPCustomerCreditData
+        Public CreditTerm As EnumCreditTerm, Currency As EnumCurrency, CustomerGroup As EnumCustomerGroup
+        Public SalesDistrict As EnumSalesDistrict, RecAccount As EnumReconciliationAccount
+        Public AmountInsured As Double, InsurePolicyNumber As String, AccountingClerk As EnumAccountingClerk
+        Public PlanningGroup As EnumPlanningGroup, ShippingCondition As EnumShippingCondition
+        Public HasCreditData As Boolean
+        Public Sub New()
+            HasCreditData = False
+        End Sub
+    End Class
+
+    Public Shared Function UpdateSAPPartnerFunction(ByRef knvpTable As ZCUSTOMER_UPDATE_SALES_AREA.FKNVPTable) As Boolean
+        Dim p1 As New ZCUSTOMER_UPDATE_SALES_AREA.ZCUSTOMER_UPDATE_SALES_AREA
+        p1.Connection = New SAP.Connector.SAPConnection("CLIENT=168 USER=b2baeu PASSWD=ebizaeu ASHOST=172.20.1.1 SYSNR=1")
+        p1.Connection.Open()
+        p1.Zcustomer_Update_Sales_Area( _
+            New ZCUSTOMER_UPDATE_SALES_AREA.FKNVDTable, knvpTable, New ZCUSTOMER_UPDATE_SALES_AREA.KNVVTable, _
+            New ZCUSTOMER_UPDATE_SALES_AREA.FKNVDTable, New ZCUSTOMER_UPDATE_SALES_AREA.FKNVPTable)
+        p1.CommitWork() : p1.Connection.Close()
+        Return True
+    End Function
+
+    Public Shared Function CreateSAPCustomer(ByVal GeneralData As SAPCustomerGeneralData, ByVal CreditData2 As SAPCustomerCreditData) As Boolean
+        GeneralData.CompanyId = UCase(GeneralData.CompanyId) : GeneralData.OrgId = UCase(GeneralData.OrgId)
+        Dim strCustomerClass As String = GeneralData.CustomerClass.ToString().Substring(5)
+        Dim strCountryCode As String = GeneralData.CountryCode.ToString().Substring(5)
+        Dim strCompanyType As String = GeneralData.CompanyType.ToString().Substring(5)
+        Dim strIndustryCode As String = GeneralData.IndustryCode.ToString().Substring(5)
+        Dim strRegionWestEast As String = GeneralData.RegionWestEast.ToString().Substring(5)
+        Dim strCreditTerm As String = ""
+        If CreditData2.HasCreditData Then strCreditTerm = CreditData2.CreditTerm.ToString().Substring(5)
+        Dim strOrgId As String = GeneralData.OrgId.ToString().Substring(5)
+        Dim strPlant As String = Left(strOrgId, 2) + "H1"
+        Dim strInco1 As String = GeneralData.IncoTerm1.ToString().Substring(5)
+        Dim strVM As String = GeneralData.VerticalMarket.ToString().Substring(5)
+        If strVM = "NONE" Then strVM = ""
+        If strCreditTerm = "NONE" Then strCreditTerm = ""
+        Dim strCurrency As String = ""
+        If CreditData2.HasCreditData Then strCurrency = CreditData2.Currency.ToString().Substring(5)
+        Dim strCreateDate As String = Now.ToString("yyyyMMdd"), strCreator As String = "b2baeu"
+
+        Dim p1 As New ZSD_CUSTOMER_MAINTAIN_ALL.ZSD_CUSTOMER_MAINTAIN_ALL
+        p1.Connection = New SAP.Connector.SAPConnection(ConfigurationManager.AppSettings("SAPConnTest"))
+        Dim I_Bapiaddr1 As New ZSD_CUSTOMER_MAINTAIN_ALL.BAPIADDR1, I_Bapiaddr2 As New ZSD_CUSTOMER_MAINTAIN_ALL.BAPIADDR2
+        Dim I_Customer_Is_Consumer As String = "", I_Force_External_Number_Range As String = "", I_From_Customermaster As String = ""
+        Dim I_Kna1 As New ZSD_CUSTOMER_MAINTAIN_ALL.KNA1, I_Knb1 As New ZSD_CUSTOMER_MAINTAIN_ALL.KNB1
+        Dim I_Knb1_Reference As String = "", I_Knvv As New ZSD_CUSTOMER_MAINTAIN_ALL.KNVV, I_Maintain_Address_By_Kna1 As String = "X"
+        Dim I_No_Bank_Master_Update As String = "", I_Raise_No_Bte As String = "", Pi_Add_On_Data As New ZSD_CUSTOMER_MAINTAIN_ALL.CUST_ADD_ON_DATA
+        Dim Pi_Cam_Changed As String = "", Pi_Postflag As String = ""
+        ''Return Arguments
+        Dim E_Kunnr As String = "", E_Sd_Cust_1321_Done As String = "", O_Kna1 As New ZSD_CUSTOMER_MAINTAIN_ALL.KNA1
+        Dim T_Upd_Txt As New ZSD_CUSTOMER_MAINTAIN_ALL.FKUNTXTTable, T_Xkn As New ZSD_CUSTOMER_MAINTAIN_ALL.FKNASTable
+        Dim T_Xknb5 As New ZSD_CUSTOMER_MAINTAIN_ALL.FKNB5Table, T_Xknbk As New ZSD_CUSTOMER_MAINTAIN_ALL.FKNBKTable
+        Dim T_Xknex As New ZSD_CUSTOMER_MAINTAIN_ALL.FKNEXTable, T_Xknva As New ZSD_CUSTOMER_MAINTAIN_ALL.FKNVATable
+        Dim T_Xknvd As New ZSD_CUSTOMER_MAINTAIN_ALL.FKNVDTable, T_Xknvi As New ZSD_CUSTOMER_MAINTAIN_ALL.FKNVITable
+        Dim T_Xknvk As New ZSD_CUSTOMER_MAINTAIN_ALL.FKNVKTable, T_Xknvl As New ZSD_CUSTOMER_MAINTAIN_ALL.FKNVLTable
+        Dim T_Xknvp As New ZSD_CUSTOMER_MAINTAIN_ALL.FKNVPTable, T_Xknza As New ZSD_CUSTOMER_MAINTAIN_ALL.FKNZATable
+        Dim T_Ykn As New ZSD_CUSTOMER_MAINTAIN_ALL.FKNASTable, T_Yknb5 As New ZSD_CUSTOMER_MAINTAIN_ALL.FKNB5Table
+        Dim T_Yknbk As New ZSD_CUSTOMER_MAINTAIN_ALL.FKNBKTable, T_Yknex As New ZSD_CUSTOMER_MAINTAIN_ALL.FKNEXTable
+        Dim T_Yknva As New ZSD_CUSTOMER_MAINTAIN_ALL.FKNVATable, T_Yknvd As New ZSD_CUSTOMER_MAINTAIN_ALL.FKNVDTable
+        Dim T_Yknvi As New ZSD_CUSTOMER_MAINTAIN_ALL.FKNVITable, T_Yknvk As New ZSD_CUSTOMER_MAINTAIN_ALL.FKNVKTable
+        Dim T_Yknvl As New ZSD_CUSTOMER_MAINTAIN_ALL.FKNVLTable, T_Yknvp As New ZSD_CUSTOMER_MAINTAIN_ALL.FKNVPTable
+        Dim T_Yknza As New ZSD_CUSTOMER_MAINTAIN_ALL.FKNZATable
+
+        'Assignment 
+        With I_Bapiaddr1
+            .Name = GeneralData.CompanyName : .Title = "Company"
+            .Country = GeneralData.CountryCode.ToString().Substring(5)
+            .Street = GeneralData.Address
+            .Postl_Cod1 = GeneralData.PostCode
+            .Addr_No = "" : .City = GeneralData.City : .C_O_Name = GeneralData.ContactPersonName : .E_Mail = GeneralData.ContactPersonEmail
+        End With
+        With I_Bapiaddr2
+            .Namcountry = GeneralData.CountryCode.ToString().Substring(5)
+            .Postl_Cod1 = GeneralData.PostCode
+            .Homepage = GeneralData.WebSiteUrl
+            .Fax_Number = GeneralData.FaxNumber
+            .Tel1_Numbr = GeneralData.TelNumber
+            .Addr_No = ""
+        End With
+
+        I_Customer_Is_Consumer = "" : I_Force_External_Number_Range = "1" : I_From_Customermaster = "1"
+        With I_Kna1
+            .Mandt = "168"
+            .Kunnr = GeneralData.CompanyId
+            .Land1 = strCountryCode
+            .Name1 = GeneralData.CompanyName
+            .Name2 = ""
+            .Ort01 = GeneralData.City
+            .Pstlz = GeneralData.PostCode
+            .Regio = " "
+            .Sortl = GeneralData.SearchTerm1 : .Stras = GeneralData.Address : .Telf1 = GeneralData.TelNumber : .Telfx = GeneralData.FaxNumber
+            .Xcpdk = " "
+            '.Adrnr = "0000090780"
+            .Mcod1 = GeneralData.CompanyName
+            .Mcod2 = " "
+            .Mcod3 = GeneralData.Address : .Anred = "Company"
+            .Aufsd = " " : .Bahne = " " : .Bahns = " " : .Begru = " "
+            .Bbbnr = "0000000" : .Bbsnr = "00000" 'International location number  (part 1 & 2), not a variable value so far
+            .Bubkz = "0"    'Check digit for the international location number           
+            .Brsch = strIndustryCode
+
+            .Datlt = " " : .Erdat = strCreateDate : .Ernam = strCreator
+            .Exabl = " " : .Faksd = " " : .Fiskn = " " : .Knazk = " " : .Knrza = " " : .Konzs = " "
+            .Ktokd = strCompanyType
+            .Kukla = strCustomerClass
+            .Lifnr = " " : .Lifsd = " " : .Locco = " " : .Loevm = " " : .Name3 = " " : .Name4 = " "
+            .Niels = " " : .Ort02 = " " : .Pfach = " " : .Pstl2 = " " : .Counc = " " : .Cityc = " " : .Rpmkr = " "
+            .Sperr = " " : .Spras = "E" : .Stcd1 = " " : .Stcd2 = " " : .Stkza = " " : .Stkzu = " " : .Telbx = " "
+            .Telf2 = " " : .Teltx = " " : .Telx1 = " "
+            .Lzone = strRegionWestEast
+            .Xzemp = " " : .Vbund = " "
+            .Stceg = GeneralData.VATNumber
+            .Dear1 = " " : .Dear2 = " " : .Dear3 = " " : .Dear4 = " " : .Dear5 = " "
+            .Gform = " " : .Bran1 = " " : .Bran2 = " " : .Bran3 = " " : .Bran4 = " " : .Bran5 = " " : .Ekont = " "
+            .Umsat = "0" : .Umjah = "0000" : .Uwaer = " " : .Jmzah = "000000" : .Jmjah = "0000"
+            .Katr1 = GeneralData.Attribute1 : .Katr2 = GeneralData.Attribute2 : .Katr3 = GeneralData.Attribute3
+            .Katr4 = GeneralData.Attribute4 : .Katr5 = GeneralData.Attribute5 : .Katr6 = GeneralData.Attribute6
+            Dim strCustomerType As String = GeneralData.CustomerType.ToString.Substring(5)
+            If strCustomerType = "NONE" Then strCustomerType = ""
+            .Katr7 = strCustomerType 'Customer Type - ex: 315 - GA eAutomation
+            .Katr8 = GeneralData.Attribute8
+            .Katr9 = strVM 'Vertical Market
+            .Katr10 = GeneralData.Attribute10
+            .Stkzn = " " : .Umsa1 = "0" : .Txjcd = " " : .Periv = " " : .Abrvw = " "
+            .Inspbydebi = " " : .Inspatdebi = " " : .Ktocd = " " : .Pfort = " " : .Werks = " " : .Dtams = " "
+            .Dtaws = " " : .Duefl = "X" : .Hzuor = "00" : .Sperz = " " : .Etikg = " " : .Civve = "X" : .Milve = " "
+            .Kdkg1 = GeneralData.CondGrp1 : .Kdkg2 = GeneralData.CondGrp2 : .Kdkg3 = GeneralData.CondGrp3
+            .Kdkg4 = GeneralData.CondGrp4 : .Kdkg5 = GeneralData.CondGrp5
+            .Xknza = " "
+            .Fityp = " " : .Stcdt = " " : .Stcd3 = " " : .Stcd4 = " " : .Xicms = " " : .Xxipi = " " : .Xsubt = " "
+            .Cfopc = " " : .Txlw1 = " " : .Txlw2 = " " : .Ccc01 = " " : .Ccc02 = " " : .Ccc03 = " " : .Ccc04 = " "
+            .Cassd = " "
+            .Knurl = GeneralData.WebSiteUrl
+            .J_1kfrepre = " " : .J_1kftbus = " " : .J_1kftind = " " : .Confs = " "
+            .Updat = "00000000" : .Uptim = "000000" : .Nodel = " " : .Dear6 = " " : .Alc = " " : .Pmt_Office = " " : .Psofg = " "
+            .Psois = " " : .Pson1 = " " : .Pson2 = " " : .Pson3 = " " : .Psovn = " " : .Psotl = " " : .Psohs = " " : .Psost = " "
+            .Psoo1 = " " : .Psoo2 = " " : .Psoo3 = " " : .Psoo4 = " " : .Psoo5 = " "
+        End With
+        With I_Knb1
+            .Mandt = "168" : .Kunnr = GeneralData.CompanyId : .Bukrs = strOrgId : .Pernr = "00000000" : .Erdat = strCreateDate
+            .Ernam = strCreator : .Sperr = " " : .Loevm = " "
+            .Zuawa = "001" 'Sort Key
+            If CreditData2.HasCreditData Then
+                .Busab = CreditData2.AccountingClerk.ToString().Substring(5) 'Accounting clerk
+                .Akont = CreditData2.RecAccount.ToString().Substring(5)
+                .Vlibb = CreditData2.AmountInsured
+                .Fdgrv = CreditData2.PlanningGroup.ToString().Substring(5)
+                .Vrsnr = CreditData2.InsurePolicyNumber
+            End If
+
+            .Begru = " " : .Knrze = " " : .Knrzb = " " : .Zamim = " " : .Zamiv = " " : .Zamir = " " : .Zamib = " "
+            .Zamio = " " : .Zwels = " " : .Xverr = " " : .Zahls = " " : .Zterm = strCreditTerm : .Wakon = " " : .Vzskz = " "
+            .Zindt = "00000000" : .Zinrt = "00" : .Eikto = " " : .Zsabe = " " : .Kverm = " "
+            .Vrbkz = " " : .Vrszl = "0" : .Vrspr = "0" : .Verdt = "00000000"
+            .Perkz = " " : .Xdezv = " " : .Xausz = " " : .Webtr = "0" : .Remit = " " : .Datlz = "00000000" : .Xzver = "X"
+            .Togru = " " : .Kultg = "0" : .Hbkid = " " : .Xpore = " " : .Blnkz = " " : .Altkn = " " : .Zgrup = " "
+            .Urlid = " "
+            .Mgrup = "01" 'Dunning group - currently only one option 01
+            .Lockb = " " : .Uzawe = " " : .Ekvbd = " " : .Sregl = " " : .Xedip = " "
+            .Frgrp = " " : .Vrsdg = " " : .Tlfxs = " " : .Intad = " " : .Xknzb = " " : .Guzte = " " : .Gricd = " "
+            .Gridt = " " : .Wbrsl = " " : .Confs = " " : .Updat = "00000000" : .Uptim = "000000" : .Nodel = " "
+            .Tlfns = " " : .Cession_Kz = " " : .Gmvkzd = " "
+        End With
+        I_Knb1_Reference = ""
+        If CreditData2.HasCreditData Then
+            With I_Knvv
+                .Mandt = "168" : .Kunnr = GeneralData.CompanyId : .Vkorg = strOrgId : .Vtweg = "00" : .Spart = "00"
+                .Ernam = strCreator : .Erdat = strCreateDate : .Begru = " " : .Loevm = " " : .Versg = " "
+                .Aufsd = " " : .Kalks = "1"
+                If GeneralData.CompanyType = EnumCompanyType.Enum_Z001 Then .Kdgrp = CreditData2.CustomerGroup.ToString().Substring(5)
+                If GeneralData.CompanyType = EnumCompanyType.Enum_Z001 Then .Bzirk = CreditData2.SalesDistrict.ToString().Substring(5) 'Sales District
+                .Konda = "00" : .Pltyp = "00"
+                .Awahr = "100" 'Order probability
+                .Inco1 = strInco1 : .Inco2 = GeneralData.IncoTerm2
+                .Lifsd = " " : .Autlf = " "
+                .Antlf = "9" 'Maximum Number of Partial Deliveries Allowed Per Item
+                .Kztlf = " " : .Kzazu = "X" : .Chspl = " "
+                .Lprio = "02" 'Delivery Priority
+                .Eikto = " " : .Vsbed = CreditData2.ShippingCondition.ToString.Substring(5)
+                .Faksd = " " : .Mrnkz = " " : .Perfk = " " : .Perrl = " " : .Kvakz = " " : .Kvawt = "0"
+                .Waers = strCurrency : .Klabc = " " : .Ktgrd = "02" : .Zterm = strCreditTerm : .Vwerk = strPlant
+                .Vkgrp = GeneralData.SalesGroup : .Vkbur = GeneralData.SalesOffice
+                .Vsort = " " : .Kvgr1 = " " : .Kvgr2 = " " : .Kvgr3 = "D4" : .Kvgr4 = " "
+                .Kvgr5 = " " : .Bokre = " " : .Boidt = "00000000" : .Kurst = " " : .Prfre = " " : .Prat1 = " "
+                .Prat2 = " " : .Prat3 = " " : .Prat4 = " " : .Prat5 = " " : .Prat6 = " " : .Prat7 = " " : .Prat8 = " "
+                .Prat9 = " " : .Prata = " " : .Kabss = " " : .Kkber = " " : .Cassd = " " : .Rdoff = " " : .Agrel = " "
+                .Megru = " " : .Uebto = "0" : .Untto = "0" : .Uebtk = " " : .Pvksm = " " : .Podkz = " " : .Podtg = "0"
+                .Blind = " " : .Bev1_Emlgforts = " " : .Bev1_Emlgpfand = " "
+            End With
+        End If
+
+        I_Maintain_Address_By_Kna1 = "" : I_No_Bank_Master_Update = "" : I_Raise_No_Bte = ""
+        With Pi_Add_On_Data
+            '  .Kunnr = "EFFRFA05"
+        End With
+        Pi_Cam_Changed = "" : Pi_Postflag = ""
+
+        p1.Zsd_Customer_Maintain_All(I_Bapiaddr1, I_Bapiaddr2, I_Customer_Is_Consumer, _
+                               I_Force_External_Number_Range, I_From_Customermaster, _
+                               I_Kna1, I_Knb1, I_Knb1_Reference, I_Knvv, I_Maintain_Address_By_Kna1, _
+                               I_No_Bank_Master_Update, I_Raise_No_Bte, _
+                               Pi_Add_On_Data, Pi_Cam_Changed, Pi_Postflag, _
+                               E_Kunnr, E_Sd_Cust_1321_Done, O_Kna1, T_Upd_Txt, _
+                               T_Xkn, T_Xknb5, T_Xknbk, T_Xknex, T_Xknva, T_Xknvd, T_Xknvi, _
+                               T_Xknvk, T_Xknvl, T_Xknvp, T_Xknza, T_Ykn, T_Yknb5, T_Yknbk, T_Yknex, T_Yknva, _
+                               T_Yknvd, T_Yknvi, T_Yknvk, T_Yknvl, T_Yknvp, T_Yknza)
+        p1.CommitWork()
+        p1.Connection.Close()
+        Return True
+    End Function
+
+    Public Sub PageMethod_CreateCustomer()
+        Try
+            lbDebugMsg.Text = ""
+            Dim objGeneralData As New SAPCustomerGeneralData, objCreditData As New SAPCustomerCreditData
+            With objGeneralData
+                .Address = txtAddr.Text : .City = txtCity.Text : .CompanyId = txtCompanyId.Text : .CompanyName = txtCompanyName.Text
+                .CompanyType = EnumCompanyType.Enum_Z001 : .ContactPersonEmail = txtContactEmail.Text : .ContactPersonName = txtContactName.Text
+                .CountryCode = FindEnumValueByName(GetType(EnumCountryCode), "Enum_" + dlCountry.SelectedItem.Text)
+                .CustomerClass = EnumCustomerClass.Enum_03
+                .CustomerType = FindEnumValueByName(GetType(EnumCustomerType), "Enum_" + dlCustomerType.SelectedValue)
+                'lbDebugMsg.Text = "CustomerType:" + .CustomerType.ToString() + ",dlCustomerType.SelectedValue:" + dlCustomerType.SelectedValue
+                .FaxNumber = txtFax.Text
+                .IncoTerm1 = FindEnumValueByName(GetType(EnumIncoTerm), "Enum_" + dlInco1.SelectedItem.Text)
+                .IncoTerm2 = txtInco2.Text : .IndustryCode = EnumIndustryCode.Enum_3000
+                .InsideSalesCode = ""
+                .OrgId = EnumOrgId.Enum_EU10
+                .PostCode = txtPostCode.Text
+                .RegionWestEast = EnumRegionWestEast.Enum_0000000001 : .SalesCode = ""
+                .SalesGroup = dlCustomerType.SelectedValue : .SalesOffice = dlSalesOffice.SelectedValue
+                .SearchTerm1 = "" : .SearchTerm2 = ""
+                .TelNumber = txtTel.Text : .VATNumber = txtVAT.Text
+                .VerticalMarket = FindEnumValueByName(GetType(EnumVerticalMarket), "Enum_" + dlVM.SelectedValue)
+                If dlVM.SelectedIndex = 0 Then .VerticalMarket = EnumVerticalMarket.Enum_NONE
+                .WebSiteUrl = txtWebsiteUrl.Text
+            End With
+
+            With objCreditData
+                .HasCreditData = True
+                .AccountingClerk = EnumAccountingClerk.Enum_EI
+                .AmountInsured = 0
+                If Double.TryParse(txtAmtInsured.Text, 0) Then .AmountInsured = CDbl(txtAmtInsured.Text)
+                .CreditTerm = FindEnumValueByName(GetType(EnumCreditTerm), "Enum_" + dlPayTerm.SelectedItem.Text)
+                .Currency = FindEnumValueByName(GetType(EnumCurrency), "Enum_" + dlCurr.SelectedItem.Text)
+                .CustomerGroup = EnumCustomerGroup.Enum_02
+                .InsurePolicyNumber = ""
+                .PlanningGroup = EnumPlanningGroup.Enum_E1
+                .RecAccount = EnumReconciliationAccount.Enum_0000113997
+                .SalesDistrict = EnumSalesDistrict.Enum_E06
+                .ShippingCondition = FindEnumValueByName(GetType(EnumShippingCondition), "Enum_" + dlShipCond.SelectedItem.Text)
+            End With
+
+
+            CreateSAPCustomer(objGeneralData, objCreditData)
+
+            'Create ship-to
+            If rblHasShipto.SelectedIndex = 1 Then
+                Dim objShiptoGeneralData As New SAPCustomerGeneralData, objShiptoCreditData As New SAPCustomerCreditData
+                With objShiptoGeneralData
+                    .Address = txtShiptoAddress.Text : .City = txtShiptoCity.Text : .CompanyId = objGeneralData.CompanyId + "A" : .CompanyName = txtShiptoCompanyName.Text
+                    .CompanyType = EnumCompanyType.Enum_Z002 : .ContactPersonEmail = txtShiptoContactEmail.Text : .ContactPersonName = txtShiptoContactName.Text
+                    .CountryCode = FindEnumValueByName(GetType(EnumCountryCode), "Enum_" + dlShiptoCountry.SelectedItem.Text)
+                    .CustomerClass = EnumCustomerClass.Enum_03
+                    .CustomerType = FindEnumValueByName(GetType(EnumCustomerType), "Enum_" + dlCustomerType.SelectedValue)
+                    'lbDebugMsg.Text = "CustomerType:" + .CustomerType.ToString() + ",dlCustomerType.SelectedValue:" + dlCustomerType.SelectedValue
+                    .FaxNumber = txtShiptoFax.Text
+                    '.IncoTerm1 = FindEnumValueByName(GetType(EnumIncoTerm), "Enum_" + dlInco1.SelectedItem.Text)
+                    '.IncoTerm2 = txtInco2.Text
+                    .IndustryCode = EnumIndustryCode.Enum_3000
+                    .OrgId = EnumOrgId.Enum_EU10
+                    .PostCode = txtShiptoPostcode.Text
+                    .RegionWestEast = EnumRegionWestEast.Enum_0000000001 : .SalesCode = ""
+                    .SalesGroup = dlCustomerType.SelectedValue : .SalesOffice = dlSalesOffice.SelectedValue
+                    .SearchTerm1 = "" : .SearchTerm2 = ""
+                    .TelNumber = txtShiptoTel.Text : .VATNumber = txtShiptoVATNumber.Text
+                    '.VerticalMarket = FindEnumValueByName(GetType(EnumVerticalMarket), "Enum_" + dlVM.SelectedValue)
+                    'If dlVM.SelectedIndex = 0 Then .VerticalMarket = EnumVerticalMarket.Enum_NONE
+                    '.WebSiteUrl = txtWebsiteUrl.Text
+                End With
+
+                With objShiptoCreditData
+                    .HasCreditData = True
+                    .AccountingClerk = EnumAccountingClerk.Enum_EI
+                    .AmountInsured = 0
+                    If Double.TryParse(txtAmtInsured.Text, 0) Then .AmountInsured = CDbl(txtAmtInsured.Text)
+                    .CreditTerm = FindEnumValueByName(GetType(EnumCreditTerm), "Enum_" + dlPayTerm.SelectedItem.Text)
+                    .Currency = FindEnumValueByName(GetType(EnumCurrency), "Enum_" + dlCurr.SelectedItem.Text)
+                    .CustomerGroup = EnumCustomerGroup.Enum_02
+                    .InsurePolicyNumber = ""
+                    .PlanningGroup = EnumPlanningGroup.Enum_E1
+                    .RecAccount = EnumReconciliationAccount.Enum_0000113997
+                    .SalesDistrict = EnumSalesDistrict.Enum_E06
+                    .ShippingCondition = FindEnumValueByName(GetType(EnumShippingCondition), "Enum_" + dlShipCond.SelectedItem.Text)
+                End With
+                CreateSAPCustomer(objShiptoGeneralData, objShiptoCreditData)
+            End If
+
+            'Create sales/op/is code in knvp table, and ship-to if specified              
+            Dim knvpTable As New ZCUSTOMER_UPDATE_SALES_AREA.FKNVPTable
+            Dim salesRow As New ZCUSTOMER_UPDATE_SALES_AREA.FKNVP, opRow As New ZCUSTOMER_UPDATE_SALES_AREA.FKNVP, isRow As New ZCUSTOMER_UPDATE_SALES_AREA.FKNVP
+            Dim ShipToRow As New ZCUSTOMER_UPDATE_SALES_AREA.FKNVP
+            Dim CompanyId As String = objGeneralData.CompanyId, OrgId As String = "EU10"
+            With salesRow
+                .Defpa = "" : .Knref = "" : .Kunn2 = "" : .Kunnr = CompanyId
+                .Lifnr = "" : .Mandt = "168" : .Parnr = "0000000000" : .Parvw = "VE" : .Parza = "000"
+                .Pernr = dlSalesCode.SelectedValue : .Spart = "00" : .Vkorg = OrgId : .Vtweg = "00" : .Kz = "I"
+            End With
+            knvpTable.Add(salesRow)
+            With isRow
+                .Defpa = "" : .Knref = "" : .Kunn2 = "" : .Kunnr = CompanyId
+                .Lifnr = "" : .Mandt = "168" : .Parnr = "0000000000" : .Parvw = "Z2" : .Parza = "001"
+                .Pernr = dlISCode.SelectedValue : .Spart = "00" : .Vkorg = OrgId : .Vtweg = "00" : .Kz = "I"
+            End With
+            knvpTable.Add(isRow)
+            With opRow
+                .Defpa = "" : .Knref = "" : .Kunn2 = "" : .Kunnr = CompanyId
+                .Lifnr = "" : .Mandt = "168" : .Parnr = "0000000000" : .Parvw = "ZM" : .Parza = "000"
+                .Pernr = dlOPCode.SelectedValue : .Spart = "00" : .Vkorg = OrgId : .Vtweg = "00" : .Kz = "I"
+            End With
+            knvpTable.Add(opRow)
+            With ShipToRow
+                .Defpa = "" : .Knref = ""
+                .Kunn2 = CompanyId + "A" : .Kunnr = CompanyId
+                .Lifnr = "" : .Mandt = "168" : .Parnr = "0000000000" : .Parvw = "WE"
+                .Parza = "001" : .Pernr = "00000000" : .Spart = "00" : .Vkorg = OrgId : .Vtweg = "00" : .Kz = "I"
+            End With
+            If rblHasShipto.SelectedIndex = 1 Then knvpTable.Add(ShipToRow)
+            Dim p1 As New ZCUSTOMER_UPDATE_SALES_AREA.ZCUSTOMER_UPDATE_SALES_AREA
+            p1.Connection = New SAP.Connector.SAPConnection(ConfigurationManager.AppSettings("SAPConnTest"))
+            p1.Connection.Open()
+            p1.Zcustomer_Update_Sales_Area( _
+                New ZCUSTOMER_UPDATE_SALES_AREA.FKNVDTable, knvpTable, New ZCUSTOMER_UPDATE_SALES_AREA.KNVVTable, _
+                New ZCUSTOMER_UPDATE_SALES_AREA.FKNVDTable, New ZCUSTOMER_UPDATE_SALES_AREA.FKNVPTable)
+            p1.CommitWork() : p1.Connection.Close()
+            lbDoneMsg.Text = txtCompanyId.Text + " has been created" : lbERPIDMsg.Text = ""
+        Catch ex As Exception
+            lbDoneMsg.Text = ex.ToString()
+        End Try
+    End Sub
+
+    Protected Sub txtCompanyId_TextChanged(sender As Object, e As System.EventArgs) Handles txtCompanyId.TextChanged
+        If String.IsNullOrEmpty(txtCompanyId.Text) Then Exit Sub
+        If txtCompanyId.Text.Length < 8 Then Exit Sub
+        If ERPIDExist(txtCompanyId.Text) Then
+            lbERPIDMsg.Text = txtCompanyId.Text.Trim() + " already exists"
+        Else
+            lbERPIDMsg.Text = txtCompanyId.Text.Trim() + " is new and ok to be created"
+        End If
+    End Sub
+
+    Function ERPIDExist(ByVal strERPID As String) As Boolean
+        Dim dt As DataTable = OraDbUtil.dbGetDataTable("SAP_Test", _
+           "select kunnr from saprdp.kna1 where kunnr='" + UCase(Replace(Trim(strERPID), "'", "''")) + "' and rownum=1")
+        If dt.Rows.Count = 1 Then
+            Return True
+        Else
+            Return False
+        End If
+    End Function
+
+    Function FindEnumValueByName(ByVal EnumType As System.Type, ByVal EnumName As String) As Integer
+        Dim Names() As String = [Enum].GetNames(EnumType)
+        Dim Values() As Integer = [Enum].GetValues(EnumType)
+        For i As Integer = 0 To Names.Length - 1
+            If Names(i).Equals(EnumName, StringComparison.OrdinalIgnoreCase) Then
+                Return Values(i)
+            End If
+        Next
+        Return -1
+    End Function
+
+    Protected Sub Lab_CreateSAPCustomer_Load(sender As Object, e As System.EventArgs) Handles Me.Load
+        If Not Page.IsPostBack Then
+            'Response.Write("find value:" + FindEnumValueByName(GetType(EnumCreditTerm), "Enum_15D5").ToString() + "@@@")
+            Dim Names() As String = [Enum].GetNames(GetType(EnumCountryCode))
+            Dim Values() As Integer = [Enum].GetValues(GetType(EnumCountryCode))
+            For i As Integer = 0 To Names.Length - 1
+                dlCountry.Items.Add(New ListItem(Names(i).Substring(5), Values(i).ToString()))
+                dlShiptoCountry.Items.Add(New ListItem(Names(i).Substring(5), Values(i).ToString()))
+            Next
+            Names = [Enum].GetNames(GetType(EnumIncoTerm)) : Values = [Enum].GetValues(GetType(EnumIncoTerm))
+            For i As Integer = 0 To Names.Length - 1
+                dlInco1.Items.Add(New ListItem(Names(i).Substring(5), Values(i).ToString()))
+            Next
+            Names = [Enum].GetNames(GetType(EnumCreditTerm)) : Values = [Enum].GetValues(GetType(EnumCreditTerm))
+            For i As Integer = 0 To Names.Length - 1
+                dlPayTerm.Items.Add(New ListItem(Names(i).Substring(5), Values(i).ToString()))
+            Next
+            Names = [Enum].GetNames(GetType(EnumShippingCondition)) : Values = [Enum].GetValues(GetType(EnumShippingCondition))
+            For i As Integer = 0 To Names.Length - 1
+                dlShipCond.Items.Add(New ListItem(Names(i).Substring(5), Values(i).ToString()))
+            Next
+            Dim EusalesCodeDt As DataTable = dbUtil.dbGetDataTable("MY", "select distinct b.FULL_NAME, b.SALES_CODE from SAP_COMPANY_PARTNERS a inner join SAP_EMPLOYEE b on a.SALES_CODE=b.SALES_CODE where a.ORG_ID='EU10' and a.PARTNER_FUNCTION='VE' order by b.SALES_CODE ")
+            Dim EuISOPCodeDt As DataTable = dbUtil.dbGetDataTable("MY", "select distinct b.FULL_NAME, b.SALES_CODE from SAP_COMPANY_PARTNERS a inner join SAP_EMPLOYEE b on a.SALES_CODE=b.SALES_CODE where a.ORG_ID='EU10' and a.PARTNER_FUNCTION<>'VE' order by b.SALES_CODE ")
+            For Each salesRow As DataRow In EusalesCodeDt.Rows
+                dlSalesCode.Items.Add(New ListItem(String.Format("{0} ({1})", salesRow.Item("FULL_NAME"), salesRow.Item("SALES_CODE")), salesRow.Item("SALES_CODE")))
+            Next
+            For Each ISOPRow As DataRow In EuISOPCodeDt.Rows
+                dlISCode.Items.Add(New ListItem(String.Format("{0} ({1})", ISOPRow.Item("FULL_NAME"), ISOPRow.Item("SALES_CODE")), ISOPRow.Item("SALES_CODE")))
+                dlOPCode.Items.Add(New ListItem(String.Format("{0} ({1})", ISOPRow.Item("FULL_NAME"), ISOPRow.Item("SALES_CODE")), ISOPRow.Item("SALES_CODE")))
+            Next
+        End If
+    End Sub
+
+    Protected Sub btnGo2Credit_Click(sender As Object, e As System.EventArgs) Handles btnGo2Credit.Click
+        mv1.ActiveViewIndex = 1
+    End Sub
+
+    Protected Sub btn2General_Click(sender As Object, e As System.EventArgs) Handles btn2General.Click, btn2General2.Click
+        mv1.ActiveViewIndex = 0
+    End Sub
+
+    Function ValidateInputData() As Boolean
+        lbDoneMsg.Text = ""
+        txtCompanyId.Text = UCase(Trim(txtCompanyId.Text))
+        If String.IsNullOrEmpty(txtCompanyId.Text) Then
+            lbDoneMsg.Text = "Company id cannot be empty" : Return False
+        End If
+        If txtCompanyId.Text.Length <> 8 Then
+            lbDoneMsg.Text = "Company id should be 8 characters (ex: EDDEVI07)" : Return False
+        End If
+        If ERPIDExist(txtCompanyId.Text) Then
+            lbDoneMsg.Text = "Company id " + txtCompanyId.Text + " already exists in SAP" : Return False
+        End If
+        If String.IsNullOrEmpty(txtCompanyName.Text) Or String.IsNullOrEmpty(txtVAT.Text) Or String.IsNullOrEmpty(txtAddr.Text) _
+            Or String.IsNullOrEmpty(txtPostCode.Text) Or String.IsNullOrEmpty(txtWebsiteUrl.Text) Or String.IsNullOrEmpty(txtCity.Text) Then
+            lbDoneMsg.Text = "General data is not complete. Name/VAT/Address/Website/Postal Code/City are all mandatory" : Return False
+        End If
+        If rblFillCredit.SelectedIndex = 1 Then
+            If dlPayTerm.SelectedIndex = 0 Then
+                mv1.ActiveViewIndex = 1
+                lbDoneMsg.Text = "Please select a payment term in Credit Data" : Return False
+            End If
+        End If
+        If rblHasShipto.SelectedIndex = 1 Then
+            If String.IsNullOrEmpty(txtShiptoCompanyName.Text) Or String.IsNullOrEmpty(txtShiptoVATNumber.Text) _
+                Or String.IsNullOrEmpty(txtShiptoAddress.Text) Or String.IsNullOrEmpty(txtShiptoCity.Text) Or String.IsNullOrEmpty(txtShiptoPostcode.Text) Then
+                mv1.ActiveViewIndex = 2
+                lbDoneMsg.Text = "Ship-to data is not complete. Name/VAT/Address/Postal Code/City are all mandatory" : Return False
+            End If
+        End If
+        Return True
+    End Function
+
+    Protected Sub btnCreate_Click(sender As Object, e As System.EventArgs) Handles btnCreate.Click, btnCreate2.Click, btnCreate3.Click
+        If ValidateInputData() Then PageMethod_CreateCustomer()
+    End Sub
+
+    Protected Sub rblFillCredit_SelectedIndexChanged(sender As Object, e As System.EventArgs) Handles rblFillCredit.SelectedIndexChanged
+        If rblFillCredit.SelectedIndex = 1 Then
+            btnGo2Credit.Visible = True
+        Else
+            btnGo2Credit.Visible = False
+        End If
+    End Sub
+
+    Protected Sub btnGo2Shipto_Click(sender As Object, e As System.EventArgs) Handles btnGo2Shipto.Click
+        mv1.ActiveViewIndex = 2
+    End Sub
+
+    Protected Sub rblHasShipto_SelectedIndexChanged(sender As Object, e As System.EventArgs) Handles rblHasShipto.SelectedIndexChanged
+        Me.btnGo2Shipto.Visible = IIf(rblHasShipto.SelectedIndex = 1, True, False)
+    End Sub
+   
+End Class

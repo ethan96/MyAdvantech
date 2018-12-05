@@ -1,0 +1,130 @@
+﻿Imports System.Web
+Imports System.Web.Services
+Imports System.Web.Services.Protocols
+Imports System.Net
+Imports System.Xml
+
+' To allow this Web Service to be called from script, using ASP.NET AJAX, uncomment the following line.
+' <System.Web.Script.Services.ScriptService()> _
+<WebService(Namespace:="http://tempuri.org/")> _
+<WebServiceBinding(ConformsTo:=WsiProfiles.BasicProfile1_1)> _
+<Global.Microsoft.VisualBasic.CompilerServices.DesignerGenerated()> _
+Public Class GoogleWeather
+    Inherits System.Web.Services.WebService
+
+    <WebMethod()> _
+    Public Function GetWeather( _
+    ByVal City As String, ByRef Condition As String, ByRef Temp As String, ByRef Humidity As String, _
+    ByRef IconUrl As String, ByRef Wind As String) As Boolean
+        If CInt(dbUtil.dbExecuteScalar("MY", String.Format("select count(*) from country_city where city_name='{0}'", Replace(City, "'", "''")))) = 0 Then Return False
+        Dim retxml As System.Xml.XmlDocument = Util.GetXmlFromWeb(String.Format("http://www.google.de/ig/api?weather={0}&hl=en-us", Replace(City, "'", "''")))
+        If retxml IsNot Nothing Then
+            Dim n As System.Xml.XmlNode = retxml.SelectSingleNode("xml_api_reply/weather/current_conditions")
+            If n IsNot Nothing Then
+                Condition = n.SelectSingleNode("condition").Attributes("data").Value
+                Temp = n.SelectSingleNode("temp_c").Attributes("data").Value
+                Humidity = n.SelectSingleNode("humidity").Attributes("data").Value
+                IconUrl = "http://www.google.co.uk" + n.SelectSingleNode("icon").Attributes("data").Value
+                Wind = n.SelectSingleNode("wind_condition").Attributes("data").Value
+                Return True
+            Else
+                Return False
+            End If
+        Else
+            Return False
+        End If
+    End Function
+
+    Public Shared Function GetCoordinateByAddress( _
+    ByRef Address As String, ByRef Longitude As Double, ByRef Latitude As Double, ByRef ResponseXml As String) As Boolean
+        Dim sURL As String = "http://maps.google.com/maps/geo?q=" + Address + "&output=xml&key=" + ConfigurationManager.AppSettings("GoogleAPIKey")
+        Dim request As Net.WebRequest = Net.WebRequest.Create(sURL)
+        request.Proxy = New Net.WebProxy("http://172.21.34.46:8080", True)
+        request.Proxy.Credentials = New System.Net.NetworkCredential("ebiz.aeu", "@dvantech1", "AESC_NT")
+        request.Timeout = 10000 : request.Method = "POST"
+        Dim postData As String = "This is a test that posts this string to a Web server."
+        Dim byteArray As Byte() = Encoding.UTF8.GetBytes(postData)
+        request.ContentType = "application/x-www-form-urlencoded"
+        request.ContentLength = byteArray.Length
+        Dim dataStream As IO.Stream = request.GetRequestStream()
+        Dim response As Net.WebResponse = Nothing
+        Try
+            dataStream.Write(byteArray, 0, byteArray.Length) : dataStream.Close()
+            response = request.GetResponse() : dataStream = response.GetResponseStream()
+        Catch ex As Exception
+            ResponseXml = ex.ToString() : Return False
+        End Try
+        Dim reader As New IO.StreamReader(dataStream)
+        Dim responseFromServer As String = reader.ReadToEnd()
+        Dim tx As New IO.StringReader(responseFromServer)
+        Dim DS As New DataSet()
+        DS.ReadXml(tx)
+        Dim StatusCode As Integer = GetIntegerValue(DS.Tables("Status").Rows(0)("code"))
+        If StatusCode = 200 Then
+            Dim sLatLon As String = GetStringValue(DS.Tables("Point").Rows(0)("coordinates"))
+            Dim s As String() = sLatLon.Split(","c)
+            If s.Length > 1 Then
+                Latitude = GetNumericValue(s(1)) : Longitude = GetNumericValue(s(0))
+            End If
+            Try
+                If DS.Tables("Placemark") IsNot Nothing Then
+                    Address = GetStringValue(DS.Tables("Placemark").Rows(0)("address"))
+                End If
+                If DS.Tables("PostalCode") IsNot Nothing Then
+                    Address += " " + GetStringValue(DS.Tables("PostalCode").Rows(0)("PostalCodeNumber"))
+                End If
+            Catch ex As Exception
+                'ResponseXml = DS.GetXml() : Return False
+            End Try
+            Return True
+        Else
+            ResponseXml = DS.GetXml() : Return False
+        End If
+    End Function
+
+    Public Shared Function IsNumeric(ByVal s As Object) As Boolean
+        Try
+            Double.Parse(s.ToString())
+        Catch
+            Return False
+        End Try
+        Return True
+    End Function
+
+
+    Public Shared Function GetIntegerValue(ByVal pNumValue As Object) As Integer
+        If (pNumValue Is Nothing) Then
+            Return 0
+        End If
+        If IsNumeric(pNumValue) Then
+            Return Integer.Parse((pNumValue.ToString()))
+        Else
+            Return 0
+        End If
+    End Function
+
+    Public Shared Function GetNumericValue(ByVal pNumValue As Object) As Double
+        If (pNumValue Is Nothing) Then
+            Return 0
+        End If
+        If IsNumeric(pNumValue) Then
+            Return Double.Parse((pNumValue.ToString()))
+        Else
+            Return 0
+        End If
+    End Function
+
+    Public Shared Function GetStringValue(ByVal obj As Object) As String
+        If obj Is Nothing Then
+            Return ""
+        End If
+        If (obj Is Nothing) Then
+            Return ""
+        End If
+        If Not (obj Is Nothing) Then
+            Return obj.ToString()
+        Else
+            Return ""
+        End If
+    End Function
+End Class

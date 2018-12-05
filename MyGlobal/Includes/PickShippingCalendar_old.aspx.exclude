@@ -1,0 +1,405 @@
+<%@ Page Language="VB" %>
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<script runat="server">
+
+    Dim xDT As New System.Data.DataTable
+    Dim xDTcust As New System.Data.DataTable
+    Protected Sub Page_Load(ByVal sender As Object, ByVal e As System.EventArgs)
+        Me.Calendar1.Caption = "<font size='3pt'><b>" & "Calendar" & "</b></font>"
+        If Not Page.IsPostBack Then
+            Try
+                Me.txtType.Text = Request("Type").ToString.ToLower
+            Catch ex As Exception
+                Me.txtType.Text = ""
+            End Try
+            Try
+                Me.txtElement.Text = Request("Element").ToString.ToLower
+            Catch ex As Exception
+                Me.txtElement.Text = ""
+            End Try
+            Try
+                Me.txtFormat.Text = Request("Format").ToString.ToLower
+                If Me.txtFormat.Text = "" Then
+                    Me.txtFormat.Text = "dd/MM/yyyy"
+                End If
+            Catch ex As Exception
+                Me.txtFormat.Text = "dd/MM/yyyy"
+            End Try
+            Try
+                Me.txtSalesOrg.Text = Request("SalesOrg").ToString.ToLower
+                If Me.txtSalesOrg.Text = "" Then
+                    Me.txtSalesOrg.Text = "EU10"
+                End If
+            Catch ex As Exception
+                Me.txtSalesOrg.Text = "EU10"
+            End Try
+            Try
+                Me.txtCustomerId.Text = Request("CustomerId").ToString.ToLower
+                If Me.txtCustomerId.Text = "" Then
+                    Me.txtCustomerId.Text = Session("COMPANY_ID")
+                End If
+                'If Me.txtCustomerId.Text = "" Then
+                '    Me.txtCustomerId.Text = "Default"
+                'End If
+            Catch ex As Exception
+                Me.txtCustomerId.Text = "Default"
+            End Try
+            Try
+                Me.txtPlant.Text = Request("Plant").ToString.ToLower
+                If Me.txtPlant.Text = "" Then
+                    Me.txtPlant.Text = "Default"
+                End If
+            Catch ex As Exception
+                Me.txtPlant.Text = "Default"
+            End Try
+            Me.Calendar1.SelectedDate = Today.Date
+            '--
+            
+            Me.Calendar1.VisibleDate = Today.Date
+        
+            Me.Calendar1.VisibleDate = Today.Date
+        
+            
+        End If
+        '--
+        If Page.IsPostBack Then
+            If Request("Flag") = "YES" Then
+                Dim FromDate As Date = CDate(Me.ddYear.SelectedValue & "/" & Me.ddMonth.SelectedValue & "/1")
+                Me.Calendar1.VisibleDate = FromDate
+            End If
+        End If
+        
+        Dim strSQL As String = "Select distinct PKYear from ShippingCalendarV2007 "
+        Dim strWhere As String = "Where SalesOrg = '" & Me.txtSalesOrg.Text & "' " & _
+                                 "  And CustomerId = '" & Me.txtCustomerId.Text & "'" & _
+                                 "  And Plant = '" & Me.txtPlant.Text & "'" & _
+                                 "  And [Year] in ( '" & Me.Calendar1.VisibleDate.Year - 1 & "', '" & Me.Calendar1.VisibleDate.Year & "','" & Me.Calendar1.VisibleDate.Year + 1 & "') "
+        
+        If Me.txtType.Text = "workingdate" Then
+            Me.Calendar1.Caption = "<font size='3pt'><b>" & "Working Date Calendar" & "</b></font>"
+            strWhere = strWhere & " And Holiday = 'N' "
+        ElseIf Me.txtType.Text = "shippingcalendar" Then
+            Me.Calendar1.Caption = "<font size='3pt'><b>" & "Shipping Calendar" & "</b></font>"
+            strWhere = strWhere & "  And Holiday = 'N' And ShippingCalendarDay = 'Y' "
+        Else
+            strWhere = strWhere & " And 1 <> 1 "
+        End If
+        strSQL = strSQL & strWhere
+        
+        'If Session("user_id") = "nada.liu@advantech.com.cn" Then
+        '    Response.Write("<br/>1." & strSQL)
+        'End If
+        
+        'Dim strConn As String = ConfigurationManager.ConnectionStrings("B2B").ToString
+        'Dim oDataAdpt As Data.SqlClient.SqlDataAdapter = New Data.SqlClient.SqlDataAdapter(strSQL, strConn)
+        'oDataAdpt.Fill(xDT)
+        'oDataAdpt.Dispose()
+        xDT = dbUtil.dbGetDataTable("b2b", strSQL)
+        If xDT.Rows.Count < 1 Then
+            Dim strSQL2 As String = "Select distinct PKYear from ShippingCalendarV2007 "
+            Dim strWhere2 As String = "Where SalesOrg = '" & Me.txtSalesOrg.Text & "' " & _
+                                     "  And CustomerId = 'Default'" & _
+                                     "  And Plant = '" & Me.txtPlant.Text & "'" & _
+                                     "  And [Year] in ( '" & Me.Calendar1.VisibleDate.Year - 1 & "', '" & Me.Calendar1.VisibleDate.Year & "','" & Me.Calendar1.VisibleDate.Year + 1 & "') "
+            
+            If Me.txtType.Text = "workingdate" Then
+                Me.Calendar1.Caption = "<font size='3pt'><b>" & "Working Date Calendar" & "</b></font>"
+                strWhere2 = strWhere2 & " And Holiday = 'N' "
+            ElseIf Me.txtType.Text = "shippingcalendar" Then
+                Me.Calendar1.Caption = "<font size='3pt'><b>" & "Shipping Calendar" & "</b></font>"
+                '<Nada add for Btos FirstDay>
+                If OrderUtilities.BtosOrderCheck() = 1 Then
+                    Dim dtDefaultReqDate As String = Global_Inc.FormatDate(Date.Today.Date)
+                    Dim strSQL1 As String = "Select top 1 PKYear from ShippingCalendarV2007 "
+                    Dim strWhere1 As String = "Where SalesOrg = 'EU10' " & _
+                                             "  And CustomerId = '" & Session("company_id") & "'" & _
+                                             "  And Plant = 'EUH1'" & _
+                                             "  And PKYear>getdate() And Holiday = 'N' And ShippingCalendarDay = 'Y' order by PKYear"
+                    strSQL1 &= strWhere1
+                    'Response.Write(strSQL)
+                    Dim dt As New DataTable
+                    dt = dbUtil.dbGetDataTable("b2b", strSQL1)
+                    If dt.Rows.Count < 1 Then
+                        Dim strSQL3 As String = "Select top 1 PKYear  from ShippingCalendarV2007 "
+                        Dim strWhere3 As String = "Where SalesOrg = 'EU10' " & _
+                                                 "  And CustomerId = 'Default'" & _
+                                                 "  And Plant = 'EUH1'" & _
+                                                 "  And PKYear>getdate() And Holiday = 'N' And ShippingCalendarDay = 'Y' order by PKYear"
+                        dt.Clear()
+                        dt = dbUtil.dbGetDataTable("b2b", strSQL3 & strWhere3)
+                        If dt.Rows.Count > 0 Then
+                            dtDefaultReqDate = Global_Inc.FormatDate(dt.Rows(0).Item("PKYear"))
+                        Else
+                            dtDefaultReqDate = Global_Inc.FormatDate(DateAdd(DateInterval.Day, 1, Date.Today.Date))
+                        End If
+                    Else
+                        dtDefaultReqDate = Global_Inc.FormatDate(dt.Rows(0).Item("PKYear"))
+                    End If
+                    
+                    
+                    Dim strSqlCmdShip As String
+                    strSqlCmdShip = "select distinct top 1 PKYear,SalesOrg,CustomerId,Plant,Holiday,ShippingCalendarDay from ShippingCalendarV2007 where PKYear > getdate() And SalesOrg = 'EU10' And CustomerId='" & Session("COMPANY_ID") & "' And Plant='EUH1' And Holiday = 'N' And ShippingCalendarDay = 'Y' Order By PKYear "
+                    
+                    Dim ShipCalDt As DataTable = dbUtil.dbGetDataTable("B2B", strSqlCmdShip)
+            
+                    If ShipCalDt.Rows.Count > 0 Then
+                        dtDefaultReqDate = Global_Inc.FormatDate(ShipCalDt.Rows(0).Item("PKYear"))
+                    End If
+                    
+                    Dim WorkDays As String = "5"
+                    Global_Inc.SiteDefinition_Get("BTOSWorkingDays", WorkDays)
+                    Dim sc4 As New B2BAEU_SAP_WS.B2B_AEU_WS
+                    Global_Inc.SiteDefinition_Get("AeuEbizB2bWs", sc4.Url)
+                    'Response.Write(dtDefaultReqDate) : Response.End()
+                    Dim tempdate As String = CDate(dtDefaultReqDate).ToString("yyyy-MM-dd")
+                    sc4.Get_Next_WrokingDate(tempdate, WorkDays)
+                    dtDefaultReqDate = CDate(tempdate).ToString("yyyy-MM-dd")
+                    strWhere2 = strWhere2 & " and PKYear>='" & dtDefaultReqDate & "' And Holiday = 'N' And ShippingCalendarDay = 'Y' "
+                Else
+                    '</Nada add for Btos FirstDay>
+                    strWhere2 = strWhere2 & " And Holiday = 'N' And ShippingCalendarDay = 'Y' "
+                End If
+            
+            Else
+                strWhere2 = strWhere2 & " And 1 <> 1 "
+            End If
+            strSQL2 = strSQL2 & strWhere2
+            'If Session("user_id") = "nada.liu@advantech.com.cn" Then
+            '    Response.Write("<br/>2." & strSQL2)
+            'End If
+            xDT = dbUtil.dbGetDataTable("b2b", strSQL2)
+            'Dim oDataAdpt2 As Data.SqlClient.SqlDataAdapter = New Data.SqlClient.SqlDataAdapter(strSQL2, strConn)
+            'oDataAdpt2.Fill(xDT)
+            'oDataAdpt2.Dispose()
+        End If
+        Dim cid As Object = Nothing
+        cid = dbUtil.dbExecuteScalar("b2b", "select calendarName from cust_calendar_mapping where company_id ='" & Session("company_id") & "'")
+        If Not IsNothing(cid) AndAlso cid.ToString <> "" Then
+            xDTcust = dbUtil.dbGetDataTable("B2B", "Select hdate from customer_Calendar where calendarName='" & cid & "'")
+        End If
+        'OrderUtilities.showDT(xDTcust) : Response.End()
+        'Response.Write(Me.txtFormat.Text)
+        'Response.Write(strSQL)
+    End Sub
+  
+    Protected Sub Calendar1_VisibleMonthChanged(ByVal sender As Object, ByVal e As System.Web.UI.WebControls.MonthChangedEventArgs)
+        Me.Calendar1.VisibleDate = e.NewDate
+        For i As Integer = 0 To Me.ddYear.Items.Count - 1
+            If Me.ddYear.Items(i).Value = Me.Calendar1.VisibleDate.Year Then
+                Me.ddYear.SelectedIndex = i
+                Exit For
+            End If
+        Next
+        For i As Integer = 0 To Me.ddMonth.Items.Count - 1
+            If Me.ddMonth.Items(i).Value = Me.Calendar1.VisibleDate.Month Then
+                Me.ddMonth.SelectedIndex = i
+                Exit For
+            End If
+        Next
+    End Sub
+    
+    Protected Sub Calendar1_DayRender(ByVal sender As Object, ByVal e As System.Web.UI.WebControls.DayRenderEventArgs)
+        If e.Day.IsOtherMonth = True Then
+            'Dim xLiterial As LiteralControl = CType(e.Cell.Controls(0), LiteralControl)
+            'xLiterial.Text = ""
+            e.Cell.Text = ""
+        Else
+            If xDT.Rows.Count > 0 Then
+                If Me.txtType.Text = "workingdate" Then
+                    If e.Day.Date < Today.Date Then
+                        e.Cell.Text = "<font color=""Silver"">" & e.Day.Date.Day & "</font>"
+                    ElseIf e.Day.Date = Today.Date Then
+                        e.Cell.Text = e.Day.Date.Day
+                    Else
+                        If xDT.Select("PKYear = '" & e.Day.Date & "'").Length > 0 Then
+                           
+                            e.Cell.Attributes.Add("onclick", "PickDate('" & Me.txtElement.Text & "','" & FormatDate(Me.txtFormat.Text, e.Day.Date) & "')")
+                       
+                        Else
+                            e.Cell.Text = "<font color=""Silver"">" & e.Day.Date.Day & "</font>"
+                        End If
+                    End If
+                ElseIf Me.txtType.Text = "shippingcalendar" Then
+                    If e.Day.Date < Today.Date Then
+                        e.Cell.Text = "<font color=""Silver"">" & e.Day.Date.Day & "</font>"
+                    ElseIf e.Day.Date = Today.Date Then
+                        e.Cell.Text = e.Day.Date.Day
+                    Else
+                        If xDT.Select("PKYear = '" & e.Day.Date & "'").Length > 0 Then
+                            If xDTcust.Rows.Count > 0 Then
+                                If xDTcust.Select("hdate='" & e.Day.Date & "'").Length > 0 Then
+                                    e.Cell.Text = "<font color=""#f8bb00"">" & e.Day.Date.Day & "</font>"
+                                Else
+                                    e.Cell.Attributes.Add("onclick", "PickDate('" & Me.txtElement.Text & "','" & FormatDate(Me.txtFormat.Text, e.Day.Date) & "')")
+                                    
+                                End If
+                            Else
+                                e.Cell.Attributes.Add("onclick", "PickDate('" & Me.txtElement.Text & "','" & FormatDate(Me.txtFormat.Text, e.Day.Date) & "')")
+                                
+                            End If
+                        Else
+                            e.Cell.Text = "<font color=""Silver"">" & e.Day.Date.Day & "</font>"
+                        End If
+                    End If
+                Else
+                    e.Cell.Attributes.Add("onclick", "PickDate('" & Me.txtElement.Text & "','" & FormatDate(Me.txtFormat.Text, e.Day.Date) & "')")
+                End If
+            Else
+                e.Cell.Attributes.Add("onclick", "PickDate('" & Me.txtElement.Text & "','" & FormatDate(Me.txtFormat.Text, e.Day.Date) & "')")
+            End If
+        End If
+    End Sub
+    Protected Function FormatDate(ByVal xFormat As String, ByVal xDate As String)
+        Dim RetDate As String = ""
+        If xFormat.ToUpper = "YYYY/MM/DD" Then
+            RetDate = CDate(xDate).Date.ToString("yyyy/MM/dd")
+            'RetDate = CDate(xDate).Year
+            'If CDate(xDate).Month.ToString.Length < 2 Then
+            '    RetDate = RetDate & "/0" & CDate(xDate).Month.ToString
+            'Else
+            '    RetDate = RetDate & "/" & CDate(xDate).Month.ToString
+            'End If
+            'If CDate(xDate).Day.ToString.Length < 2 Then
+            '    RetDate = RetDate & "/0" & CDate(xDate).Day.ToString
+            'Else
+            '    RetDate = RetDate & "/" & CDate(xDate).Day.ToString
+            'End If
+        ElseIf xFormat.ToUpper = "MM/DD/YYYY" Then
+            RetDate = CDate(xDate).Date.ToString("MM/dd/yyyy")
+            'If CDate(xDate).Month.ToString.Length < 2 Then
+            '    RetDate = RetDate & "0" & CDate(xDate).Month.ToString
+            'Else
+            '    RetDate = RetDate & "" & CDate(xDate).Month.ToString
+            'End If
+            'If CDate(xDate).Day.ToString.Length < 2 Then
+            '    RetDate = RetDate & "/0" & CDate(xDate).Day.ToString
+            'Else
+            '    RetDate = RetDate & "/" & CDate(xDate).Day.ToString
+            'End If
+            'RetDate = RetDate & "/" & CDate(xDate).Year
+        ElseIf xFormat.ToUpper = "DD/MM/YYYY" Then
+            RetDate = CDate(xDate).Date.ToString("dd/MM/yyyy")
+            'If CDate(xDate).Day.ToString.Length < 2 Then
+            '    RetDate = RetDate & "0" & CDate(xDate).Day.ToString
+            'Else
+            '    RetDate = RetDate & "" & CDate(xDate).Day.ToString
+            'End If
+            'If CDate(xDate).Month.ToString.Length < 2 Then
+            '    RetDate = RetDate & "/0" & CDate(xDate).Month.ToString
+            'Else
+            '    RetDate = RetDate & "/" & CDate(xDate).Month.ToString
+            'End If
+            'RetDate = RetDate & "/" & CDate(xDate).Year
+        Else
+            RetDate = CDate(xDate).Date.ToString("YYYY/MM/DD")
+            'RetDate = CDate(xDate).Year
+            'If CDate(xDate).Month.ToString.Length < 2 Then
+            '    RetDate = RetDate & "/0" & CDate(xDate).Month.ToString
+            'Else
+            '    RetDate = RetDate & "/" & CDate(xDate).Month.ToString
+            'End If
+            'If CDate(xDate).Day.ToString.Length < 2 Then
+            '    RetDate = RetDate & "/0" & CDate(xDate).Day.ToString
+            'Else
+            '    RetDate = RetDate & "/" & CDate(xDate).Day.ToString
+            'End If
+        End If
+        Return RetDate
+    End Function
+</script>
+
+<script type="text/javascript" language="javascript">
+function PickDate(xElement,xValue){
+     //alert(xElement);
+   // alert(xValue);
+     //alert(window.opener.document.all(xElement).value);
+//old wndow.opener.document.all(xElement).value = xValue;
+//ok window.opener.aspnetForm.elements(xElement).value=xValue;
+//window.opener.aspnetForm.ctl00$_main$expect_date.value=xValue;
+//var parWin = window.opener;
+ //parWin.document.getElementById(xElement).value = xValue;
+var obj = eval("window.opener.document.aspnetForm."+xElement);
+obj.value=xValue;
+   self.close();
+  
+}
+</script>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head id="Head1" runat="server">
+    <title>Calendar - Advantech Online</title>
+    <meta content="Visual Basic .NET 7.1" name="CODE_LANGUAGE" />
+    <meta content="JavaScript" name="vs_defaultClientScript" />
+    <meta content="http://schemas.microsoft.com/intellisense/ie5" name="vs_targetSchema" />
+    <link href="ebiz.aeu.style.css" rel="stylesheet" />
+</head>
+<body>
+    <form id="form1" runat="server">
+    <div>
+        <table cellpadding="0" cellspacing="0">
+            <tr>
+                <td align="left" valign="top" colspan="4">
+                    <asp:TextBox runat="server" ID="txtType" Text="" Visible="false"></asp:TextBox>
+                    <asp:TextBox runat="server" ID="txtElement" Text="" Visible="false"></asp:TextBox>
+                    <asp:TextBox runat="server" ID="txtFormat" Text="dd/MM/yyyy" Visible="false"></asp:TextBox>
+                    <asp:TextBox runat="server" ID="txtSalesOrg" Text="EU10" Visible="false"></asp:TextBox>
+                    <asp:TextBox runat="server" ID="txtCustomerId" Text="Default" Visible="false"></asp:TextBox>
+                    <asp:TextBox runat="server" ID="txtPlant" Text="Default" Visible="false"></asp:TextBox>
+                    <asp:Calendar ID="Calendar1" runat="server" BackColor="#ffffff" ForeColor="#000000"
+                        Font-Names="Arial" Font-Size="10pt" CellPadding="6" CellSpacing="0" TitleStyle-BackColor="#0000cc"
+                        TitleStyle-Font-Bold="true" TitleStyle-ForeColor="#ffffff" TitleStyle-Font-Size="8pt"
+                        PrevMonthText="<font color='#ffffff'><b><&nbsp;Prev</b></font>" NextMonthText="<font color='#ffffff'><b>Next&nbsp;></b></font>"
+                        SelectedDayStyle-BorderStyle="Solid" SelectedDayStyle-BorderColor="#999999" SelectedDayStyle-BorderWidth="1px"
+                        SelectedDayStyle-BackColor="#ffffff" SelectedDayStyle-ForeColor="red" SelectedDayStyle-Font-Bold="true"
+                        OnDayRender="Calendar1_DayRender" OnVisibleMonthChanged="Calendar1_VisibleMonthChanged">
+                        <WeekendDayStyle ForeColor="Silver" />
+                    </asp:Calendar>
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    <b>&nbsp;Month:</b><input type="hidden" name="Flag" id="Flag" value="NO" />
+                </td>
+                <td>
+                    <asp:DropDownList runat="server" ID="ddMonth" onchange="Javascript: document.form1.Flag.value = 'YES';"
+                        AutoPostBack="true">
+                        <asp:ListItem Value="1" Text="January"></asp:ListItem>
+                        <asp:ListItem Value="2" Text="February"></asp:ListItem>
+                        <asp:ListItem Value="3" Text="March"></asp:ListItem>
+                        <asp:ListItem Value="4" Text="April"></asp:ListItem>
+                        <asp:ListItem Value="5" Text="May"></asp:ListItem>
+                        <asp:ListItem Value="6" Text="June"></asp:ListItem>
+                        <asp:ListItem Value="7" Text="July"></asp:ListItem>
+                        <asp:ListItem Value="8" Text="August"></asp:ListItem>
+                        <asp:ListItem Value="9" Text="September"></asp:ListItem>
+                        <asp:ListItem Value="10" Text="October"></asp:ListItem>
+                        <asp:ListItem Value="11" Text="November"></asp:ListItem>
+                        <asp:ListItem Value="12" Text="December"></asp:ListItem>
+                    </asp:DropDownList>
+                </td>
+                <td>
+                    <b>Year</b>
+                </td>
+                <td>
+                    <asp:DropDownList runat="server" ID="ddYear" onchange="Javascript: document.form1.Flag.value = 'YES';"
+                        AutoPostBack="true">
+                       <%-- <asp:ListItem Value="2008" Text="2008"></asp:ListItem>
+                        <asp:ListItem Value="2009" Text="2009"></asp:ListItem>--%>
+                        <asp:ListItem Value="2010" Text="2010"></asp:ListItem>
+                        <asp:ListItem Value="2011" Text="2011"></asp:ListItem>
+                        <asp:ListItem Value="2012" Text="2012"></asp:ListItem>
+                    </asp:DropDownList>
+                </td>
+            </tr>
+            <tr>
+                <td colspan="4">
+                    <font color="red"><b>Tip: Day in red is today.</b></font>
+                </td>
+            </tr>
+        </table>
+    </div>
+    </form>
+</body>
+</html>

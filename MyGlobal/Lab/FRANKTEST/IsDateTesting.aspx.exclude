@@ -1,0 +1,35 @@
+﻿<%@ Page Language="VB" %>
+
+<%@ Import Namespace="System.Globalization" %>
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<script runat="server">
+
+    Protected Sub Page_Load(sender As Object, e As System.EventArgs)
+        'Me.Label1.Text = "2012/01/ isdate=" & IsDate("2012/01/")
+        'Me.Label2.Text = "2012/01 isdate=" & IsDate("2012/01")
+        'Me.Label3.Text = "1000/1/1 isdate=" & IsDate("1000/1/1")
+        Dim _date1 As Date, _Parse As Boolean = False, DateString = "1000/01/01"
+        _Parse = Date.TryParseExact(DateString, "yyyy/MM/dd", CultureInfo.CurrentCulture, DateTimeStyles.None, _date1)
+        Me.Label1.Text = DateString & " Date.TryParseExact with yyyy/MM/dd=" & _Parse
+        
+    End Sub
+</script>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head runat="server">
+    <title></title>
+</head>
+<body>
+    <form id="form1" runat="server">
+    <div>
+        <asp:Label ID="Label1" runat="server" Text="Label"></asp:Label>
+        <br/>
+        <asp:Label ID="Label2" runat="server" Text="Label"></asp:Label>
+        <br/>
+        <asp:Label ID="Label3" runat="server" Text="Label"></asp:Label>
+    </div>
+    </form>
+</body>
+</html>

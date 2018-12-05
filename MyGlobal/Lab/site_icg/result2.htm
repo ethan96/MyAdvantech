@@ -1,0 +1,380 @@
+<!DOCTYPE html>
+<!--[if lt IE 7]>     <html class="lt-ie9 lt-ie8 lt-ie7"> <![endif]-->
+<!--[if IE 7]>        <html class="lt-ie9 lt-ie8"> <![endif]-->
+<!--[if IE 8]>        <html class="lt-ie9"> <![endif]-->
+<!--[if gt IE 8]><!--><html lang="zh-tw"><!--<![endif]-->
+<head>
+	<meta charset="UTF-8">
+	<title>Advantech ICG Portal</title>
+	<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+	<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0" />
+	<meta http-equiv="cache-control" content="max-age=0" />
+	<meta http-equiv="cache-control" content="no-cache" />
+	<meta http-equiv="expires" content="0" />
+	<meta http-equiv="expires" content="Tue, 01 Jan 1980 1:00:00 GMT" />
+	<meta http-equiv="pragma" content="no-cache" />
+	<!--[if lt IE 9]>
+		<script src="js/html5shiv.min.js"></script>
+	<![endif]-->
+	<link rel="stylesheet" href="css/default.css">
+</head>
+<body>
+
+<div class="bgFFF">
+	<div class="wrap">
+
+		<!-- top login for desktop -->
+		<div class="login-desktop float-right">
+
+			<div class="favorite"><a href="favorite.htm">My Favorites(26)</a></div>
+			<div class="email">guest@advantech.com</div>
+
+		</div>
+
+		<!-- top login for tablet or mobile -->
+		<div class="login-tablet-mobile float-right">
+
+			<div class="favorite"><a href="favorite.htm">My Favorites(26)</a></div>
+			<div class="email">guest@advantech.com</div>
+
+		</div>
+
+		<!-- top logo -->
+		<div class="logo">
+			<a href="index.htm">
+				<img src="img/logo.png">
+				<h1>Advantech ICG Portal</h1>
+			</a>
+		</div>
+
+		<!-- search bar -->
+
+		<div class="searchbar">
+			<form id="mySearch" name="mySearch" action="result.htm"><!--登入狀態下有 form，button 沒有 openLightBox 的 class-->
+				<!--底下 input、button 兩個要寫在同一行，連在一起-->
+				<input type="text" class="searchBar"><button id="searchBtn">Search</button><!--id 勿刪-->
+			</form>
+		</div>
+
+		<!-- filter open / close for mobile -->
+
+		<div class="filter_switch">
+			Filter your results
+			<button>Filter</button>
+		</div>
+
+		<!-- filter area -->
+
+		<div class="filter">
+
+			<div class="title"><img src="img/filter_title@2x.png" width="200" height="30"></div>
+
+			<div class="list list1">
+				<h4>Technical Documents</h4>
+				<ul>
+					<li><label><input type="checkbox" name="Data sheets"> Data sheets</label></li>
+					<li><label><input type="checkbox" name="User Manual"> User Manual</label></li>
+					<li><label><input type="checkbox" name="Firmware"> Firmware</label></li>
+					<li><label><input type="checkbox" name="Certificate</label"> Certificate</label></li>
+					<li><label><input type="checkbox" name="Phase in/ out plan"> Phase in/ out plan</label></li>
+					<li><label><input type="checkbox" name="Knowledge Base"> Knowledge Base</label></li>
+					<li><label><input type="checkbox" name="Successful Stories"> Successful Stories</label></li>
+					<li><label><input type="checkbox" name="White Papers"> White Papers</label></li>
+					<li><label><input type="checkbox" name="Feature Articles"> Feature Articles</label></li>
+				</ul>
+			</div>
+
+			<div class="list list2">
+				<h4>Marketing Related Documents</h4>
+				<ul>
+					<li><label><input type="checkbox" name="Sales Kits"	> Sales Kits</label></li>
+					<li><label><input type="checkbox" name="Roadmap"> Roadmap</label></li>
+					<li><label><input type="checkbox" name="eDMs"> eDMs</label></li>
+					<li><label><input type="checkbox" name="Posters"> Posters</label></li>
+					<li><label><input type="checkbox" name="Ads"> Ads</label></li>
+					<li><label><input type="checkbox" name="Banners"> Banners</label></li>
+					<li><label><input type="checkbox" name="Brochures"> Brochures</label></li>
+					<li><label><input type="checkbox" name="Product Photo "> Product Photo </label></li>
+					<li><label><input type="checkbox" name="3D Model"> 3D Model</label></li>
+					<li><label><input type="checkbox" name="Video"> Video</label></li>
+				</ul>
+			</div>
+
+			<div class="clearfix"></div>
+
+		</div>
+
+	</div>
+</div>
+
+<div class="wrap">
+
+	<div class="resultsBox type-thumbnail"><!-- 目前縮圖式排列，class 名稱中有 type-thumbnail -->
+
+		<div class="title">Search Results</div>
+		<div class="keywords">Keywords : EKI-5525I</div>
+		<div class="listType">
+			<button class="list"></button><!-- 目前條列式排列，class 名稱中有 on -->
+			<button class="thumbnail on"></button>
+		</div>
+		<div class="sorting">
+			Sort by
+			<select name="">
+				<option value="">Latest Update</option>
+				<option value="">"My Favorites" Time</option>
+				<option value="">Product Name</option>
+			</select>
+		</div>
+		<div class="clearfix"></div>
+
+		<div class="resultList">
+
+			<div class="img"><img src="fake/pic1.jpg" height="150"></div><!--圖片尺寸上限是 150*150，請等比例縮放至範圍內-->
+			<div class="name">medAdvantech Journal</div>
+			<div class="detail">
+				<div class="date_fileType">
+					<span class="date">2014/12/15</span>
+					<span class="fileType">PDF</span>
+				</div>
+				<div class="description">The medAdvantech Journal is designed to keep the market informed on the latest medical technology, and introduce Advantech’s Digital Healthcare star products for the IT Healthcare.</div>
+			</div>
+			<div class="btns">
+				<a href="http://www.advantech.com.tw/" target="_blank" class="btn btn-primary btn-preview">Preview</a>
+				<a href="http://www.advantech.com.tw/" target="_blank" class="btn btn-primary btn-source">Source</a>
+				<button class="btn btn-gray btn-favorite" name="1">Favorite</button><!--class 名稱第二個為 btn-gray，name=1 表示已經加入過 Favorite-->
+			</div>
+
+		</div>
+
+		<div class="resultList">
+
+			<div class="img"><img src="fake/pic2.jpg" height="150"></div><!--圖片尺寸上限是 150*150，請等比例縮放至範圍內-->
+			<div class="name">2014-2015 Point-of-Care Touch Computer Pamphlet</div>
+			<div class="detail">
+				<div class="date_fileType">
+					<span class="date">2014/12/15</span>
+					<span class="fileType">AI</span>
+				</div>
+				<div class="description">Advantech medical computing platforms are designed to advance quality and efficiency of healthcare. Please refer this new 2014-2015 medical computing pamphlet for the medical product overview and exciting application stories. </div>
+			</div>
+			<div class="btns">
+				<a href="http://www.advantech.com.tw/" target="_blank" class="btn btn-primary btn-preview">Preview</a>
+				<a href="http://www.advantech.com.tw/" target="_blank" class="btn btn-primary btn-source">Source</a>
+				<button class="btn btn-gray btn-favorite" name="1">Favorite</button><!--class 名稱第二個為 btn-gray，name=1 表示已經加入過 Favorite-->
+			</div>
+
+		</div>
+
+		<div class="resultList">
+
+			<div class="img"><img src="img/default_pic.png" width="150"></div><!--圖片尺寸上限是 150*150，請等比例縮放至範圍內-->
+			<div class="name">PCIE Cards have Evolved Join the Revolution</div>
+			<div class="detail">
+				<div class="date_fileType">
+					<span class="date">2014/12/15</span>
+					<span class="fileType">eDM</span>
+				</div>
+				<div class="description">PCI Express, the next-generation PC I/O bus, offers 250 MB/s bandwidth per direction per lane and is a very popular hardware interface used on many computer platforms. Its high speed and high performance throughput that help make it ideal for automation applications.</div>
+			</div>
+			<div class="btns">
+				<a href="http://www.advantech.com.tw/" target="_blank" class="btn btn-primary btn-preview">Preview</a>
+				<a href="http://www.advantech.com.tw/" target="_blank" class="btn btn-primary btn-source">Source</a>
+				<button class="btn btn-info btn-favorite" name="0">Favorite</button><!--class 名稱第二個為 btn-info，name=0 表示尚未加入過 Favorite-->
+			</div>
+
+		</div>
+
+		<div class="resultList">
+
+			<div class="img"><img src="img/default_pic.png" height="150"></div><!--圖片尺寸上限是 150*150，請等比例縮放至範圍內-->
+			<div class="name">medAdvantech Journal</div>
+			<div class="detail">
+				<div class="date_fileType">
+					<span class="date">2014/12/15</span>
+					<span class="fileType">PDF</span>
+				</div>
+				<div class="description">The medAdvantech Journal is designed to keep the market informed on the latest medical technology, and introduce Advantech’s Digital Healthcare star products for the IT Healthcare.</div>
+			</div>
+			<div class="btns">
+				<a href="http://www.advantech.com.tw/" target="_blank" class="btn btn-primary btn-preview">Preview</a>
+				<a href="http://www.advantech.com.tw/" target="_blank" class="btn btn-primary btn-source">Source</a>
+				<button class="btn btn-info btn-favorite" name="0">Favorite</button><!--class 名稱第二個為 btn-info，name=0 表示尚未加入過 Favorite-->
+			</div>
+
+		</div>
+
+		<div class="resultList">
+
+			<div class="img"><img src="fake/pic2.jpg" height="150"></div><!--圖片尺寸上限是 150*150，請等比例縮放至範圍內-->
+			<div class="name">2014-2015 Point-of-Care Touch Computer Pamphlet</div>
+			<div class="detail">
+				<div class="date_fileType">
+					<span class="date">2014/12/15</span>
+					<span class="fileType">AI</span>
+				</div>
+				<div class="description">Advantech medical computing platforms are designed to advance quality and efficiency of healthcare. Please refer this new 2014-2015 medical computing pamphlet for the medical product overview and exciting application stories. </div>
+			</div>
+			<div class="btns">
+				<a href="http://www.advantech.com.tw/" target="_blank" class="btn btn-primary btn-preview">Preview</a>
+				<a href="http://www.advantech.com.tw/" target="_blank" class="btn btn-primary btn-source">Source</a>
+				<button class="btn btn-info btn-favorite" name="0">Favorite</button><!--class 名稱第二個為 btn-info，name=0 表示尚未加入過 Favorite-->
+			</div>
+
+		</div>
+
+		<div class="resultList">
+
+			<div class="img"><img src="fake/pic3.jpg" width="150"></div><!--圖片尺寸上限是 150*150，請等比例縮放至範圍內-->
+			<div class="name">PCIE Cards have Evolved Join the Revolution</div>
+			<div class="detail">
+				<div class="date_fileType">
+					<span class="date">2014/12/15</span>
+					<span class="fileType">eDM</span>
+				</div>
+				<div class="description">PCI Express, the next-generation PC I/O bus, offers 250 MB/s bandwidth per direction per lane and is a very popular hardware interface used on many computer platforms. Its high speed and high performance throughput that help make it ideal for automation applications.</div>
+			</div>
+			<div class="btns">
+				<a href="http://www.advantech.com.tw/" target="_blank" class="btn btn-primary btn-preview">Preview</a>
+				<a href="http://www.advantech.com.tw/" target="_blank" class="btn btn-primary btn-source">Source</a>
+				<button class="btn btn-info btn-favorite" name="0">Favorite</button><!--class 名稱第二個為 btn-info，name=0 表示尚未加入過 Favorite-->
+			</div>
+
+		</div>
+
+		<div class="resultList">
+
+			<div class="img"><img src="fake/pic1.jpg" height="150"></div><!--圖片尺寸上限是 150*150，請等比例縮放至範圍內-->
+			<div class="name">medAdvantech Journal</div>
+			<div class="detail">
+				<div class="date_fileType">
+					<span class="date">2014/12/15</span>
+					<span class="fileType">PDF</span>
+				</div>
+				<div class="description">The medAdvantech Journal is designed to keep the market informed on the latest medical technology, and introduce Advantech’s Digital Healthcare star products for the IT Healthcare.</div>
+			</div>
+			<div class="btns">
+				<a href="http://www.advantech.com.tw/" target="_blank" class="btn btn-primary btn-preview">Preview</a>
+				<a href="http://www.advantech.com.tw/" target="_blank" class="btn btn-primary btn-source">Source</a>
+				<button class="btn btn-info btn-favorite" name="0">Favorite</button><!--class 名稱第二個為 btn-info，name=0 表示尚未加入過 Favorite-->
+			</div>
+
+		</div>
+
+		<div class="resultList">
+
+			<div class="img"><img src="fake/pic2.jpg" height="150"></div><!--圖片尺寸上限是 150*150，請等比例縮放至範圍內-->
+			<div class="name">2014-2015 Point-of-Care Touch Computer Pamphlet</div>
+			<div class="detail">
+				<div class="date_fileType">
+					<span class="date">2014/12/15</span>
+					<span class="fileType">AI</span>
+				</div>
+				<div class="description">Advantech medical computing platforms are designed to advance quality and efficiency of healthcare. Please refer this new 2014-2015 medical computing pamphlet for the medical product overview and exciting application stories. </div>
+			</div>
+			<div class="btns">
+				<a href="http://www.advantech.com.tw/" target="_blank" class="btn btn-primary btn-preview">Preview</a>
+				<a href="http://www.advantech.com.tw/" target="_blank" class="btn btn-primary btn-source">Source</a>
+				<button class="btn btn-info btn-favorite" name="0">Favorite</button><!--class 名稱第二個為 btn-info，name=0 表示尚未加入過 Favorite-->
+			</div>
+
+		</div>
+
+		<div class="resultList">
+
+			<div class="img"><img src="fake/pic3.jpg" width="150"></div><!--圖片尺寸上限是 150*150，請等比例縮放至範圍內-->
+			<div class="name">PCIE Cards have Evolved Join the Revolution</div>
+			<div class="detail">
+				<div class="date_fileType">
+					<span class="date">2014/12/15</span>
+					<span class="fileType">eDM</span>
+				</div>
+				<div class="description">PCI Express, the next-generation PC I/O bus, offers 250 MB/s bandwidth per direction per lane and is a very popular hardware interface used on many computer platforms. Its high speed and high performance throughput that help make it ideal for automation applications.</div>
+			</div>
+			<div class="btns">
+				<a href="http://www.advantech.com.tw/" target="_blank" class="btn btn-primary btn-preview">Preview</a>
+				<a href="http://www.advantech.com.tw/" target="_blank" class="btn btn-primary btn-source">Source</a>
+				<button class="btn btn-info btn-favorite" name="0">Favorite</button><!--class 名稱第二個為 btn-info，name=0 表示尚未加入過 Favorite-->
+			</div>
+
+		</div>
+
+		<div class="clearfix"></div>
+		<ul class="pages">
+			<li><a href="javascript:void(0);" class="btn arrowL"></a></li>
+			<li>1</li>
+			<li><a href="javascript:void(0);"> 2 </a></li>
+			<li><a href="javascript:void(0);"> 3 </a></li>
+			<li><a href="javascript:void(0);"> 4 </a></li>
+			<li><a href="javascript:void(0);"> 5 </a></li>
+			<li><a href="javascript:void(0);"> 6 </a></li>
+			<li><a href="javascript:void(0);"> 7 </a></li>
+			<li><a href="javascript:void(0);"> 8 </a></li>
+			<li><a href="javascript:void(0);"> 9 </a></li>
+			<li><a href="javascript:void(0);"> 10 </a></li>
+			<li><a href="javascript:void(0);" class="btn arrowR"></a></li>
+		</ul>
+
+	</div>
+
+	<!-- 按下「Favorite」後彈跳出的 Alert Div Box -->
+
+	<div class="addFavoriteAlert">This item has been add to favorite !</div>
+
+	<!-- bottom product lists -->
+
+	<div class="productsBox">
+
+		<div class="title">Search By Classification</div>
+
+		<dl class="box1">
+			<dt>Product Information</dt>
+			<dd><a href="result.htm">Data sheets</a><dd>
+			<dd><a href="result.htm">User Manual</a><dd>
+			<dd><a href="result.htm">Firmware</a><dd>
+			<dd><a href="result.htm">Certificate</a><dd>
+			<dd><a href="result.htm">Phase in/ phase out plan</a><dd>
+		</dl>
+
+		<dl class="box2">
+			<dt>Sales Tools</dt>
+			<dd><a href="result.htm">Sales Kits</a><dd>
+			<dd><a href="result.htm">Roadmap</a><dd>
+		</dl>
+
+		<dl class="box3">
+			<dt>Marketing Materials</dt>
+			<dd><a href="result.htm">eDMs</a><dd>
+			<dd><a href="result.htm">Posters</a><dd>
+			<dd><a href="result.htm">Ads</a><dd>
+			<dd><a href="result.htm">Banners</a><dd>
+			<dd><a href="result.htm">Brochures</a><dd>
+			<dd><a href="result.htm">Product Photo</a><dd>
+			<dd><a href="result.htm">3D Model</a><dd>
+		</dl>
+
+		<dl class="box4">
+			<dt>Resource Library</dt>
+			<dd><a href="result.htm">Successful Stories</a><dd>
+			<dd><a href="result.htm">White Papers</a><dd>
+			<dd><a href="result.htm">Knowledge Base</a><dd>
+			<dd><a href="result.htm">Feature Articles</a><dd>
+			<dd><a href="result.htm">Video</a><dd>
+		</dl>
+
+		<div class="clearfix"></div>
+	</div>
+
+</div>
+
+<div class="footer">Copyright &copy; 1983-<script type="text/javascript">var d=new Date();document.write(d.getFullYear());</script> Advantech Co., Ltd. All Rights Reserved</div>
+
+<script type="text/javascript" src="js/jquery-1.11.2.min.js"></script>
+<script type="text/javascript" src="js/inputdefaultvalue.js"></script>
+<script type="text/javascript" src="js/lightbox.js"></script>
+<script type="text/javascript" src="js/default.js"></script>
+
+</body>
+</html>
+
+
+

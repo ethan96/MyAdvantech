@@ -1,0 +1,236 @@
+﻿<%@ Page Title="MyAdvantech DataMining - Product Status List" Language="VB" MasterPageFile="~/Includes/MyMaster.master" %>
+
+<script runat="server">
+    
+    Protected Sub SrcPOut_Selecting(ByVal sender As Object, ByVal e As System.Web.UI.WebControls.SqlDataSourceSelectingEventArgs)
+        e.Command.CommandTimeout = 600
+    End Sub
+    
+    Protected Sub gvRowCreated(ByVal sender As Object, ByVal e As System.Web.UI.WebControls.GridViewRowEventArgs)
+        If Not (e.Row Is Nothing) AndAlso e.Row.RowType = DataControlRowType.Header Then
+            Dim GridView1 As GridView = sender
+            For Each cell As TableCell In e.Row.Cells
+                If cell.HasControls Then
+                    Dim button As LinkButton = DirectCast(cell.Controls(0), LinkButton)
+                    If Not (button Is Nothing) Then
+                        Dim image As New ImageButton
+                        image.ImageUrl = "/Images/sort_1.jpg"
+                        image.CommandArgument = button.CommandArgument : image.CommandName = button.CommandName
+                        If GridView1.SortExpression = button.CommandArgument Then
+                            If GridView1.SortDirection = SortDirection.Ascending Then
+                                image.ImageUrl = "/Images/sort_2.jpg"
+                            Else
+                                image.ImageUrl = "/Images/sort_1.jpg"
+                            End If
+                        End If
+                        cell.Controls.Add(image)
+                    End If
+                End If
+            Next
+        End If
+    End Sub
+    
+    Function GetSql() As String
+        Dim sb As New System.Text.StringBuilder
+        With sb
+            .AppendLine(String.Format(" SELECT a.PART_NO, b.PRODUCT_STATUS, a.MODEL_NO, a.MATERIAL_GROUP, a.PRODUCT_GROUP, a.PRODUCT_DIVISION,  "))
+            .AppendLine(String.Format(" a.PRODUCT_LINE, a.PRODUCT_DESC, a.ROHS_FLAG, a.NET_WEIGHT, a.GROSS_WEIGHT,  "))
+            .AppendLine(String.Format(" a.WEIGHT_UNIT, a.VOLUME, a.VOLUME_UNIT, a.CREATE_DATE, a.LAST_UPD_DATE,  "))
+            .AppendLine(String.Format(" b.SALES_ORG, b.DIST_CHANNEL, b.DLV_PLANT "))
+            .AppendLine(String.Format(" FROM SAP_PRODUCT AS a INNER JOIN "))
+            .AppendLine(String.Format(" SAP_PRODUCT_STATUS AS b ON a.PART_NO = b.PART_NO "))
+            .AppendLine(String.Format(" WHERE a.PART_NO not like '#%' and b.SALES_ORG = '" + dlOrg.SelectedValue + "' and a.model_no<>'' and a.material_group in ('PRODUCT','ODM','T','BTOS','ES') "))
+            Dim arrPGs As New ArrayList
+            For Each p As ListItem In cblPGs.Items
+                If p.Selected Then
+                    Dim pgs() As String = Split(p.Value, ",")
+                    For Each spg In pgs
+                        arrPGs.Add("'" + Replace(spg, "'", "''") + "'")
+                    Next
+                End If
+            Next
+            If arrPGs.Count > 0 Then
+                .AppendLine(String.Format(" and a.PRODUCT_GROUP in ({0}) ", String.Join(",", arrPGs.ToArray())))
+            End If
+            .AppendLine(String.Format(" order by a.part_no "))
+        End With
+        Return sb.ToString()
+    End Function
+
+    Protected Sub gv1_PageIndexChanging(ByVal sender As Object, ByVal e As System.Web.UI.WebControls.GridViewPageEventArgs)
+        src1.SelectCommand = GetSql()
+    End Sub
+
+    Protected Sub gv1_Sorting(ByVal sender As Object, ByVal e As System.Web.UI.WebControls.GridViewSortEventArgs)
+        src1.SelectCommand = GetSql()
+    End Sub
+
+    Protected Sub cblPGs_SelectedIndexChanged(ByVal sender As Object, ByVal e As System.EventArgs)
+        src1.SelectCommand = GetSql()
+    End Sub
+
+    Protected Sub dlOrg_SelectedIndexChanged(ByVal sender As Object, ByVal e As System.EventArgs)
+        src1.SelectCommand = GetSql()
+    End Sub
+
+    Protected Sub imgXls_Click(ByVal sender As Object, ByVal e As System.Web.UI.ImageClickEventArgs)
+        Util.DataTable2ExcelDownload(dbUtil.dbGetDataTable("MY", GetSql()), "ProductStatus.xls")
+    End Sub
+
+    Protected Sub Page_Load(ByVal sender As Object, ByVal e As System.EventArgs)
+        If Not Page.IsPostBack Then
+            src1.SelectCommand = GetSql()
+        End If
+    End Sub
+
+    Protected Sub gv1_RowDataBound(ByVal sender As Object, ByVal e As System.Web.UI.WebControls.GridViewRowEventArgs)
+        If e.Row.RowType = DataControlRowType.DataRow Then
+            'Dim hpn As HiddenField = e.Row.FindControl("hd_PN")
+        End If
+    End Sub
+
+    Protected Sub btnRowShowInOut_Click(ByVal sender As Object, ByVal e As System.EventArgs)
+        Dim btn As Button = sender
+        btn.NamingContainer.FindControl("rowPanel").Visible = True
+    End Sub
+</script>
+
+<asp:Content ID="Content1" ContentPlaceHolderID="_main" Runat="Server">
+    <table width="100%">
+        <tr>
+            <td>
+                <table>
+                    <tr>
+                        <th align="left">Product Group:</th>
+                        <td>
+                            <asp:CheckBoxList runat="server" ID="cblPGs" RepeatColumns="5" AutoPostBack="true" OnSelectedIndexChanged="cblPGs_SelectedIndexChanged">
+                                <asp:ListItem Text="eAutomation" Value="EAUT,EAUT-" Selected="True" />
+                                <asp:ListItem Text="ePlatform" Value="EAPC" />
+                                <asp:ListItem Text="AGS" Value="AGSG" />
+                                <asp:ListItem Text="Others" Value="BDWN,EMSU,OTHR,OTHR-" />
+                            </asp:CheckBoxList>
+                        </td>
+                        <th align="left">Region</th>
+                        <td>
+                            <asp:DropDownList runat="server" ID="dlOrg" AutoPostBack="true" OnSelectedIndexChanged="dlOrg_SelectedIndexChanged">
+                                <asp:ListItem Value="TW01" Selected="True" />
+                                <asp:ListItem Value="US01" />
+                                <asp:ListItem Value="CN10" />
+                            </asp:DropDownList>
+                        </td>
+                    </tr>
+                </table>
+            </td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <asp:ImageButton runat="server" ID="imgXls" ImageUrl="~/Images/excel.gif" AlternateText="To Excel" OnClick="imgXls_Click" />
+                <asp:UpdatePanel runat="server" id="up1" UpdateMode="Conditional">
+                    <ContentTemplate>
+                        <asp:GridView runat="server" ID="gv1" Width="100%" AllowPaging="true" AllowSorting="true" AutoGenerateColumns="false" 
+                            PageSize="100" PagerSettings-Position="TopAndBottom" DataSourceID="src1" OnPageIndexChanging="gv1_PageIndexChanging" 
+                            OnSorting="gv1_Sorting" OnRowDataBound="gv1_RowDataBound" OnRowCreated="gvRowCreated">
+                            <Columns>
+                                <asp:HyperLinkField HeaderText="Part No." DataNavigateUrlFields="PART_NO" 
+                                    DataNavigateUrlFormatString="~/DM/ProductDashboard.aspx?PN={0}" DataTextField="PART_NO" 
+                                    Target="_blank" SortExpression="PART_NO" />
+                                <asp:HyperLinkField HeaderText="Model No." DataNavigateUrlFields="MODEL_NO" 
+                                    DataNavigateUrlFormatString="~/Product/Model_Detail.aspx?modeil_no={0}" DataTextField="MODEL_NO" 
+                                    Target="_blank" SortExpression="MODEL_NO" />
+                                <asp:BoundField HeaderText="Status" DataField="PRODUCT_STATUS" SortExpression="PRODUCT_STATUS" ItemStyle-HorizontalAlign="Center" />
+                                <asp:BoundField HeaderText="Material Group" DataField="MATERIAL_GROUP" SortExpression="MATERIAL_GROUP" />
+                                <asp:BoundField HeaderText="Product Group" DataField="PRODUCT_GROUP" SortExpression="PRODUCT_GROUP" />
+                                <asp:BoundField HeaderText="Product Division" DataField="PRODUCT_DIVISION" SortExpression="PRODUCT_DIVISION" />
+                                <asp:BoundField HeaderText="Product Line" DataField="PRODUCT_LINE" SortExpression="PRODUCT_LINE" />
+                                <asp:BoundField HeaderText="Description" DataField="PRODUCT_DESC" SortExpression="PRODUCT_DESC" />
+                                <asp:TemplateField HeaderText="Phase In/Out Info" ItemStyle-Width="301px" Visible="false">
+                                    <ItemTemplate>
+                                        <asp:HiddenField runat="server" ID="hd_PN" Value='<%#Eval("PART_NO") %>' />
+                                        <asp:UpdatePanel runat="server" ID="upInOut" UpdateMode="Conditional">
+                                            <ContentTemplate>
+                                                <asp:Button runat="server" ID="btnRowShowInOut" Text="Show" OnClick="btnRowShowInOut_Click" />
+                                                <asp:Panel runat="server" ID="rowPanel" Width="300px" Height="160px" ScrollBars="Auto" Visible="false">
+                                                    <table runat="server" id="trPInOut">
+                                                        <tr>
+                                                            <td>
+                                                                <table width="100%">
+                                                                    <tr>
+                                                                        <th align="left">Phase In Information:</th>
+                                                                    </tr>
+                                                                    <tr>
+                                                                        <td>
+                                                                            <asp:GridView runat="server" ID="gvPIn" AutoGenerateColumns="false"  
+                                                                                OnRowCreated="gvRowCreated">
+                                                                                <Columns>
+                                                                                    <asp:BoundField HeaderText="Change Number" DataField="CHANGE_NUMBER" SortExpression="CHANGE_NUMBER" />
+                                                                                    <asp:BoundField HeaderText="Release Date" DataField="RELEASE_DATE" SortExpression="RELEASE_DATE" />
+                                                                                    <asp:BoundField HeaderText="Rev. Number" DataField="REV_NUMBER" SortExpression="REV_NUMBER" />
+                                                                                    <asp:BoundField HeaderText="Description" DataField="DESCRIPTION" SortExpression="DESCRIPTION" />
+                                                                                    <asp:BoundField HeaderText="Change Description" DataField="CHANGE_DESC" SortExpression="CHANGE_DESC" />
+                                                                                </Columns>
+                                                                            </asp:GridView>
+                                                                            <asp:SqlDataSource runat="server" ID="SrcPIn" ConnectionString="<%$ConnectionStrings:MY %>"
+                                                                                SelectCommand="select CHANGE_NUMBER, RELEASE_DATE, REV_NUMBER, DESCRIPTION, CHANGE_DESC from PLM_PHASEIN where ITEM_NUMBER=@PN">
+                                                                                <SelectParameters>
+                                                                                    <asp:ControlParameter ControlID="hd_PN" ConvertEmptyStringToNull="false" Name="PN" PropertyName="Value" />
+                                                                                </SelectParameters>
+                                                                            </asp:SqlDataSource> 
+                                                                        </td>
+                                                                    </tr>
+                                                                </table>
+                                                            </td>
+                                                        </tr>
+                                                        <tr>
+                                                            <td>
+                                                                <table width="100%">
+                                                                    <tr>
+                                                                        <th align="left">Phase Out Information:</th>
+                                                                    </tr>
+                                                                    <tr>
+                                                                        <td>
+                                                                            <asp:GridView runat="server" ID="gvPOut" AutoGenerateColumns="false" 
+                                                                                OnRowCreated="gvRowCreated">
+                                                                                <Columns>
+                                                                                    <asp:BoundField HeaderText="Change Number" DataField="CHANGE_NUMBER" SortExpression="CHANGE_NUMBER" />
+                                                                                    <asp:BoundField HeaderText="Release Date" DataField="RELEASE_DATE" SortExpression="RELEASE_DATE" />
+                                                                                    <asp:BoundField HeaderText="Rev. Number" DataField="REV_NUMBER" SortExpression="REV_NUMBER" />
+                                                                                    <asp:BoundField HeaderText="Description" DataField="DESCRIPTION" SortExpression="DESCRIPTION" />
+                                                                                    <asp:BoundField HeaderText="Replaced By" DataField="REPLACE_BY" SortExpression="REPLACE_BY" />
+                                                                                    <asp:BoundField HeaderText="Last Buy Date" DataField="LAST_BUY_DATE" SortExpression="LAST_BUY_DATE" />
+                                                                                    <asp:BoundField HeaderText="Change Description" DataField="CHANGE_DESC" SortExpression="CHANGE_DESC" />
+                                                                                </Columns>
+                                                                            </asp:GridView>
+                                                                            <asp:SqlDataSource runat="server" ID="SrcPOut" ConnectionString="<%$ConnectionStrings:MY %>"
+                                                                                SelectCommand="select CHANGE_NUMBER, RELEASE_DATE, REV_NUMBER, DESCRIPTION, REPLACE_BY, LAST_BUY_DATE, CHANGE_DESC from PLM_PHASEOUT where ITEM_NUMBER=@PN" OnSelecting="SrcPOut_Selecting">
+                                                                                <SelectParameters>
+                                                                                    <asp:ControlParameter ControlID="hd_PN" ConvertEmptyStringToNull="false" Name="PN" PropertyName="Value" />
+                                                                                </SelectParameters>
+                                                                            </asp:SqlDataSource> 
+                                                                        </td>
+                                                                    </tr>
+                                                                </table>
+                                                            </td>
+                                                        </tr>
+                                                    </table>        
+                                                </asp:Panel>     
+                                            </ContentTemplate>
+                                        </asp:UpdatePanel>                                                                                                           
+                                    </ItemTemplate>
+                                </asp:TemplateField>
+                            </Columns>
+                        </asp:GridView>
+                        <asp:SqlDataSource runat="server" id="src1" ConnectionString="<%$ConnectionStrings:MY %>" />
+                    </ContentTemplate>
+                    <Triggers>
+                        <asp:AsyncPostBackTrigger ControlID="cblPGs" EventName="SelectedIndexChanged" />
+                        <asp:AsyncPostBackTrigger ControlID="dlOrg" EventName="SelectedIndexChanged" />
+                    </Triggers>
+                </asp:UpdatePanel>
+            </td>
+        </tr>
+    </table>
+</asp:Content>
+

@@ -1,0 +1,390 @@
+﻿<%@ Page Title="Banner Control" Language="VB" MasterPageFile="~/Includes/MyMaster.master" %>
+
+<script runat="server">
+
+    Protected Sub ddlView_SelectedIndexChanged(sender As Object, e As System.EventArgs)
+
+    End Sub
+
+    Protected Sub btnUpload_Click(sender As Object, e As System.EventArgs)
+        If fup1.HasFile Then
+            Dim filePath As String = "C:/MyGlobal/Images/Banner/" + fup1.FileName
+            'Dim filePath2 As String = Server.MapPath("~/Images/Banner/") + fup1.FileName
+            If IO.File.Exists(filePath) Then Util.JSAlert(Page, "There is a file with the same file name in our system, please modify your file name and upload it again") : Exit Sub
+            fup1.SaveAs(filePath)
+            'fup1.SaveAs(filePath2)
+            Dim arrHome As New ArrayList, arrRBU As New ArrayList, arrOrg As New ArrayList
+            For Each item As ListItem In cblHome.Items
+                If item.Selected Then arrHome.Add(item.Value)
+            Next
+            If arrHome.Count = 0 Then Util.JSAlert(Page, "Please select at least one homepage") : Exit Sub
+            For Each item As ListItem In cblRBU.Items
+                If item.Selected Then arrRBU.Add(item.Value)
+            Next
+            For Each item As ListItem In cblORG.Items
+                If item.Selected Then arrOrg.Add(item.Value)
+            Next
+            Dim seq As Integer = 0
+            If txtSeq.Text <> "" Then seq = CInt(txtSeq.Text)
+            If txtUrl.Text.Replace("'", "").Trim <> "" Then
+                If Not txtUrl.Text.StartsWith("http") Then Util.JSAlert(Page, "Url is not in a valid format") : Exit Sub
+            End If
+            For Each item As String In arrHome
+                dbUtil.dbExecuteNoQuery("MY", String.Format("update MYGLOBAL_BANNER set SEQ=SEQ+1 where SEQ>='{0}' and HOMEPAGE='{1}'", CInt(txtSeq.Text), item))
+                dbUtil.dbExecuteNoQuery("MY", String.Format("insert into MYGLOBAL_BANNER (HOMEPAGE,RBU,ORG_ID,FILENAME,SEQ,UPLOADED_BY,UPLOADED_DATE,LINK) values ('{0}','{1}','{2}',N'{3}','{4}','{5}',getdate(),'{6}')", item, String.Join("|", arrRBU.ToArray()), String.Join("|", arrOrg.ToArray()), fup1.FileName.Replace("'", "''"), seq, Session("user_id"), txtUrl.Text.Replace("'", "''")))
+            Next
+            gv1.DataBind()
+        Else
+            Util.JSAlert(Page, "Please select a file")
+        End If
+    End Sub
+
+    Protected Sub Page_Load(sender As Object, e As System.EventArgs)
+        If Not Page.IsPostBack Then
+            txtSeq.Text = "0"
+        End If
+    End Sub
+
+    Protected Sub sql1_Load(sender As Object, e As System.EventArgs)
+        'sql1.SelectCommand = GetSql()
+    End Sub
+
+    Protected Sub gv1_RowDataBound(sender As Object, e As System.Web.UI.WebControls.GridViewRowEventArgs)
+        If e.Row.RowType = DataControlRowType.DataRow Then
+            Dim org As String = DataBinder.Eval(e.Row.DataItem, "ORG_ID")
+            Dim rbu As String = DataBinder.Eval(e.Row.DataItem, "RBU")
+            If org <> "" OrElse rbu <> "" Then
+                If e.Row.Cells(2).FindControl("PanelSpecControl") IsNot Nothing Then
+                    e.Row.Cells(2).FindControl("PanelSpecControl").Visible = True
+                    If org <> "" Then
+                        e.Row.Cells(2).FindControl("PanelORG").Visible = True
+                        CType(e.Row.Cells(2).FindControl("lblORG"), Label).Text = org.Replace("|", "<font color='black'>, </font>")
+                    End If
+                    If rbu <> "" Then
+                        e.Row.Cells(2).FindControl("PanelRBU").Visible = True
+                        CType(e.Row.Cells(2).FindControl("lblRBU"), Label).Text = rbu.Replace("|", "<font color='black'>, </font>")
+                    End If
+                Else
+                    Dim cblOrg As CheckBoxList = CType(e.Row.Cells(2).FindControl("cblOrgEdit"), CheckBoxList)
+                    For Each item As String In org.Split("|")
+                        If cblOrg.Items.FindByValue(item) IsNot Nothing Then cblOrg.Items.FindByValue(item).Selected = True : cblOrg.Items.FindByValue(item).Text = "<font color='Tomato'>" + cblOrg.Items.FindByValue(item).Text + "</font>"
+                    Next
+                    Dim cblRBU As CheckBoxList = CType(e.Row.Cells(2).FindControl("cblRBUEdit"), CheckBoxList)
+                    For Each item As String In rbu.Split("|")
+                        If cblRBU.Items.FindByValue(item) IsNot Nothing Then cblRBU.Items.FindByValue(item).Selected = True : cblRBU.Items.FindByValue(item).Text = "<font color='Tomato'>" + cblRBU.Items.FindByValue(item).Text + "</font>"
+                    Next
+                End If
+            End If
+            If Not IsNothing(e.Row.Cells(2).FindControl("cblHomeEdit")) Then
+                Dim dlHome As CheckBoxList = CType(e.Row.Cells(2).FindControl("cblHomeEdit"), CheckBoxList)
+                Dim dt As DataTable = dbUtil.dbGetDataTable("MY", String.Format("select homepage from myglobal_banner where FILENAME='{0}'", DataBinder.Eval(e.Row.DataItem, "FILENAME")))
+                For Each row As DataRow In dt.Rows
+                    dlHome.Items.FindByValue(row.Item(0).ToString).Selected = True
+                Next
+            End If
+            If Not IsNothing(e.Row.Cells(3).FindControl("lblStatus")) Then
+                If CBool(DataBinder.Eval(e.Row.DataItem, "STATUS")) = False Then
+                    CType(e.Row.Cells(3).FindControl("lblStatus"), Label).Text = "Disable"
+                Else
+                    CType(e.Row.Cells(3).FindControl("lblStatus"), Label).Text = "Enable"
+                End If
+            End If
+            If Not IsNothing(e.Row.Cells(3).FindControl("ddlStatus")) Then
+                Dim dlStatus As DropDownList = CType(e.Row.Cells(3).FindControl("ddlStatus"), DropDownList)
+                If CBool(DataBinder.Eval(e.Row.DataItem, "STATUS")) = False Then
+                    dlStatus.SelectedValue = "0"
+                Else
+                    dlStatus.SelectedValue = "1"
+                End If
+            End If
+        End If
+    End Sub
+
+    Protected Sub gv1_RowDeleting(sender As Object, e As System.Web.UI.WebControls.GridViewDeleteEventArgs)
+
+    End Sub
+
+    Protected Sub gv1_RowUpdating(sender As Object, e As System.Web.UI.WebControls.GridViewUpdateEventArgs)
+        Dim cblRBU As CheckBoxList = CType(gv1.Rows(e.RowIndex).FindControl("cblRBUEdit"), CheckBoxList)
+        Dim arrRBU As New ArrayList
+        For Each item As ListItem In cblRBU.Items
+            If item.Selected Then arrRBU.Add(item.Value)
+        Next
+        sql1.UpdateParameters("RBU").DefaultValue = String.Join("|", arrRBU.ToArray())
+        
+        Dim cblOrg As CheckBoxList = CType(gv1.Rows(e.RowIndex).FindControl("cblOrgEdit"), CheckBoxList)
+        Dim arrOrg As New ArrayList
+        For Each item As ListItem In cblOrg.Items
+            If item.Selected Then arrOrg.Add(item.Value)
+        Next
+        sql1.UpdateParameters("ORG").DefaultValue = String.Join("|", arrOrg.ToArray())
+        
+        sql1.UpdateParameters("URL").DefaultValue = CType(gv1.Rows(e.RowIndex).FindControl("txtUrlEdit"), TextBox).Text.Replace("'", "''")
+        sql1.UpdateParameters("STATUS").DefaultValue = CBool(CType(gv1.Rows(e.RowIndex).FindControl("ddlStatus"), DropDownList).SelectedValue)
+        sql1.UpdateParameters("USER_ID").DefaultValue = Session("user_id")
+        
+        Dim dt As DataTable = dbUtil.dbGetDataTable("MY", String.Format("select homepage from myglobal_banner where filename='{0}'", CType(gv1.Rows(e.RowIndex).FindControl("hdnFile"), HiddenField).Value))
+        Dim arrHome As New ArrayList
+        For Each row As DataRow In dt.Rows
+            arrHome.Add(row.Item(0).ToString)
+        Next
+        Dim seq As Integer = 0
+        Integer.TryParse(CType(gv1.Rows(e.RowIndex).FindControl("txtSeqEdit"), TextBox).Text, seq)
+        sql1.UpdateParameters("SEQ").DefaultValue = seq
+        Dim cblHome As CheckBoxList = CType(gv1.Rows(e.RowIndex).FindControl("cblHomeEdit"), CheckBoxList)
+        For Each item As ListItem In cblHome.Items
+            If item.Selected Then
+                Dim dtBanner As DataTable = dbUtil.dbGetDataTable("MY", String.Format("select * from myglobal_banner where filename='{0}' and homepage='{1}'", CType(gv1.Rows(e.RowIndex).FindControl("hdnFile"), HiddenField).Value, item.Value))
+                If dtBanner.Rows.Count = 0 Then
+                    dbUtil.dbExecuteNoQuery("MY", String.Format("insert into MYGLOBAL_BANNER (HOMEPAGE,RBU,ORG_ID,FILENAME,SEQ,UPLOADED_BY,UPLOADED_DATE,LINK,status) values ('{0}','{1}','{2}',N'{3}','{4}','{5}',getdate(),'{6}','{7}')", item.Value, String.Join("|", arrRBU.ToArray()), String.Join("|", arrOrg.ToArray()), CType(gv1.Rows(e.RowIndex).FindControl("hdnFile"), HiddenField).Value, seq, Session("user_id"), CType(gv1.Rows(e.RowIndex).FindControl("txtUrlEdit"), TextBox).Text.Replace("'", "''"), CBool(CType(gv1.Rows(e.RowIndex).FindControl("ddlStatus"), DropDownList).SelectedValue)))
+                End If
+            Else
+                If arrHome.Contains(item.Value) Then
+                    dbUtil.dbExecuteNoQuery("MY", String.Format("delete from MYGLOBAL_BANNER where filename='{0}' and homepage='{1}'", CType(gv1.Rows(e.RowIndex).FindControl("hdnFile"), HiddenField).Value, item.Value))
+                End If
+            End If
+        Next
+    End Sub
+</script>
+
+<asp:Content ID="Content1" ContentPlaceHolderID="_main" Runat="Server">
+    <table>
+        <tr><th align="left" style="color:#4B65F9; font-size:medium; font-weight:bold">Upload Banner</th></tr>
+        <tr><td height="10"></td></tr>
+        <tr>
+            <td>
+                <table>
+                    <tr>
+                        <th align="left">Home: </th>
+                        <td>
+                            <asp:CheckBoxList runat="server" ID="cblHome" CellPadding="2" CellSpacing="2" Width="70%" RepeatDirection="Horizontal">
+                                <asp:ListItem Text="Login" Value="LOGIN" />
+                                <asp:ListItem Text="EZ" Value="EZ" />
+                                <asp:ListItem Text="KA" Value="KA" />
+                                <asp:ListItem Text="CP" Value="CP" />
+                                <asp:ListItem Text="GA" Value="GA" />
+                                <asp:ListItem Text="HQDC" Value="HQDC" />
+                            </asp:CheckBoxList>
+                        </td>
+                    </tr>
+                    <tr><td colspan="2" height="5"></td></tr>
+                    <tr>
+                        <th valign="top" align="left" colspan="2">ORG: <font color="gray">(You can specify the uploaded benner to be shown to specific ORG. By default, it will be shown for all.)</font></th>
+                    </tr>
+                    <tr>
+                        <td></td>
+                        <td>
+                            <asp:CheckBoxList CellPadding="2" CellSpacing="2" runat="server" ID="cblORG" Width="100%" RepeatDirection="Horizontal" RepeatColumns="7" RepeatLayout="Table">
+                                <asp:ListItem Text="US" Value="US" />
+                                <asp:ListItem Text="TW" Value="TW" />
+                                <asp:ListItem Text="EU" Value="EU" />
+                                <asp:ListItem Text="KR" Value="KR" />
+                                <asp:ListItem Text="JP" Value="JP" />
+                                <asp:ListItem Text="CN" Value="CN" />
+                                <asp:ListItem Text="AU" Value="AU" />
+                            </asp:CheckBoxList>
+                        </td>
+                    </tr>
+                    <tr><td colspan="2" height="5"></td></tr>
+                    <tr>
+                        <th valign="top" align="left" colspan="2">RBU: <font color="gray">(You can specify the uploaded benner to be shown to specific RBU. By default, it will be shown for all.)</font></th>
+                    </tr>
+                    <tr>
+                        <td></td>
+                        <td>
+                            <asp:CheckBoxList CellPadding="2" CellSpacing="2" Width="100%" runat="server" ID="cblRBU" DataSourceID="RBULov" DataTextField="text" DataValueField="value" RepeatDirection="Horizontal" RepeatColumns="7" RepeatLayout="Table" />
+                            <asp:SqlDataSource runat="server" ID="RBULov" ConnectionString="<%$ ConnectionStrings:MY %>" 
+                                SelectCommand="select value, text from siebel_account_rbu_lov where value<>'AEU' and text not in ('FUTURE Engineering')"/>
+                        </td>
+                    </tr>
+                    <tr><td colspan="2" height="5"></td></tr>
+                    <tr>
+                        <th align="left">Banner: </th><td><asp:FileUpload runat="server" ID="fup1" /><font color="gray">(Banner size: 632*111)</font></td>
+                    </tr>
+                    <tr><td colspan="2" height="5"></td></tr>
+                    <tr>
+                        <th valign="top" align="left" colspan="2">Url: <font color="gray">(You can input the banner redirect url.)</font></th>
+                    </tr>
+                    <tr><td></td><td><asp:TextBox runat="server" ID="txtUrl" Width="400px" /></td></tr>
+                    <tr><td colspan="2" height="5"></td></tr>
+                    <tr>
+                        <th align="left">SEQ: </th>
+                        <td>
+                            <asp:TextBox runat="server" ID="txtSeq" Width="20" /><font color="gray"> (Rotation in ascending order)</font>
+                            <ajaxToolkit:FilteredTextBoxExtender runat="server" ID="ftbe1" TargetControlID="txtSeq" FilterMode="ValidChars" FilterType="Numbers" />
+                        </td>
+                    </tr>
+                    <tr><td colspan="2" height="5"></td></tr>
+                    <tr><td colspan="2"><asp:Button runat="server" ID="btnUpload" Text="Upload" OnClick="btnUpload_Click" Width="100" Height="20" /></td></tr>
+                </table>
+            </td>
+        </tr>
+    </table>
+    <hr width="100%" />
+    <table>
+        <tr>
+            <td colspan="2" style="color:#4B65F9; font-size:medium; font-weight:bold">Banner List</td>
+        </tr>
+        <tr><td colspan="2" height="10"></td></tr>
+        <tr>
+            <th>Home: </th>
+            <td>
+                <asp:DropDownList runat="server" ID="ddlView" AutoPostBack="true" OnSelectedIndexChanged="ddlView_SelectedIndexChanged">
+                    <asp:ListItem Text="Login" Value="LOGIN" />
+                    <asp:ListItem Text="EZ" Value="EZ" />
+                    <asp:ListItem Text="KA" Value="KA" />
+                    <asp:ListItem Text="CP" Value="CP" />
+                    <asp:ListItem Text="GA" Value="GA" />
+                    <asp:ListItem Text="HQDC" Value="HQDC" />
+                </asp:DropDownList>
+            </td>
+        </tr>
+    </table>
+    <asp:UpdatePanel runat="server" ID="up1">
+        <ContentTemplate>
+            <asp:GridView runat="server" ID="gv1" AutoGenerateColumns="false" AllowSorting="true" DataSourceID="sql1" OnRowDataBound="gv1_RowDataBound" DataKeyNames="FILENAME,HOMEPAGE" OnRowDeleting="gv1_RowDeleting" OnRowUpdating="gv1_RowUpdating">
+                <Columns>
+                    <asp:CommandField ShowEditButton="true" ShowDeleteButton="true" />
+                    <asp:TemplateField HeaderText="SEQ" ItemStyle-HorizontalAlign="Center" SortExpression="SEQ">
+                        <ItemTemplate>
+                            <asp:Label runat="server" ID="lblSeq" Text='<%#Eval("SEQ") %>' />
+                        </ItemTemplate>
+                        <EditItemTemplate>
+                            <asp:HiddenField runat="server" ID="hdnFile" Value='<%#Eval("FILENAME") %>' />
+                            <asp:TextBox runat="server" ID="txtSeqEdit" Text='<%#Eval("SEQ") %>' Width="20" />
+                            <ajaxToolkit:FilteredTextBoxExtender runat="server" ID="ftbe2" TargetControlID="txtSeqEdit" FilterMode="ValidChars" FilterType="Numbers" />
+                        </EditItemTemplate>
+                    </asp:TemplateField>
+                    <asp:TemplateField HeaderText="Banner">
+                        <ItemTemplate>
+                            <table>
+                                <tr><td><asp:HyperLink runat="server" ID="hlBanner" Text='<%#Eval("LINK") %>' NavigateUrl='<%#Eval("LINK") %>' Target="_blank" /></td></tr>
+                                <tr><td><img src='http://<%=Request.ServerVariables("HTTP_HOST") %>/Images/Banner/<%# Eval("filename") %>' width="100%" /></td></tr>
+                                <tr>
+                                    <td>
+                                        <asp:Panel runat="server" ID="PanelSpecControl" Visible="false">
+                                            <table>
+                                                <tr><td height="5"></td></tr>
+                                                <tr><th style="color:#4B65F9">Specific Visible Control</th></tr>
+                                                <tr>
+                                                    <td>
+                                                        <asp:Panel runat="server" ID="PanelORG" Visible="false">
+                                                            <table>
+                                                                <tr>
+                                                                    <td></td><th>ORG: </th><td><asp:Label runat="server" ID="lblORG" ForeColor="Tomato" /></td>
+                                                                </tr>
+                                                            </table>
+                                                        </asp:Panel>
+                                                    </td>
+                                                </tr>
+                                                <tr>
+                                                    <td>
+                                                        <asp:Panel runat="server" ID="PanelRBU" Visible="false">
+                                                            <table>
+                                                                <tr>
+                                                                    <td></td><th>RBU: </th><td><asp:Label runat="server" ID="lblRBU" ForeColor="Tomato" /></td>
+                                                                </tr>
+                                                            </table>
+                                                        </asp:Panel>
+                                                    </td>
+                                                </tr>
+                                            </table>
+                                        </asp:Panel>
+                                    </td>
+                                </tr>
+                            </table>
+                        </ItemTemplate>
+                        <EditItemTemplate>
+                            <table>
+                                <tr>
+                                    <td>
+                                        <table>
+                                            <tr>
+                                                <th>Home: </th>
+                                                <td>
+                                                    <asp:CheckBoxList runat="server" ID="cblHomeEdit" CellPadding="2" CellSpacing="2" Width="100%" RepeatDirection="Horizontal">
+                                                        <asp:ListItem Text="Login" Value="LOGIN" />
+                                                        <asp:ListItem Text="EZ" Value="EZ" />
+                                                        <asp:ListItem Text="KA" Value="KA" />
+                                                        <asp:ListItem Text="CP" Value="CP" />
+                                                        <asp:ListItem Text="GA" Value="GA" />
+                                                        <asp:ListItem Text="HQDC" Value="HQDC" />
+                                                    </asp:CheckBoxList>
+                                                </td>
+                                            </tr>
+                                        </table>
+                                    </td>
+                                </tr>
+                                <tr><th align="left">Banner Url: <asp:TextBox runat="server" ID="txtUrlEdit" Text='<%#Eval("LINK") %>' Width="250" /></th></tr>
+                                <tr><td><img src='http://<%=Request.ServerVariables("HTTP_HOST") %>/Images/<%# Eval("filename") %>' width="100%" /></td></tr>
+                                <tr><td height="3"></td></tr>
+                                <tr>
+                                    <td><b>ORG: </b>
+                                        <asp:CheckBoxList CellPadding="2" CellSpacing="2" runat="server" ID="cblOrgEdit" Width="100%" RepeatDirection="Horizontal" RepeatColumns="7" RepeatLayout="Table">
+                                            <asp:ListItem Text="US" Value="US" />
+                                            <asp:ListItem Text="TW" Value="TW" />
+                                            <asp:ListItem Text="EU" Value="EU" />
+                                            <asp:ListItem Text="KR" Value="KR" />
+                                            <asp:ListItem Text="JP" Value="JP" />
+                                            <asp:ListItem Text="CN" Value="CN" />
+                                            <asp:ListItem Text="AU" Value="AU" />
+                                        </asp:CheckBoxList>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td><b>RBU: </b>
+                                        <asp:CheckBoxList CellPadding="2" CellSpacing="2" Width="100%" runat="server" ID="cblRBUEdit" DataSourceID="sqlRBULov" DataTextField="text" DataValueField="value" RepeatDirection="Horizontal" RepeatColumns="7" RepeatLayout="Table" />
+                                        <asp:SqlDataSource runat="server" ID="sqlRBULov" ConnectionString="<%$ ConnectionStrings:MY %>" 
+                                            SelectCommand="select value, text from siebel_account_rbu_lov where value<>'AEU' and text not in ('FUTURE Engineering')"/>
+                                    </td>
+                                </tr>
+                            </table>
+                        </EditItemTemplate>
+                    </asp:TemplateField>
+                    <asp:TemplateField HeaderText="Status">
+                        <ItemTemplate>
+                            <asp:Label runat="server" ID="lblStatus" />
+                        </ItemTemplate>
+                        <EditItemTemplate>
+                            <asp:DropDownList runat="server" ID="ddlStatus">
+                                <asp:ListItem Text="Enable" Value="1" />
+                                <asp:ListItem Text="Disable" Value="0" />
+                            </asp:DropDownList>
+                        </EditItemTemplate>
+                    </asp:TemplateField>
+                    <asp:TemplateField HeaderText="Uploaded By">
+                        <ItemTemplate>
+                            <asp:Label runat="server" ID="lblUploadedBy" Text='<%#Eval("UPLOADED_BY") %>' /><br />
+                            <asp:Label runat="server" ID="lblUploadedDate" Text='<%#Eval("UPLOADED_DATE") %>' />
+                        </ItemTemplate>
+                    </asp:TemplateField>
+                </Columns>
+            </asp:GridView>
+            <asp:SqlDataSource runat="server" ID="sql1" ConnectionString="<%$ connectionStrings: MY %>"
+                SelectCommand="select homepage, isnull(rbu,'') as rbu, isnull(org_id,'') as org_id, filename, isnull(link,'') as link, status, seq, FILENAME, UPLOADED_BY, UPLOADED_DATE from myglobal_banner where homepage = @HOMEPAGE order by seq,UPLOADED_DATE desc" 
+                DeleteCommand="delete from myglobal_banner where filename=@FILENAME and homepage=@HOMEPAGE"
+                UpdateCommand="update myglobal_banner set rbu=@RBU, org_id=@ORG, link=@URL, status=@STATUS, SEQ=@SEQ, LAST_UPDATED_BY=@USER_ID where filename=@FILENAME and homepage=@HOMEPAGE"
+                OnLoad="sql1_Load">
+                <SelectParameters>
+                    <asp:ControlParameter ControlID="ddlView" Name="HOMEPAGE" Type="String" />
+                </SelectParameters>
+                <DeleteParameters>
+                    <asp:ControlParameter ControlID="ddlView" Name="HOMEPAGE" Type="String" />
+                </DeleteParameters>
+                <UpdateParameters>
+                    <asp:Parameter Name="RBU" Type="String" />
+                    <asp:Parameter Name="ORG" Type="String" />
+                    <asp:Parameter Name="URL" Type="String" />
+                    <asp:Parameter Name="STATUS" Type="Boolean" />
+                    <asp:Parameter Name="SEQ" Type="Int32" />
+                    <asp:Parameter Name="USER_ID" Type="String" />
+                    <asp:ControlParameter ControlID="ddlView" Name="HOMEPAGE" Type="String" />
+                </UpdateParameters>
+            </asp:SqlDataSource>
+        </ContentTemplate>
+        <Triggers>
+            <asp:AsyncPostBackTrigger ControlID="ddlView" EventName="SelectedIndexChanged" />
+        </Triggers>
+    </asp:UpdatePanel>
+</asp:Content>
+

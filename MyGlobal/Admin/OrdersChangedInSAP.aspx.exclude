@@ -1,0 +1,86 @@
+<%@ Page Language="VB" MasterPageFile="~/Includes/MyMaster.master" Title="Changes in Orders Within SAP" %>
+<%@ Import Namespace="System.Data.sqlClient" %>
+
+<script runat="server">
+
+    Protected Sub Page_Load(ByVal sender As Object, ByVal e As System.EventArgs)
+        ViewState("SqlCommand") = ""
+        SqlDataSource1.SelectCommand = "select a.ORDER_NO, b.SOLDTO_ID, a.LINE_NO, a.PART_NO, a.OLD_QTY, a.OLD_DUE_DATE, a.OLD_UNIT_PRICE,a.NEW_QTY, a.NEW_DUE_DATE, a.NEW_UNIT_PRICE from ORDER_DETAIL_CHANGED_IN_SAP a JOIN ORDER_MASTER b ON (a.ORDER_NO = b.ORDER_NO) where OLD_DUE_DATE<>NEW_DUE_DATE OR OLD_UNIT_PRICE<>NEW_UNIT_PRICE"
+        ViewState("SqlCommand") = SqlDataSource1.SelectCommand
+        If Not Page.IsPostBack Then
+            gv1.DataBind()
+        End If
+    End Sub
+    
+    Protected Sub gv1_RowDataBoundDataRow(ByVal sender As Object, ByVal e As System.Web.UI.WebControls.GridViewRowEventArgs)
+        If e.Row.RowType = DataControlRowType.DataRow Then
+            e.Row.Attributes.Add("onmouseover", "currentcolor=this.style.backgroundColor;this.style.backgroundColor='#FFEEAA'")
+            e.Row.Attributes.Add("onmouseout", "this.style.backgroundColor=currentcolor")
+        End If
+    End Sub
+    
+    Protected Sub SqlDataSource1_Load(ByVal sender As Object, ByVal e As System.EventArgs)
+        If ViewState("SqlCommand") <> "" Then
+            SqlDataSource1.SelectCommand = ViewState("SqlCommand")
+        End If
+    End Sub
+</script>
+
+<asp:Content ID="Content1" ContentPlaceHolderID="_main" Runat="Server">
+     
+        <table style="height:100%" cellpadding="0" cellspacing="0" width="100%" border="0">
+
+        <tr><td>&nbsp;</td></tr>
+
+             <tr>
+                <td style="width: 82%">
+                    <table cellpadding="0" cellspacing="0" width="100%" >
+                        <tr>
+                            <td><h2>Changes in Orders Within SAP</h2></td>
+                        </tr>
+                    </table>
+                </td>
+            </tr>
+            
+        <tr><td>&nbsp;</td></tr>    
+        
+        <tr style="vertical-align:top; "><td > 
+
+    <sgv:SmartGridView ShowWhenEmpty="true" runat="server" ID="gv1" DataSourceID="SqlDataSource1" AutoGenerateColumns="false" 
+        HeaderStyle-HorizontalAlign="Center" AllowSorting="true" AllowPaging="true" PageSize="50" Width="100%" OnRowDataBoundDataRow="gv1_RowDataBoundDataRow">
+        <Columns>
+            <asp:TemplateField ItemStyle-Width="50px" ItemStyle-HorizontalAlign="Center">
+                <headertemplate>
+                    No.
+                </headertemplate>
+                <itemtemplate>
+                    <%# Container.DataItemIndex + 1 %>
+                </itemtemplate>
+            </asp:TemplateField>
+            <asp:BoundField HeaderText="Order Nr." DataField="ORDER_NO" ItemStyle-HorizontalAlign="Center" />
+            <asp:BoundField HeaderText="Company" DataField="SOLDTO_ID" ItemStyle-HorizontalAlign="Center" />
+            <asp:BoundField HeaderText="Line Nr." DataField="LINE_NO" ItemStyle-HorizontalAlign="Center" />
+            <asp:BoundField HeaderText="Part Nr." DataField="PART_NO" ItemStyle-HorizontalAlign="Left" />
+            <asp:BoundField HeaderText="Old Qty" DataField="OLD_QTY" ItemStyle-HorizontalAlign="Center" />
+            <asp:BoundField HeaderText="Old DD" DataField="OLD_DUE_DATE" ItemStyle-HorizontalAlign="Left" />
+            <asp:BoundField HeaderText="Old Price" DataField="OLD_UNIT_PRICE" ItemStyle-HorizontalAlign="Center" />
+            <asp:BoundField HeaderText="New Qty" DataField="NEW_QTY" ItemStyle-HorizontalAlign="Center" />
+            <asp:BoundField HeaderText="New DD" DataField="NEW_DUE_DATE" ItemStyle-HorizontalAlign="Left" />
+            <asp:BoundField HeaderText="New Price" DataField="NEW_UNIT_PRICE" ItemStyle-HorizontalAlign="Center" />
+        </Columns>
+        <FooterStyle BackColor="#A4B5BD" ForeColor="White" Font-Bold="True" />
+        <RowStyle BackColor="#F7F6F3" ForeColor="#333333" />
+        <SelectedRowStyle BackColor="#E2DED6" Font-Bold="True" ForeColor="#333333" />
+        <PagerStyle BackColor="#284775" ForeColor="White" HorizontalAlign="Justify"  />
+        <HeaderStyle BackColor="#A4B5BD" Font-Bold="True" ForeColor="White" />
+        <AlternatingRowStyle BackColor="White" ForeColor="#284775" />
+        <PagerSettings PageButtonCount="10" Position="TopAndBottom" />
+    </sgv:SmartGridView>
+    <asp:SqlDataSource runat="server" ID="SqlDataSource1" ConnectionString="<%$ connectionStrings:B2B %>" 
+        SelectCommand="" OnLoad="SqlDataSource1_Load">
+    </asp:SqlDataSource>
+     </td></tr> 
+        <tr style="height:200px"><td>&nbsp;</td></tr>  
+            <tr><td style="width: 100%"></td></tr>
+        </table>     
+</asp:Content>

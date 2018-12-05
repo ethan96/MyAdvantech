@@ -1,0 +1,149 @@
+﻿<%@ Page Language="VB" %>
+<%@ Import Namespace="System.data" %>
+<%@ Import Namespace="System.data.sqlclient" %>
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<script runat="server">
+    Dim iRet As Integer = 0
+    Dim BTOComp As DataTable = New DataTable
+    Protected Sub Page_Load(ByVal sender As Object, ByVal e As System.EventArgs)
+        If Not Page.IsPostBack Then
+           
+            Dim part_no As String = "", qty As String = "", list_price As Double, unit_price As Double, due_date As String = ""
+            Dim subtotal As Double = 0
+            part_no = Request("part_no").Replace("$$$", "&") ' cateogry
+            qty = Request("qty")
+            'construct data table
+            With BTOComp.Columns
+                .Add("part_no", Type.GetType("System.String")) : .Add("qty", Type.GetType("System.Int32"))
+                .Add("due_date", Type.GetType("System.DateTime")) : .Add("req_date", Type.GetType("System.DateTime"))
+                .Add("list_price", Type.GetType("System.Decimal")) : .Add("unit_price", Type.GetType("System.Decimal"))
+                .Add("material_group", Type.GetType("System.String"))
+            End With
+          
+            BTOComp.Merge(Me.InitBTOComp(part_no))
+            If BTOComp.Rows.Count > 0 Then
+                'Dim GETPRICEDUEINFO1 As New GetPriceDueInfo(Session("company_id"), Session("user_id"))
+                'GETPRICEDUEINFO1.dt = BTOComp
+                'GETPRICEDUEINFO1.GetPriceDue()
+                'GETPRICEDUEINFO1.dt = Nothing
+            End If
+            BTOComp.Columns.Add("subtotal", Type.GetType("System.Decimal"))
+            For i As Integer = 0 To BTOComp.Rows.Count - 1
+                BTOComp.Rows(i).Item("subtotal") = FormatNumber(CDbl(BTOComp.Rows(i).Item("qty")) * CDbl(BTOComp.Rows(i).Item("unit_price")), 2)
+            Next
+            
+            Dim ds As New DataSet
+            ds.Tables.Add(BTOComp)
+            
+            GridView1.DataSource = ds
+            If Not Page.IsPostBack Then
+                GridView1.DataBind()
+                Me.gheader.Text = "Components Under <b><i>" & part_no & "</b></i>"
+            End If
+        End If
+    End Sub
+    
+    Private Function InitBTOComp(ByVal category_id As String) As DataTable
+        Dim dt As New DataTable
+        dt.Columns.Add("part_no", Type.GetType("System.String"))
+        dt.Columns.Add("qty", Type.GetType("System.Int32"))
+        dt.Columns.Add("due_date", Type.GetType("System.DateTime"))
+        dt.Columns.Add("req_date", Type.GetType("System.DateTime"))
+        dt.Columns.Add("material_group", Type.GetType("System.String"))
+        
+   
+        Dim da As New System.Data.SqlClient.SqlDataAdapter()
+        da.SelectCommand = New System.Data.SqlClient.SqlCommand
+        da.SelectCommand.Connection = New SqlConnection("data source=172.21.34.9;initial catalog=B2B_AESC_SAP;user id=b2bsa;password=@dvantech!;Connect Timeout=120;")
+        da.SelectCommand.CommandType = CommandType.StoredProcedure
+        da.SelectCommand.CommandText = "CBOM_RETRIEVE"
+        Dim para1 As New System.Data.SqlClient.SqlParameter("@category_id", SqlDbType.Text)
+        para1.Direction = ParameterDirection.Input
+        para1.Value = category_id
+        da.SelectCommand.Parameters.Add(para1)
+        Dim dt_pro1 As New DataTable
+        da.Fill(dt_pro1)
+        Dim dt_pro As New DataTable
+        dt_pro1.DefaultView.RowFilter = "(status='A' or status='H' or status='N' or status='S5' and category_type='Component')"
+        dt_pro = dt_pro1.DefaultView.ToTable()
+        For i As Integer = 0 To dt_pro.Rows.Count - 1
+            Dim r As DataRow = dt.NewRow
+            r.Item("part_no") = dt_pro.Rows(i).Item("category_id")
+            r.Item("qty") = CInt(Request("qty"))
+            r.Item("due_date") = System.DateTime.Today()
+            r.Item("req_date") = System.DateTime.Today()
+            r.Item("material_group") = dt_pro.Rows(i).Item("material_group")
+            dt.Rows.Add(r)
+        Next
+        Return dt
+    End Function
+    Protected Sub GridView1_RowDataBound(ByVal sender As Object, ByVal e As System.Web.UI.WebControls.GridViewRowEventArgs)
+        If e.Row.RowType <> DataControlRowType.Pager Then
+            e.Row.Cells(3).Visible = False
+            e.Row.Cells(4).Visible = False
+            e.Row.Cells(6).Visible = False
+        End If
+        If e.Row.RowType = DataControlRowType.Header Then
+            e.Row.Cells(0).Text = "Part No"
+            e.Row.Cells(1).Text = "Qty"
+            e.Row.Cells(2).Text = "Due Date"
+            e.Row.Cells(5).Text = "Unit Price"
+            e.Row.Cells(7).Text = "SubTotal"
+        End If
+        If e.Row.RowType = DataControlRowType.DataRow Then
+            Dim RBUMailFormat As String = ""
+            Dim list_price As Double = CDbl(e.Row.Cells(4).Text)
+            Dim unit_price As Double = CDbl(e.Row.Cells(5).Text)
+            e.Row.Cells(4).Text = "<A Href='../order/queryPrice.aspx?part_no=" & e.Row.Cells(0).Text & "' target='blank'>" & (Session("COMPANY_CURRENCY_SIGN")) & list_price.ToString("#,##0.00") & "</a>"
+            If Global_Inc.IsRBU(Session("company_id"), RBUMailFormat) Then
+                e.Row.Cells(4).Text = "N/A"
+            End If
+            e.Row.Cells(5).Text = "<A Href='../order/queryPrice.aspx?part_no=" & e.Row.Cells(0).Text & "' target='blank'>" & Session("COMPANY_CURRENCY_SIGN") & unit_price.ToString("#,##0.00") & "</a>"
+            e.Row.Cells(7).Text = Session("COMPANY_CURRENCY_SIGN") & CDbl(e.Row.Cells(7).Text).ToString("#,##0.00")
+            e.Row.Cells(3).Text = Global_Inc.FormatDate(e.Row.Cells(3).Text)
+        End If
+    End Sub
+   
+    Protected Sub GridView1_PageIndexChanging(ByVal sender As Object, ByVal e As System.Web.UI.WebControls.GridViewPageEventArgs)
+        GridView1.PageIndex = e.NewPageIndex
+        GridView1.DataSource = BTOComp
+        GridView1.DataBind()
+    End Sub
+</script>
+
+<html xmlns="http://www.w3.org/1999/xhtml" >
+<head id="Head1" runat="server">
+    <title>Get Price Due info</title>
+     <link runat="server" id="ebizCss" visible="true" href="../Includes/ebiz.aeu.style.css" rel="stylesheet" type="text/css" />
+    <link href="../Includes/global.css" rel="Stylesheet" type="text/css" />
+</head>
+<body>
+    <form id="form1" runat="server">
+    <div>
+ 
+        <br />
+    <table cellpadding="1"  width="100%"><tr><td style="background-color:#666666">
+			<table width="100%" border="0" cellspacing="0" cellpadding="0" align="center" style="vertical-align:middle" ID="Table5">
+                    <tr>
+                        <td style="padding-left:10px;border-bottom:#ffffff 1px solid;height:20px;background-color:#6699CC" align="left" valign="middle" class="text">
+                        <font color="#ffffff"><b><asp:Label ID="gheader" runat="server" Text="Orders Change Manager"></asp:Label></b></font></td></tr>
+                        <tr><td>
+										
+														<!-- include virtual = "/cart/carthistory_list_new_main.asp" -->
+												<asp:GridView  runat="server" Width="100%" ID="GridView1" AutoGenerateColumns = "true" 
+                                                             onrowdatabound="GridView1_RowDataBound" AllowPaging="true" PageSize="20" OnPageIndexChanging="GridView1_PageIndexChanging"></asp:GridView>		
+								
+								
+								
+														
+                                            <asp:SqlDataSource ID="SqlDataSource1" runat="server" ConnectionString="<%$ ConnectionStrings:B2B %>"></asp:SqlDataSource>
+								   
+                </td></tr><tr><td id="tdTotal" align="right" style="background-color:#ffffff" runat="server"></td></tr></table>
+				</td></tr></table>
+        
+    </div>
+    </form>
+</body>
+</html>

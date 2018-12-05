@@ -1,0 +1,55 @@
+﻿<%@ Page Language="VB" %>
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<script runat="server">
+    Dim SQLString As String = ""
+    Dim Default_Qty As Integer = 0
+    Protected Sub Page_Load(ByVal sender As Object, ByVal e As System.EventArgs)
+        If Request.QueryString("flg") = "quote" Then
+            SQLString = "select * from  Quotation_CATALOG_CATEGORY  where  CATALOG_ID=" & "'" & Request("strCatalog_Id") & "'" & " and CATALOGCFG_SEQ=" & Request("strCATALOGCFG_SEQ")
+           
+            Dim dt2 As DataTable = dbUtil.dbGetDataTable("B2B", Me.SQLString)
+            For Each r As DataRow In dt2.Rows
+                SQLString = "update Quotation_CATALOG_CATEGORY set CATEGORY_QTY=" & CInt(Request("strCategory_Value")) & " where  CATALOG_ID=" & "'" & Request("strCatalog_Id") & "'" & " and CATALOGCFG_SEQ=" & Request("strCATALOGCFG_SEQ") & " and Category_id ='" & r.Item("Category_id") & "'"
+                dbUtil.dbExecuteNoQuery("B2B", Me.SQLString)
+            Next
+            Exit Sub
+        End If
+        SQLString = "select top 1 CATEGORY_QTY from CONFIGURATION_CATALOG_CATEGORY  where  CATALOG_ID=" & "'" & Request("strCatalog_Id") & "'" & " and CATALOGCFG_SEQ=" & Request("strCATALOGCFG_SEQ") & " and category_id not like 'OTHERITEM%'"
+        Dim rs As Object = dbUtil.dbExecuteScalar("B2B", SQLString)
+        If rs IsNot Nothing Then
+            Default_Qty = CInt(rs)
+        End If
+        SQLString = "select * from CONFIGURATION_CATALOG_CATEGORY  where  CATALOG_ID=" & "'" & Request("strCatalog_Id") & "'" & " and CATALOGCFG_SEQ=" & Request("strCATALOGCFG_SEQ")
+        
+        Dim dt As DataTable = dbUtil.dbGetDataTable("B2B", Me.SQLString)
+        For Each r As DataRow In dt.Rows
+            SQLString = "update CONFIGURATION_CATALOG_CATEGORY set CATEGORY_QTY=" & CInt(Request("strCategory_Value") * r.Item("CATEGORY_QTY") / Default_Qty) & " where  CATALOG_ID=" & "'" & Request("strCatalog_Id") & "'" & " and CATALOGCFG_SEQ=" & Request("strCATALOGCFG_SEQ") & " and Category_id ='" & r.Item("Category_id") & "'"
+            dbUtil.dbExecuteNoQuery("B2B", SQLString)
+        Next
+        SQLString = "select isnull(min(line_no),100) as Configuration_line from cart_detail_btos where cart_id = " & "'" & Session("CART_ID") & "'" & " and CONFIG_ID=" & "'" & Request("strCatalog_Id") & "'" & " and CATALOGCFG_SEQ=" & Request("strCATALOGCFG_SEQ")
+      
+        Dim rs_line As DataTable = Nothing
+        Dim line_string As Integer = 0
+        rs_line = dbUtil.dbGetDataTable("B2B", Me.SQLString)
+        If rs_line.Rows.Count > 0 Then
+            line_string = CInt(rs_line.Rows(0).Item("Configuration_line")) + 99
+            SQLString = "update cart_detail set qty =" & Request("strCategory_Value") & " where line_no >=" & CInt(rs_line.Rows(0).Item("Configuration_line")) & " and line_no <=" & line_string & " and Cart_Id =" & "'" & Session("CART_ID") & "'"
+            dbUtil.dbExecuteNoQuery("B2B", Me.SQLString)
+        End If
+    End Sub
+</script>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head runat="server">
+    <title>Untitled Page</title>
+</head>
+<body>
+    <form id="form1" runat="server">
+    <div>
+    
+    </div>
+    </form>
+</body>
+</html>

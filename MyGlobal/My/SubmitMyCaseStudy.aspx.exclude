@@ -1,0 +1,1346 @@
+﻿<%@ Page Title="MyAdvantech - Submit My Case Study" Language="VB" MasterPageFile="~/Includes/MyMaster.master" ValidateRequest="false" %>
+
+<script runat="server">
+    
+    <Services.WebMethod()> _
+    <Web.Script.Services.ScriptMethod()> _
+    Public Shared Function SubmitCaseStudy(ByVal cshtml As String, ByVal rowid As String) As Boolean
+        cshtml = _
+            "Dear Ema,<br /><br/ >" + _
+            HttpContext.Current.Session("user_id") + " submitted a case study.<br />" + _
+            "Please click <a href='http://" + HttpContext.Current.Request.ServerVariables("HTTP_HOST").ToString + "/My/MyCaseStudies.aspx?CSID=" + rowid + "'>Here</a> to check the detail.<br />" + _
+            "Below is the case study preview:<br />" + _
+            Replace(cshtml, "../Includes/Channel/CSImg.ashx", "http://" + HttpContext.Current.Request.ServerVariables("HTTP_HOST").ToString + "/Includes/Channel/CSImg.ashx")
+        If HttpContext.Current.Session("user_id").ToString = "ming.zhao@advantech.com.cn" Then
+        Else
+            Util.SendEmail("ema.chen@advantech.com.tw", "ebusiness.aeu@advantech.eu", "A new Case Study is submitted by " + HttpContext.Current.Session("user_id"), cshtml, True, "", "tc.chen@advantech.com.tw")
+        End If     
+        Return True
+    End Function
+    
+    <Services.WebMethod()> _
+    <Web.Script.Services.ScriptMethod()> _
+    Public Shared Function GetPNDesc(ByVal pn As String) As String
+        ' Dim d As Object = dbUtil.dbExecuteScalar("MY", String.Format("select top 1 product_desc from sap_product where part_no='{0}'", pn.Trim().Replace("'", "''")))
+        Dim d As Object = dbUtil.dbExecuteScalar("PIS", String.Format("select top 1 MODEL_DESC from Model where MODEL_NAME='{0}'", pn.Trim().Replace("'", "''")))
+        If d IsNot Nothing Then Return d.ToString()
+        Return ""
+    End Function
+    
+    <Services.WebMethod(enablesession:=True)> _
+    <Web.Script.Services.ScriptMethod()> _
+    Public Shared Function AutoSuggestPN(ByVal prefixText As String, ByVal count As Integer) As String()
+        prefixText.Trim().Replace("'", "").Replace("*", "%")
+        Dim sb As New System.Text.StringBuilder
+        With sb
+            '.AppendLine(String.Format(" select top 10 a.PART_NO "))
+            '.AppendLine(String.Format(" from sap_product a  "))
+            '.AppendLine(String.Format(" where left(a.PART_NO,1) not in ('#','$','1','2','3','4','5','7','9')  "))
+            '.AppendLine(String.Format(" and left(a.PART_NO,2) not in ('P-','96','X-','Y-','98')  "))
+            '.AppendLine(String.Format(" and a.material_group in ('PRODUCT') and a.PART_NO like '{0}%' ", prefixText.Trim().Replace("'", "").Replace("*", "%")))
+            '.AppendLine(String.Format(" order by a.PART_NO "))
+            .AppendLine(String.Format("select  top 10  MODEL_NAME from  Model  where MODEL_NAME like '{0}%'", prefixText.Trim().Replace("'", "").Replace("*", "%")))
+            .AppendLine(String.Format(" order by MODEL_NAME "))
+        End With
+        Dim dt As DataTable = dbUtil.dbGetDataTable("PIS", sb.ToString())
+        If dt.Rows.Count > 0 Then
+            Dim str(dt.Rows.Count - 1) As String
+            For i As Integer = 0 To dt.Rows.Count - 1
+                str(i) = dt.Rows(i).Item(0)
+            Next
+            Return str
+        End If
+        Return Nothing
+    End Function
+    Public Others_values As String = ""
+    Protected Sub Page_Load(ByVal sender As Object, ByVal e As System.EventArgs)
+        If Not Page.IsPostBack Then
+            If Request.ServerVariables("REMOTE_ADDR").StartsWith("127.") Then
+                Session("company_id") = "EDDEVI07" : Session("org_id") = "EU10" : Session("user_id") = "tc.chen@advantech.com.tw"
+            End If
+            If Util.IsInternalUser(Session("user_id")) Then
+                btn2CMS.Visible = False
+            Else
+                btn2CMS.Visible = False
+            End If
+            'dbUtil.dbExecuteNoQuery("MY", "delete from MYADVANTECH_CP_CASESTUDY where SUBMIT_DATE<GETDATE()-1 and APP_STATUS='DRAFT'")
+            contactemail.Text = Session("user_id").ToString 
+            If Request("CSID") IsNot Nothing Then
+                Dim draftDt As DataTable = dbUtil.dbGetDataTable("MY", _
+                " SELECT ROW_ID, SUBMIT_BY, TOPIC, IsNull(PROJECT_DATE,getdate()) as PROJECT_DATE, BAA,  " + _
+                " COUNTRY, CITY, COMPANY_NAME, COMPANY_URL, PROJECT_INTRO, IsShare, " + _
+                " SYSTEM_REQ, PROJECT_IMP, SYS_DESC, CONCLUSION ,IsNull(CONTACT_NAME,'') as contactname,IsNull(CONTACT_EMAIL,'') as contactemail" + _
+                " FROM  MYADVANTECH_CP_CASESTUDY " + _
+                " WHERE ROW_ID = '" + Request("CSID").ToString().Trim().Replace("'", "''") + "' " + _
+                IIf(Util.IsInternalUser(Session("user_id")), "", " and APP_STATUS='DRAFT' and SUBMIT_BY='" + Session("user_id") + "' "))
+                If draftDt.Rows.Count = 1 Then
+                    With draftDt.Rows(0)
+                        hd_ROWID.Value = .Item("ROW_ID")
+                        txtTopic.Text = .Item("TOPIC") : txtPrjDate.Text = CDate(.Item("PROJECT_DATE")).ToString("MM/dd/yyyy")
+                        Dim tmpBaas() As String = Split(.Item("BAA"), "|")
+                        For Each b As String In tmpBaas
+                            If b.Trim.StartsWith("Others") Then
+                                Others_values = b.Replace("Others:", "")
+                                If cblIndustries.Items.FindByValue("Others") IsNot Nothing Then cblIndustries.Items.FindByValue("Others").Selected = True
+                            Else
+                                If cblIndustries.Items.FindByValue(b) IsNot Nothing Then cblIndustries.Items.FindByValue(b).Selected = True
+                            End If
+                        Next
+                        If dlCountry.Items.FindByValue(.Item("COUNTRY")) IsNot Nothing Then
+                            dlCountry.Items(0).Selected = False : dlCountry.Items.FindByValue(.Item("COUNTRY")).Selected = True
+                        End If
+                        txtCity.Text = .Item("CITY")
+                        txtCustCompanyName.Text = .Item("COMPANY_NAME")
+                        txtCustUrl.Text = .Item("COMPANY_URL")
+                        txtPrjIntro.Content = .Item("PROJECT_INTRO")
+                        txtSysReq.Content = .Item("SYSTEM_REQ")
+                        txtSysDesc.Content = .Item("SYS_DESC")
+                        txtConclusion.Content = .Item("CONCLUSION")
+                        contactname.Text = .Item("contactname")
+                        contactemail.Text = .Item("contactemail")
+                        If .Item("IsShare").ToString.Trim = "1" Then
+                            ck1.Checked = True
+                        Else
+                            ck1.Checked = False
+                        End If
+                        If .Item("PROJECT_IMP").ToString().Contains("<table>") Then
+                            Dim hd As New HtmlAgilityPack.HtmlDocument
+                            hd.LoadHtml(.Item("PROJECT_IMP"))
+                            Dim trs As HtmlAgilityPack.HtmlNodeCollection = hd.DocumentNode.SelectNodes("//tr")
+                            If trs IsNot Nothing AndAlso trs.Count > 1 Then
+                                Dim txtProds() As TextBox = {txtProd1, txtProd2, txtProd3, txtProd4, txtProd5, txtProd6, txtProd7}
+                                Dim txtProdDescs() As TextBox = {txtProdDesc1, txtProdDesc2, txtProdDesc3, txtProdDesc4, txtProdDesc5, txtProdDesc6, txtProdDesc7}
+                                For i As Integer = 1 To trs.Count - 1
+                                    txtProds(i - 1).Text = trs(i).ChildNodes(0).InnerText
+                                    txtProdDescs(i - 1).Text = trs(i).ChildNodes(1).InnerText
+                                Next
+                            End If
+                        End If
+                    End With
+                End If
+            End If
+            If hd_ROWID.Value = "" Then
+                hd_ROWID.Value = Util.NewRowId("MYADVANTECH_CP_CASESTUDY", "MY")
+                dbUtil.dbExecuteNoQuery("MY", _
+                                        String.Format( _
+                                            "  INSERT INTO MYADVANTECH_CP_CASESTUDY " + _
+                                            " (ROW_ID, COMPANY_ID, SUBMIT_BY, SUBMIT_DATE, APP_STATUS,IsEnabled) " + _
+                                            " VALUES (N'{0}', N'{1}', N'{2}', GETDATE(), N'DRAFT',0) ", _
+                                            hd_ROWID.Value, Session("company_id"), Session("user_id")))
+                txtProd1.Attributes("autocomplete") = "off" : txtProd2.Attributes("autocomplete") = "off" : txtProd3.Attributes("autocomplete") = "off"
+                txtProd4.Attributes("autocomplete") = "off" : txtProd5.Attributes("autocomplete") = "off" : txtProd6.Attributes("autocomplete") = "off"
+                txtProd7.Attributes("autocomplete") = "off"
+                Dim crmDt As DataTable = dbUtil.dbGetDataTable("MY", _
+                    String.Format( _
+                        " select top 1 ROW_ID, ACCOUNT_NAME, IsNull(URL,'') as URL, IsNull(COUNTRY,'') as COUNTRY, IsNull(CITY,'') as CITY, IsNull(BAA,'') as BAA " + _
+                        " from SIEBEL_ACCOUNT where ERP_ID='{0}' and ERP_ID<>'' order by ACCOUNT_NAME ", Session("company_id")))
+                If crmDt.Rows.Count = 1 Then
+                    Dim BAASet As New ArrayList
+                    If crmDt.Rows(0).Item("BAA").ToString() <> "" AndAlso crmDt.Rows(0).Item("BAA").ToString() <> "N/A" Then
+                        BAASet.Add(crmDt.Rows(0).Item("BAA").ToString())
+                    End If
+                    Me.txtCustCompanyName.Text = crmDt.Rows(0).Item("ACCOUNT_NAME")
+                    Me.txtCustUrl.Text = crmDt.Rows(0).Item("URL")
+                    If crmDt.Rows(0).Item("COUNTRY").ToString() <> "" Then
+                        If dlCountry.Items.FindByValue(crmDt.Rows(0).Item("COUNTRY").ToString()) IsNot Nothing Then
+                            dlCountry.Items(0).Selected = False
+                            dlCountry.Items.FindByValue(crmDt.Rows(0).Item("COUNTRY").ToString()).Selected = True
+                        End If
+                    End If
+                    Dim BaaDt As DataTable = dbUtil.dbGetDataTable("MY", String.Format( _
+                        " select BAA from SIEBEL_ACCOUNT_BAA where ACCOUNT_ROW_ID='{0}' and BAA is not null and BAA<>'' order by BAA", _
+                        crmDt.Rows(0).Item("ROW_ID")))
+                    For Each BaaRow As DataRow In BaaDt.Rows
+                        If BAASet.Contains(BaaRow.Item("BAA")) = False Then
+                            BAASet.Add(BaaRow.Item("BAA"))
+                        End If
+                    Next
+                    For Each strBAA As String In BAASet
+                        If cblIndustries.Items.FindByValue(strBAA) IsNot Nothing Then
+                            cblIndustries.Items.FindByValue(strBAA).Selected = True
+                        End If
+                    Next
+                End If
+            End If
+        End If
+    End Sub
+
+    Protected Sub btnMoreProd_Click(ByVal sender As Object, ByVal e As System.EventArgs)
+        Dim trProds() As HtmlControl = {Me.trProd3, Me.trProd4, Me.trProd5}
+        For i As Integer = 0 To trProds.Length - 1
+            Dim tr As HtmlControl = trProds(i)
+            If tr.Visible = False Then
+                tr.Visible = True
+                If i = trProds.Length - 1 Then
+                    Me.btnMoreProd.Enabled = False
+                End If
+                Exit For
+            End If
+        Next
+    End Sub
+    Public Shared Function IsValidEmailFormat(ByVal email As String) As Boolean
+        Dim reg As String = "^\w+([-+.]\w+)*@\w+([-.]\w+)*\.\w+([-.]\w+)*$"
+        Dim options As RegexOptions = RegexOptions.Singleline
+        If Regex.Matches(email, reg, options).Count = 0 Then
+            Return False
+        Else
+            Return True
+        End If
+    End Function
+    Protected Sub btnPreview_Click(ByVal sender As Object, ByVal e As System.EventArgs)
+        lbMsg.Text = ""
+        If txtTopic.Text.Trim() = "" Then
+            lbMsg.Text = "Please input topic" : Exit Sub
+        End If
+        lbPrevTopic.Text = txtTopic.Text
+        If txtPrjDate.Text.Trim() = "" OrElse _
+            Date.TryParseExact(txtPrjDate.Text, "MM/dd/yyyy", New Globalization.CultureInfo("en-US"), Globalization.DateTimeStyles.None, Now) = False Then
+            lbMsg.Text = "Please input project date" : Exit Sub
+        End If
+        If DateDiff(DateInterval.Day, New Date(2009, 1, 1), CDate(txtPrjDate.Text)) < 0 Then
+            lbMsg.Text = "Project date should be after 01/01/2009" : Exit Sub
+        End If
+        lbPrevDate.Text = txtPrjDate.Text
+        If Util.GetCheckedCountFromCheckBoxList(cblIndustries) = 0 Then
+            lbMsg.Text = "Please select at least one industry" : Exit Sub
+        End If
+        If dlCountry.SelectedIndex = 0 Then
+            lbMsg.Text = "Please select country" : Exit Sub
+        End If
+        lbPrevCountry.Text = dlCountry.SelectedValue : lbPrevCity.Text = txtCity.Text.Trim()
+        If txtCustCompanyName.Text.Trim() = "" Then
+            lbMsg.Text = "Please input customer name" : Exit Sub
+        End If
+        lbPrevCompanyName.Text = txtCustCompanyName.Text
+        If txtPrjIntro.Content = "" Then
+            lbMsg.Text = "Please input project introduction" : Exit Sub
+        End If
+        divPrevPrjIntro.InnerHtml = txtPrjIntro.Content
+        If hd_ROWID.Value = "" OrElse _
+            CInt(dbUtil.dbExecuteScalar("MY", _
+                                   " select count(row_id) from MYADVANTECH_CP_CASESTUDY " + _
+                                   " where PRODUCT_PHOTO is not null and row_id=N'" + hd_ROWID.Value + "'")) = 0 Then
+            lbMsg.Text = "Please upload product photo" : Exit Sub
+        End If
+        imgPrevProd.ImageUrl = String.Format("~/Includes/Channel/CSImg.ashx?CSID={0}&TYPE=0", hd_ROWID.Value)
+        If txtSysReq.Content = "" Then
+            lbMsg.Text = "Please input system requirement" : Exit Sub
+        End If
+        divPrevSysReq.InnerHtml = txtSysReq.Content
+        If txtProd1.Text.Trim() = "" OrElse txtProdDesc1.Text.Trim() = "" Then
+            lbMsg.Text = "Please provide at least one product and product's description" : Exit Sub
+        End If
+        divPrevProducts.InnerHtml = GetProducts()
+        If hd_ROWID.Value = "" OrElse _
+             CInt(dbUtil.dbExecuteScalar("MY", _
+                                    " select count(row_id) from MYADVANTECH_CP_CASESTUDY " + _
+                                    " where SYS_DIAGRAM is not null and row_id=N'" + hd_ROWID.Value + "'")) = 0 Then
+            lbMsg.Text = "Please upload system diagram" : Exit Sub
+        End If
+        imgPrevSysDiagram.ImageUrl = String.Format("~/Includes/Channel/CSImg.ashx?CSID={0}&TYPE=1", hd_ROWID.Value)
+        If txtSysDesc.Content = "" Then
+            lbMsg.Text = "Please input system description" : Exit Sub
+        End If
+        divPrevSysDesc.InnerHtml = txtSysDesc.Content
+        If txtConclusion.Content = "" Then
+            lbMsg.Text = "Please input conclusion" : Exit Sub
+        End If
+        If contactname.Text = "" Then
+            lbMsg.Text = "Please input Contact Name" : Exit Sub
+        End If
+        If contactemail.Text = "" Then
+            lbMsg.Text = "Please input Contact Email" : Exit Sub
+        End If
+        If contactemail.Text.ToString.Trim <> "" Then
+            If Not IsValidEmailFormat(contactemail.Text.ToString.Trim) Then
+                lbMsg.Text = "Contact Email address format is not correct." : Exit Sub
+            End If
+        End If
+        divPrevConclusion.InnerHtml = txtConclusion.Content
+        lbPrevTopic.Focus()
+        mv.ActiveViewIndex = 1
+    End Sub
+
+    Protected Sub btnEdit_Click(ByVal sender As Object, ByVal e As System.EventArgs)
+        mv.ActiveViewIndex = 0
+    End Sub
+
+    Protected Sub afupProdPhoto_UploadedComplete(ByVal sender As Object, ByVal e As AjaxControlToolkit.AsyncFileUploadEventArgs)
+        'afupProdPhoto.SaveAs(Server.MapPath("~/Files/TempFiles/") + Session.SessionID + "_prodphoto.gif")
+        If hd_ROWID.Value = "" Then Exit Sub
+        If IO.Path.GetExtension(afupProdPhoto.FileName).Contains(".gif") _
+            OrElse Not IO.Path.GetExtension(afupProdPhoto.FileName).Contains(".jpg") _
+            OrElse Not IO.Path.GetExtension(afupProdPhoto.FileName).Contains(".jpeg") _
+            OrElse Not IO.Path.GetExtension(afupProdPhoto.FileName).Contains(".tif") _
+            OrElse Not IO.Path.GetExtension(afupProdPhoto.FileName).Contains(".png") _
+            OrElse Not IO.Path.GetExtension(afupProdPhoto.FileName).Contains(".bmp") Then
+            dbUtil.dbExecuteNoQuery2("MY", _
+                                     String.Format("update MYADVANTECH_CP_CASESTUDY set PRODUCT_PHOTO=@PHOTOVARBIN where ROW_ID=N'{0}'", hd_ROWID.Value), _
+                                     New SqlClient.SqlParameter() {New SqlClient.SqlParameter("PHOTOVARBIN", afupProdPhoto.FileBytes)})
+        End If
+    End Sub
+
+    Protected Sub afupSysDiagram_UploadedComplete(ByVal sender As Object, ByVal e As AjaxControlToolkit.AsyncFileUploadEventArgs)
+        If hd_ROWID.Value = "" Then Exit Sub
+        If IO.Path.GetExtension(afupSysDiagram.FileName).Contains(".gif") _
+            OrElse Not IO.Path.GetExtension(afupSysDiagram.FileName).Contains(".jpg") _
+            OrElse Not IO.Path.GetExtension(afupSysDiagram.FileName).Contains(".jpeg") _
+            OrElse Not IO.Path.GetExtension(afupSysDiagram.FileName).Contains(".tif") _
+            OrElse Not IO.Path.GetExtension(afupSysDiagram.FileName).Contains(".png") _
+            OrElse Not IO.Path.GetExtension(afupSysDiagram.FileName).Contains(".bmp") Then
+            dbUtil.dbExecuteNoQuery2("MY", _
+                                     String.Format("update MYADVANTECH_CP_CASESTUDY set SYS_DIAGRAM=@PHOTOVARBIN where ROW_ID=N'{0}'", hd_ROWID.Value), _
+                                     New SqlClient.SqlParameter() {New SqlClient.SqlParameter("PHOTOVARBIN", afupSysDiagram.FileBytes)})
+        End If
+    End Sub
+
+    Function GetProducts() As String
+        Dim sbProd As New System.Text.StringBuilder
+        sbProd.AppendLine("<table>")
+        sbProd.AppendLine("<tr><th>Model's Name</th><th>Detail</th></tr>")
+        Dim tbProds() As TextBox = {txtProd1, txtProd2, txtProd3, txtProd4, txtProd5, txtProd6, txtProd7}
+        Dim tbProdDescs() As TextBox = {txtProdDesc1, txtProdDesc2, txtProdDesc3, txtProdDesc4, txtProdDesc5, txtProdDesc6, txtProdDesc7}
+        For i As Integer = 0 To tbProds.Length - 1
+            If tbProds(i).Text.Trim() <> "" AndAlso tbProdDescs(i).Text.Trim() <> "" Then
+                sbProd.AppendLine(String.Format("<tr><td>{0}</td><td>{1}</td></tr>", tbProds(i).Text.Trim(), tbProdDescs(i).Text.Trim()))
+            End If
+        Next
+        sbProd.AppendLine("</table>")
+        Return sbProd.ToString()
+    End Function
+    
+    Protected Sub btnSubmit_Click(ByVal sender As Object, ByVal e As System.EventArgs)
+        If hd_ROWID.Value = "" Then Exit Sub
+        Dim baaAlist As New ArrayList
+        For Each li As ListItem In cblIndustries.Items
+            If li.Selected Then
+                If li.Value = "Others" Then
+                    baaAlist.Add("Others:" + Request("Others"))
+                Else
+                    baaAlist.Add(li.Value)
+                End If
+            End If
+        Next
+        Dim strBaas As String = String.Join("|", baaAlist.ToArray())
+        Dim IsShare As Int32 = 0
+        If ck1.Checked Then
+            IsShare = 1
+        End If
+        Dim sb As New System.Text.StringBuilder
+        With sb
+            .AppendLine(String.Format(" update MYADVANTECH_CP_CASESTUDY set TOPIC=N'{0}', SUBMIT_DATE=GETDATE(),  ", _
+                                      txtTopic.Text.Trim().Replace("'", "''")))
+            .AppendLine(String.Format(" APP_STATUS='REQUEST', PROJECT_DATE='{0}', BAA=N'{1}', COUNTRY=N'{2}', CITY=N'{3}', PROJECT_INTRO=N'{4}',  ", _
+                                      Date.ParseExact(txtPrjDate.Text, "MM/dd/yyyy", New Globalization.CultureInfo("en-US")).ToString("yyyy-MM-dd"), _
+                                      strBaas.Replace("'", "''"), dlCountry.SelectedValue.Trim().Replace("'", "''"), _
+                                      txtCity.Text.Trim().Replace("'", "''"), txtPrjIntro.Content.Replace("'", "''")))
+            .AppendLine(String.Format("CONTACT_NAME=N'{0}',CONTACT_EMAIL =N'{1}',", contactname.Text.Trim().Replace("'", "''"), contactemail.Text.Trim().Replace("'", "''")))
+            .AppendLine(String.Format(" COMPANY_NAME=N'{0}', COMPANY_URL=N'{1}', PROJECT_IMP=N'{2}', SYSTEM_REQ=N'{3}', ", _
+                                      txtCustCompanyName.Text.Trim().Replace("'", "''"), txtCustUrl.Text.Trim().Replace("'", "''"), GetProducts().Replace("'", "''"), txtSysReq.Content.Trim().Replace("'", "''")))
+            .AppendLine(String.Format(" SYS_DESC=N'{0}', CONCLUSION=N'{1}' ", txtSysDesc.Content.Trim().Replace("'", "''"), txtConclusion.Content.Trim().Replace("'", "''")))
+            .AppendLine(String.Format(",IsEnabled =1,IsShare = {0}", IsShare))
+            .AppendLine(String.Format(" where ROW_ID=N'{0}' ", hd_ROWID.Value))
+        End With
+        dbUtil.dbExecuteNoQuery("MY", sb.ToString())
+        lbSubmitMsg.Text = "Thank you."
+        Util.AjaxJSAlertRedirect(Me.upSubmit, "Thank you. Your request is being processed and we will contact you as soon as it is approved.", "../home_cp.aspx")
+    End Sub
+
+    Protected Sub btnSave_Click(ByVal sender As Object, ByVal e As System.EventArgs)
+        If hd_ROWID.Value = "" Then Exit Sub
+        Dim baaAlist As New ArrayList
+        For Each li As ListItem In cblIndustries.Items
+            If li.Selected Then
+                If li.Value = "Others" Then
+                    baaAlist.Add("Others:" + Request("Others"))
+                Else
+                    baaAlist.Add(li.Value)
+                End If
+            End If
+        Next
+        Dim strBaas As String = String.Join("|", baaAlist.ToArray())
+        Dim tmpPrjDate As Date = Now
+        If Date.TryParseExact(txtPrjDate.Text, "MM/dd/yyyy", New Globalization.CultureInfo("en-US"), Globalization.DateTimeStyles.None, Now) Then
+            tmpPrjDate = Date.ParseExact(txtPrjDate.Text, "MM/dd/yyyy", New Globalization.CultureInfo("en-US")).ToString("yyyy-MM-dd")
+        End If
+        Dim IsShare As Int32 = 0
+        If ck1.Checked Then
+            IsShare = 1
+        End If
+        Dim sb As New System.Text.StringBuilder
+        With sb
+            .AppendLine(String.Format(" update MYADVANTECH_CP_CASESTUDY set TOPIC=N'{0}', SUBMIT_DATE=GETDATE(),  ", _
+                                      txtTopic.Text.Trim().Replace("'", "''")))
+            .AppendLine(String.Format(" APP_STATUS='DRAFT', PROJECT_DATE='{0}', BAA=N'{1}', COUNTRY=N'{2}', CITY=N'{3}', PROJECT_INTRO=N'{4}',  ", _
+                                      tmpPrjDate.ToString("yyyy-MM-dd"), _
+                                      strBaas.Replace("'", "''"), dlCountry.SelectedValue.Trim().Replace("'", "''"), _
+                                      txtCity.Text.Trim().Replace("'", "''"), txtPrjIntro.Content.Replace("'", "''")))
+            .AppendLine(String.Format("CONTACT_NAME=N'{0}',CONTACT_EMAIL =N'{1}',", contactname.Text.Trim().Replace("'", "''"), contactemail.Text.Trim().Replace("'", "''")))
+            .AppendLine(String.Format(" COMPANY_NAME=N'{0}', COMPANY_URL=N'{1}', PROJECT_IMP=N'{2}', SYSTEM_REQ=N'{3}', ", _
+                                      txtCustCompanyName.Text.Trim().Replace("'", "''"), txtCustUrl.Text.Trim().Replace("'", "''"), GetProducts().Replace("'", "''"), txtSysReq.Content.Trim().Replace("'", "''")))
+            .AppendLine(String.Format(" SYS_DESC=N'{0}', CONCLUSION=N'{1}' ", txtSysDesc.Content.Trim().Replace("'", "''"), txtConclusion.Content.Trim().Replace("'", "''")))
+            .AppendLine(String.Format(",IsEnabled =1,IsShare = {0}", IsShare))
+            .AppendLine(String.Format(" where ROW_ID=N'{0}' ", hd_ROWID.Value))
+        End With
+        dbUtil.dbExecuteNoQuery("MY", sb.ToString())
+        lbMsg.Text = "Data saved"
+        Util.AjaxJSAlertRedirect(Me.upErrMsg, "Data has been saved. You can edit it later in ""My Case Study""", "MyCaseStudies.aspx")
+    End Sub
+
+    Protected Sub btn2CMS_Click(ByVal sender As Object, ByVal e As System.EventArgs)
+        Util.AjaxJSAlert(Me.upSubmit, "Not yet implemented")
+    End Sub
+
+    Protected Sub btnFirstSubmit_Click(ByVal sender As Object, ByVal e As System.EventArgs)
+        ModalPopupExtender1.Show()
+    End Sub
+
+    Protected Sub bntY_Click(ByVal sender As Object, ByVal e As System.EventArgs)
+        ModalPopupExtender1.Hide()
+        ''''''''''''
+        lbMsg.Text = ""
+        If txtTopic.Text.Trim() = "" Then
+            lbMsg.Text = "Please input topic" : Exit Sub
+        End If
+        lbPrevTopic.Text = txtTopic.Text
+        If txtPrjDate.Text.Trim() = "" OrElse _
+            Date.TryParseExact(txtPrjDate.Text, "MM/dd/yyyy", New Globalization.CultureInfo("en-US"), Globalization.DateTimeStyles.None, Now) = False Then
+            lbMsg.Text = "Please input project date" : Exit Sub
+        End If
+        If DateDiff(DateInterval.Day, New Date(2009, 1, 1), CDate(txtPrjDate.Text)) < 0 Then
+            lbMsg.Text = "Project date should be after 01/01/2009" : Exit Sub
+        End If
+        lbPrevDate.Text = txtPrjDate.Text
+        If Util.GetCheckedCountFromCheckBoxList(cblIndustries) = 0 Then
+            lbMsg.Text = "Please select at least one industry" : Exit Sub
+        End If
+        If dlCountry.SelectedIndex = 0 Then
+            lbMsg.Text = "Please select country" : Exit Sub
+        End If
+        lbPrevCountry.Text = dlCountry.SelectedValue : lbPrevCity.Text = txtCity.Text.Trim()
+        If txtCustCompanyName.Text.Trim() = "" Then
+            lbMsg.Text = "Please input customer name" : Exit Sub
+        End If
+        lbPrevCompanyName.Text = txtCustCompanyName.Text
+        If txtPrjIntro.Content = "" Then
+            lbMsg.Text = "Please input project introduction" : Exit Sub
+        End If
+        divPrevPrjIntro.InnerHtml = txtPrjIntro.Content
+        If hd_ROWID.Value = "" OrElse _
+            CInt(dbUtil.dbExecuteScalar("MY", _
+                                   " select count(row_id) from MYADVANTECH_CP_CASESTUDY " + _
+                                   " where PRODUCT_PHOTO is not null and row_id=N'" + hd_ROWID.Value + "'")) = 0 Then
+            lbMsg.Text = "Please upload product photo" : Exit Sub
+        End If
+        imgPrevProd.ImageUrl = String.Format("~/Includes/Channel/CSImg.ashx?CSID={0}&TYPE=0", hd_ROWID.Value)
+        If txtSysReq.Content = "" Then
+            lbMsg.Text = "Please input system requirement" : Exit Sub
+        End If
+        divPrevSysReq.InnerHtml = txtSysReq.Content
+        If txtProd1.Text.Trim() = "" OrElse txtProdDesc1.Text.Trim() = "" Then
+            lbMsg.Text = "Please provide at least one product and product's description" : Exit Sub
+        End If
+        divPrevProducts.InnerHtml = GetProducts()
+        If hd_ROWID.Value = "" OrElse _
+             CInt(dbUtil.dbExecuteScalar("MY", _
+                                    " select count(row_id) from MYADVANTECH_CP_CASESTUDY " + _
+                                    " where SYS_DIAGRAM is not null and row_id=N'" + hd_ROWID.Value + "'")) = 0 Then
+            lbMsg.Text = "Please upload system diagram" : Exit Sub
+        End If
+        imgPrevSysDiagram.ImageUrl = String.Format("~/Includes/Channel/CSImg.ashx?CSID={0}&TYPE=1", hd_ROWID.Value)
+        If txtSysDesc.Content = "" Then
+            lbMsg.Text = "Please input system description" : Exit Sub
+        End If
+        divPrevSysDesc.InnerHtml = txtSysDesc.Content
+        If txtConclusion.Content = "" Then
+            lbMsg.Text = "Please input conclusion" : Exit Sub
+        End If
+        ''''''''''''
+        btnSubmit_Click(sender,e)
+    End Sub
+
+    Protected Sub bntdraft_Click(ByVal sender As Object, ByVal e As System.EventArgs)
+        ModalPopupExtender1.Hide()
+        btnSave_Click(sender, e)
+    End Sub
+
+    Protected Sub Dellink_Click(ByVal sender As Object, ByVal e As System.EventArgs)
+     ModalPopupExtender1.Hide()
+    End Sub
+
+    Public Function getOthervalue() As String
+        Return Others_values
+    End Function
+</script>
+
+<asp:Content ID="Content1" ContentPlaceHolderID="_main" Runat="Server">
+<script language=javascript>
+    window.onload = function () {
+        var a = "<%=getOthervalue()%>";
+        document.getElementById("Others").value = a;
+
+
+        document.getElementById("Others").parentNode.onclick = function () {
+            return false;
+        }
+    }
+   
+    function setchecked() {
+       // document.getElementById("ctl00__main_cblIndustries_14").checked = true;
+        //document.getElementById("ctl00__main_cblIndustries_14").blur();
+        document.getElementById("Others").focus()
+        return false;
+    }
+    function getvalue() {
+        if (document.getElementById("ctl00__main_cblIndustries_14").checked) {
+            var values = document.getElementById("Others").value;
+            if (values == "") {
+                alert("Please input Other's information");
+                return false;
+                document.getElementById("Others").focus()
+            }
+        
+        }
+    }
+</script> 
+    <asp:HiddenField runat="server" ID="hd_ROWID" />
+    <asp:UpdatePanel runat="server" ID="upMv" UpdateMode="Conditional">
+        <ContentTemplate>
+            <asp:MultiView runat="server" ID="mv" ActiveViewIndex="0">
+                <asp:View runat="server" ID="View1">
+                    <table width="100%">
+                        <tr>
+                            <td style="width:10px">&nbsp;</td>
+                            <td>
+                                <table width="95%">
+                                    <tr>
+                                        <td>
+                                            <%-- &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<asp:HyperLink runat="server" ID="hyCSSample" Font-Bold="true" NavigateUrl="http://www.advantech.com/eAutomation/Applications.aspx?doc_id={2F9B60A6-2791-4937-B1A6-30E372ED04B" Target="_blank" ForeColor="Red" Font-Size="Larger" Text="Please click here for an example" />--%>
+                                            <asp:Label runat="server" ID="lab1" Font-Size="Large" Font-Bold="true" Text="Successful Case Study Promotion Program"></asp:Label><br /><br />
+                                            <asp:Label runat="server" ID="lab2" Font-Size="14px" Font-Bold="true" Text="Objectives"></asp:Label><br />
+                                            <asp:Label runat="server" ID="lab3" Text="Enhance partners’ brand awareness with successful examples and case studies on the Advantech website."></asp:Label><br />
+                                            <asp:Label runat="server" ID="lab4" Text="Advantech will inform winning participants by Nov 30th, 2010. For us to contact you, please provide your Name & Email."></asp:Label>
+                                        </td>
+                                    </tr>
+                                       <tr>
+                                        <th>
+                                            <table  border="0" cellpadding="0" cellspacing="0">                                              
+                                                <tr>
+                                                    <td height="25" width="93">
+                                                        <asp:Label runat="server" ForeColor="Red" Text="*"></asp:Label>
+                                                        Contact Name 
+                                                    </td>
+                                                    <td>
+                                                        <asp:TextBox ID="contactname" runat="server"></asp:TextBox>
+                                                    </td>
+                                                </tr>
+                                                <tr>
+                                                    <td height="25">
+                                                        <asp:Label runat="server" ForeColor="Red" Text="*"></asp:Label>
+                                                        Contact Email 
+                                                    </td>
+                                                    <td>
+                                                        <asp:TextBox ID="contactemail" Width="200px" runat="server"></asp:TextBox>
+                                                    </td>
+                                                </tr>                                                 
+                                            </table>
+                                        </th>
+                                    </tr>
+                                    <tr>
+                                        <th align="left">
+                                            <asp:Label runat="server" ForeColor="Red" Text="*"></asp:Label>
+                                            Topic:
+                                        </th>            
+                                    </tr>
+                                    <tr>
+                                        <td>
+                                            <asp:TextBox runat="server" ID="txtTopic" Width="500px" />
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <th align="left">
+                                            <asp:Label runat="server" ForeColor="Red" Text="*"></asp:Label>
+                                            Project Date:
+                                        </th>            
+                                    </tr>
+                                    <tr>
+                                        <td>
+                                            <ajaxToolkit:CalendarExtender runat="server" ID="CalendarExtender1" TargetControlID="txtPrjDate" Format="MM/dd/yyyy" />
+                                            <asp:TextBox runat="server" ID="txtPrjDate" Width="100px" />&nbsp;(2009 January~2010 September)
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <th align="left">
+                                            <asp:Label runat="server" ForeColor="Red" Text="*"></asp:Label>
+                                            Industry of customer:
+                                        </th>            
+                                    </tr>
+                                    <tr>
+                                        <td>
+                                            <asp:CheckBoxList runat="server" ID="cblIndustries" RepeatDirection="Horizontal" RepeatColumns="3" Width="100%">
+                                                <%--<asp:ListItem Value="Factory Automation" />
+                                                <asp:ListItem Value="Consulting/Engineering/System Integrator" />
+                                                <asp:ListItem Value="Pharmaceutical/Medical/Healthcare" />
+                                                <asp:ListItem Value="Factory/ Machine Automation" />
+                                                <asp:ListItem Value="ECG/US Account" />
+                                                <asp:ListItem Value="Test/Measurement/Instrumentation" />
+                                                <asp:ListItem Value="IAG/US Account" />
+                                                <asp:ListItem Value="Power & Energy" />
+                                                <asp:ListItem Value="Industrial Equipment Manufacturing" />
+                                                <asp:ListItem Value="Digi Signage/Info Display/Narrow Casting/Streaming" />
+                                                <asp:ListItem Value="Telecommunications" />
+                                                <asp:ListItem Value="Transportation" />
+                                                <asp:ListItem Value="Aircraft/aerospace" />
+                                                <asp:ListItem Value="Machine Automation" />
+                                                <asp:ListItem Value="Security & Video Surveillance" />
+                                                <asp:ListItem Value="Remote Monitoring & Control" />
+                                                <asp:ListItem Value="Building Automation" />
+                                                <asp:ListItem Value="Embedded Computing." />
+                                                <asp:ListItem Value="Automotive" />--%>
+                                                <asp:ListItem Value="Building Automation" />
+                                                <asp:ListItem Value="Gaming" />
+                                                <asp:ListItem Value="Power & Energy" />
+                                                <asp:ListItem Value="Communcations & Networking" />
+                                                <asp:ListItem Value="Industrial PC/Configuration to Order Services" />
+                                                <asp:ListItem Value="Real Estate Intelligence" />
+                                                <asp:ListItem Value="Environmental Monitoring" />
+                                                <asp:ListItem Value="Machine Automation" />
+                                                <asp:ListItem Value="Self Service & Retail Intelligence" />
+                                                <asp:ListItem Value="Facility Management" />
+                                                <asp:ListItem Value="Medical" />
+                                                <asp:ListItem Value="Transportation" />
+                                                <asp:ListItem Value="Factory Automation" />
+                                                <asp:ListItem Value="Mobile Resource Management" />
+                                                <asp:ListItem Value="Others"> 
+                                                Others <input type="text" onMouseOver="this.focus()" onblur="getvalue();"  onfocus="setchecked();" onclick="setchecked();" onchange="setchecked();"   name="Others" id="Others" style="width:142px"/>
+                                                </asp:ListItem>                                                   
+                                                </asp:CheckBoxList>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <th align="left">
+                                            <asp:Label runat="server" ForeColor="Red" Text="*"></asp:Label>
+                                            Country & City:
+                                        </th>            
+                                    </tr>
+                                    <tr>
+                                        <td>
+                                            <table>
+                                                <tr>
+                                                    <th align="left">Country</th>
+                                                    <td>
+                                                        <asp:DropDownList runat="server" ID="dlCountry">
+                                                            <asp:ListItem Value="Select..." />
+                                                            <asp:ListItem Value="Afghanistan" />
+                                                            <asp:ListItem Value="Aland Islands" />
+                                                            <%--<asp:ListItem Value="Albania" />--%>
+                                                            <asp:ListItem Value="Algeria" />
+                                                            <asp:ListItem Value="American Samoa" />
+                                                            <%--<asp:ListItem Value="Andorra" />--%>
+                                                            <asp:ListItem Value="Angola" />
+                                                            <asp:ListItem Value="Anguilla" />
+                                                            <asp:ListItem Value="Antarctica" />
+                                                            <asp:ListItem Value="Antigua & Barbuda" />
+                                                            <asp:ListItem Value="Argentina" />
+                                                            <asp:ListItem Value="Armenia" />
+                                                            <asp:ListItem Value="Aruba" />
+                                                            <asp:ListItem Value="Australia" />
+                                                            <%--<asp:ListItem Value="Austria" />--%>
+                                                            <asp:ListItem Value="Azerbaijan" />
+                                                            <asp:ListItem Value="Bahamas" />
+                                                            <asp:ListItem Value="Bahrain" />
+                                                            <asp:ListItem Value="Bangladesh" />
+                                                            <asp:ListItem Value="Barbados" />
+                                                            <asp:ListItem Value="Belarus" />
+                                                            <%--<asp:ListItem Value="Belgium" />--%>
+                                                            <asp:ListItem Value="Belize" />
+                                                            <asp:ListItem Value="Benin" />
+                                                            <asp:ListItem Value="Bermuda" />
+                                                            <asp:ListItem Value="Bhutan" />
+                                                            <asp:ListItem Value="Bolivia" />
+                                                            <asp:ListItem Value="Bosnia-Herzegovina" />
+                                                            <asp:ListItem Value="Botswana" />
+                                                            <asp:ListItem Value="Bouvet Island" />
+                                                            <asp:ListItem Value="Brazil" />
+                                                            <%--<asp:ListItem Value="British Indian Ocean Territory" />--%>
+                                                            <asp:ListItem Value="Brunei" />
+                                                            <%--<asp:ListItem Value="Bulgaria" />--%>
+                                                            <asp:ListItem Value="Burkina Faso" />
+                                                            <asp:ListItem Value="Burundi" />
+                                                            <asp:ListItem Value="Cambodia" />
+                                                            <asp:ListItem Value="Cameroon" />
+                                                           <%-- <asp:ListItem Value="Canada" />--%>
+                                                            <asp:ListItem Value="Cape Verde Islands" />
+                                                            <asp:ListItem Value="Cayman Islands" />
+                                                            <asp:ListItem Value="Central African Republic" />
+                                                            <asp:ListItem Value="Chad" />
+                                                            <asp:ListItem Value="Chile" />
+                                                           <%-- <asp:ListItem Value="China" />--%>
+                                                            <asp:ListItem Value="Christmas Island" />
+                                                            <asp:ListItem Value="Cocos-Keeling Islands" />
+                                                            <asp:ListItem Value="Colombia" />
+                                                            <asp:ListItem Value="Comoros" />
+                                                            <asp:ListItem Value="Congo" />
+                                                            <asp:ListItem Value="Congo, The Democratic Republic" />
+                                                            <asp:ListItem Value="Cook Islands" />
+                                                            <asp:ListItem Value="Costa Rica" />
+                                                            <asp:ListItem Value="Cote D'ivoire" />
+                                                           <%-- <asp:ListItem Value="Croatia" />--%>
+                                                            <asp:ListItem Value="Cuba" />
+                                                           <%-- <asp:ListItem Value="Cyprus" />--%>
+                                                           <%-- <asp:ListItem Value="Czech Republic" />--%>
+                                                            <%--<asp:ListItem Value="Denmark" />--%>
+                                                            <asp:ListItem Value="Djibouti" />
+                                                            <asp:ListItem Value="Dominica" />
+                                                            <asp:ListItem Value="Dominican Republic" />
+                                                            <asp:ListItem Value="Ecuador" />
+                                                            <asp:ListItem Value="Egypt" />
+                                                            <asp:ListItem Value="El Salvador" />
+                                                            <asp:ListItem Value="Equatorial Guinea" />
+                                                            <asp:ListItem Value="Eritrea" />
+                                                            <%--<asp:ListItem Value="Estonia" />--%>
+                                                            <asp:ListItem Value="Ethiopia" />
+                                                            <asp:ListItem Value="Falkland Islands" />
+                                                            <%--<asp:ListItem Value="Faroe Islands" />--%>
+                                                            <asp:ListItem Value="Fiji" />
+                                                            <%--<asp:ListItem Value="Finland" />--%>
+                                                            <%-- <asp:ListItem Value="France" />--%>
+                                                            <asp:ListItem Value="French Guiana" />
+                                                            <asp:ListItem Value="French Polynesia" />
+                                                            <%--<asp:ListItem Value="French Southern Territories" />--%>
+                                                            <asp:ListItem Value="Gabon" />
+                                                            <asp:ListItem Value="Gambia" />
+                                                            <asp:ListItem Value="Georgia" />
+                                                            <%--<asp:ListItem Value="Germany" />--%>
+                                                            <asp:ListItem Value="Ghana" />
+                                                            <asp:ListItem Value="Gibraltar" />
+                                                            <%--<asp:ListItem Value="Greece" />--%>
+                                                            <asp:ListItem Value="Greenland" />
+                                                            <asp:ListItem Value="Grenada" />
+                                                            <asp:ListItem Value="Guadeloupe" />
+                                                            <asp:ListItem Value="Guam" />
+                                                            <asp:ListItem Value="Guatemala" />
+                                                            <asp:ListItem Value="Guernsey" />
+                                                            <asp:ListItem Value="Guinea" />
+                                                            <asp:ListItem Value="Guinea-Bissau" />
+                                                            <asp:ListItem Value="Guyana" />
+                                                            <asp:ListItem Value="Haiti" />
+                                                            <asp:ListItem Value="Heard and Mc Donald Islands" />
+                                                            <asp:ListItem Value="Honduras" />
+                                                            <asp:ListItem Value="Hong Kong" />
+                                                            <asp:ListItem Value="Hungary" />
+                                                            <asp:ListItem Value="Iceland" />
+                                                            <asp:ListItem Value="India" />
+                                                            <asp:ListItem Value="Indonesia" />
+                                                            <asp:ListItem Value="Iran" />
+                                                            <asp:ListItem Value="Iraq" />
+                                                            <asp:ListItem Value="Ireland" />
+                                                            <asp:ListItem Value="Isle of Man" />
+                                                            <asp:ListItem Value="Israel" />
+                                                            <asp:ListItem Value="Italy" />
+                                                            <asp:ListItem Value="Jamaica" />
+                                                           <%-- <asp:ListItem Value="Japan" />--%>
+                                                            <%--<asp:ListItem Value="Jersey" />--%>
+                                                            <asp:ListItem Value="Jordan" />
+                                                            <asp:ListItem Value="Kazakhstan" />
+                                                            <asp:ListItem Value="Kenya" />
+                                                            <asp:ListItem Value="Kiribati" />
+                                                            <%--<asp:ListItem Value="Korea" />--%>
+                                                            <asp:ListItem Value="Korea North" />
+                                                            <asp:ListItem Value="Kuwait" />
+                                                            <asp:ListItem Value="Kyrgyzstan" />
+                                                            <asp:ListItem Value="Laos" />
+                                                            <%--<asp:ListItem Value="Latvia" />--%>
+                                                            <asp:ListItem Value="Lebanon" />
+                                                            <asp:ListItem Value="Lesotho" />
+                                                            <asp:ListItem Value="Liberia" />
+                                                            <asp:ListItem Value="Libya" />
+                                                            <%--<asp:ListItem Value="Liechtenstein" />--%>
+                                                            <%--<asp:ListItem Value="Lithuania" />--%>
+                                                            <%--<asp:ListItem Value="Luxembourg" />--%>
+                                                            <asp:ListItem Value="Macau" />
+                                                            <%--<asp:ListItem Value="Macedonia" />--%>
+                                                            <asp:ListItem Value="Madagascar" />
+                                                            <asp:ListItem Value="Malawi" />
+                                                            <asp:ListItem Value="Malaysia" />
+                                                            <asp:ListItem Value="Maldives" />
+                                                            <asp:ListItem Value="Mali" />
+                                                            <%--<asp:ListItem Value="Malta" />--%>
+                                                            <asp:ListItem Value="Marshall Islands" />
+                                                            <asp:ListItem Value="Martinique" />
+                                                            <asp:ListItem Value="Mauritania" />
+                                                            <asp:ListItem Value="Mauritius" />
+                                                            <asp:ListItem Value="Mayotte" />
+                                                            <asp:ListItem Value="Mexico" />
+                                                            <asp:ListItem Value="Micronesia" />
+                                                            <%--<asp:ListItem Value="Moldova" />--%>
+                                                            <%--<asp:ListItem Value="Monaco" />--%>
+                                                            <asp:ListItem Value="Mongolia" />
+                                                            <asp:ListItem Value="Montenegro" />
+                                                            <asp:ListItem Value="Montserrat" />
+                                                            <asp:ListItem Value="Morocco" />
+                                                            <asp:ListItem Value="Mozambique" />
+                                                            <asp:ListItem Value="Myanmar" />
+                                                            <asp:ListItem Value="Namibia" />
+                                                            <asp:ListItem Value="Nauru" />
+                                                            <asp:ListItem Value="Nepal" />
+                                                           <%-- <asp:ListItem Value="Netherlands" />
+                                                            <asp:ListItem Value="Netherlands Antilles" />--%>
+                                                            <asp:ListItem Value="New Caledonia" />
+                                                            <asp:ListItem Value="New Zealand" />
+                                                            <asp:ListItem Value="Nicaragua" />
+                                                            <asp:ListItem Value="Niger" />
+                                                            <asp:ListItem Value="Nigeria" />
+                                                            <asp:ListItem Value="Niue" />
+                                                            <asp:ListItem Value="Norfolk Island" />
+                                                            <asp:ListItem Value="Northern Mariana Islands" />
+                                                            <%--<asp:ListItem Value="Norway" />--%>
+                                                            <asp:ListItem Value="Oman" />
+                                                            <asp:ListItem Value="Pakistan" />
+                                                            <asp:ListItem Value="Palau" />
+                                                            <asp:ListItem Value="Palestine" />
+                                                            <asp:ListItem Value="Panama" />
+                                                            <asp:ListItem Value="Papua New Guinea" />
+                                                            <asp:ListItem Value="Paraguay" />
+                                                            <asp:ListItem Value="Peru" />
+                                                            <asp:ListItem Value="Philippines" />
+                                                            <asp:ListItem Value="Pitcairn" />
+                                                            <%--<asp:ListItem Value="Poland" />--%>
+                                                            <%--<asp:ListItem Value="Portugal" />--%>
+                                                            <asp:ListItem Value="Puerto Rico" />
+                                                            <asp:ListItem Value="Qatar" />
+                                                            <asp:ListItem Value="Reunion" />
+                                                            <asp:ListItem Value="Romania" />
+                                                            <asp:ListItem Value="Russia" />
+                                                            <asp:ListItem Value="Rwanda" />
+                                                            <asp:ListItem Value="Saint Helena" />
+                                                            <asp:ListItem Value="Saint Kitts and Nevis" />
+                                                            <asp:ListItem Value="Saint Lucia" />
+                                                            <asp:ListItem Value="Saint Pierre and Miquelon" />
+                                                            <asp:ListItem Value="Saint Vincent and the Grenadin" />
+                                                            <asp:ListItem Value="Samoa" />
+                                                            <%-- <asp:ListItem Value="San Marino" />--%>
+                                                            <asp:ListItem Value="Sao Tome and Principe" />
+                                                            <asp:ListItem Value="Saudi Arabia" />
+                                                            <%--<asp:ListItem Value="Scotland" />--%>
+                                                            <asp:ListItem Value="Senegal" />
+                                                            <%--<asp:ListItem Value="Serbia" />--%>
+                                                            <%--<asp:ListItem Value="Serbia & Montenegro" />--%>
+                                                            <asp:ListItem Value="Seychelles" />
+                                                            <asp:ListItem Value="Sierra Leone" />
+                                                            <asp:ListItem Value="Singapore" />
+                                                            <asp:ListItem Value="Slovakia" />
+                                                            <%--<asp:ListItem Value="Slovenia" />--%>
+                                                            <asp:ListItem Value="Solomon Islands" />
+                                                            <asp:ListItem Value="Somalia" />
+                                                            <asp:ListItem Value="South Africa" />
+                                                            <asp:ListItem Value="South Georgia and the South Sa" />
+                                                            <%--<asp:ListItem Value="Spain" />--%>
+                                                            <asp:ListItem Value="Sri Lanka" />
+                                                            <asp:ListItem Value="St Kitts/Nevis" />
+                                                            <asp:ListItem Value="St Vincent & Grenadines" />
+                                                            <asp:ListItem Value="St. Helena" />
+                                                            <asp:ListItem Value="St. Pierre and Miquelon" />
+                                                            <asp:ListItem Value="Sudan" />
+                                                            <asp:ListItem Value="Suriname" />
+                                                            <asp:ListItem Value="Svalbard and Jan Mayen Islands" />
+                                                            <asp:ListItem Value="Swaziland" />
+                                                            <%--<asp:ListItem Value="Sweden" />--%>
+                                                            <%--<asp:ListItem Value="Switzerland" />--%>
+                                                            <asp:ListItem Value="Syria" />
+                                                            <%--<asp:ListItem Value="Taiwan" />--%>
+                                                            <asp:ListItem Value="Tajikistan" />
+                                                            <asp:ListItem Value="Tanzania" />
+                                                            <asp:ListItem Value="Thailand" />
+                                                            <asp:ListItem Value="Timor-Leste" />
+                                                            <asp:ListItem Value="Togo" />
+                                                            <asp:ListItem Value="Tokelau" />
+                                                            <asp:ListItem Value="Tonga" />
+                                                            <asp:ListItem Value="Trinidad & Tobago" />
+                                                            <asp:ListItem Value="Tunisia" />
+                                                            <asp:ListItem Value="Turkey" />
+                                                            <asp:ListItem Value="Turkmenistan" />
+                                                            <asp:ListItem Value="Turks and Caicos Islands" />
+                                                            <asp:ListItem Value="Tuvalu" />
+                                                            <asp:ListItem Value="UAE" />
+                                                            <%--<asp:ListItem Value="UK" />--%>
+                                                            <%--<asp:ListItem Value="USA" />--%>
+                                                            <asp:ListItem Value="Uganda" />
+                                                            <%--<asp:ListItem Value="Ukraine" />--%>
+                                                            <asp:ListItem Value="United States Minor Outlying I" />
+                                                            <asp:ListItem Value="Uruguay" />
+                                                            <asp:ListItem Value="Uzbekistan" />
+                                                            <asp:ListItem Value="Vanuatu" />
+                                                            <%--<asp:ListItem Value="Vatican City" />--%>
+                                                            <asp:ListItem Value="Venezuela" />
+                                                            <asp:ListItem Value="Vietnam" />
+                                                            <asp:ListItem Value="Virgin Islands British" />
+                                                            <asp:ListItem Value="Virgin Islands US" />
+                                                            <asp:ListItem Value="Wallis and Futuna Islands" />
+                                                            <asp:ListItem Value="Western Sahara" />
+                                                            <asp:ListItem Value="Yemen" />
+                                                            <asp:ListItem Value="Zambia" />
+                                                            <asp:ListItem Value="Zimbabwe" />
+                                                        </asp:DropDownList>
+                                                    </td>
+                                                    <th align="left">City</th>
+                                                    <td>
+                                                        <asp:TextBox runat="server" ID="txtCity" Width="100px" />                          
+                                                    </td>
+                                                </tr>
+                                            </table>
+                                        </td>
+                                    </tr>                                
+                                    <tr>
+                                        <th align="left">
+                                            <asp:Label runat="server" ForeColor="Red" Text="*"></asp:Label>
+                                            End Customer  
+                                            <span style="margin-left:126px;">
+                                                <asp:CheckBox ID="ck1" runat="server" ForeColor="Red"  Text=" Not Public "/>
+                                            </span>
+                                        </th>            
+                                    </tr>
+                                    <tr>
+                                        <td>
+                                            <table  border="0" cellpadding="0" cellspacing="0">
+                                                <tr>
+                                                    <td valign="top">
+                                                        <asp:TextBox runat="server" ID="txtCustCompanyName" Width="200px" />&nbsp;&nbsp;&nbsp;&nbsp;
+                                                    </td>                                               
+                                                    <td  valign="top" style="background-color:#F0F0F0;">
+                                                        Please tick "V" next to “Not Public” if you wish the end customer’s name not to be mentioned on Advantech’s website.
+                                                    </td>
+                                               </tr>
+                                             </table>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <th align="left">Customer's Website (optional)</th>            
+                                    </tr>
+                                    <tr>
+                                        <td>
+                                            <asp:TextBox runat="server" ID="txtCustUrl" Width="400px" />
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td colspan="2">
+                                            <asp:HyperLink runat="server" ID="hyCSSample" Font-Bold="true" NavigateUrl="http://www.advantech.com.tw/eAutomation/Applications.aspx?doc_id={2F9B60A6-2791-4937-B1A6-30E372ED04B" Target="_blank" ForeColor="Blue"  Font-Size="12px" Text="Case Study Sample " />
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <th align="left">
+                                            <asp:Label runat="server" ForeColor="Red" Text="*"></asp:Label>
+                                            Project Introduction:
+                                        </th>
+                                    </tr>
+                                    <tr>
+                                        <td colspan="2">
+                                            <ajaxToolkit:Editor runat="server" ID="txtPrjIntro" Width="800px" Height="350px" />
+                                        </td>            
+                                    </tr>
+                                    <tr>
+                                        <td>
+                                            <asp:Label runat="server" ForeColor="Red" Text="*"></asp:Label>
+                                            Photo of the Product:&nbsp;(JPEG files, resolution 200dpi, 2 MB max filesize)
+                                        </td>            
+                                    </tr>
+                                    <tr>
+                                        <td>
+                                            <ajaxToolkit:AsyncFileUpload runat="server" ID="afupProdPhoto" Width="800px" 
+                                                ThrobberID="imgUploadingProdPhoto" 
+                                                OnClientUploadError="uploadError" OnClientUploadStarted="StartUpload" 
+                                                OnClientUploadComplete="UploadComplete" 
+                                                CompleteBackColor="Lime" UploaderStyle="Modern" 
+                                                ErrorBackColor="Red" UploadingBackColor="#66CCFF" OnUploadedComplete="afupProdPhoto_UploadedComplete" />&nbsp;<asp:Image runat="server" ID="imgUploadingProdPhoto" ImageUrl="~/Images/loading2.gif" AlternateText="Loading..." />                
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td id="div_UpSysImgStatus1"></td>
+                                    </tr>
+                                    <tr>
+                                        <th align="left">
+                                            <asp:Label runat="server" ForeColor="Red" Text="*"></asp:Label>
+                                            System Requirements:
+                                        </th>
+                                    </tr>
+                                    <tr>
+                                        <td>
+                                            <ajaxToolkit:Editor runat="server" ID="txtSysReq" Width="800px" Height="350px" />
+                                        </td>            
+                                    </tr>
+                                    <tr>
+                                        <th align="left">
+                                            <asp:Label runat="server" ForeColor="Red" Text="*"></asp:Label>
+                                            Project Implementation:
+                                        </th>
+                                    </tr>
+                                    <tr>
+                                        <td>
+                                            <asp:UpdatePanel runat="server" ID="upProducts" UpdateMode="Conditional">
+                                                <ContentTemplate>
+                                                    <table width="600px">
+                                                        <tr>
+                                                            <th align="left" style="width:30%">Model's Name</th><th align="left" style="width:70%">Detail</th>
+                                                        </tr>
+                                                        <tr>
+                                                            <td>
+                                                                <ajaxToolkit:AutoCompleteExtender runat="server" ID="AutoCompleteExtender1" 
+                                                                TargetControlID="txtProd1" ServiceMethod="AutoSuggestPN" 
+                                                                CompletionInterval="100" MinimumPrefixLength="0" OnClientItemSelected="PNSelected" />
+                                                                <asp:TextBox runat="server" ID="txtProd1" Width="98%" />
+                                                            </td>
+                                                            <td><asp:TextBox runat="server" ID="txtProdDesc1" Width="99%" /></td>
+                                                        </tr>
+                                                        <tr>
+                                                            <td>
+                                                                <ajaxToolkit:AutoCompleteExtender runat="server" ID="AutoCompleteExtender2" 
+                                                                TargetControlID="txtProd2" ServiceMethod="AutoSuggestPN" 
+                                                                CompletionInterval="100" MinimumPrefixLength="0" OnClientItemSelected="PNSelected" />
+                                                                <asp:TextBox runat="server" ID="txtProd2" Width="98%" />
+                                                            </td>
+                                                            <td><asp:TextBox runat="server" ID="txtProdDesc2" Width="99%" /></td>
+                                                        </tr>
+                                                        <tr runat="server" id="trProd3" visible="true">
+                                                            <td>
+                                                                <ajaxToolkit:AutoCompleteExtender runat="server" ID="AutoCompleteExtender3" 
+                                                                TargetControlID="txtProd3" ServiceMethod="AutoSuggestPN" 
+                                                                CompletionInterval="100" MinimumPrefixLength="0" OnClientItemSelected="PNSelected" />
+                                                                <asp:TextBox runat="server" ID="txtProd3" Width="98%" />
+                                                            </td>
+                                                            <td><asp:TextBox runat="server" ID="txtProdDesc3" Width="99%" /></td>
+                                                        </tr>
+                                                        <tr runat="server" id="trProd4" visible="true">
+                                                            <td>
+                                                                <ajaxToolkit:AutoCompleteExtender runat="server" ID="AutoCompleteExtender4" 
+                                                                TargetControlID="txtProd4" ServiceMethod="AutoSuggestPN" 
+                                                                CompletionInterval="100" MinimumPrefixLength="0" OnClientItemSelected="PNSelected" />
+                                                                <asp:TextBox runat="server" ID="txtProd4" Width="98%" />
+                                                            </td>
+                                                            <td><asp:TextBox runat="server" ID="txtProdDesc4" Width="99%" /></td>
+                                                        </tr>
+                                                        <tr runat="server" id="trProd5" visible="false">
+                                                            <td>
+                                                                <ajaxToolkit:AutoCompleteExtender runat="server" ID="AutoCompleteExtender5" 
+                                                                TargetControlID="txtProd5" ServiceMethod="AutoSuggestPN" 
+                                                                CompletionInterval="100" MinimumPrefixLength="0" OnClientItemSelected="PNSelected" />
+                                                                <asp:TextBox runat="server" ID="txtProd5" Width="98%" />
+                                                            </td>
+                                                            <td><asp:TextBox runat="server" ID="txtProdDesc5" Width="99%" /></td>
+                                                        </tr>
+                                                        <tr runat="server" id="trProd6" visible="false">
+                                                            <td>
+                                                                <ajaxToolkit:AutoCompleteExtender runat="server" ID="AutoCompleteExtender6" 
+                                                                TargetControlID="txtProd6" ServiceMethod="AutoSuggestPN" 
+                                                                CompletionInterval="100" MinimumPrefixLength="0" OnClientItemSelected="PNSelected" />
+                                                                <asp:TextBox runat="server" ID="txtProd6" Width="98%" />
+                                                            </td>
+                                                            <td><asp:TextBox runat="server" ID="txtProdDesc6" Width="99%" /></td>
+                                                        </tr>
+                                                        <tr runat="server" id="trProd7" visible="false">
+                                                            <td>
+                                                                <ajaxToolkit:AutoCompleteExtender runat="server" ID="AutoCompleteExtender7" 
+                                                                TargetControlID="txtProd7" ServiceMethod="AutoSuggestPN" 
+                                                                CompletionInterval="100" MinimumPrefixLength="0" OnClientItemSelected="PNSelected" />
+                                                                <asp:TextBox runat="server" ID="txtProd7" Width="98%" />
+                                                            </td>
+                                                            <td><asp:TextBox runat="server" ID="txtProdDesc7" Width="99%" /></td>
+                                                        </tr>
+                                                        <tr>
+                                                            <td colspan="2" align="right">
+                                                                <asp:Button runat="server" ID="btnMoreProd" Text="+More" Font-Bold="true" Font-Size="Larger" OnClick="btnMoreProd_Click" />&nbsp;&nbsp;&nbsp;&nbsp;
+                                                            </td>
+                                                        </tr>
+                                                    </table>
+                                                </ContentTemplate>
+                                            </asp:UpdatePanel>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>
+                                            <asp:Label runat="server" ForeColor="Red" Text="*"></asp:Label>
+                                            System Diagram:&nbsp;(2 MB max)
+                                        </td>            
+                                    </tr>
+                                    <tr>
+                                        <td>
+                                            <ajaxToolkit:AsyncFileUpload runat="server" ID="afupSysDiagram" Width="800px" 
+                                                ThrobberID="imgUploadingSysStruct" 
+                                                OnClientUploadError="uploadError2" OnClientUploadStarted="StartUpload2" 
+                                                OnClientUploadComplete="UploadComplete2" 
+                                                CompleteBackColor="Lime" UploaderStyle="Modern" 
+                                                ErrorBackColor="Red" UploadingBackColor="#66CCFF" OnUploadedComplete="afupSysDiagram_UploadedComplete" />&nbsp;<asp:Image runat="server" ID="imgUploadingSysStruct" ImageUrl="~/Images/loading2.gif" AlternateText="Loading..." />                
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td id="div_UpSysImgStatus2"></td>
+                                    </tr>
+                                    <tr>
+                                        <th align="left">
+                                            <asp:Label runat="server" ForeColor="Red" Text="*"></asp:Label>
+                                            System Description:
+                                        </th>
+                                    </tr>
+                                    <tr>
+                                        <td><ajaxToolkit:Editor runat="server" ID="txtSysDesc" Width="800px" Height="350px" /></td>
+                                    </tr>
+                                    <tr>
+                                        <th align="left">
+                                            <asp:Label runat="server" ForeColor="Red" Text="*"></asp:Label>
+                                            Conclusion:
+                                        </th>
+                                    </tr>
+                                    <tr>
+                                        <td><ajaxToolkit:Editor runat="server" ID="txtConclusion" Width="800px" Height="350px" /></td>
+                                    </tr>                                  
+                                    <tr><td style="height:5px"><hr /></td></tr>
+                                    <tr>
+                                        <td>
+                                            <table width="800px">
+                                                <tr align="center">
+                                                    <td>
+                                                        <asp:Button runat="server" ID="btnSave" Text="Save as Draft" Font-Bold="true" Font-Size="Larger" OnClick="btnSave_Click" />&nbsp;
+                                                    </td>
+                                                    <td>
+                                                        <asp:Button runat="server" ID="btnPreview" Text="Preview" Font-Bold="true" Font-Size="Larger" OnClick="btnPreview_Click" />
+                                                    </td>
+                                                    <td>
+                                                        <asp:Button runat="server" ID="btnFirstSubmit" Font-Bold="true" Font-Size="Larger" Text="Submit" OnClick="btnFirstSubmit_Click" /> 
+                                                        <ajaxToolkit:ModalPopupExtender runat="server" ID="ModalPopupExtender1"  PopupControlID="Panel1"
+                                                              TargetControlID="btnFirstSubmit" BackgroundCssClass="modalBackground" />
+                                                                <asp:Panel runat="server" HorizontalAlign="Center" ID="Panel1" BackColor="White" Width="340px" Height="95px" >
+                                                                    <div style="float:right">
+                                                                        <a  href="#" onclick="hide();" style="color: #FF0000;font-size: 14px;"> [ x ] </a>&nbsp;&nbsp;&nbsp;
+                                                                    </div>
+                                                                    <br />
+                                                                    <div style="float:left; margin-left:15px;text-align: left;">Have the end customer’s approval to publish the case study </div> <br /><br />
+                                                                    <asp:Button runat="server" ID="bntY" Width="80px" Text="Yes" OnClick="bntY_Click" />&nbsp;&nbsp;&nbsp;&nbsp;
+                                                                    <asp:Button runat="server" ID="bntdraft" Text="Save as draft" OnClick="bntdraft_Click" /><br />
+                                                                </asp:Panel>
+                                                         <script language="javascript" type="text/javascript">
+                                                             function hide() {
+                                                                 $find('<%= ModalPopupExtender1.ClientID%>').hide()
+                                                                  //  $find('Panel1').show()
+                                                                 return false;
+                                                             }
+                                                         </script>
+                                                    </td>
+                                                </tr>
+                                            </table>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>
+                                            <asp:UpdatePanel runat="server" ID="upErrMsg" UpdateMode="Conditional">
+                                                <ContentTemplate>
+                                                    <asp:Label runat="server" ID="lbMsg" Font-Bold="true" ForeColor="Tomato" Font-Size="Larger" />                                                    
+                                                </ContentTemplate>
+                                                <Triggers>
+                                                    <asp:AsyncPostBackTrigger ControlID="btnPreview" EventName="Click" />
+                                                    <asp:AsyncPostBackTrigger ControlID="btnSave" EventName="Click" />
+                                                </Triggers>
+                                            </asp:UpdatePanel>
+                                        </td>
+                                    </tr>
+                                </table>
+                            </td>
+                        </tr>
+                    </table> 
+                </asp:View>
+                <asp:View runat="server" ID="View2">
+                    <table width="100%">
+                        <tr>
+                            <td>
+                                <div id="div_PreviewBlock" style="width:80%">
+                                    <div>
+                                        <h1 style=' color: Black; margin-top: 10px; margin-bottom: 10px;
+                                            font-family: Arial , Helvetica , sans-serif; font-size: 22px; 
+                                            line-height: 26px; font-weight: bold; color: #000099' >Case Study</h1>
+                                    </div>
+                                    <div>
+                                        <span style=' font-family: Arial , Helvetica , sans-serif; font-size: 16px; 
+                                            font-weight: bold; color: #000099' ><asp:Label runat="server" ID="lbPrevTopic" /></span>
+                                    </div>
+                                    <div style=' margin-top: 5px; margin-bottom: 5px;' >
+                                        <span style=' font-family: Arial, Helvetica, sans-serif; font-size: 10px; color: #000000' >Date: <asp:Label runat="server" ID="lbPrevDate" /></span>
+                                    </div>
+                                    <div>
+                                       <div style=' margin-top: 10px;' ></div>
+                                    </div>
+                                    <div class='divCMSContent' >
+                                        <p>
+                                            <strong>
+                                                <asp:Image runat="server" ID="imgPrevProd" AlternateText="Photo of Product" ImageAlign="Right" Width="114px" Height="171px" /><br />
+                                                <asp:Label runat="server" ID="lbPrevCompanyName" /><br />
+                                                <asp:Label runat="server" ID="lbPrevCity" />, <asp:Label runat="server" ID="lbPrevCountry" />
+                                            </strong>
+                                        </p>
+                                        <p>&nbsp;</p>
+                                        <p>
+                                            <strong>Project Introduction: </strong><br />
+                                            <div runat="server" id="divPrevPrjIntro" />
+                                            <p>
+                                            </p>
+                                            <p>
+                                                &nbsp;</p>
+                                            <p>
+                                                <strong>System Requirements:</strong><br />
+                                            </p>
+                                            <ul>
+                                                <div runat="server" id="divPrevSysReq" />
+                                            </ul>
+                                            <p>
+                                                <strong>Project Implementation: </strong>
+                                            </p>
+                                            <table border=" 0" cellpadding=" 1" cellspacing=" 1" 
+                                                style=" width: 531px; height: 64px;" width=" 531">
+                                                <tr>
+                                                    <td>
+                                                        <div runat="server" id="divPrevProducts" />
+                                                    </td>
+                                                </tr>
+                                            </table>
+                                            <p>
+                                                &nbsp;</p>
+                                            <p>
+                                                <strong>System Diagram:<br /><br /></strong></p>
+                                            <p style=" text-align: center;">
+                                                <asp:Image ID="imgPrevSysDiagram" runat="server" AlternateText="System Diagram" 
+                                                    Height="426px" Width="500px" />
+                                            </p>
+                                            <p style=" text-align: center;">
+                                                &nbsp;</p>
+                                            <p>
+                                                <strong>
+                                                <br />
+                                                <br />
+                                                System Description:</strong><br /><div runat="server" id="divPrevSysDesc" />
+                                                <p>
+                                                </p>
+                                                <p>
+                                                    &nbsp;</p>
+                                                <p>
+                                                    <strong>Conclusion:</strong><br />
+                                                    <div runat="server" id="divPrevConclusion" />
+                                                    <p>
+                                                    </p>
+                                                    <p>
+                                                    </p>
+                                                    <p>
+                                                    </p>
+                                                </p>
+                                            </p>
+                                        </p>
+                                    </div>
+                                </div>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <table width="700px">
+                                    <tr align="center">
+                                        <td><asp:Button runat="server" ID="btnEdit" Font-Bold="true" Font-Size="Larger" Text="Go Back to Edit" OnClick="btnEdit_Click" /></td>
+                                        <td>
+                                            <asp:UpdatePanel runat="server" ID="upSubmit" UpdateMode="Conditional">
+                                                <ContentTemplate>
+                                                    <asp:Button runat="server" ID="btnSubmit" Font-Bold="true" Font-Size="Larger" Text="Submit" OnClientClick="SubmitCs();" OnClick="btnSubmit_Click" /> &nbsp;
+                                                    <asp:Button runat="server" ID="btn2CMS" Font-Bold="true" Font-Size="Larger" Text="Submit To CMS (Internal Only)" OnClick="btn2CMS_Click" />
+                                                    <br />
+                                                    <asp:Label runat="server" ID="lbSubmitMsg" Font-Bold="true" />
+                                                </ContentTemplate>
+                                            </asp:UpdatePanel>                                            
+                                        </td>
+                                    </tr>
+                                </table>
+                            </td>
+                        </tr>
+                    </table>
+                </asp:View>
+            </asp:MultiView>
+        </ContentTemplate>
+    </asp:UpdatePanel>
+    <script type="text/javascript" language="javascript">
+        function SubmitCs() {
+            PageMethods.SubmitCaseStudy(document.getElementById('div_PreviewBlock').innerHTML, document.getElementById('<%=hd_ROWID.ClientID %>').value,
+                function (pagedResult, eleid, methodName) {
+                    return true;
+                },
+                function (error, userContext, methodName) {
+                    alert(error.get_message());
+                    return false;
+                }
+            )
+        }
+        function PNSelected(source, eventArgs) {
+            var txtID = source.get_element().id;
+            //alert(txtID);
+            if (txtID) {
+                FillModelDesc(eventArgs.get_value(), txtID);
+            }
+        }
+        function FillModelDesc(modelno, sourceid) {
+            //alert(modelno);
+            PageMethods.GetPNDesc(modelno,
+                function (pagedResult, eleid, methodName) {
+                    var p = pagedResult;
+                    //alert(pagedResult);
+                    if (p) {
+                        var pid = sourceid.replace('_main_txtProd', '_main_txtProdDesc');
+                        //alert(document.getElementById(pid));
+                        document.getElementById(pid).value = p;
+                    }
+                },
+                function (error, userContext, methodName) {
+                    alert(error.get_message());
+                }
+            );
+        }
+        function uploadError(sender, args) {
+            document.getElementById('div_UpSysImgStatus1').innerHTML = args.get_fileName(),
+	        "<span style='color:red;'>" + args.get_errorMessage() + "</span>";
+            document.getElementById('<%=btnPreview.ClientID %>').style.display = 'block';
+            document.getElementById('<%=afupSysDiagram.ClientID %>').style.display = 'block';
+        }
+
+        function StartUpload(sender, args) {
+            document.getElementById('<%=btnPreview.ClientID %>').style.display = 'none';
+            document.getElementById('<%=afupSysDiagram.ClientID %>').style.display = 'none';
+            document.getElementById('div_UpSysImgStatus1').innerHTML = 'Uploading Started.';
+        }
+
+        function UploadComplete(sender, args) {
+            var filename = args.get_fileName();
+            var contentType = args.get_contentType();
+            var text = "Size of " + filename + " is " + args.get_length() + " bytes";
+            if (contentType.length > 0) {
+                text += " and content type is '" + contentType + "'.";
+            }
+            document.getElementById('div_UpSysImgStatus1').innerHTML = text;
+            document.getElementById('<%=btnPreview.ClientID %>').style.display = 'block';
+            document.getElementById('<%=afupSysDiagram.ClientID %>').style.display = 'block';
+        }
+        function uploadError2(sender, args) {
+            document.getElementById('<%=btnPreview.ClientID %>').style.display = 'block';
+            document.getElementById('div_UpSysImgStatus2').innerHTML = args.get_fileName(),
+	        "<span style='color:red;'>" + args.get_errorMessage() + "</span>";
+            document.getElementById('<%=afupProdPhoto.ClientID %>').style.display = 'block';
+        }
+
+        function StartUpload2(sender, args) {
+            document.getElementById('<%=btnPreview.ClientID %>').style.display = 'none';
+            document.getElementById('div_UpSysImgStatus2').innerHTML = 'Uploading Started.';
+            document.getElementById('<%=afupProdPhoto.ClientID %>').style.display = 'none';
+        }
+
+        function UploadComplete2(sender, args) {
+            var filename = args.get_fileName();
+            var contentType = args.get_contentType();
+            var text = "Size of " + filename + " is " + args.get_length() + " bytes";
+            if (contentType.length > 0) {
+                text += " and content type is '" + contentType + "'.";
+            }
+            document.getElementById('div_UpSysImgStatus2').innerHTML = text;
+            document.getElementById('<%=btnPreview.ClientID %>').style.display = 'block';
+            document.getElementById('<%=afupProdPhoto.ClientID %>').style.display = 'block';
+        }
+    </script>
+</asp:Content>

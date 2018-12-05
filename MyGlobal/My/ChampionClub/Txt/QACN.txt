@@ -1,0 +1,38 @@
+﻿     <ol>
+                            <li>
+                                <div class="faq-question">
+                                    如何成为研华冠军俱乐部成员?</div>
+                                <div class="faq-answer">
+                                   点击进入 <strong>区域积分标准 &amp; 报名</strong> 页面，了解活动详情后点击底部的<strong>我要参加</strong>按钮参加。</div>
+                            </li>
+                            <li>
+                                <div class="faq-question">
+                                    怎样查看和管理我的积分?</div>
+                                <div class="faq-answer">
+                                   点击进入 <strong>积分记录</strong> 页面后即进入贵公司的主页。点击账户名就可以查看个人积分管理。</div>
+                            </li>
+							  <li>
+                                <div class="faq-question">
+                                   请问研华会如何给分?</div>
+                                <div class="faq-answer">
+                                   当业务达到游戏规则，并在<strong>提交积分申请</strong>中上传Excel文件以作为证明，研华确认后即兑换积分。</div>
+                            </li>
+                            <li style="display:none;">
+                                <div class="faq-question">
+                                   	我的账户里已有可用积分，如何兑奖?</div>
+                                <div class="faq-answer">
+                                    请进入 <strong>奖品兑换</strong> 页面查看奖品信息。您可以根据点数兑换相应的奖品。</div>
+                            </li>
+                            <li>
+                                <div class="faq-question">
+                                    怎样知道自己是否有资格获得年度大奖?</div>
+                                <div class="faq-answer">
+                                    系统将识别您所在区域的最高积分账户并自动在 <strong>排行榜</strong> 显示。</div>
+                            </li>
+                            <li>
+                                <div class="faq-question">
+                                    	怎样获取兑奖时间期限信息?</div>
+                                <div class="faq-answer">
+                                    研华会发送邮件通知兑奖时间，或者在研华官网公布，请留意。</div>
+                            </li>
+                        </ol>

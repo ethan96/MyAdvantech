@@ -1,0 +1,802 @@
+﻿.HomeFeatureTitle
+{
+    vertical-align:middle;
+    margin-top:5px;
+    margin-bottom:5px;
+    }
+ 
+.DivBody
+{
+	background-color:White;
+	margin-top:0px;
+	margin-left:0px;
+	padding:0px;
+	}
+
+.DivAlign
+{
+    clear:right;
+    float:left;
+    }
+    
+.DivAlignRight
+{
+    float:right;
+    }    
+    
+.DivHeader
+{
+	 margin-left:10px;
+	 margin-top:10px;
+	 width:890px;
+	 position:absolute;
+	}
+	
+
+	
+.DivFooter
+{
+	 margin-top:10px;
+	 margin-bottom:2px;
+	 width:890px;
+	 clear:both;
+	}
+
+.DivMain
+{
+	margin-top:87px;
+	margin-left:10px;
+	width:890px;
+	position:absolute;
+	}
+
+
+.DivMainFullModel
+{
+	margin-top:87px;
+	margin-left:10px;
+	margin-right:10px;
+	width:100%;
+	position:absolute;
+	}
+.DivHeaderFullModel
+{
+	 margin-left:10px;
+	 margin-right:10px;
+	 margin-top:10px;
+	 width:100%;
+	 position:absolute;
+	}
+	
+.DivFooterFullModel
+{
+	 margin-top:10px;
+	 margin-right:10px;
+	 margin-bottom:2px;
+	 width:100%;
+	 clear:both;
+	}
+	
+	
+.DivMainLeft
+{
+	width:189px;
+	min-width:189px;
+	margin-right:6px;
+	}
+	
+.DivMainCenter
+{
+	width:424px;
+	margin-right:6px;
+	height:100%;
+	}
+	
+	/*For 2 columns design*/
+.DivMainCenter2
+{
+	width:690px;
+	max-width:690px;
+	padding-right:5px;
+	padding-left:8px;
+	height:100%;
+	}	
+	
+.DivMainRight
+{
+	width:265px;}		
+	
+	
+	/*For 2 Columns products design*/	
+.DivMainCenterProduct
+{
+	width:710px;
+	margin-right:10px;
+	height:100%;
+	}	
+	
+.DivMainProductRight
+{
+	width:180px;
+	padding-right:0px;
+	}	
+	
+	
+	/*For the Content block(Header) in BU and PD pages*/
+.BlockHeader
+{
+	background-color:#A0B0CA; 
+	padding-left:10px;
+	height:25px;
+	vertical-align:middle;
+	clear:both;
+	}
+	
+	
+	/*For the Content block(Content)  in BU and PD pages*/
+.Blockcontent
+{
+	background-color:#EBEDF3; 
+	padding-bottom:10px;
+	padding-left:10px;
+	padding-right:10px;	
+	padding-top:10px;
+	
+	}
+	
+	
+	/*For the Content block(Content)  in all pages with white background color*/	
+.BlockcontentClear
+{
+	padding-bottom:10px;
+	padding-left:10px;
+	padding-right:10px;	
+	padding-top:10px;
+	
+	}	
+	
+	/*For the Content block(Content)  in all pages with grey background color*/	
+.BlockcontentGrey
+{
+	background-color:#f0f0f0;
+	padding-bottom:10px;
+	padding-left:10px;
+	padding-right:10px;	
+	padding-top:10px;
+	
+	}		
+	
+	
+	/*For BU Menu Gradience*/	
+.BUMenuGradience
+{
+	background-image: url(/images/menu_gradience.gif);
+	background-position: 50% bottom;
+	background-repeat: no-repeat;
+	background-color: #D6D9E5;
+}		
+	
+	
+.PDIntroduction
+{
+	margin-top:5px;
+	margin-bottom:8px;
+	font-weight:bold;
+	height:12px;
+	}
+
+	
+.WebSiteMenuBlock
+{
+    /*width:170px;*/
+	border-right:solid 1px #CCCCCC; 
+	margin-top:10px; 
+	padding-left:0px; 
+	padding-right:5px;
+	}	
+	
+	/*headMenu*/
+.HeaderMenu
+{
+	color: #767373;
+	font-weight: bold;
+	text-align: left;
+	
+}
+
+.HeaderMenuHover
+{
+	color: #767373;
+	font-weight: bold;
+	text-align: left;
+	cursor:pointer;
+	text-decoration:underline;
+	}
+	/*headMenu*/
+	
+	
+	/* for headMenu */
+
+.MenuItem2th
+{
+	background-color:#E9E9E9;
+	border:solid 1px #B5B5B5;
+    padding-top:5px;
+    padding-bottom:5px;
+	text-align:left;
+	color:#000099;
+	padding-left:5px;
+	padding-right:2px;
+	}	
+	
+.MenuItemHover2th
+{
+	background-color:#FFFAE1;
+	border:solid 1px #B5B5B5;
+    padding-top:5px;
+    padding-bottom:5px;
+	text-align: left;
+	cursor: pointer;
+	color:#000099;
+	text-decoration: underline;
+	padding-left:5px;
+	padding-right:2px;
+}		
+	
+	/* for headMenu */	
+	
+	
+	
+.WebSiteMenu
+{
+	padding-top:5px; 
+	padding-bottom:5px; 
+	padding-left:0px;
+	/*margin-top:10px;*/
+	}	
+	
+.WebSiteMenu1
+{
+	padding-top:5px; 
+	padding-bottom:5px; 
+	padding-left:10px;
+	background-color:#F7F7F7;
+	border-width:1px 1px 1px 1px;
+	border-color:#D1D1D1;
+	border-style:solid;
+	margin-bottom:4px;
+	}	
+	
+.WebSiteMenuTitle
+{
+	background-image:url(/images/menu_bg.gif); 
+	padding-top:5px; 
+	padding-bottom:5px;
+	padding-left:10px;
+	background-position:bottom;
+	background-color:#ECECEC;
+	background-repeat:repeat-x;
+	}	
+	
+.WebSiteMenuTitle1
+{
+	background-color:#E6E6E6;
+	padding-left:10px;
+	border-width:1px 1px 0px 1px;
+	border-color:#D1D1D1;
+	padding-top:3px; 
+	padding-bottom:3px;
+	border-style:solid;
+	}	
+		
+.WebSiteMenuSp
+{
+	height:1px; 
+	background-image:url(/images/h-line.gif); 
+	background-repeat:repeat-x;
+	}	
+	
+	
+.WebsiteSubHeaderBG
+{
+	height:45px; 
+	width:890px; 
+	background-repeat:no-repeat; 
+	overflow:hidden
+	}	
+	
+.WebsiteSubHeaderTitle	
+{
+	padding-left:15px; 
+	margin-top:10px; 
+	color:white
+	}
+
+.BUColor1
+{ background-color:#731631;}
+
+.BUColor2
+{ background-color:#5B2B6E;} 
+
+.BUColor3
+{ background-color:#F98800;}
+
+.BUColor4
+{ background-color:#008736;}
+
+.BUColor5
+{ background-color:#0082D1;}
+
+
+
+/*Admin Section*/
+.AdminFunctionBar
+{
+	border: solid 1px #666666;
+	background-color: #FFEBCD;
+	padding: 5px;
+	margin-bottom: 10px;
+	text-align: right;
+}
+
+/* Accordion Start */
+.accordionHeader
+{
+    border: 0px;
+    color: #072E67;
+    background-color: #D9E3ED;
+	font-family: Arial, Sans-Serif;
+	font-size: 12px;
+	font-weight: bold;
+    padding: 5px;
+    margin-top: 5px;
+    cursor: pointer;
+}
+
+.accordionHeaderSelected
+{
+    border: 1px solid #2F4F4F;
+    color: white;
+    background-color: #5078B3;
+	font-family: Arial, Sans-Serif;
+	font-size: 12px;
+	font-weight: bold;
+    padding: 5px;
+    margin-top: 5px;
+    cursor: pointer;
+}
+
+.accordionDotline
+{height:3px; background-image:url('/acl_common/products/images/dotline_top.gif'); background-repeat:no-repeat;}
+
+.accordionHeaderTitle
+{background:#D9E3ED; padding-top:5px;cursor:pointer; }
+
+.accordionHeaderText{width:650px;padding-left:5px; padding-bottom:5px; color:#072E67; font-weight:bold;}
+.accordionHeaderImg{width:15px; height:20px; background-color:#286292;margin-right:10px; padding-bottom:0px;}
+/* Accordion End */
+
+
+
+/* Rating */
+.ratingStar {
+    font-size: 0pt;
+    width: 13px;
+    height: 12px;
+    margin: 0px;
+    padding: 0px;
+    cursor: pointer;
+    display: block;
+    background-repeat: no-repeat;
+}
+
+.filledRatingStar {
+    background-image: url(../Images/FilledStar.png);
+
+}
+
+.emptyRatingStar {
+    background-image: url(../Images/EmptyStar.png);
+}
+
+.savedRatingStar {
+    background-image: url(../Images/SavedStar.png);
+}
+/*Email*/
+body
+{
+    margin: 0;
+    padding: 10px;
+}
+form
+{
+    width: 490px;
+    height: 570px;
+}
+.requiredStar
+{
+    color: Red;
+    font-size: 9px;
+}
+.modelmailcontent
+{
+    width: 450px;
+    padding: 6px;
+    margin: 0;
+    font-family: Verdana, Arial, Helvetica, sans-serif;
+    font-size: 11px;
+}
+legend
+{
+    border: solid 1px #D6D7DE;
+    padding: 3px 6px;
+    margin: 0;
+    background-color: #003D7C;
+    color: White;
+    font-size: 13px;
+    font-weight: bold;
+}
+.labels
+{
+    width: 120px;
+    font-size: 12px;
+    padding: 2px 5px 2px 2px;
+    text-align: right;
+    display: inline-block;
+    vertical-align: top;
+}
+.notes
+{
+    padding-left: 130px;
+    font-size: 12px;
+    color: Gray;
+    display: block;
+}
+.modelname
+{
+    color: Navy;
+    font-size: 13px;
+    font-weight: bold;
+}
+.actionblock
+{
+    text-align: center;
+}
+
+
+
+/*WebSiteMenu*/
+.WebSiteMenuItem
+{	
+	background-image:url('../images/bg_websiteMenu.JPG');
+    padding-top:5px;
+    padding-bottom:5px;
+	text-align:left;
+	color:#000099;
+	}
+	
+.WebSiteMenuItemHover
+{
+	background-image:url('../images/bg_websitemenu_y.JPG');
+    padding-top:5px;
+    padding-bottom:5px;
+	text-align: left;
+	cursor: pointer;
+	text-decoration: underline;
+	color:#000099;
+}
+
+.WebSiteMenuBottomMenuItemHover
+{
+	
+	background-image:url('/eAutomation/images2007/h-line.gif');
+	line-height: 2px;
+	text-align: left;
+	cursor:pointer;
+	text-decoration:underline;
+}
+
+
+.WebSiteMenu .AspNet-Menu-Vertical
+{
+    z-index: 300;
+}
+
+.WebSiteMenu ul
+{
+    background:#FFFFFF;
+}
+
+/* Top tier */
+.WebSiteMenu .AspNet-Menu-Vertical ul.AspNet-Menu
+{
+    width: 179px;
+}
+
+
+.WebSiteMenu ul.AspNet-Menu ul
+{
+    width: 179px;
+    left: 179px;
+    top: 1px;
+    z-index: 400;
+}
+
+.WebSiteMenu ul.AspNet-Menu li
+{
+    background: transparent url(../images/bg_websiteMenu.JPG) left top repeat-y;
+}
+
+.WebSiteMenu ul.AspNet-Menu li a,
+.WebSiteMenu ul.AspNet-Menu li span
+{
+    color: #000099;
+    padding: 5px 12px 5px 10px;
+	border-bottom:solid 1px #b5b5b5;
+    background: transparent url(/images/arrow_gray.gif) right center no-repeat;
+    background-position:167px;
+}
+
+.WebSiteMenu ul.AspNet-Menu li li a,
+.WebSiteMenu ul.AspNet-Menu li li span
+{
+	border:solid 1px #B5B5B5;
+}
+
+/* When a menu item contains no submenu items it is marked as a "leaf" and can be styled specially by this rule. */
+.WebSiteMenu ul.AspNet-Menu li.AspNet-Menu-Leaf a,
+.WebSiteMenu ul.AspNet-Menu li.AspNet-Menu-Leaf span
+{
+    background-image: none;
+}
+
+
+.WebSiteMenu ul.AspNet-Menu li:hover, 
+.WebSiteMenu ul.AspNet-Menu li.AspNet-Menu-Hover
+{
+    background: transparent url(../images/bg_websitemenu_y.JPG) left top repeat-y;
+}
+
+.WebSiteMenu ul.AspNet-Menu li li:hover
+{
+	background-image:none;
+	background-color:#FFFAE1;
+	text-decoration:underline;
+}
+
+.WebSiteMenu ul.AspNet-Menu li.AspNet-Menu-Hover li:Hover,
+.WebSiteMenu ul.AspNet-Menu li.AspNet-Menu-Hover li.AspNet-Menu-Hover
+{
+	background-image:none;
+	background-color:#FFFAE1;
+	text-decoration:underline;
+}
+
+.WebSiteMenu ul.AspNet-Menu li:hover a, 
+.WebSiteMenu ul.AspNet-Menu li:hover span
+{
+    color: #000099;
+}
+
+
+.WebSiteMenu ul.AspNet-Menu li a:hover,
+.WebSiteMenu ul.AspNet-Menu li span.Asp-Menu-Hover
+{
+    text-decoration: underline;
+}
+
+.WebSiteMenu ul.AspNet-Menu li.AspNet-Menu-Leaf a:hover
+{
+    background-image: none;
+}
+
+.WebSiteMenu ul.AspNet-Menu li ul li
+{
+	background-image:none;
+}
+
+.WebSiteMenu ul li ul li a:hover,
+.WebSiteMenu ul li ul li span.Asp-Menu-Hover
+{
+	background-image:none;
+}
+/*WebSiteMenu*/
+.SectorPagesTab
+{
+background-image:url(../SectorPages/images/btn4.jpg);
+height:22px;
+}
+.SectorPagesTabheader
+{
+background-image:url(../SectorPages/images/btn1.jpg);
+height:22px;
+}
+.SectorPagesTabMiddle
+{
+background-image:url(../SectorPages/images/btn2_middle.jpg);
+height:22px;
+width:20px;
+}
+
+.SectorPagesTabMiddle1
+{
+background-image:url(../SectorPages/images/btn3_middle_3.jpg);
+height:22px;
+width:20px;
+}
+
+.SectorPagesTabEnd
+{
+background-image:url(../SectorPages/images/btn5_middle.jpg);
+height:22px;
+width:20px;
+}
+.SectorPagesTabEnd
+{
+background-image:url(../SectorPages/images/btn5_middle.jpg);
+height:22px;
+width:20px;
+}
+.SectorPagesTabfirst
+{
+background-image:url(../SectorPages/images/btn1_middle.jpg);
+height:22px;
+width:20px;
+}
+.SectorPagesTablastEnd
+{
+background-image:url(../SectorPages/images/btn5_middle_3.jpg);
+height:22px;
+width:20px;
+}
+
+
+/*AJAX Modal Popup*/
+
+.modalPopup {
+
+	background-color:#ffffdd;
+
+	border-width:3px;
+
+	border-style:solid;
+
+	border-color:Gray;
+
+	padding:3px;
+
+	width:250px;
+
+}
+
+.silverlightHost {
+	height: 600px;
+	width: 900px;
+	z-index : 0;
+}
+
+
+
+/* Search Page */
+.SearchProductResultRowLeft
+{
+    border-bottom:dotted 1px #999999;
+	border-right:solid 1px white;
+	}
+	
+.SearchProductResultRowRight
+{
+    border-bottom:dotted 1px #999999;
+	}	
+	
+.pager span{
+	color:#000000;
+	}
+	
+.pager TD A
+{
+	color:#999999;
+	}	
+	
+/* Product Index Page Header */	
+.psm{width:211px; height:32px; background-color:#a6a6a6; margin-right:3px; padding-left:6px; padding-top:4px;line-height:13px;}
+.psmitem{padding-right:3px; height:30px;}	
+.psm a{ text-decoration:none;}
+
+
+/* Country Seletion on Header */
+ .divSelectCountryul
+    {width:450px; padding:10px; background-color:#EEEEEE; border:solid 1px #AAAAAA; height:190px;list-style: none;}
+ .divSelectCountryul li
+    {float: left; padding-left:15px; padding-top:6px; margin-left:0px; width:95px; height:20px; background-image:url(/images/content_arrow1.gif); background-position:left center; background-repeat:no-repeat; }
+    
+    
+/* SiteMap */
+
+.divSiteMap 
+{
+	margin-top:10px; float:left; width:284px;margin-right:19px;}
+.divSiteMapRight
+{
+	margin-top:10px; float:left; width:284px;margin-right:0px;}
+		
+ .divPageGroup
+{
+	 margin-bottom:35px; }
+	
+
+	
+ .divPageGroup h2
+{
+	font-size:14px;
+    font-weight:bold;
+    line-height:100%;
+    margin-bottom:0px;
+    padding-bottom:5px;
+    border-bottom:solid 1px #999999;
+    }
+    
+ .divPageGroup div ul
+{
+	list-style-type: none;
+	list-style-position: inside;
+	margin-left:0px;
+	padding-left:0px;
+	line-height:150%;
+	margin-top:3px;
+	font-weight:normal;
+	}    
+ .divPageGroup div ul ul
+{
+	list-style-type: none;
+	list-style-position: inside;
+	margin-left:8px;
+	padding-left:8px;
+	line-height:150%;
+	font-weight:normal;
+	margin-bottom:5px;
+	}    	
+
+ .divPageGroup div ul li a
+{
+	color:Black;}
+	
+ .divPageGroup div ul ul li a
+{
+	color:#666666;}	
+
+	
+/* Prodcut Category Page */	
+#divCategoryInfo
+{
+	margin-bottom:10px;} 
+	
+#divCategoryInfo div	
+{
+	margin-bottom:10px;} 
+	
+#divCategoryInfo div h1
+{margin:0px; padding:0px; color:Black; clear:right;}	
+	
+#divCategoryAccordion
+{padding-bottom:0px; padding-right:0px; margin-right:0px; margin-bottom:10px;}	
+
+#divAccCategoryLeftImg
+{
+	width:90px; vertical-align:top;}
+	
+#divAccCategoryText	
+{vertical-align:top; line-height:120%;}
+
+.productaccordionHeader{overflow:hidden;}
+
+.prodaccContentSep
+{background-color: #8F9EB5; background-image: url('/acl_common/products/images/line_h2.gif');
+                                height: 3px;}
+                                
+.prodaccContentModLink
+{
+	text-align: left; height: 25px; vertical-align:top;}              
+	
+.prodaccContentModLink a
+{color:#4D79BB; text-decoration:underline;}	                  

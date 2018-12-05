@@ -1,0 +1,113 @@
+﻿<%@ Page Language="VB" %>
+
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<script runat="server">
+    Dim iRet As Integer = 0
+    Protected Sub Page_Load(ByVal sender As Object, ByVal e As System.EventArgs)
+        If Not Page.IsPostBack Then
+            Dim part_no As String = "", qty As String = "", list_price As Double, unit_price As Double, due_date As String = ""
+            Dim subtotal As Double = 0
+            part_no = Request("part_no")
+            qty = Request("qty")
+            iRet = OrderUtilities.GetPrice(part_no, Session("company_id"), "EU10", CDbl(qty), list_price, unit_price)
+            iRet = OrderUtilities.GetDueDate(part_no, qty, Global_Inc.FormatDate(System.DateTime.Today), due_date)
+            subtotal = unit_price * CInt(qty)
+            
+            Me.SqlDataSource1.SelectCommand = "select '" & part_no & "' as part_no,'" & due_date & "' as due_date,'" & qty & "' as qty,'" & list_price & "' as list_price,'" & _
+                                  unit_price & "' as unit_price,'" & subtotal & "' as subtotal"
+            'Response.Write(Me.AdxDatagrid1.xSQL)
+            GridView1.DataBind()
+            Me.gheader.Text = part_no
+        End If
+    End Sub
+    Protected Sub GridView1_RowDataBound(ByVal sender As Object, ByVal e As System.Web.UI.WebControls.GridViewRowEventArgs)
+        If e.Row.RowType <> DataControlRowType.Pager Then
+            e.Row.Cells(3).Visible = False
+        End If
+        If e.Row.RowType = DataControlRowType.Header Then
+            e.Row.Cells(0).Text = "Part No"
+            e.Row.Cells(1).Text = "Due Date"
+            e.Row.Cells(2).Text = "Qty"
+            e.Row.Cells(4).Text = "Unit Price"
+            e.Row.Cells(5).Text = "SubTotal"
+        End If
+        If e.Row.RowType = DataControlRowType.DataRow Then
+            Dim RBUMailFormat As String = ""
+            Dim list_price As Double = CDbl(e.Row.Cells(3).Text)
+            Dim unit_price As Double = CDbl(e.Row.Cells(4).Text)
+            If list_price = -1 Then
+                If Global_Inc.IsRBU(Session("company_id"), RBUMailFormat) Then
+                    e.Row.Cells(3).Text = "N/A"
+                Else
+                    e.Row.Cells(3).Text = "TBD"
+                End If
+            Else
+                e.Row.Cells(3).Text = "<A Href='../order/queryPrice.aspx?part_no=" & e.Row.Cells(1).Text & "' target='blank'>" & (Session("COMPANY_CURRENCY_SIGN")) & list_price.ToString("#,##0.00") & "</a>"
+            End If
+             if Util.IsInternalUser2() or Util.IsAEUIT() then
+                e.Row.Cells(0).Text = "<a target='_blank' href='http://datamining.advantech.eu/datamining/ProductProfile.aspx?PN=" + e.Row.Cells(0).Text + "'>" + e.Row.Cells(0).Text + "</a>"
+             end if
+        End If
+    End Sub
+    'Protected Sub AdxDatagrid1_ItemDataBound(ByVal sender As Object, ByVal e As System.Web.UI.WebControls.DataGridItemEventArgs)
+    '    If e.Item.ItemType <> ListItemType.Header And e.Item.ItemType <> ListItemType.Footer Then
+    '        Dim RBUMailFormat As String = ""
+    '        Dim list_price As Double = CDbl(e.Item.Cells(4).Text)
+    '        Dim unit_price As Double = CDbl(e.Item.Cells(5).Text)
+    '        If list_price = -1 Then
+    '            If Me.Global_inc1.IsRBU(Session("company_id"), RBUMailFormat) Then
+    '                AdxDatagrid1.VxUserFormat(e.Item, 4, "N/A")
+    '            Else
+    '                AdxDatagrid1.VxUserFormat(e.Item, 4, "TBD")
+    '            End If
+    '        Else
+    '            AdxDatagrid1.VxUserFormat(e.Item, 4, "<A Href='../order/queryPrice.aspx?part_no=" & e.Item.Cells(1).Text & "' target='blank'>" & (Session("COMPANY_CURRENCY_SIGN")) & list_price.ToString("#,##0.00") & "</a>")
+    '            'AdxDatagrid1.VxUserFormat(e.Item, 4, Session("COMPANY_CURRENCY_SIGN") & list_price.ToString("#,##0.00"))
+    '        End If
+
+    '        'AdxDatagrid1.VxUserFormat(e.Item, 5, "<A Href='../order/queryPrice.aspx?part_no=" & e.Item.Cells(1).Text & "' target='blank'>" & (Session("COMPANY_CURRENCY_SIGN")) & unit_price.ToString("#,##0.00") & "</a>")
+    '        'AdxDatagrid1.VxUserFormat(e.Item, 5, Session("COMPANY_CURRENCY_SIGN") & unit_price.ToString("#,##0.00"))
+    '        AdxDatagrid1.VxUserFormat(e.Item, 5, "<A Href='../order/queryPrice.aspx?part_no=" & e.Item.Cells(1).Text & "' target='blank'>" & Session("COMPANY_CURRENCY_SIGN") & unit_price.ToString("#,##0.00") & "</a>")
+
+    '        AdxDatagrid1.VxUserFormat(e.Item, 6, Session("COMPANY_CURRENCY_SIGN") & CDbl(e.Item.Cells(6).Text).ToString("#,##0.00"))
+    '    End If
+    'End Sub
+</script>
+
+<html xmlns="http://www.w3.org/1999/xhtml" >
+<head id="Head1" runat="server">
+    <title>Get Price Due info</title>
+  <link runat="server" id="ebizCss" visible="true" href="../Includes/ebiz.aeu.style.css" rel="stylesheet" type="text/css" />
+    <link href="../Includes/global.css" rel="Stylesheet" type="text/css" />
+</head>
+<body>
+    <form id="form1" runat="server">
+    <div>
+        
+        <br />
+    <table cellpadding="1"  width="100%"><tr><td style="background-color:#666666">
+			<table width="100%" border="0" cellspacing="0" cellpadding="0" align="center" style="vertical-align:middle" ID="Table5">
+                    <tr>
+                        <td style="padding-left:10px;border-bottom:#ffffff 1px solid;height:20px;background-color:#6699CC" align="left" valign="middle" class="text">
+                        <font color="#ffffff"><b><asp:Label ID="gheader" runat="server" Text="Orders Change Manager"></asp:Label></b></font></td></tr>
+                        <tr><td>
+										
+														<!-- include virtual = "/cart/carthistory_list_new_main.asp" -->
+												<asp:GridView runat="server" Width="100%" ID="GridView1" AutoGenerateColumns = "true" 
+                                                             onrowdatabound="GridView1_RowDataBound" DataSourceID ="SqlDataSource1" 
+                                                            AllowPaging="True" PageIndex="0" PageSize="20"></asp:GridView>		
+								
+								
+								
+														
+                                            <asp:SqlDataSource ID="SqlDataSource1" runat="server" ConnectionString="<%$ ConnectionStrings:B2B %>"></asp:SqlDataSource>
+								   
+                </td></tr><tr><td id="tdTotal" align="right" style="background-color:#ffffff" runat="server"></td></tr></table>
+				</td></tr></table>
+    </div>
+    </form>
+</body>
+</html>

@@ -1,0 +1,1847 @@
+﻿<%@ Page Title="MyAdvantech- Marketing Material Search" Language="VB" MasterPageFile="~/Includes/MyMaster.master" %>
+
+<script runat="server">
+
+    Protected Sub Page_Load(ByVal sender As Object, ByVal e As System.EventArgs)
+        If Not Page.IsPostBack Then
+            hdnTempId.Value = Session("TempId") : hdnUserId.Value = Session("user_id")
+            For i As Integer = 1 To 31
+                Dim dt As New DataTable
+                With dt.Columns
+                    .Add("NO") : .Add("IMAGE") : .Add("DESCRIPTION") : .Add("LANGUAGE") : .Add("SIZE") : .Add("DOC_ID") : .Add("ISSUE_DATE")
+                End With
+                dt.Rows.Add()
+                Dim gv As GridView = FindControlRecursive(Page, "GridView" + i.ToString)
+                If gv IsNot Nothing Then
+                    gv.DataSource = dt : gv.DataBind()
+                    If gv.Rows.Count > 0 Then
+                        gv.UseAccessibleHeader = True
+                        'gv.HeaderRow.TableSection = TableRowSection.TableHeader
+                    End If
+                End If
+                
+            Next
+        End If
+    End Sub
+    
+    Private Shared Function FindControlRecursive(ByVal rootControl As Control, ByVal controlID As String) As Control
+        If rootControl.ID = controlID Then
+            Return rootControl
+        End If
+
+        For Each controlToSearch As Control In rootControl.Controls
+            Dim controlToReturn As Control = FindControlRecursive(controlToSearch, controlID)
+            If controlToReturn IsNot Nothing Then
+                Return controlToReturn
+            End If
+        Next
+        Return Nothing
+    End Function
+    
+    <Services.WebMethod()> _
+    Public Shared Function GetData(ByVal strKeyword As String, ByVal strPDCategory As String, ByVal strSecCategory As String) As String
+        strKeyword = Replace(Replace(Trim(strKeyword), "'", "''"), "*", "%")
+        Dim PDCat() As String = strPDCategory.Split(";"), SecCat() As String = strSecCategory.Split(";")
+        Dim arrPD As New List(Of String), arrSec As New List(Of String)
+        For i As Integer = 0 To PDCat.Length - 1
+            If PDCat(i).Trim <> "" Then arrPD.Add("'" + PDCat(i) + "'")
+        Next
+        For i As Integer = 0 To SecCat.Length - 1
+            If SecCat(i).Trim <> "" Then arrSec.Add("'" + SecCat(i) + "'")
+        Next
+        'Util.SendEmail("rudy.wang@advantech.com.tw", "MyAdvantech@advantech.com", "test", strSecCategory, True, "", "")
+        Dim arrSecVal As New List(Of String)
+        If arrSec.Count > 0 Then
+            Dim dtSecProd As DataTable = dbUtil.dbGetDataTable("MY", String.Format("select distinct b.INTERESTED_PRODUCT_CATEGOEY_ID from CMS_SECTOR_ITEM a left join PIS.dbo.MODELCATEGORY_INTERESTEDPRODUCT_MAPPING b on a.PIS_CATEGORY_ID=b.ITEM_ID or a.PIS_CATEGORY_ID=b.INTERESTED_PRODUCT_CATEGOEY_ID where a.CMSID in ({0})", String.Join(",", arrSec.ToArray())))
+            For Each row As DataRow In dtSecProd.Rows
+                If Not arrPD.Contains("'" + row.Item("INTERESTED_PRODUCT_CATEGOEY_ID") + "'") Then arrPD.Add("'" + row.Item("INTERESTED_PRODUCT_CATEGOEY_ID") + "'")
+            Next
+            Dim dtSec As DataTable = dbUtil.dbGetDataTable("MY", String.Format("select value from CMS_SECTOR_LOV where ID in ({0})", String.Join(",", arrSec.ToArray())))
+            For Each row As DataRow In dtSec.Rows
+                arrSecVal.Add("'" + row.Item("value") + "'")
+            Next
+        End If
+        
+        
+        Dim sb As New StringBuilder
+        With sb
+            .AppendLine(" select * from ( ")
+            'Get Support
+            .AppendLine(" select distinct top 1000 a.DOC_ID, REPLACE(REPLACE(UPPER(a.DOC_TYPE),'/','_'),' ','_') as DOC_TYPE, a.DESCRIPTION as SUBJECT, '' as DESCRIPTION, convert(varchar, b.UPDATED_DATE, 111) as ISSUE_DATE, 0 as SIZE, 'English' as LANGUAGE, '' as HYPER_LINK, a.RECORD_IMG, a.SOURCE, a.DOC_SOURCE as SR_TYPE, 'SUPPORT' as RESOURCE_TYPE, '' as FILE_EXT, a.DOC_TYPE as ORI_DOC_TYPE ")
+            .AppendLine(" from SUPPORT_DOWNLOAD a left join SIEBEL_SR_DOWNLOAD b on a.DOC_ID=b.SR_ID ")
+            .AppendLine(" left join RESOURCE_MODEL_CATEGORY c on a.DOC_ID=c.DOC_ID ")
+            .AppendLine(" where ((a.DOC_TYPE='INSTALLATION' and a.DOC_SOURCE='Download') or a.DOC_TYPE in ('ONLINE_TRAINING','FAQ','BIOS','CERTIFICATE','DRIVER','FIRMWARE','MANUAL','SPECIFICATION','UTILITY','SOFTWARE_API','SOFTWARE_API_MANUAL','DATASHEET') ) ")
+            If strKeyword <> "" Then .AppendFormat(" and (a.description like N'%{0}%' or a.search_key like N'%{0}%' or a.abstract like N'%{0}%' or c.MATCH_KEY like N'%{0}%') ", strKeyword)
+            If arrPD.Count > 0 Then
+                .AppendFormat(" and c.DOC_SOURCE='SUPPORT' and (c.MATCH_INTPROD in ({0}) or c.MATCH_PDGROUP in ({0})) ", String.Join(",", arrPD.ToArray()))
+            ElseIf arrPD.Count = 0 AndAlso arrSec.Count > 0 Then
+                .AppendFormat(" and 1<>1 ")
+            End If
+            
+            'Get PIS
+            .AppendLine(" union all ")
+            .AppendLine(" SELECT DISTINCT top 1000 a.LITERATURE_ID AS DOC_ID, case when a.LIT_TYPE like 'Certificate%' then 'CERTIFICATE' when a.LIT_TYPE like '%data%sheet%' then 'DATASHEET' when a.LIT_TYPE in ('brochure','catalogue') then 'BROCHURE_CATALOGUE' ")
+            .AppendLine(" when a.LIT_TYPE='Product - Roadmap' then 'PRODUCT_ROADMAPS' when a.LIT_TYPE like 'Product - Photo%' then 'PHOTO' when a.LIT_TYPE='Product - Sales Kit' then 'SALES_KIT' when a.LIT_TYPE in ('Presentation (For CP Only)','Event Presentation') then 'PRESENTATION' ")
+            .AppendLine(" when a.LIT_TYPE like 'Advertisement%' then 'ADVERTISEMENT' when a.LIT_TYPE like 'Event Poster%' then 'POSTER' when a.LIT_TYPE like 'poster%' then 'ADVERTISEMENT' when a.LIT_TYPE='Logo: Certificate' then 'CERTIFICATE_LOGO' else UPPER(replace(a.LIT_TYPE,' ','_')) end as DOC_TYPE, ")
+            .AppendLine(" a.LIT_NAME as SUBJECT, a.LIT_DESC as DESCRIPTION, CONVERT(varchar, a.LAST_UPDATED, 111) as ISSUE_DATE, cast((ISNull(a.FILE_SIZE, 0)/1024) as int) AS SIZE, a.LANG as LANGUAGE, '' as HYPER_LINK, isnull(c.Thumbnail_ID, '') as RECORD_IMG, '' as SOURCE, '' AS SR_TYPE, 'PIS' as RESOURCE_TYPE, UPPER(a.FILE_EXT) as FILE_EXT, UPPER(a.LIT_TYPE) as ORI_DOC_TYPE ")
+            .AppendLine(" FROM PIS.dbo.v_LITERATURE a LEFT JOIN SIEBEL_LITERATURE_DETAIL b ON a.LITERATURE_ID = b.LIT_ID LEFT JOIN PIS.dbo.LITERATURE_EXTEND c ON a.LITERATURE_ID = c.LIT_ID ")
+            .AppendLine(" left join RESOURCE_MODEL_CATEGORY d on a.LITERATURE_ID=d.DOC_ID ")
+            .AppendLine(" where (a.LIT_TYPE like 'Certificate%' or a.LIT_TYPE like '%data%sheet%' or a.LIT_TYPE like 'Product - Photo%' or a.LIT_TYPE like 'Advertisement%' or a.LIT_TYPE like 'Event Poster%' ")
+            .AppendLine(" or a.LIT_TYPE like 'poster%' or a.LIT_TYPE in ('Brochure','CATALOGUE','Product - Roadmap','Press Release','Product - Sales Kit','Presentation (For CP Only)','Event Presentation','Banner','DM','Logo: Certificate')) ")
+            If strKeyword <> "" Then .AppendFormat(" and (a.LIT_NAME like N'%{0}%' or a.LIT_DESC like N'%{0}%' or b.TXT_CONTENT like N'%{0}%' or d.MATCH_KEY like N'%{0}%') ", strKeyword)
+            If arrPD.Count > 0 Then
+                .AppendFormat(" and d.DOC_SOURCE='PIS' and (d.MATCH_INTPROD in ({0}) or d.MATCH_PDGROUP in ({0})) ", String.Join(",", arrPD.ToArray()))
+            ElseIf arrPD.Count = 0 AndAlso arrSec.Count > 0 Then
+                .AppendFormat(" and 1<>1 ")
+            End If
+            
+            'Get eDM
+            .AppendLine(" union all ")
+            .AppendLine(" select top 2000 a.ROW_ID as DOC_ID, 'EDM' as DOC_TYPE, a.CAMPAIGN_NAME as SUBJECT, a.DESCRIPTION, CONVERT(varchar, a.ACTUAL_SEND_DATE, 111) as ISSUE_DATE, 0 as SIZE, a.LANGUAGE, '' as HYPER_LINK, '' as RECORD_IMG, '' as SOURCE, '' AS SR_TYPE, 'EDM' as RESOURCE_TYPE, '' as FILE_EXT, 'EDM' as ORI_DOC_TYPE ")
+            .AppendLine(" from CAMPAIGN_MASTER a ")
+            .AppendLine(" left join RESOURCE_MODEL_CATEGORY b on a.ROW_ID=b.DOC_ID ")
+            .AppendLine(" where a.ACTUAL_SEND_DATE is not null and a.IS_PUBLIC=1 ")
+            If strKeyword <> "" Then .AppendFormat(" and (a.CAMPAIGN_NAME like N'%{0}%' or a.DESCRIPTION like N'%{0}%' or b.MATCH_KEY like N'%{0}%') ", strKeyword)
+            If arrPD.Count > 0 Then
+                .AppendFormat(" and b.DOC_SOURCE='EDM' and (b.MATCH_INTPROD in ({0}) or b.MATCH_PDGROUP in ({0})) ", String.Join(",", arrPD.ToArray()))
+            ElseIf arrPD.Count = 0 AndAlso arrSec.Count > 0 Then
+                .AppendFormat(" and 1<>1 ")
+            End If
+            
+            'Get CMS
+            .AppendLine(" union all ")
+            '.AppendLine(" select top 1000 a.RECORD_ID as DOC_ID, case a.CATEGORY_NAME when 'eCatalog' then 'BROCHURE_CATALOGUE' when 'eDM / eNewsletter' then 'CAMPAIGN' else REPLACE(UPPER(a.CATEGORY_NAME),' ','_') end as DOC_TYPE, a.TITLE as DESCRIPTION, a.RELEASE_DATE as ISSUE_DATE, 0 as SIZE, 'English' as LANGUAGE, a.HYPER_LINK, case a.RECORD_IMG when 'http://wfcache.advantech.com/EZ/CMSUpLoadFiles/' then '' when 'http://employeezone.advantech.com.tw/CMSUploadFiles/' then '' else '<img src=''' + a.RECORD_IMG + ''' width=''80'' />' end as RECORD_IMG ")
+            .AppendLine(" select distinct top 1000 a.RECORD_ID as DOC_ID, case a.CATEGORY_NAME when 'eCatalog' then 'BROCHURE_CATALOGUE' when 'eDM / eNewsletter' then 'CAMPAIGN' else REPLACE(UPPER(a.CATEGORY_NAME),' ','_') end as DOC_TYPE, a.TITLE as SUBJECT, a.ABSTRACT as DESCRIPTION, convert(varchar, a.RELEASE_DATE, 111) as ISSUE_DATE, 0 as SIZE, 'English' as LANGUAGE, a.HYPER_LINK, a.RECORD_IMG, '' as SOURCE, '' AS SR_TYPE, 'CMS' as RESOURCE_TYPE, '' as FILE_EXT, UPPER(a.CATEGORY_NAME) as ORI_DOC_TYPE ")
+            .AppendLine(" from WWW_RESOURCES a ")
+            .AppendLine(" left join RESOURCE_MODEL_CATEGORY b on a.RECORD_ID=b.DOC_ID ")
+            .AppendLine(" left join WWW_RESOURCES_BU c on a.RECORD_ID=c.RECORD_ID ")
+            .AppendLine(" where IS_INTERNAL_ONLY=0 and a.CATEGORY_NAME in ('eCatalog','Case Study','Video','White Papers','eDM / eNewsletter','Podcast','Webcast') ")
+            If strKeyword <> "" Then .AppendFormat(" and (a.TITLE like N'%{0}%' or a.ABSTRACT like N'%{0}%' or b.MATCH_KEY like N'%{0}%') ", strKeyword)
+            If arrPD.Count > 0 AndAlso arrSecVal.Count > 0 Then
+                .AppendFormat(" and ( (b.DOC_SOURCE='CMS' and (b.MATCH_INTPROD in ({0}) or b.MATCH_PDGROUP in ({0}))) or (c.BU in ({1})) ) ", String.Join(",", arrPD.ToArray()), String.Join(",", arrSecVal.ToArray()))
+            ElseIf arrPD.Count > 0 Then
+                .AppendFormat(" and b.DOC_SOURCE='CMS' and (b.MATCH_INTPROD in ({0}) or b.MATCH_PDGROUP in ({0})) ", String.Join(",", arrPD.ToArray()))
+            ElseIf arrSec.Count > 0 Then
+                If arrSecVal.Count > 0 Then
+                    .AppendFormat(" and c.BU in ({0}) ", String.Join(",", arrSecVal.ToArray()))
+                Else
+                    .AppendFormat(" and 1 <> 1 ")
+                End If
+            End If
+            .AppendLine(" ) as t order by t.ISSUE_DATE desc ")
+        End With
+        'Util.SendEmail("rudy.wang@advantech.com.tw", "MyAdvantech@advantech.com", "SQL", sb.ToString, True, "", "")
+        Dim dt As DataTable = dbUtil.dbGetDataTable("MY", sb.ToString)
+        Dim ds As New DataSet
+        ds.Tables.Add(dt)
+        Return ds.GetXml()
+    End Function
+    
+    <Services.WebMethod()> _
+    Public Shared Function GetPG() As String
+        Dim sb As New StringBuilder
+        With sb
+            .AppendLine(" select * from ( ")
+            .AppendLine(" select CATEGORY_ID, CATEGORY_ID as PARENT_CATEGORY_ID ,CATALOG_DESC as DISPLAY_NAME, '1' as DEPT from CATALOG_SHOW ")
+            .AppendLine(" union all ")
+            .AppendLine(" select CATEGORY_ID, PARENT_CATEGORY_ID, DISPLAY_NAME, '2' as DEPT from PIS.dbo.CATEGORY ")
+            .AppendLine(" where PARENT_CATEGORY_ID in (select CATEGORY_ID as CATEGORY_NAME from CATALOG_SHOW) ")
+            .AppendLine(" ) as t order by t.PARENT_CATEGORY_ID, t.DEPT, t.DISPLAY_NAME ")
+        End With
+        Dim dt As DataTable = dbUtil.dbGetDataTable("MY", sb.ToString)
+        Dim ds As New DataSet
+        ds.Tables.Add(dt)
+        Return ds.GetXml()
+    End Function
+    
+    <Services.WebMethod()> _
+    Public Shared Function GetSector() As String
+        Dim sb As New StringBuilder
+        With sb
+            .AppendLine(" select ID, REPLACE(VALUE,'(Sector)','') as VALUE from CMS_SECTOR_LOV order by VALUE ")
+        End With
+        Dim dt As DataTable = dbUtil.dbGetDataTable("MY", sb.ToString)
+        Dim ds As New DataSet
+        ds.Tables.Add(dt)
+        Return ds.GetXml()
+    End Function
+    
+    <Services.WebMethod()> _
+    <Web.Script.Services.ScriptMethod()> _
+    Public Shared Function GetNewsContent(ByVal recid As String, ByVal Type As String) As String
+        Try
+            Return Util.GetCMSContent(recid, Type)
+        Catch ex As Exception
+            Util.SendEmail("tc.chen@advantech.eu", "ebiz.aeu@advantech.eu", "Error GetWWWNews", "recid:" + recid + "<br/>" + ex.ToString, False, "", "")
+        End Try
+        Return "Content currently not available"
+    End Function
+    
+    <Services.WebMethod()> _
+    Public Shared Function GetModelNo(ByVal prefixText As String, ByVal count As Integer) As String()
+        prefixText = Replace(Replace(Trim(prefixText), "'", "''"), "*", "%")
+        Dim dt As DataTable = dbUtil.dbGetDataTable("MY", String.Format("select top 10 ITEM_DISPLAYNAME from PIS.dbo.MODELCATEGORY_INTERESTEDPRODUCT_MAPPING where ITEM_TYPE='Model' and ITEM_DISPLAYNAME like '{0}%' order by ITEM_DISPLAYNAME", prefixText))
+        If dt.Rows.Count > 0 Then
+            Dim str(dt.Rows.Count - 1) As String
+            For i As Integer = 0 To dt.Rows.Count - 1
+                str(i) = dt.Rows(i).Item(0)
+            Next
+            Return str
+        End If
+        Return Nothing
+    End Function
+</script>
+
+<asp:Content ID="Content1" ContentPlaceHolderID="_main" Runat="Server">
+<style type="text/css">
+    #content {
+	    height: auto;
+	    width: 900px;
+	    font-family: Arial, Helvetica, sans-serif;
+	    font-size: 12px;
+	    line-height: 1.5em;
+	    float: left;
+	    margin-top: 10px;
+    }
+    #content #product {
+	    font-family: Arial, Helvetica, sans-serif;
+	    font-size: 12px;
+	    margin-top: 10px;
+	    height: 300px;
+	    width: 900px;
+    }
+    .bluetitle {
+	    font-family: Arial, Helvetica, sans-serif;
+	    font-size: 15px;
+	    font-weight: bold;
+	    color: #3fb2e2;
+    }
+    #content #title {
+	    font-family: Arial, Helvetica, sans-serif;
+	    font-size: 18px;
+	    color: #000;
+    }
+    #content #subtitle {
+	    font-family: Arial, Helvetica, sans-serif;
+	    font-size: 12px;
+	    margin-top: 10px;
+    }
+    #rightmenu {
+	    float: left;
+	    height: auto;
+	    width: 195px;
+	    margin-left: 5px;
+	    margin-top: 10px;
+    }
+    #rightmenu #hline {
+	    background-image: url(images/line1.jpg);
+	    background-repeat: no-repeat;
+	    height: 5px;
+    }
+    #rightmenu #contact {
+	    height: auto;
+	    width: 190px;
+	    margin-bottom: 10px;
+    }
+    .tabletext {
+	    font-family: Arial, Helvetica, sans-serif;
+	    font-size: 20px;
+	    font-weight: normal;
+    }
+    .subtitle {
+	    font-family: Arial, Helvetica, sans-serif;
+	    font-size: 16px;
+	    font-weight: bold;
+    }
+    .bluetext {
+	    font-family: Arial, Helvetica, sans-serif;
+	    font-size: 14px;
+	    font-weight: bold;
+	    color: #3fb2e2;
+	    line-height: 1.3em;
+    }
+    .Tabs1 .ajax__tab_header
+    {
+        padding:0px;
+        color: #4682b4;
+        font-family:Calibri;
+        font-size: 15px;
+        font-weight:bold;
+        background-color: #ffffff;
+        margin-left: 0px;
+        cursor: pointer;
+    }
+    /*Body*/
+    .Tabs1 .ajax__tab_body
+    {
+        border:3px solid #f2f2f2;
+        padding-top:0px;
+    }
+    /*Tab Active*/
+    .Tabs1 .ajax__tab_active .ajax__tab_tab
+    {
+        color: #159DD7;
+        background:url("../Images/tab-active.jpg") repeat-x;
+        padding-top:6px;
+    }
+    .Tabs1 .ajax__tab_active .ajax__tab_inner
+    {
+            background:url("../Images/tab-active-left.jpg") no-repeat;
+            padding-left:24px;
+    }
+    .Tabs1 .ajax__tab_active .ajax__tab_outer
+    {
+            background:url("../Images/tab-active-right.jpg") no-repeat right;
+            padding-right:24px;
+    }
+    /*Tab Hover*/
+    .Tabs1 .ajax__tab_hover .ajax__tab_tab
+    {
+        color: #159DD7;
+        background:url("../Images/tab-active.jpg") repeat-x;
+        padding-top:6px;
+    }
+    .Tabs1 .ajax__tab_hover .ajax__tab_inner
+    {
+        background:url("../Images/tab-active-left.jpg") no-repeat;
+            padding-left:24px;
+    }
+    .Tabs1 .ajax__tab_hover .ajax__tab_outer
+    {
+        background:url("../Images/tab-active-right.jpg") no-repeat right;
+            padding-right:24px;
+    }
+    /*Tab Inactive*/
+    .Tabs1 .ajax__tab_tab
+    {
+        color: #8B898A;
+        background:url("../Images/tab-inactive.jpg") repeat-x;
+        padding-top:3px;
+        height:23px;
+    }
+    .Tabs1 .ajax__tab_inner
+    {
+        background:url("../Images/tab-inactive-left.jpg") no-repeat;
+            padding-left:23px;
+    }
+    .Tabs1 .ajax__tab_outer
+    {
+        background:url("../Images/tab-inactive-right.jpg") no-repeat right;
+            padding-right:23px;
+            margin-right: 2px;
+    }
+    h1 {
+	    font-size: 3em;
+	    margin: 20px 0;
+    }
+    .container1 {
+	    width: 900px;
+    }
+    .tab_container {
+	    border: 1px solid #CCC;
+	    border-top: none;
+	    clear: both;
+	    float: left;
+	    width: 100%;
+	    background: #fff;
+    }
+    .tab_content {
+	    padding: 20px 20px 20px 20px;
+    }
+    .tab_content h2 {
+	    font-weight: normal;
+	    padding-bottom: 10px;
+	    border-bottom: 1px solid #CCC;
+	    font-size: 1.8em;
+    }
+    .tab_content h3 a {
+	    color: #254588;
+    }
+    .tab_content img {
+	    margin: 0 20px 20px 0;
+	    border: 1px solid #ddd;
+	    padding: 5px;
+    }
+    /* MAIN NAVIGATION
+    ----------------------------------------------------------- */
+    #tabsblock {
+	    margin: 0;
+	    padding: 0;
+	    position: relative;
+	    background-color:#F4F4F4;
+	    border: 1px solid #CCC;
+	    border-bottom:none;
+	    width: 900px;
+    }
+    ul.Header {
+	    margin: 0;
+	    padding: 5px;
+	    font-size: 14px;
+	    font-weight: bold;
+	    color: #000000;
+	    list-style: none;
+	    overflow:hidden;
+    }
+    ul.tabs {
+	    margin: 0;
+	    padding: 5px;
+	    list-style: none;
+	    overflow:hidden;
+    }
+    ul.tabs li {
+	    float: left;
+	    padding: 0 7px 0 0;
+	    margin: 0 2px;
+	    background: url(../images/tabs-sep.gif) no-repeat right;
+    }
+    ul.tabs a {
+	    display: block;
+	    float: left;
+	    text-decoration: none;
+	    font-weight: bold;
+	    color: #4F4F4F;
+	    padding: 0 0 0 15px;
+	    height: 30px;
+	    line-height: 30px;
+	    text-transform: uppercase;
+	    font-size: 92%;
+    }
+    ul.tabs a span {
+	    display: block;
+	    float: left;
+	    padding: 0 15px 0 0;
+	    height: 30px;
+	    line-height: 30px;
+    }
+    ul.tabs a:hover, ul.tabs a:active, ul.tabs a:focus {
+	    background: url(../images/tabs-hover.gif) repeat-x left center;
+	    color: #FFFFFF;
+    }
+    ul.tabs a:hover span, ul.tabs a:active span, ul.tabs a:focus span {
+	    background: url(../images/tabs-hover.gif) repeat-x right center;
+	    cursor: pointer;
+    }
+    ul.tabs li.active a, ul.tabs li.active a:hover, ul.tabs li.active a:active, ul.tabs li.active a:focus {
+	    background: url(../images/tabs-active.gif) no-repeat left center;
+	    color: #FFFFFF;
+    }
+    ul.tabs li.active a span, ul.tabs li.active a:hover span, ul.tabs li.active a:active span, ul.tabs li.active a:focus span {
+	    background: url(../images/tabs-active.gif) no-repeat right center;
+	    cursor: pointer;
+    }
+    .Pagination {
+	    clear:both;
+	    margin:10px auto;
+	    text-align:center;
+	    color:#666;
+	    padding:10px 0 0 0;
+    }
+    .Pagination a, .Pagination .current {
+	    background:#7b7b7b;
+	    color:#fff;
+	    margin-left:3px;
+	    padding:7px 10px;
+	    text-decoration:none;
+    }
+    .Pagination a:hover, .Pagination .current {
+	    background:#dedede;
+	    color:#000;
+    }    .SortColumn
+    {
+        cursor:pointer;
+    }
+    .title {
+	    font-family: Arial, Helvetica, sans-serif;
+	    font-size: 18px;
+	    color: #000;
+    }
+    .search_list {
+	    cursor:pointer;
+	    overflow:hidden;
+	    padding-right:10px;
+	    height:25px;
+	    width:300px;
+	    line-height:25px;
+	    color:#666666;
+	    text-indent:3px;
+	    border:1px solid #999;
+	    background-color:#fff;
+	    background-image: url(../Images/arrow_down.jpg);
+	    background-repeat: no-repeat;
+	    background-position: right;
+	    /*Firefox圓角*/
+	    -moz-border-radius: 2px;
+	    /* Chrome圓角*/
+	    -webkit-border-radius: 2px;
+	    /*陰影*/
+	    -webkit-box-shadow: inset 0px 1px 2px #d4d4d4;
+	    -moz-box-shadow: inset 0px 1px 2px #d4d4d4;
+	    box-shadow: inset 0px 1px 2px #d4d4d4;
+    }
+    .popup 
+    {
+        display:none; 
+        position:absolute; 
+        left: 40%; 
+        top: 40%;
+        width: 500px;
+        z-index:3;
+        border:2px solid #666;
+	    background-color:#fff;
+    }
+    .treeview, .treeview ul { 
+	    padding: 0;
+	    margin: 0;
+	    list-style: none;
+    }
+
+    .treeview ul {
+	    background-color: white;
+	    margin-top: 4px;
+    }
+
+    .treeview .hitarea {
+	    background: url(../images/treeview-default.gif) -64px -25px no-repeat;
+	    height: 16px;
+	    width: 16px;
+	    margin-left: -16px;
+	    float: left;
+	    cursor: pointer;
+    }
+    /* fix for IE6 */
+    * html .hitarea {
+	    display: inline;
+	    float:none;
+    }
+
+    .treeview li { 
+	    margin: 0;
+	    padding: 3px 0pt 3px 16px;
+    }
+
+    .treeview a.selected {
+	    background-color: #eee;
+    }
+
+    #treecontrol { margin: 1em 0; display: none; }
+
+    .treeview .hover { color: red; cursor: pointer; }
+
+    .treeview li { background: url(../images/treeview-default-line.gif) 0 0 no-repeat; }
+    .treeview li.collapsable, .treeview li.expandable { background-position: 0 -176px; }
+
+    .treeview .expandable-hitarea { background-position: -80px -3px; }
+
+    .treeview li.last { background-position: 0 -1766px }
+    .treeview li.lastCollapsable, .treeview li.lastExpandable { background-image: url(../images/treeview-default.gif); }  
+    .treeview li.lastCollapsable { background-position: 0 -111px }
+    .treeview li.lastExpandable { background-position: -32px -67px }
+
+    .treeview div.lastCollapsable-hitarea, .treeview div.lastExpandable-hitarea { background-position: 0; }
+</style>
+<script type="text/javascript" src="../EC/Includes/jquery.min.js"></script>
+<script type="text/javascript" src="../EC/Includes/jquery.pagination.js"></script>
+<script type="text/javascript" src="../EC/Includes/jquery.tablesorter.min.js"></script>
+<script type="text/javascript" src="../EC/Includes/jquery.metadata.js"></script>
+<script src="../EC/Includes/jquery.cookie.js" type="text/javascript"></script>
+<script src="../EC/Includes/jquery.treeview.js" type="text/javascript"></script>
+<script type="text/javascript">
+    var killScroll = false; 
+    var currentTab = 0; var xmlDoc; var tempid; var userid; var tabName;
+    var tabClick = new Array(31);
+    var gvRowsBind = new Array(31);
+    var gvRowsCount = new Array(31);
+    $(document).ready(function () {
+        tempid = $("#<%=hdnTempId.ClientID%>").val();
+        userid = $("#<%=hdnUserId.ClientID%>").val();
+        //Default Action
+        $("ul.tabs li:first").addClass("active").show(); //Activate first tab
+        $(".tab_content:first").show(); //Show first tab content
+
+        tabClick = [].repeat(0, 32);
+        gvRowsBind = [].repeat(20, 32);
+        //On Click Event
+        $("ul.tabs li").click(function () {
+            $("ul.tabs li").removeClass("active"); //Remove any "active" class
+            $(this).addClass("active"); //Add "active" class to selected tab
+            $(".tab_content").hide(); //Hide all tab content
+            if ($(this).find('span').text().substring($(this).find('span').text().lastIndexOf("(") + 1, $(this).find('span').text().lastIndexOf(")")) > 0) {
+                var activeTab = $(this).find("a").attr("href"); //Find the rel attribute value to identify the active tab + content
+                $(activeTab).fadeIn(); //Fade in the active content
+                currentTab = this.id.replace("li", "");
+                gvIndex = currentTab;
+            }
+            if (tabClick[gvIndex] == 0) { //Bind data
+                tabName = $(".div_gv" + gvIndex).attr("id").replace("div_", "");
+                $("[id*=GridView" + gvIndex + "]").first().find("tr:gt(1)").detach(); //Initial Gridview
+                BindGridView(gvIndex);
+                //Pagination
+                //initPagination();
+                //pageselectCallback(0);
+                tabClick[gvIndex] = 1;
+            }
+
+            return false;
+        });
+        $(".tab_content").hide();
+        //        var strKey;
+        //        $("#Button1").click(function () {
+        //            //var strKey = $("#txtKeyword").text();
+        //            alert(strKey);
+        //            
+        //        });
+
+        var PGchidIdx = 0;
+        $.ajax({
+            type: "POST",
+            url: "MaterialSearch_New.aspx/GetPG",
+            data: "{}",
+            contentType: "application/json; charset=utf-8",
+            dataType: "json",
+            success: function (data) {
+                var xmlPGDoc = $.parseXML(data.d);
+                var xmlPG = $(xmlPGDoc);
+                var PGData = xmlPG.find("Table1");
+                //                $("#PGItems").append("<table cellpadding='3'>");
+                //                $.each(PGData, function () {
+                //                    $("#PGItems").append('<tr><td style="font-size:small"><input type="checkbox" name="pg_active_col" onclick="GetChecked(this,\'PG\')" id="' + $(this).find("CATEGORY_ID").text() + '" value="' + $(this).find("CATEGORY_NAME").text() + '"> ' + $(this).find("CATEGORY_NAME").text() + '</input></td></tr>');
+                //                });
+                //                $("#PGItems").append("</table>");
+
+                //----Add Product Group Tree 
+                var PGitemsHtml = "";
+                $.each(PGData, function (PGIndex) {
+                    if ($(this).find("DEPT").text() == "1") {
+                        if (PGchidIdx != 0) {
+                            PGitemsHtml += '</ul>';
+                            PGchidIdx = 0;
+                        }
+                        if (PGIndex == 0) { PGitemsHtml += '<li>'; }
+                        else { PGitemsHtml += '</li><li>'; }
+                        PGitemsHtml += '<input type="checkbox" name="pg_active_col" onclick="GetChecked(this,\'PG\')" id="' + $(this).find("CATEGORY_ID").text() + '" value="' + $(this).find("DISPLAY_NAME").text() + '"> ' + $(this).find("DISPLAY_NAME").text() + '</input>';
+                    }
+                    else {
+                        if (PGchidIdx == 0) { PGitemsHtml += '<ul>'; }
+                        PGitemsHtml += '<li><input type="checkbox" name="pg_active_col_' + $(this).find("PARENT_CATEGORY_ID").text() + '" onclick="GetChecked(this,\'PG\')" id="' + $(this).find("CATEGORY_ID").text() + '" value="' + $(this).find("DISPLAY_NAME").text() + '"> ' + $(this).find("DISPLAY_NAME").text() + '</input></li>';
+                        PGchidIdx += 1;
+                    }
+
+                });
+                $("#PGItems").append(PGitemsHtml);
+            },
+            error: function (response) {
+                //alert("error");
+            }
+        });
+
+        $.ajax({
+            type: "POST",
+            url: "MaterialSearch_New.aspx/GetSector",
+            data: "{}",
+            contentType: "application/json; charset=utf-8",
+            dataType: "json",
+            success: function (data) {
+                var xmlSecDoc = $.parseXML(data.d);
+                var xmlSec = $(xmlSecDoc);
+                var SecData = xmlSec.find("Table1");
+                $("#SecItems").append("<table cellpadding='3'>");
+                var colCount = 0;
+                $.each(SecData, function () {
+                    if (colCount == 0) { $("#SecItems").append("<tr>"); }
+                    $("#SecItems").append(' <td style="font-size:small"><input type="checkbox" name="sec_active_col" onclick="GetChecked(this,\'Sec\')" id="' + $(this).find("ID").text() + '" value="' + $(this).find("VALUE").text() + '"> ' + $(this).find("VALUE").text() + '</input></td><td width="10"></td>');
+                    colCount += 1;
+                    if (colCount == 2) {
+                        $("#SecItems").append("</tr>");
+                        colCount = 0;
+                    }
+                });
+                if (colCount != 2) { $("#SecItems").append("</tr>"); }
+                $("#SecItems").append("</table>");
+            },
+            error: function (response) {
+                //alert("error");
+            }
+        });
+
+    });
+
+    //Infinite scroll
+    $(window).scroll(function () { 
+        if ($(window).scrollTop() + 100 >= ($(document).height() - ($(window).height()))) { 
+            if (killScroll == false) { //  Keeps the loader from fetching more than once.
+                //killScroll = true; // Set killScroll to true, to make sure we do not trigger this code again before it's done running.
+                if (gvRowsBind[currentTab] < gvRowsCount[currentTab]) {
+                    gvRowsBind[currentTab] += 20;
+                    BindGridView(currentTab);
+                }
+            }
+        }
+    });
+
+    function BindGridView(gvIndex) {
+        var RowBindNum = 0;
+        var xml = $(xmlDoc);
+        var AllData = xml.find("Table1");
+        $("[id*=GridView" + gvIndex + "]").first().find("tr:eq(1)").show(); //Show first blank row
+        $.each(AllData, function () {
+            var doc_type = $(this).find("DOC_TYPE").text();
+            if (tabName == doc_type) {
+                if (RowBindNum < gvRowsBind[gvIndex] - 20) { RowBindNum++; }
+                else if (RowBindNum >= gvRowsBind[gvIndex] - 20 && RowBindNum < gvRowsBind[gvIndex]) {
+                    var row = $("[id*=GridView" + gvIndex + "]").first().find("tr:last-child").clone(true);
+                    var columns = new Array(3);
+                    switch (doc_type) {
+                        case "ONLINE_TRAINING": case "FAQ":
+                            columns = new Array(3);
+                            columns[0] = "NO"; columns[1] = "SUBJECT"; columns[2] = "DOC_ID"; columns[3] = "ISSUE_DATE";
+                            break;
+                        case "BIOS": case "CERTIFICATE": case "DRIVER": case "FIRMWARE": case "MANUAL": case "SPECIFICATION": case "UTILITY": case "INSTALLATION":
+                        case "SOFTWARE_API": case "SOFTWARE_API_MANUAL": case "PODCAST": case "WEBCAST": case "PRODUCT_ROADMAPS": case "PRESS_RELEASE":
+                        case "SALES_KIT": case "PRESENTATION": case "CERTIFICATE_LOGO":
+                            columns = new Array(4);
+                            columns[0] = "NO"; columns[1] = "SUBJECT"; columns[2] = "SIZE"; columns[3] = "DOC_ID"; columns[4] = "ISSUE_DATE";
+                            break;
+                        case "DATASHEET": case "WHITE_PAPERS":
+                            columns = new Array(5);
+                            columns[0] = "NO"; columns[1] = "SUBJECT"; columns[2] = "LANGUAGE"; columns[3] = "SIZE"; columns[4] = "DOC_ID"; columns[5] = "ISSUE_DATE";
+                            break;
+                        case "BROCHURE_CATALOGUE":
+                            columns = new Array(6);
+                            columns[0] = "NO"; columns[1] = "RECORD_IMG"; columns[2] = "SUBJECT"; columns[3] = "LANGUAGE"; columns[4] = "SIZE"; columns[5] = "DOC_ID"; columns[6] = "ISSUE_DATE";
+                            break;
+                        case "CASE_STUDY":
+                            columns = new Array(4);
+                            columns[0] = "NO"; columns[1] = "SUBJECT"; columns[2] = "LANGUAGE"; columns[3] = "DOC_ID"; columns[4] = "ISSUE_DATE";
+                            break;
+                        case "VIDEO":
+                            columns = new Array(4);
+                            columns[0] = "NO"; columns[1] = "RECORD_IMG"; columns[2] = "SUBJECT"; columns[3] = "DOC_ID"; columns[4] = "ISSUE_DATE";
+                            break;
+                        case "CAMPAIGN": case "EDM": case "PHOTO": case "ADVERTISEMENT": case "BANNER": case "DM": case "POSTER":
+                            columns = new Array(5);
+                            columns[0] = "NO"; columns[1] = "RECORD_IMG"; columns[2] = "SUBJECT"; columns[3] = "SIZE"; columns[4] = "DOC_ID"; columns[5] = "ISSUE_DATE";
+                            break;
+                        default:
+
+                    }
+                    AppendRow($(this), row, columns); $("[id*=GridView" + gvIndex + "]").first().append(row);
+                    RowBindNum++;
+                }
+                else { return false; }
+            }
+        });
+        $("[id*=GridView" + gvIndex + "]").first().find("tr:eq(1)").hide(); // Hide first blank row
+        //Bind Data Index
+        BindRowIndex(gvIndex);
+    }
+
+    function GetChecked(box, Cat) {
+        switch (Cat) {
+            case "PG":
+                if ($("#" + box.id).attr("checked") == "checked") {
+                    $("#pg_choiceitem").append('<div style="display:inline;padding-right:5px;" id="p_' + box.id + '">' + box.value + ' <img src="../Images/close.jpg" id="p_' + box.id + '" onclick="RemoveItem(this,\'PG\')" style="cursor:pointer;" /></div>');
+                    if (box.name == "pg_active_col") {
+                        $("input[name='pg_active_col_" + box.id + "']").each(function () {
+                            $(this).attr("disabled", true);
+                            $(this).attr("checked", false);
+                            $("div[id=p_" + this.id + "]").each(function () {
+                                $(this).remove();
+                            });
+                            $("#div_pg_id").html($("#div_pg_id").html().replace(this.id + ";", ""));
+                        });
+                    }
+                }
+                else {
+                    $("div[id=p_" + box.id + "]:last").remove();
+                    if (box.name == "pg_active_col") {
+                        $("input[name='pg_active_col_" + box.id + "']").each(function () {
+                            $(this).removeAttr("disabled");
+                        });
+                    }
+                }
+                if ($("#pg_choiceitem").html() != "") {
+                    $("#pg_clearItem").show()
+                }
+                else { $("#pg_clearItem").hide(); }
+                break;
+            case "Sec":
+                if ($("#" + box.id).attr("checked") == "checked") {
+                    $("#sec_choiceitem").append('<div style="display:inline;padding-right:5px;" id="s_' + box.id + '">' + box.value + ' <img src="../Images/close.jpg" id="s_' + box.id + '" onclick="RemoveItem(this,\'Sec\')" style="cursor:pointer" /></div>');
+                }
+                else {
+                    $("div[id=s_" + box.id + "]:last").remove();
+                }
+                if ($("#sec_choiceitem").html() != "") {
+                    $("#sec_clearItem").show()
+                }
+                else { $("#sec_clearItem").hide(); }
+                break;
+        }
+        
+    }
+
+    function RemoveItem(rbox, Cat) {
+        switch (Cat) {
+            case "PG":
+                if ($("#" + rbox.id.replace("p_", "")).attr('name') == "pg_active_col") {
+                    $("input[name='pg_active_col_" + rbox.id.replace("p_", "") + "']").each(function () {
+                        $(this).removeAttr("disabled");
+                    });
+                }
+                $("div[id=" + rbox.id + "]").each(function () {
+                    $(this).remove();
+                });
+                $("#" + rbox.id.replace("p_", "")).attr("checked", false);
+                if ($("#pg_choiceitem").html() == "") { $("#pg_clearItem").hide(); }
+                $("#div_pg_id").html($("#div_pg_id").html().replace(rbox.id.replace("p_", "") + ";", ""));
+                break;
+            case "Sec":
+                $("div[id=" + rbox.id + "]").each(function () {
+                    $(this).remove();
+                });
+                $("#" + rbox.id.replace("s_", "")).attr("checked", false);
+                if ($("#sec_choiceitem").html() == "") { $("#sec_clearItem").hide(); }
+                $("#div_sec_id").html($("#div_sec_id").html().replace(rbox.id.replace("s_", "") + ";", ""));
+                break;
+        }
+    }
+
+    Array.prototype.repeat = function (what, L) {
+        while (L) this[--L] = what;
+        return this;
+    }
+
+    var gvIndex;
+    function OnSuccess(response) {
+        $("#div_err").hide(); 
+        currentTab = 0;
+        xmlDoc = $.parseXML(response.d);
+        var xml = $(xmlDoc);
+        var AllData = xml.find("Table1");
+
+        $(".SortTable").each(function (stIndex) {
+            var gv = "GridView" + (stIndex + 1);
+            //$("[id*=" + gv + "] tr").not($("[id*=" + gv + "] tr:first-child")).remove();
+            //$("[id*=" + gv + "]:first tr:gt(1)").detach(); //Initial Gridview
+            $("[id*=" + gv + "]").first().find("tr:gt(1)").detach(); //Initial Gridview
+            $("[id*=" + gv + "]").first().find("tr:eq(1)").show(); //Show first blank row
+            $Itable = $(this);
+            $('th', $Itable).each(function (Icolumn) {
+                var sColumnTitile = $(this).html();
+                sColumnTitile = sColumnTitile.replace('↓', '').replace('↑', '');
+                $(this).html(sColumnTitile);
+            })
+        });
+
+        //Bind data
+        gvRowsCount = [].repeat(0, 32);
+        $.each(AllData, function () {
+            var doc_type = $(this).find("DOC_TYPE").text();
+            var gv_id = $("#div_" + doc_type).attr("class");
+            if (gv_id != undefined) {
+                gv_id = gv_id.replace("div_gv", "");
+                gvRowsCount[gv_id] += 1;
+            }
+
+        });
+
+        $('table.SortTable').each(function (tIndex) {
+            if ($("#num" + (tIndex + 1)).text().lastIndexOf("(") >= 0) { //Calculate Rows count
+                var index = $("#num" + (tIndex + 1)).text().lastIndexOf("(") - 1;
+                $("#num" + (tIndex + 1)).text($("#num" + (tIndex + 1)).text().substring(0, index));
+            }
+            $("#num" + (tIndex + 1)).text($("#num" + (tIndex + 1)).text() + " (" + gvRowsCount[tIndex + 1] + ")");
+
+            //Sorting
+            var $table = $(this);
+            $('th', $table).each(function (column) {
+                if ($(this).is('.SortColumn')) {
+                    $(this).click(function () {
+                        var sColumnTitile = $(this).html();
+
+                        var bSort = (sColumnTitile.indexOf('↑') > -1);
+                        sColumnTitile = sColumnTitile.replace('↓', '').replace('↑', '');
+                        if (bSort) {
+                            $(this).html(sColumnTitile + '&darr;');
+                        }
+                        else {
+                            $(this).html(sColumnTitile + '&uarr;');
+                        }
+                        //var rows = $table.find('tbody > tr').get();
+                        var rows = $("[id*=GridView" + (tIndex + 1) + "]").first().find("tr:gt(1)");
+
+                        rows.sort(function (a, b) {
+                            var keyA = $(a).children('td').eq(column).text().toUpperCase();
+                            var keyB = $(b).children('td').eq(column).text().toUpperCase();
+                            if (bSort) {
+                                if (keyA > keyB) return 1;
+                                if (keyA < keyB) return -1;
+                            }
+                            else {
+                                if (keyA < keyB) return 1;
+                                if (keyA > keyB) return -1;
+                            }
+                            return 0;
+                        });
+                        $.each(rows, function (index, row) {
+                            $("[id*=GridView" + (tIndex + 1) + "]").first().children('tbody').append(row);
+                        })
+
+                        //initPagination();
+                        //pageselectCallback(0);
+                        BindRowIndex(tIndex + 1);
+
+                        //Clear other columns sorting tag
+                        $('th', $table).each(function (column1) {
+                            if (column1 != column) {
+                                var sColumnTitile = $(this).html();
+                                sColumnTitile = sColumnTitile.replace('↓', '').replace('↑', '');
+                                $(this).html(sColumnTitile);
+                            }
+                        })
+                    });
+                };
+            });
+        });
+
+        gvIndex = 0;
+
+        $(".tab_content").hide();
+        $("ul.tabs li").removeClass("active"); //Remove any "active" class
+
+
+        $(".SortTable").each(function (stIndex2) {
+            if (gvRowsCount[stIndex2] > 0) {
+                $("ul.tabs li a[href=\#tab" + (stIndex2) + "]").click(); // Active the first one tab which has data
+                currentTab = stIndex2;
+                return false;
+            }
+        });
+        $("#img_load").hide();
+    }
+
+    function AppendRow(data, row, Columns) {
+        for (gvCol = 1; gvCol <= Columns.length - 1; gvCol++) {
+            switch (data.find("RESOURCE_TYPE").text()) {
+                case "CMS":
+                    if (Columns[gvCol] == "RECORD_IMG") {
+                        if (data.find(Columns[gvCol]).text() != "" && data.find(Columns[gvCol]).text() != "http://wfcache.advantech.com/EZ/CMSUpLoadFiles/" && data.find(Columns[gvCol]).text() != "http://employeezone.advantech.com.tw/CMSUploadFiles/") {
+                            $("td", row).eq(gvCol).html("<img src='" + data.find(Columns[gvCol]).text() + "' width='80px' />");
+                        }
+                    }
+                    else if (Columns[gvCol] == "SUBJECT") {
+                        var url = "http://resources.advantech.com.tw/sso/autologin.aspx?tempid=" + tempid + "&id=" + userid + "&pass=MY&callbackurl=http://resources.advantech.com/Resources/Details.aspx?rid=" + data.find("DOC_ID").text()
+                        if (data.find("DOC_TYPE").text() == "CASE_STUDY") {
+                            $("td", row).eq(gvCol).html('<a href="' + url + '" target="_blank">' + data.find(Columns[gvCol]).text() + '</a><br/><br/>' + data.find("DESCRIPTION").text() + '<br/>' + '<div id="' + data.find("DOC_ID").text() + '"><a href="javascript:void(0);" onclick="GetNews(\'' + data.find("DOC_ID").text() + '\', \'' + data.find("DOC_ID").text() + '\', \'case study\');">Read case study</a><div>');
+                        }
+                        else {
+                            $("td", row).eq(gvCol).html("<a href='" + url + "' target='_blank'>" + data.find(Columns[gvCol]).text() + "</a><br/><br/>" + data.find("DESCRIPTION").text());
+                        }
+                    }
+                    else if (Columns[gvCol] == "DOC_ID") {
+                        var url = "http://resources.advantech.com.tw/sso/autologin.aspx?tempid=" + tempid + "&id=" + userid + "&pass=MY&callbackurl=http://resources.advantech.com/Resources/Details.aspx?rid=" + data.find(Columns[gvCol]).text()
+                        if (data.find("DOC_TYPE").text() == "WHITE_PAPER") { url = data.find("HYPER_LINK").text(); }
+                        $("td", row).eq(gvCol).html("<a href='" + url + "' target='_blank'>Click</a>");
+                    }
+                    else {
+                        $("td", row).eq(gvCol).html(data.find(Columns[gvCol]).text());
+                    }
+                    break;
+                case "SUPPORT":
+                    if (Columns[gvCol] == "DOC_ID") {
+                        if (data.find("SR_TYPE").text() == "Knowledge Base") {
+                            $("td", row).eq(gvCol).html("<a href='../Product/SR_Detail.aspx?SR_ID=" + data.find(Columns[gvCol]).text() + "&C=" + data.find("ORI_DOC_TYPE").text() + "' target='_blank'>Download</a>");
+                        }
+                        else {
+                            if (data.find("DOC_TYPE").text() == "MANUAL" && data.find("SR_TYPE").text() == "") {
+                                $("td", row).eq(gvCol).html("<a href='http://downloadt.advantech.com/download/downloadlit.aspx?lit_id=" + data.find(Columns[gvCol]).text() + "' target='_blank'>Download</a>");
+                            }
+                            else if (data.find("DOC_TYPE").text() == "CERTIFICATE" && data.find("SOURCE").text() == "PLM") {
+                                $("td", row).eq(gvCol).html("<a href='http://downloadt.advantech.com/productfile/PLM_Cer/" + data.find("RECORD_IMG").text() + "' target='_blank'>Download</a>");
+                            }
+                            else {
+                                $("td", row).eq(gvCol).html("<a href='../Product/SR_Download.aspx?SR_ID=" + data.find(Columns[gvCol]).text() + "&C=" + data.find("ORI_DOC_TYPE").text() + "' target='_blank'>Download</a>");
+                            }
+                        }
+
+                    }
+                    else {
+                        $("td", row).eq(gvCol).html(data.find(Columns[gvCol]).text());
+                    }
+                    break;
+                case "EDM":
+                    if (Columns[gvCol] == "RECORD_IMG") {
+                        $("td", row).eq(gvCol).html("<img src='http://my.advantech.com/Includes/GetThumbnail.ashx?RowId=" + data.find("DOC_ID").text() + "' width='80px' />");
+                    }
+                    else if (Columns[gvCol] == "SUBJECT") {
+                        var url = "http://my.advantech.com/Includes/GetTemplate.ashx?RowId=" + data.find("DOC_ID").text()
+                        $("td", row).eq(gvCol).html("<a href='" + url + "' target='_blank'>" + data.find(Columns[gvCol]).text() + "</a><br/><br/>" + data.find("DESCRIPTION").text());
+                    }
+                    else if (Columns[gvCol] == "DOC_ID") {
+                        var url = "http://my.advantech.com/Includes/GetTemplate.ashx?RowId=" + data.find(Columns[gvCol]).text()
+                        $("td", row).eq(gvCol).html("<a href='" + url + "' target='_blank'>Click</a>");
+                    }
+                    else {
+                        $("td", row).eq(gvCol).html(data.find(Columns[gvCol]).text());
+                    }
+                    break;
+                case "PIS":
+                    if (Columns[gvCol] == "RECORD_IMG") {
+                        switch (data.find("FILE_EXT").text()) {
+                            case "JPG": case "GIF": case "JPEG": case "PNG": case "BMP":
+                                $("td", row).eq(gvCol).html("<img src='http://downloadt.advantech.com/download/downloadlit.aspx?lit_id=" + data.find("DOC_ID").text().toString().split('.')[0] + "' width='80px' />");
+                                break;
+                            case "TIF": case "TIFF":
+                                $("td", row).eq(gvCol).html("<img src='../Includes/TIFF_Handler.ashx?LIT_ID=" + data.find("DOC_ID").text().toString().split('.')[0] + "' width='80px' />");
+                                break;
+                            case "PDF":
+                                if (data.find(Columns[gvCol]).text() != "") { $("td", row).eq(gvCol).html("<img src='http://downloadt.advantech.com/download/downloadlit.aspx?lit_id=" + data.find(Columns[gvCol]).text() + "' width='80px' />"); }
+                                break;
+                        }
+                    }
+                    else if (Columns[gvCol] == "DOC_ID") {
+                        if (data.find("DOC_TYPE").text() == "PRODUCT_ROADMPAS" || data.find("DOC_TYPE").text() == "SALES_KIT" || data.find("ORI_DOC_TYPE").text() == "PRESENTATION (FOR CP ONLY)") {
+                            var url = "../Includes/SpecialMaterialDownload.ashx?LIT_ID=" + data.find(Columns[gvCol]).text();
+                            $("td", row).eq(gvCol).html("<a href='" + url + "' target='_blank'>Download</a>");
+                        }
+                        else {
+                            var url = "../Product/Unzip_File.aspx?Literature_Id=" + data.find(Columns[gvCol]).text();
+                            $("td", row).eq(gvCol).html("<a href='" + url + "' target='_blank'>" + data.find("FILE_EXT").text() + "</a>");
+                        }
+                    }
+                    else {
+                        $("td", row).eq(gvCol).html(data.find(Columns[gvCol]).text());
+                    }
+                    break;
+            }
+            if (Columns[gvCol] == "RECORD_IMG") {
+                $("td", row).eq(gvCol).css("padding-top", "20px");
+                $("td", row).eq(gvCol).css("padding-left", "20px");
+            }
+            if (Columns[gvCol] == "SIZE") { $("td", row).eq(gvCol).html(formatNumber(data.find(Columns[gvCol]).text()) + "k"); }
+        }
+    }
+
+    function formatNumber(number) {
+        x = number.split('.');
+        x1 = x[0];
+        x2 = x.length > 1 ? '.' + x[1] : '';
+        var rgx = /(\d+)(\d{3})/;
+        while (rgx.test(x1)) {
+            x1 = x1.replace(rgx, '$1' + ',' + '$2');
+        }
+        return x1 + x2;
+    }
+
+    function BindRowIndex(gvIndex) {
+        $("[id*=GridView" + gvIndex + "]").first().find("tr").each(function (rIdx) {
+            if (rIdx >= 2) { $("[id*=GridView" + gvIndex + "]").first().find("tr:eq(" + rIdx + ") td:eq(0)").html(rIdx - 1); }
+        });
+    }
+
+    function GetData() {
+        tabClick = [].repeat(0, 32);
+        var strKey = $.trim($("#<%=txtKeyword.ClientID%>").val());
+        var strPDCat = $("#div_pg_id").html();
+        strPDCat = strPDCat.substr(0, strPDCat.length - 1);
+        var strSecCat = $("#div_sec_id").html();
+        strSecCat = strSecCat.substr(0, strSecCat.length - 1);
+        if (strKey.length == 0 && strPDCat == "" && strSecCat == "") { $("#div_err").show(); $("#div_err").html("Please input at least one search criteria in Step 1"); return false; }
+        if (strKey.length <= 2 && strPDCat == "" && strSecCat == "") { $("#div_err").show(); $("#div_err").html("Please enter at least 3 characters"); return false; }
+        $("#img_load").show();
+        strKey = strKey.replace("'", "''");
+        var postData = JSON.stringify({ strKeyword: strKey, strPDCategory : strPDCat, strSecCategory : strSecCat });
+        $.ajax({
+            type: "POST",
+            url: "MaterialSearch_New.aspx/GetData",
+            data: postData,
+            contentType: "application/json; charset=utf-8",
+            dataType: "json",
+            //                success: function (data) {
+            //                    for (var i = 0; i < data.d.length; i++) {
+            //                        $("#GridView1").append("<tr><td>" + data.d[i].DOC_ID + "</td><td>" + data.d[i].DOC_TYPE + "</td><td>" + data.d[i].DESCRIPTION + "</td></tr>");
+            //                    }
+            //                },
+            success: OnSuccess,
+            error: function (response) {
+                //alert("error");
+                console.log("error : " + response);
+                $("#div_err").show(); $("#div_err").html("System Error"); 
+                $("#img_load").hide();
+            }
+        });
+    }
+
+    var ItemsPerPage = 10;
+    function pageselectCallback(page_index, jq) {
+        if (currentTab != 0) { gvIndex = currentTab; }
+        $("[id*=GridView" + gvIndex + "]").first().find("tr").each(function (n) {
+            //var index = $("[id*=GridView" + gvIndex + "] tr:eq(" + n + ") td:eq(0)").text();
+            if (n >= 2) {
+                var PageIndex = Math.floor((n - 2) / 10);
+
+                if (PageIndex == page_index) {
+                    $("[id*=GridView" + gvIndex + "]").first().find("tr:eq(" + n + ")").show();
+                }
+                else {
+                    $("[id*=GridView" + gvIndex + "]").first().find("tr:eq(" + n + ")").hide();
+                }
+            }
+        });
+        return false;
+    }
+
+    function initPagination() {
+        var num_entries = $("[id*=GridView" + gvIndex + "]").first().find("tr").length - 2;
+        // Create content inside pagination element
+        $("#Pagination" + gvIndex).pagination(num_entries, {
+            callback: pageselectCallback,
+            items_per_page: 10, // Show how many items per page
+            num_display_entries: 5, // Number of pagination links shown
+            num_edge_entries: 2 // Number of start and end points
+        });
+    }
+    var initialTree = true;
+    function OpenList(ListCat) {
+        switch (ListCat) {
+            case "PG":
+                $("#pglist").show();
+                if (initialTree) {
+                    $("#PGItems").treeview({
+                        collapsed: true, //是否預先打開
+                        animated: "fast", //動畫使用
+                        persist: "cookie",
+                        cookieId: "navigationtree",
+                        prerendered: false, //預先載入同 Layer 內容
+                        unique: true //打開某選項，關閉其他選項
+                    });
+                    initialTree = false;
+                }
+                $("#seclist").hide();
+                break;
+            case "Sec":
+                $("#pglist").hide();
+                $("#seclist").show();
+                break;
+        }
+    }
+    function CloseList(ListCat) {
+        switch (ListCat) {
+            case "PG":
+                $("#pglist").hide();
+                break;
+            case "Sec":
+                $("#seclist").hide();
+                break;
+        }
+    }
+    function RemoveItems(ListCat) {
+        switch (ListCat) {
+            case "PG":
+                //$("input[name='pg_active_col']").each(function () {
+                $("[name*=pg_active_col]").each(function () {
+                    $(this).attr("checked", false);
+                    $(this).removeAttr("disabled");
+                });
+                $("#pg_choiceitem").html('');
+                $("#pg_clearItem").hide();
+                break;
+            case "Sec":
+                $("input[name='sec_active_col']").each(function () {
+                    $(this).attr("checked", false);
+                });
+                $("#sec_choiceitem").html('');
+                $("#sec_clearItem").hide();
+                break;
+        }
+    }
+    function Confirm(ListCat) {
+        switch (ListCat) {
+            case "PG":
+                $("#div_pg").html(''); $("#div_pg_id").html('');
+                $("input[name='pg_active_col']").each(function () {
+                    if ($(this).attr("checked") == "checked") {
+                        $("#div_pg").append('<div style="display:inline;padding-right:5px;" id="p_' + $(this).attr("id") + '">' + $(this).attr("value") + ' <img src="../Images/close.jpg" id="p_' + $(this).attr("id") + '" onclick="RemoveItem(this,\'PG\')" style="cursor:pointer" /></div>');
+                        $("#div_pg_id").append($(this).attr("id") + ";");
+                    }
+                });
+                $("#pglist").hide();
+                break;
+            case "Sec":
+                $("#div_sec").html(''); $("#div_sec_id").html('');
+                $("input[name='sec_active_col']").each(function () {
+                    if ($(this).attr("checked") == "checked") {
+                        $("#div_sec").append('<div style="display:inline;padding-right:5px;" id="s_' + $(this).attr("id") + '">' + $(this).attr("value") + ' <img src="../Images/close.jpg" id="s_' + $(this).attr("id") + '" onclick="RemoveItem(this,\'Sec\')" style="cursor:pointer" /></div>');
+                        $("#div_sec_id").append($(this).attr("id") + ";");
+                    }
+                });
+                $("#seclist").hide();
+                break;
+        }
+    }
+    function GetNews(nodeid, recid, cattype) {
+        document.getElementById(nodeid).innerHTML = "<img src='/Images/loading2.gif' alt='Loading News...' width='35' height='35' />Loading...";
+        PageMethods.GetNewsContent(recid, cattype,
+                function (pagedResult, eleid, methodName) {
+                    document.getElementById(nodeid).innerHTML = pagedResult;
+                },
+                function (error, userContext, methodName) {
+                    //alert(error.get_message());
+                    //document.getElementById('div_myrecentitems').innerHTML="";
+                });
+    }
+</script>
+<asp:Panel runat="server" ID="Panel1" DefaultButton="btnSearch">
+<asp:HiddenField runat="server" ID="hdnTempId" />
+<asp:HiddenField runat="server" ID="hdnUserId" />
+    <table>
+        <tr>
+            <td valign="top">
+                <div id="content">
+                    <div class="title"><font color="blue">Step 1: Please search by <u>at least one</u> of the following criteria.</font></div><br />
+                    <div class="title">
+                        <table>
+                            <tr>
+                                <td>Keyword/Model Name: </td>
+                                <td>
+                                    <ajaxToolkit:AutoCompleteExtender runat="server" ID="ace1" ServiceMethod="GetModelNo" TargetControlID="txtKeyword" 
+                                        MinimumPrefixLength="2" FirstRowSelected="true" />
+                                    <asp:TextBox runat="server" ID="txtKeyword" Width="300" />
+                                </td>
+                            </tr>
+                        </table>
+                    </div><br />
+                    <div class="title">
+                        <table><tr><td valign="top">Product Category: </td>
+                                   <td valign="top">
+                                        <div class="search_list" onclick="OpenList('PG');return false;"></div>
+                                        <div id="div_pg" style="font-size:small; color:Blue;"></div><div id="div_pg_id" style="display:none"></div>
+                                        <div id="pglist" class="popup">
+                                            <table width="500" cellpadding="0" cellspacing="0">
+                                                <tr style="background-color:#666">
+                                                    <td align="left" style="padding-left:10px; padding-top: 5px; padding-bottom: 5px; color: White;">Product Category</td>
+                                                    <td align="right" style="padding-right:5px; padding-top: 5px; padding-bottom: 5px"><img src="../Images/close.gif" style="cursor:pointer" onclick="CloseList('PG');return false;" /></td>
+                                                </tr>
+                                                <tr>
+                                                    <td colspan="2" style="background-color:#eee; padding-left:20px; padding-top: 5px; padding-bottom: 5px; font-size:small">
+                                                        <table width="100%">
+                                                            <tr>
+                                                                <td align="left" width="90" style="font-weight:bold">Your Choice: </td>
+                                                                <td align="left" width="80" id="pg_clearItem" style="display:none"><div onclick="RemoveItems('PG')" style="cursor:pointer; color:Blue;">Clear All</div></td>
+                                                                <td align="right" style="padding-right:5px"><input type="button" value="Confirm" onclick="Confirm('PG');return false;" style="width: 60px; height:30px" /></td>
+                                                            </tr>
+                                                            <tr>
+                                                                <td colspan="3" id="pg_choiceitem"></td>
+                                                            </tr>
+                                                        </table>
+                                                    </td>
+                                                </tr>
+                                                <tr>
+                                                    <td colspan="2" style="padding-left:20px; padding-top: 10px; padding-bottom: 10px; font-size:small">
+                                                        <div id="PGItems" style="font-size:small">
+                                                            
+                                                        </div>
+                                                    </td>
+                                                </tr>
+                                            </table>                                        </div>
+                                   </td>
+                               </tr>
+                        </table>
+                    </div><br />
+                    <div class="title">
+                        <table><tr><td valign="top">Sector: </td>
+                                   <td valign="top">
+                                        <div class="search_list" onclick="OpenList('Sec');return false;"></div>
+                                        <div id="div_sec" style="font-size:small; color:Blue;"></div><div id="div_sec_id" style="display:none"></div>
+                                        <div id="seclist" class="popup">
+                                            <table width="500" cellpadding="0" cellspacing="0">
+                                                <tr style="background-color:#666">
+                                                    <td align="left" style="padding-left:10px; padding-top: 5px; padding-bottom: 5px; color: White;">Sector</td>
+                                                    <td align="right" style="padding-right:5px; padding-top: 5px; padding-bottom: 5px"><img src="../Images/close.gif" style="cursor:pointer" onclick="CloseList('Sec');return false;" /></td>
+                                                </tr>
+                                                <tr>
+                                                    <td colspan="2" style="background-color:#eee; padding-left:20px; padding-top: 5px; padding-bottom: 5px; font-size:small">
+                                                        <table width="100%">
+                                                            <tr>
+                                                                <td align="left" width="90" style="font-weight:bold">Your Choice: </td>
+                                                                <td align="left" width="80" id="sec_clearItem" style="display:none"><div onclick="RemoveItems('Sec')" style="cursor:pointer; color:Blue;">Clear All</div></td>
+                                                                <td align="right" style="padding-right:5px"><input type="button" value="Confirm" onclick="Confirm('Sec');return false;" style="width: 60px; height:30px" /></td>
+                                                            </tr>
+                                                            <tr>
+                                                                <td colspan="3" id="sec_choiceitem"></td>
+                                                            </tr>
+                                                        </table>
+                                                    </td>
+                                                </tr>
+                                                <tr>
+                                                    <td colspan="2" style="padding-left:20px; padding-top: 10px; padding-bottom: 10px; font-size:small">
+                                                        <div id="SecItems" />
+                                                    </td>
+                                                </tr>
+                                            </table>                                        </div>
+                                   </td>
+                                   <td width="200" align="right"><asp:Button runat="server" ID="btnSearch" OnClientClick="GetData();return false;" Text="Search" /></td>
+                                   <td><img id="img_load" src="../Images/loading2.gif" style="display:none" /><div id="div_err" style="color:Tomato; font-size:small; display:none" /></td>
+                               </tr>
+                        </table>
+                    </div><br /><br />
+                    
+                    <div class="title"><font color="blue">Step 2: Please select the material you require.</font></div><br />
+                    <div class="container1">
+                        <div id="tabsblock">
+                            <ul class="Header"><li><a><span>Technical Document</span></a></li></ul>
+                            <ul class="tabs">
+                                <li class="active" id="li1"><a href="#tab1"><span id="num1">BIOS</span></a></li>
+                                <li class="" id="li2"><a href="#tab2"><span id="num2">CERTIFICATE</span></a></li>
+                                <li class="" id="li3"><a href="#tab3"><span id="num3">DATASHEET</span></a></li>
+                                <li class="" id="li4"><a href="#tab4"><span id="num4">DRIVER</span></a></li>
+                                <li class="" id="li5"><a href="#tab5"><span id="num5">FIRMWARE</span></a></li>
+                                <li class="" id="li6"><a href="#tab6"><span id="num6">MANUAL</span></a></li>
+                                <li class="" id="li7"><a href="#tab7"><span id="num7">ONLINE TRAINING</span></a></li>
+                                <li class="" id="li8"><a href="#tab8"><span id="num8">SPECIFICATION</span></a></li>
+                                <li class="" id="li9"><a href="#tab9"><span id="num9">UTILITY</span></a></li>
+                                <li class="" id="li10"><a href="#tab10"><span id="num10">FAQ</span></a></li>
+                                <li class="" id="li11"><a href="#tab11"><span id="num11">INSTALLATION</span></a></li>
+                                <li class="" id="li12"><a href="#tab12"><span id="num12">SOFTWARE API</span></a></li>
+                                <li class="" id="li13"><a href="#tab13"><span id="num13">SOFTWARE API MANUAL</span></a></li>
+                            </ul>
+                            <ul class="Header"><li><a><span>Marketing Material</span></a></li></ul>
+                            <ul class="tabs">
+                                <li class="" id="li14"><a href="#tab14"><span id="num14">Advertisement</span></a></li>
+                                <li class="" id="li15"><a href="#tab15"><span id="num15">Banner</span></a></li>
+                                <li class="" id="li16"><a href="#tab16"><span id="num16">Brochure / Catalogue</span></a></li>
+                                <li class="" id="li17"><a href="#tab17"><span id="num17">Campaign</span></a></li>
+                                <li class="" id="li18"><a href="#tab18"><span id="num18">Case Study</span></a></li>
+                                <li class="" id="li19"><a href="#tab19"><span id="num19">Certificate Logo</span></a></li>
+                                <li class="" id="li20"><a href="#tab20"><span id="num20">eDM</span></a></li>
+                                <li class="" id="li21"><a href="#tab21"><span id="num21">Flyer/Leaflet</span></a></li>
+                                <li class="" id="li22"><a href="#tab22"><span id="num22">Photos</span></a></li>
+                                <li class="" id="li23"><a href="#tab23"><span id="num23">Podcast</span></a></li>
+                                <li class="" id="li24"><a href="#tab24"><span id="num24">Posters</span></a></li>
+                                <li class="" id="li25"><a href="#tab25"><span id="num25">Presentation</span></a></li>
+                                <li class="" id="li26"><a href="#tab26"><span id="num26">Press Release</span></a></li>
+                                <li class="" id="li27"><a href="#tab27"><span id="num27">Product Roadmaps</span></a></li>
+                                <li class="" id="li28"><a href="#tab28"><span id="num28">Sales Kit</span></a></li>
+                                <li class="" id="li29"><a href="#tab29"><span id="num29">Video</span></a></li>
+                                <li class="" id="li30"><a href="#tab30"><span id="num30">Webcast</span></a></li>
+                                <li class="" id="li31"><a href="#tab31"><span id="num31">White Paper</span></a></li>
+                            </ul>
+                        </div>
+                        <div class="tab_container"> 
+                            <div style="display: block;" id="tab1" class="tab_content">
+                                <h2>BIOS</h2><br />
+                                <div id="div_BIOS" class="div_gv1">
+                                    <asp:GridView ID="GridView1" runat="server" AutoGenerateColumns="false" Font-Names="Arial" CellPadding="5"
+                                        Font-Size="10pt" ShowHeaderWhenEmpty="false" CssClass="SortTable">
+                                        <Columns>
+                                            <asp:BoundField ItemStyle-Width="40px" DataField="" HeaderText="No." ItemStyle-HorizontalAlign="Center" />
+                                            <asp:BoundField ItemStyle-Width="500px" DataField="DESCRIPTION" HeaderText="Destription" HeaderStyle-CssClass="SortColumn" />
+                                            <asp:BoundField ItemStyle-Width="80px" DataField="" HeaderText="Size" ItemStyle-HorizontalAlign="Center" />
+                                            <asp:BoundField ItemStyle-Width="100px" DataField="" HeaderText="File" ItemStyle-HorizontalAlign="Center" />
+                                            <asp:BoundField ItemStyle-Width="100px" DataField="" HeaderText="Last Update" ItemStyle-HorizontalAlign="Center" HeaderStyle-CssClass="SortColumn" />
+                                        </Columns>
+                                    </asp:GridView><br />
+                                </div>
+                                <div id="Pagination1" class="Pagination"></div><br />
+                            </div>
+                            <div style="display: block;" id="tab2" class="tab_content">
+                                <h2>CERTIFICATE</h2><br />
+                                <div id="div_CERTIFICATE" class="div_gv2">
+                                    <asp:GridView ID="GridView2" runat="server" AutoGenerateColumns="false" Font-Names="Arial" CellPadding="5"
+                                        Font-Size="10pt" ShowHeaderWhenEmpty="false" CssClass="SortTable">
+                                        <Columns>
+                                            <asp:BoundField ItemStyle-Width="40px" DataField="" HeaderText="No." ItemStyle-HorizontalAlign="Center" />
+                                            <asp:BoundField ItemStyle-Width="500px" DataField="DESCRIPTION" HeaderText="Destription" HeaderStyle-CssClass="SortColumn" />
+                                            <asp:BoundField ItemStyle-Width="80px" DataField="" HeaderText="Size" ItemStyle-HorizontalAlign="Center" />
+                                            <asp:BoundField ItemStyle-Width="100px" DataField="" HeaderText="File" ItemStyle-HorizontalAlign="Center" />
+                                            <asp:BoundField ItemStyle-Width="100px" DataField="" HeaderText="Last Update" ItemStyle-HorizontalAlign="Center" HeaderStyle-CssClass="SortColumn" />
+                                        </Columns>
+                                    </asp:GridView><br />
+                                </div>
+                                <div id="Pagination2" class="Pagination"></div><br />
+                            </div>
+                            <div style="display: block;" id="tab3" class="tab_content">
+                                <h2>DATASHEET</h2><br />
+                                <div id="div_DATASHEET" class="div_gv3">
+                                    <asp:GridView ID="GridView3" runat="server" AutoGenerateColumns="false" Font-Names="Arial" CellPadding="5"
+                                        Font-Size="10pt" ShowHeaderWhenEmpty="false" CssClass="SortTable">
+                                        <Columns>
+                                            <asp:BoundField ItemStyle-Width="40px" HeaderText="No." ItemStyle-HorizontalAlign="Center" />
+                                            <asp:BoundField ItemStyle-Width="450px" HeaderText="Destription" />
+                                            <asp:BoundField ItemStyle-Width="100px" HeaderText="Language" ItemStyle-HorizontalAlign="Center" HeaderStyle-CssClass="SortColumn" />
+                                            <asp:BoundField ItemStyle-Width="60px" HeaderText="Size" ItemStyle-HorizontalAlign="Center" />
+                                            <asp:BoundField ItemStyle-Width="80px" HeaderText="File" ItemStyle-HorizontalAlign="Center" />
+                                            <asp:BoundField ItemStyle-Width="90px" HeaderText="Last Update" ItemStyle-HorizontalAlign="Center" HeaderStyle-CssClass="SortColumn" />
+                                        </Columns>
+                                    </asp:GridView><br />
+                                </div>
+                                <div id="Pagination3" class="Pagination"></div><br />
+                            </div>
+                            <div style="display: block;" id="tab4" class="tab_content">
+                                <h2>DRIVER</h2>
+                                <div id="div_DRIVER" class="div_gv4">
+                                    <asp:GridView ID="GridView4" runat="server" AutoGenerateColumns="false" Font-Names="Arial" CellPadding="5"
+                                        Font-Size="10pt" ShowHeaderWhenEmpty="false" CssClass="SortTable">
+                                        <Columns>
+                                            <asp:BoundField ItemStyle-Width="40px" DataField="" HeaderText="No." ItemStyle-HorizontalAlign="Center" />
+                                            <asp:BoundField ItemStyle-Width="500px" DataField="DESCRIPTION" HeaderText="Destription" HeaderStyle-CssClass="SortColumn" />
+                                            <asp:BoundField ItemStyle-Width="80px" DataField="" HeaderText="Size" ItemStyle-HorizontalAlign="Center" />
+                                            <asp:BoundField ItemStyle-Width="100px" DataField="" HeaderText="File" ItemStyle-HorizontalAlign="Center" />
+                                            <asp:BoundField ItemStyle-Width="100px" DataField="" HeaderText="Last Update" ItemStyle-HorizontalAlign="Center" HeaderStyle-CssClass="SortColumn" />
+                                        </Columns>
+                                    </asp:GridView><br />
+                                </div>
+                                <div id="Pagination4" class="Pagination"></div><br />
+                            </div>
+                            <div style="display: block;" id="tab5" class="tab_content">
+                                <h2>FIRMWARE</h2>
+                                <div id="div_FIRMWARE" class="div_gv5">
+                                    <asp:GridView ID="GridView5" runat="server" AutoGenerateColumns="false" Font-Names="Arial" CellPadding="5"
+                                        Font-Size="10pt" ShowHeaderWhenEmpty="false" CssClass="SortTable">
+                                        <Columns>
+                                            <asp:BoundField ItemStyle-Width="40px" DataField="" HeaderText="No." ItemStyle-HorizontalAlign="Center" />
+                                            <asp:BoundField ItemStyle-Width="500px" DataField="DESCRIPTION" HeaderText="Destription" HeaderStyle-CssClass="SortColumn" />
+                                            <asp:BoundField ItemStyle-Width="80px" DataField="" HeaderText="Size" ItemStyle-HorizontalAlign="Center" />
+                                            <asp:BoundField ItemStyle-Width="100px" DataField="" HeaderText="File" ItemStyle-HorizontalAlign="Center" />
+                                            <asp:BoundField ItemStyle-Width="100px" DataField="" HeaderText="Last Update" ItemStyle-HorizontalAlign="Center" HeaderStyle-CssClass="SortColumn" />
+                                        </Columns>
+                                    </asp:GridView><br />
+                                </div>
+                                <div id="Pagination5" class="Pagination"></div><br />
+                            </div>
+                            <div style="display: block;" id="tab6" class="tab_content">
+                                <h2>MANUAL</h2>
+                                <div id="div_MANUAL" class="div_gv6">
+                                    <asp:GridView ID="GridView6" runat="server" AutoGenerateColumns="false" Font-Names="Arial" CellPadding="5"
+                                        Font-Size="10pt" ShowHeaderWhenEmpty="false" CssClass="SortTable">
+                                        <Columns>
+                                            <asp:BoundField ItemStyle-Width="40px" DataField="" HeaderText="No." ItemStyle-HorizontalAlign="Center" />
+                                            <asp:BoundField ItemStyle-Width="500px" DataField="DESCRIPTION" HeaderText="Destription" HeaderStyle-CssClass="SortColumn" />
+                                            <asp:BoundField ItemStyle-Width="80px" DataField="" HeaderText="Size" ItemStyle-HorizontalAlign="Center" />
+                                            <asp:BoundField ItemStyle-Width="100px" DataField="" HeaderText="File" ItemStyle-HorizontalAlign="Center" />
+                                            <asp:BoundField ItemStyle-Width="100px" DataField="" HeaderText="Last Update" ItemStyle-HorizontalAlign="Center" HeaderStyle-CssClass="SortColumn" />
+                                        </Columns>
+                                    </asp:GridView><br />
+                                </div>
+                                <div id="Pagination6" class="Pagination"></div><br />
+                            </div>
+                            <div style="display: block;" id="tab7" class="tab_content">
+                                <h2>ONLINE TRAINING</h2>
+                                <div id="div_ONLINE_TRAINING" class="div_gv7">
+                                    <asp:GridView ID="GridView7" runat="server" AutoGenerateColumns="false" Font-Names="Arial" CellPadding="5"
+                                        Font-Size="10pt" ShowHeaderWhenEmpty="false" CssClass="SortTable">
+                                        <Columns>
+                                            <asp:BoundField ItemStyle-Width="40px" DataField="" HeaderText="No." ItemStyle-HorizontalAlign="Center" />
+                                            <asp:BoundField ItemStyle-Width="580px" DataField="DESCRIPTION" HeaderText="Destription" HeaderStyle-CssClass="SortColumn" />
+                                            <asp:BoundField ItemStyle-Width="100px" DataField="" HeaderText="File" ItemStyle-HorizontalAlign="Center" />
+                                            <asp:BoundField ItemStyle-Width="100px" DataField="" HeaderText="Last Update" ItemStyle-HorizontalAlign="Center" HeaderStyle-CssClass="SortColumn" />
+                                        </Columns>
+                                    </asp:GridView><br />
+                                </div>
+                                <div id="Pagination7" class="Pagination"></div><br />
+                            </div>
+                            <div style="display: block;" id="tab8" class="tab_content">
+                                <h2>SPECIFICATION</h2>
+                                <div id="div_SPECIFICATION" class="div_gv8">
+                                    <asp:GridView ID="GridView8" runat="server" AutoGenerateColumns="false" Font-Names="Arial" CellPadding="5"
+                                        Font-Size="10pt" ShowHeaderWhenEmpty="false" CssClass="SortTable">
+                                        <Columns>
+                                            <asp:BoundField ItemStyle-Width="40px" DataField="" HeaderText="No." ItemStyle-HorizontalAlign="Center" />
+                                            <asp:BoundField ItemStyle-Width="500px" DataField="DESCRIPTION" HeaderText="Destription" HeaderStyle-CssClass="SortColumn" />
+                                            <asp:BoundField ItemStyle-Width="80px" DataField="" HeaderText="Size" ItemStyle-HorizontalAlign="Center" />
+                                            <asp:BoundField ItemStyle-Width="100px" DataField="" HeaderText="File" ItemStyle-HorizontalAlign="Center" />
+                                            <asp:BoundField ItemStyle-Width="100px" DataField="" HeaderText="Last Update" ItemStyle-HorizontalAlign="Center" HeaderStyle-CssClass="SortColumn" />
+                                        </Columns>
+                                    </asp:GridView><br />
+                                </div>
+                                <div id="Pagination8" class="Pagination"></div><br />
+                            </div>
+                            <div style="display: block;" id="tab9" class="tab_content">
+                                <h2>UTILITY</h2>
+                                <div id="div_UTILITY" class="div_gv9">
+                                    <asp:GridView ID="GridView9" runat="server" AutoGenerateColumns="false" Font-Names="Arial" CellPadding="5"
+                                        Font-Size="10pt" ShowHeaderWhenEmpty="false" CssClass="SortTable">
+                                        <Columns>
+                                            <asp:BoundField ItemStyle-Width="40px" DataField="" HeaderText="No." ItemStyle-HorizontalAlign="Center" />
+                                            <asp:BoundField ItemStyle-Width="500px" DataField="DESCRIPTION" HeaderText="Destription" HeaderStyle-CssClass="SortColumn" />
+                                            <asp:BoundField ItemStyle-Width="80px" DataField="" HeaderText="Size" ItemStyle-HorizontalAlign="Center" />
+                                            <asp:BoundField ItemStyle-Width="100px" DataField="" HeaderText="File" ItemStyle-HorizontalAlign="Center" />
+                                            <asp:BoundField ItemStyle-Width="100px" DataField="" HeaderText="Last Update" ItemStyle-HorizontalAlign="Center" HeaderStyle-CssClass="SortColumn" />
+                                        </Columns>
+                                    </asp:GridView><br />
+                                </div>
+                                <div id="Pagination9" class="Pagination"></div><br />
+                            </div>
+                            <div style="display: block;" id="tab10" class="tab_content">
+                                <h2>FAQ</h2>
+                                <div id="div_FAQ" class="div_gv10">
+                                    <asp:GridView ID="GridView10" runat="server" AutoGenerateColumns="false" Font-Names="Arial" CellPadding="5"
+                                        Font-Size="10pt" ShowHeaderWhenEmpty="false" CssClass="SortTable">
+                                        <Columns>
+                                            <asp:BoundField ItemStyle-Width="40px" DataField="" HeaderText="No." ItemStyle-HorizontalAlign="Center" />
+                                            <asp:BoundField ItemStyle-Width="580px" DataField="DESCRIPTION" HeaderText="Destription" HeaderStyle-CssClass="SortColumn" />
+                                            <asp:BoundField ItemStyle-Width="100px" DataField="" HeaderText="File" ItemStyle-HorizontalAlign="Center" />
+                                            <asp:BoundField ItemStyle-Width="100px" DataField="" HeaderText="Last Update" ItemStyle-HorizontalAlign="Center" HeaderStyle-CssClass="SortColumn" />
+                                        </Columns>
+                                    </asp:GridView><br />
+                                </div>
+                                <div id="Pagination10" class="Pagination"></div><br />
+                            </div>
+                            <div style="display: block;" id="tab11" class="tab_content">
+                                <h2>INSTALLATION</h2>
+                                <div id="div_INSTALLATION" class="div_gv11">
+                                    <asp:GridView ID="GridView11" runat="server" AutoGenerateColumns="false" Font-Names="Arial" CellPadding="5"
+                                        Font-Size="10pt" ShowHeaderWhenEmpty="false" CssClass="SortTable">
+                                        <Columns>
+                                            <asp:BoundField ItemStyle-Width="40px" DataField="" HeaderText="No." ItemStyle-HorizontalAlign="Center" />
+                                            <asp:BoundField ItemStyle-Width="500px" DataField="DESCRIPTION" HeaderText="Destription" HeaderStyle-CssClass="SortColumn" />
+                                            <asp:BoundField ItemStyle-Width="80px" DataField="" HeaderText="Size" ItemStyle-HorizontalAlign="Center" />
+                                            <asp:BoundField ItemStyle-Width="100px" DataField="" HeaderText="File" ItemStyle-HorizontalAlign="Center" />
+                                            <asp:BoundField ItemStyle-Width="100px" DataField="" HeaderText="Last Update" ItemStyle-HorizontalAlign="Center" HeaderStyle-CssClass="SortColumn" />
+                                        </Columns>
+                                    </asp:GridView><br />
+                                </div>
+                                <div id="Pagination11" class="Pagination"></div><br />
+                            </div>
+                            <div style="display: block;" id="tab12" class="tab_content">
+                                <h2>SOFTWARE API</h2>
+                                <div id="div_SOFTWARE_API" class="div_gv12">
+                                    <asp:GridView ID="GridView12" runat="server" AutoGenerateColumns="false" Font-Names="Arial" CellPadding="5"
+                                        Font-Size="10pt" ShowHeaderWhenEmpty="false" CssClass="SortTable">
+                                        <Columns>
+                                            <asp:BoundField ItemStyle-Width="40px" DataField="" HeaderText="No." ItemStyle-HorizontalAlign="Center" />
+                                            <asp:BoundField ItemStyle-Width="500px" DataField="DESCRIPTION" HeaderText="Destription" HeaderStyle-CssClass="SortColumn" />
+                                            <asp:BoundField ItemStyle-Width="80px" DataField="" HeaderText="Size" ItemStyle-HorizontalAlign="Center" />
+                                            <asp:BoundField ItemStyle-Width="100px" DataField="" HeaderText="File" ItemStyle-HorizontalAlign="Center" />
+                                            <asp:BoundField ItemStyle-Width="100px" DataField="" HeaderText="Last Update" ItemStyle-HorizontalAlign="Center" HeaderStyle-CssClass="SortColumn" />
+                                        </Columns>
+                                    </asp:GridView><br />
+                                </div>
+                                <div id="Pagination12" class="Pagination"></div><br />
+                            </div>
+                            <div style="display: block;" id="tab13" class="tab_content">
+                                <h2>SOFTWARE_API_MANUAL</h2>
+                                <div id="div_SOFTWARE API MANUAL" class="div_gv13">
+                                    <asp:GridView ID="GridView13" runat="server" AutoGenerateColumns="false" Font-Names="Arial" CellPadding="5"
+                                        Font-Size="10pt" ShowHeaderWhenEmpty="false" CssClass="SortTable">
+                                        <Columns>
+                                            <asp:BoundField ItemStyle-Width="40px" DataField="" HeaderText="No." ItemStyle-HorizontalAlign="Center" />
+                                            <asp:BoundField ItemStyle-Width="500px" DataField="DESCRIPTION" HeaderText="Destription" HeaderStyle-CssClass="SortColumn" />
+                                            <asp:BoundField ItemStyle-Width="80px" DataField="" HeaderText="Size" ItemStyle-HorizontalAlign="Center" />
+                                            <asp:BoundField ItemStyle-Width="100px" DataField="" HeaderText="File" ItemStyle-HorizontalAlign="Center" />
+                                            <asp:BoundField ItemStyle-Width="100px" DataField="" HeaderText="Last Update" ItemStyle-HorizontalAlign="Center" HeaderStyle-CssClass="SortColumn" />
+                                        </Columns>
+                                    </asp:GridView><br />
+                                </div>
+                                <div id="Pagination13" class="Pagination"></div><br />
+                            </div>
+                            <div style="display: block;" id="tab14" class="tab_content">
+                                <h2>Advertisement</h2>
+                                <div id="div_ADVERTISEMENT" class="div_gv14">
+                                    <asp:GridView ID="GridView14" runat="server" AutoGenerateColumns="false" Font-Names="Arial" CellPadding="5"
+                                        Font-Size="10pt" ShowHeaderWhenEmpty="false" CssClass="SortTable">
+                                        <Columns>
+                                            <asp:BoundField ItemStyle-Width="40px" DataField="" HeaderText="No." ItemStyle-HorizontalAlign="Center" />
+                                            <asp:BoundField ItemStyle-Width="80px" DataField="" HeaderText="Image" ItemStyle-HorizontalAlign="Center" />
+                                            <asp:BoundField ItemStyle-Width="420px" DataField="DESCRIPTION" HeaderText="Destription" HeaderStyle-CssClass="SortColumn" />
+                                            <asp:BoundField ItemStyle-Width="80px" DataField="" HeaderText="Size" ItemStyle-HorizontalAlign="Center" />
+                                            <asp:BoundField ItemStyle-Width="100px" DataField="" HeaderText="File" ItemStyle-HorizontalAlign="Center" />
+                                            <asp:BoundField ItemStyle-Width="100px" DataField="" HeaderText="Last Update" ItemStyle-HorizontalAlign="Center" HeaderStyle-CssClass="SortColumn" />
+                                        </Columns>
+                                    </asp:GridView><br />
+                                </div>
+                                <div id="Pagination14" class="Pagination"></div><br />
+                            </div>
+                            <div style="display: block;" id="tab15" class="tab_content">
+                                <h2>Banner</h2>
+                                <div id="div_BANNER" class="div_gv15">
+                                    <asp:GridView ID="GridView15" runat="server" AutoGenerateColumns="false" Font-Names="Arial" CellPadding="5"
+                                        Font-Size="10pt" ShowHeaderWhenEmpty="false" CssClass="SortTable">
+                                        <Columns>
+                                            <asp:BoundField ItemStyle-Width="40px" DataField="" HeaderText="No." ItemStyle-HorizontalAlign="Center" />
+                                            <asp:BoundField ItemStyle-Width="80px" DataField="" HeaderText="Image" ItemStyle-HorizontalAlign="Center" />
+                                            <asp:BoundField ItemStyle-Width="420px" DataField="DESCRIPTION" HeaderText="Destription" HeaderStyle-CssClass="SortColumn" />
+                                            <asp:BoundField ItemStyle-Width="80px" DataField="" HeaderText="Size" ItemStyle-HorizontalAlign="Center" />
+                                            <asp:BoundField ItemStyle-Width="100px" DataField="" HeaderText="File" ItemStyle-HorizontalAlign="Center" />
+                                            <asp:BoundField ItemStyle-Width="100px" DataField="" HeaderText="Last Update" ItemStyle-HorizontalAlign="Center" HeaderStyle-CssClass="SortColumn" />
+                                        </Columns>
+                                    </asp:GridView><br />
+                                </div>
+                                <div id="Pagination15" class="Pagination"></div><br />
+                            </div>
+                            <div style="display: block;" id="tab16" class="tab_content">
+                                <h2>Brochure / Catalogue</h2>
+                                <div id="div_BROCHURE_CATALOGUE" class="div_gv16">
+                                    <asp:GridView ID="GridView16" runat="server" AutoGenerateColumns="false" Font-Names="Arial" CellPadding="5"
+                                        Font-Size="10pt" ShowHeaderWhenEmpty="false" CssClass="SortTable">
+                                        <Columns>
+                                            <asp:BoundField ItemStyle-Width="40px" DataField="" HeaderText="No." ItemStyle-HorizontalAlign="Center" />
+                                            <asp:BoundField ItemStyle-Width="80px" DataField="" HeaderText="Image" ItemStyle-HorizontalAlign="Center" />
+                                            <asp:BoundField ItemStyle-Width="340px" DataField="DESCRIPTION" HeaderText="Destription" HeaderStyle-CssClass="SortColumn" />
+                                            <asp:BoundField ItemStyle-Width="80px" DataField="" HeaderText="Language" ItemStyle-HorizontalAlign="Center" />
+                                            <asp:BoundField ItemStyle-Width="80px" DataField="" HeaderText="Size" ItemStyle-HorizontalAlign="Center" />
+                                            <asp:BoundField ItemStyle-Width="100px" DataField="" HeaderText="File" ItemStyle-HorizontalAlign="Center" />
+                                            <asp:BoundField ItemStyle-Width="100px" DataField="" HeaderText="Last Update" ItemStyle-HorizontalAlign="Center" HeaderStyle-CssClass="SortColumn" />
+                                        </Columns>
+                                    </asp:GridView><br />
+                                </div>
+                                <div id="Pagination16" class="Pagination"></div><br />
+                            </div>
+                            <div style="display: block;" id="tab17" class="tab_content">
+                                <h2>Campaign</h2>
+                                <div id="div_CAMPAIGN" class="div_gv17">
+                                    <asp:GridView ID="GridView17" runat="server" AutoGenerateColumns="false" Font-Names="Arial" CellPadding="5"
+                                        Font-Size="10pt" ShowHeaderWhenEmpty="false" CssClass="SortTable">
+                                        <Columns>
+                                            <asp:BoundField ItemStyle-Width="40px" DataField="" HeaderText="No." ItemStyle-HorizontalAlign="Center" />
+                                            <asp:BoundField ItemStyle-Width="80px" DataField="" HeaderText="Image" ItemStyle-HorizontalAlign="Center" />
+                                            <asp:BoundField ItemStyle-Width="420px" DataField="DESCRIPTION" HeaderText="Destription" HeaderStyle-CssClass="SortColumn" />
+                                            <asp:BoundField ItemStyle-Width="80px" DataField="" HeaderText="Size" ItemStyle-HorizontalAlign="Center" />
+                                            <asp:BoundField ItemStyle-Width="100px" DataField="" HeaderText="File" ItemStyle-HorizontalAlign="Center" />
+                                            <asp:BoundField ItemStyle-Width="100px" DataField="" HeaderText="Last Update" ItemStyle-HorizontalAlign="Center" HeaderStyle-CssClass="SortColumn" />
+                                        </Columns>
+                                    </asp:GridView><br />
+                                </div>
+                                <div id="Pagination17" class="Pagination"></div><br />
+                            </div>
+                            <div style="display: block;" id="tab18" class="tab_content">
+                                <h2>Case Study</h2>
+                                <div id="div_CASE_STUDY" class="div_gv18">
+                                    <asp:GridView ID="GridView18" runat="server" AutoGenerateColumns="false" Font-Names="Arial" CellPadding="5"
+                                        Font-Size="10pt" ShowHeaderWhenEmpty="false" CssClass="SortTable">
+                                        <Columns>
+                                            <asp:BoundField ItemStyle-Width="40px" DataField="" HeaderText="No." ItemStyle-HorizontalAlign="Center" />
+                                            <asp:BoundField ItemStyle-Width="500px" DataField="DESCRIPTION" HeaderText="Destription" HeaderStyle-CssClass="SortColumn" />
+                                            <asp:BoundField ItemStyle-Width="80px" DataField="" HeaderText="Language" ItemStyle-HorizontalAlign="Center" />
+                                            <asp:BoundField ItemStyle-Width="100px" DataField="" HeaderText="File" ItemStyle-HorizontalAlign="Center" />
+                                            <asp:BoundField ItemStyle-Width="100px" DataField="" HeaderText="Last Update" ItemStyle-HorizontalAlign="Center" HeaderStyle-CssClass="SortColumn" />
+                                        </Columns>
+                                    </asp:GridView><br />
+                                </div>
+                                <div id="Pagination18" class="Pagination"></div><br />
+                            </div>
+                            <div style="display: block;" id="tab19" class="tab_content">
+                                <h2>Certificate Logo</h2>
+                                <div id="div_CERTIFICATE_LOGO" class="div_gv19">
+                                    <asp:GridView ID="GridView19" runat="server" AutoGenerateColumns="false" Font-Names="Arial" CellPadding="5"
+                                        Font-Size="10pt" ShowHeaderWhenEmpty="false" CssClass="SortTable">
+                                        <Columns>
+                                            <asp:BoundField ItemStyle-Width="40px" DataField="" HeaderText="No." ItemStyle-HorizontalAlign="Center" />
+                                            <asp:BoundField ItemStyle-Width="500px" DataField="DESCRIPTION" HeaderText="Destription" HeaderStyle-CssClass="SortColumn" />
+                                            <asp:BoundField ItemStyle-Width="80px" DataField="" HeaderText="Size" ItemStyle-HorizontalAlign="Center" />
+                                            <asp:BoundField ItemStyle-Width="100px" DataField="" HeaderText="File" ItemStyle-HorizontalAlign="Center" />
+                                            <asp:BoundField ItemStyle-Width="100px" DataField="" HeaderText="Last Update" ItemStyle-HorizontalAlign="Center" HeaderStyle-CssClass="SortColumn" />
+                                        </Columns>
+                                    </asp:GridView><br />
+                                </div>
+                                <div id="Div2" class="Pagination"></div><br />
+                            </div>
+                            <div style="display: block;" id="tab20" class="tab_content">
+                                <h2>eDM</h2>
+                                <div id="div_EDM" class="div_gv20">
+                                    <asp:GridView ID="GridView20" runat="server" AutoGenerateColumns="false" Font-Names="Arial" CellPadding="5"
+                                        Font-Size="10pt" ShowHeaderWhenEmpty="false" CssClass="SortTable">
+                                        <Columns>
+                                            <asp:BoundField ItemStyle-Width="40px" DataField="" HeaderText="No." ItemStyle-HorizontalAlign="Center" />
+                                            <asp:BoundField ItemStyle-Width="80px" DataField="" HeaderText="Image" ItemStyle-HorizontalAlign="Center" />
+                                            <asp:BoundField ItemStyle-Width="420px" DataField="DESCRIPTION" HeaderText="Destription" HeaderStyle-CssClass="SortColumn" />
+                                            <asp:BoundField ItemStyle-Width="80px" DataField="" HeaderText="Size" ItemStyle-HorizontalAlign="Center" />
+                                            <asp:BoundField ItemStyle-Width="100px" DataField="" HeaderText="File" ItemStyle-HorizontalAlign="Center" />
+                                            <asp:BoundField ItemStyle-Width="100px" DataField="" HeaderText="Last Update" ItemStyle-HorizontalAlign="Center" HeaderStyle-CssClass="SortColumn" />
+                                        </Columns>
+                                    </asp:GridView><br />
+                                </div>
+                                <div id="Pagination20" class="Pagination"></div><br />
+                            </div>
+                            <div style="display: block;" id="tab21" class="tab_content">
+                                <h2>Flyer/Leaflet</h2>
+                                <div id="div_DM" class="div_gv21">
+                                    <asp:GridView ID="GridView21" runat="server" AutoGenerateColumns="false" Font-Names="Arial" CellPadding="5"
+                                        Font-Size="10pt" ShowHeaderWhenEmpty="false" CssClass="SortTable">
+                                        <Columns>
+                                            <asp:BoundField ItemStyle-Width="40px" DataField="" HeaderText="No." ItemStyle-HorizontalAlign="Center" />
+                                            <asp:BoundField ItemStyle-Width="80px" DataField="" HeaderText="Image" ItemStyle-HorizontalAlign="Center" />
+                                            <asp:BoundField ItemStyle-Width="420px" DataField="DESCRIPTION" HeaderText="Destription" HeaderStyle-CssClass="SortColumn" />
+                                            <asp:BoundField ItemStyle-Width="80px" DataField="" HeaderText="Size" ItemStyle-HorizontalAlign="Center" />
+                                            <asp:BoundField ItemStyle-Width="100px" DataField="" HeaderText="File" ItemStyle-HorizontalAlign="Center" />
+                                            <asp:BoundField ItemStyle-Width="100px" DataField="" HeaderText="Last Update" ItemStyle-HorizontalAlign="Center" HeaderStyle-CssClass="SortColumn" />
+                                        </Columns>
+                                    </asp:GridView><br />
+                                </div>
+                                <div id="Pagination21" class="Pagination"></div><br />
+                            </div>
+                            <div style="display: block;" id="tab22" class="tab_content">
+                                <h2>Photos</h2>
+                                <div id="div_PHOTO" class="div_gv22">
+                                    <asp:GridView ID="GridView22" runat="server" AutoGenerateColumns="false" Font-Names="Arial" CellPadding="5"
+                                        Font-Size="10pt" ShowHeaderWhenEmpty="false" CssClass="SortTable">
+                                        <Columns>
+                                            <asp:BoundField ItemStyle-Width="40px" DataField="" HeaderText="No." ItemStyle-HorizontalAlign="Center" />
+                                            <asp:BoundField ItemStyle-Width="80px" DataField="" HeaderText="Image" ItemStyle-HorizontalAlign="Center" />
+                                            <asp:BoundField ItemStyle-Width="420px" DataField="DESCRIPTION" HeaderText="Destription" HeaderStyle-CssClass="SortColumn" />
+                                            <asp:BoundField ItemStyle-Width="80px" DataField="" HeaderText="Size" ItemStyle-HorizontalAlign="Center" />
+                                            <asp:BoundField ItemStyle-Width="100px" DataField="" HeaderText="File" ItemStyle-HorizontalAlign="Center" />
+                                            <asp:BoundField ItemStyle-Width="100px" DataField="" HeaderText="Last Update" ItemStyle-HorizontalAlign="Center" HeaderStyle-CssClass="SortColumn" />
+                                        </Columns>
+                                    </asp:GridView><br />
+                                </div>
+                                <div id="Pagination22" class="Pagination"></div><br />
+                            </div>
+                            <div style="display: block;" id="tab23" class="tab_content">
+                                <h2>Podcast</h2>
+                                <div id="div_PODCAST" class="div_gv23">
+                                    <asp:GridView ID="GridView23" runat="server" AutoGenerateColumns="false" Font-Names="Arial" CellPadding="5"
+                                        Font-Size="10pt" ShowHeaderWhenEmpty="false" CssClass="SortTable">
+                                        <Columns>
+                                            <asp:BoundField ItemStyle-Width="40px" DataField="" HeaderText="No." ItemStyle-HorizontalAlign="Center" />
+                                            <asp:BoundField ItemStyle-Width="500px" DataField="DESCRIPTION" HeaderText="Destription" HeaderStyle-CssClass="SortColumn" />
+                                            <asp:BoundField ItemStyle-Width="80px" DataField="" HeaderText="Size" ItemStyle-HorizontalAlign="Center" />
+                                            <asp:BoundField ItemStyle-Width="100px" DataField="" HeaderText="File" ItemStyle-HorizontalAlign="Center" />
+                                            <asp:BoundField ItemStyle-Width="100px" DataField="" HeaderText="Last Update" ItemStyle-HorizontalAlign="Center" HeaderStyle-CssClass="SortColumn" />
+                                        </Columns>
+                                    </asp:GridView><br />
+                                </div>
+                                <div id="Pagination23" class="Pagination"></div><br />
+                            </div>
+                            <div style="display: block;" id="tab24" class="tab_content">
+                                <h2>Posters</h2>
+                                <div id="div_POSTER" class="div_gv24">
+                                    <asp:GridView ID="GridView24" runat="server" AutoGenerateColumns="false" Font-Names="Arial" CellPadding="5"
+                                        Font-Size="10pt" ShowHeaderWhenEmpty="false" CssClass="SortTable">
+                                        <Columns>
+                                            <asp:BoundField ItemStyle-Width="40px" DataField="" HeaderText="No." ItemStyle-HorizontalAlign="Center" />
+                                            <asp:BoundField ItemStyle-Width="80px" DataField="" HeaderText="Image" ItemStyle-HorizontalAlign="Center" />
+                                            <asp:BoundField ItemStyle-Width="420px" DataField="DESCRIPTION" HeaderText="Destription" HeaderStyle-CssClass="SortColumn" />
+                                            <asp:BoundField ItemStyle-Width="80px" DataField="" HeaderText="Size" ItemStyle-HorizontalAlign="Center" />
+                                            <asp:BoundField ItemStyle-Width="100px" DataField="" HeaderText="File" ItemStyle-HorizontalAlign="Center" />
+                                            <asp:BoundField ItemStyle-Width="100px" DataField="" HeaderText="Last Update" ItemStyle-HorizontalAlign="Center" HeaderStyle-CssClass="SortColumn" />
+                                        </Columns>
+                                    </asp:GridView><br />
+                                </div>
+                                <div id="Pagination24" class="Pagination"></div><br />
+                            </div>
+                            <div style="display: block;" id="tab25" class="tab_content">
+                                <h2>Presentation</h2>
+                                <div id="div_PRESENTATION" class="div_gv25">
+                                    <asp:GridView ID="GridView25" runat="server" AutoGenerateColumns="false" Font-Names="Arial" CellPadding="5"
+                                        Font-Size="10pt" ShowHeaderWhenEmpty="false" CssClass="SortTable">
+                                        <Columns>
+                                            <asp:BoundField ItemStyle-Width="40px" DataField="" HeaderText="No." ItemStyle-HorizontalAlign="Center" />
+                                            <asp:BoundField ItemStyle-Width="500px" DataField="DESCRIPTION" HeaderText="Destription" HeaderStyle-CssClass="SortColumn" />
+                                            <asp:BoundField ItemStyle-Width="80px" DataField="" HeaderText="Size" ItemStyle-HorizontalAlign="Center" />
+                                            <asp:BoundField ItemStyle-Width="100px" DataField="" HeaderText="File" ItemStyle-HorizontalAlign="Center" />
+                                            <asp:BoundField ItemStyle-Width="100px" DataField="" HeaderText="Last Update" ItemStyle-HorizontalAlign="Center" HeaderStyle-CssClass="SortColumn" />
+                                        </Columns>
+                                    </asp:GridView><br />
+                                </div>
+                                <div id="Pagination25" class="Pagination"></div><br />
+                            </div>
+                            <div style="display: block;" id="tab26" class="tab_content">
+                                <h2>Press Release</h2>
+                                <div id="div_PRESS_RELEASE" class="div_gv26">
+                                    <asp:GridView ID="GridView26" runat="server" AutoGenerateColumns="false" Font-Names="Arial" CellPadding="5"
+                                        Font-Size="10pt" ShowHeaderWhenEmpty="false" CssClass="SortTable">
+                                        <Columns>
+                                            <asp:BoundField ItemStyle-Width="40px" DataField="" HeaderText="No." ItemStyle-HorizontalAlign="Center" />
+                                            <asp:BoundField ItemStyle-Width="500px" DataField="DESCRIPTION" HeaderText="Destription" HeaderStyle-CssClass="SortColumn" />
+                                            <asp:BoundField ItemStyle-Width="80px" DataField="" HeaderText="Size" ItemStyle-HorizontalAlign="Center" />
+                                            <asp:BoundField ItemStyle-Width="100px" DataField="" HeaderText="File" ItemStyle-HorizontalAlign="Center" />
+                                            <asp:BoundField ItemStyle-Width="100px" DataField="" HeaderText="Last Update" ItemStyle-HorizontalAlign="Center" HeaderStyle-CssClass="SortColumn" />
+                                        </Columns>
+                                    </asp:GridView><br />
+                                </div>
+                                <div id="Pagination26" class="Pagination"></div><br />
+                            </div>
+                            <div style="display: block;" id="tab27" class="tab_content">
+                                <h2>Product Roadmaps</h2>
+                                <div id="div_PRODUCT_ROADMAPS" class="div_gv27">
+                                    <asp:GridView ID="GridView27" runat="server" AutoGenerateColumns="false" Font-Names="Arial" CellPadding="5"
+                                        Font-Size="10pt" ShowHeaderWhenEmpty="false" CssClass="SortTable">
+                                        <Columns>
+                                            <asp:BoundField ItemStyle-Width="40px" DataField="" HeaderText="No." ItemStyle-HorizontalAlign="Center" />
+                                            <asp:BoundField ItemStyle-Width="500px" DataField="DESCRIPTION" HeaderText="Destription" HeaderStyle-CssClass="SortColumn" />
+                                            <asp:BoundField ItemStyle-Width="80px" DataField="" HeaderText="Size" ItemStyle-HorizontalAlign="Center" />
+                                            <asp:BoundField ItemStyle-Width="100px" DataField="" HeaderText="File" ItemStyle-HorizontalAlign="Center" />
+                                            <asp:BoundField ItemStyle-Width="100px" DataField="" HeaderText="Last Update" ItemStyle-HorizontalAlign="Center" HeaderStyle-CssClass="SortColumn" />
+                                        </Columns>
+                                    </asp:GridView><br />
+                                </div>
+                                <div id="Pagination27" class="Pagination"></div><br />
+                            </div>
+                            <div style="display: block;" id="tab28" class="tab_content">
+                                <h2>Sales Kit</h2>
+                                <div id="div_SALES_KIT" class="div_gv28">
+                                    <asp:GridView ID="GridView28" runat="server" AutoGenerateColumns="false" Font-Names="Arial" CellPadding="5"
+                                        Font-Size="10pt" ShowHeaderWhenEmpty="false" CssClass="SortTable">
+                                        <Columns>
+                                            <asp:BoundField ItemStyle-Width="40px" DataField="" HeaderText="No." ItemStyle-HorizontalAlign="Center" />
+                                            <asp:BoundField ItemStyle-Width="500px" DataField="DESCRIPTION" HeaderText="Destription" HeaderStyle-CssClass="SortColumn" />
+                                            <asp:BoundField ItemStyle-Width="80px" DataField="" HeaderText="Size" ItemStyle-HorizontalAlign="Center" />
+                                            <asp:BoundField ItemStyle-Width="100px" DataField="" HeaderText="File" ItemStyle-HorizontalAlign="Center" />
+                                            <asp:BoundField ItemStyle-Width="100px" DataField="" HeaderText="Last Update" ItemStyle-HorizontalAlign="Center" HeaderStyle-CssClass="SortColumn" />
+                                        </Columns>
+                                    </asp:GridView><br />
+                                </div>
+                                <div id="Pagination28" class="Pagination"></div><br />
+                            </div>
+                            <div style="display: block;" id="tab29" class="tab_content">
+                                <h2>Video</h2>
+                                <div id="div_VIDEO" class="div_gv29">
+                                    <asp:GridView ID="GridView29" runat="server" AutoGenerateColumns="false" Font-Names="Arial" CellPadding="5"
+                                        Font-Size="10pt" ShowHeaderWhenEmpty="false" CssClass="SortTable">
+                                        <Columns>
+                                            <asp:BoundField ItemStyle-Width="40px" DataField="" HeaderText="No." ItemStyle-HorizontalAlign="Center" />
+                                            <asp:BoundField ItemStyle-Width="80px" DataField="" HeaderText="Image" ItemStyle-HorizontalAlign="Center" />
+                                            <asp:BoundField ItemStyle-Width="500px" DataField="DESCRIPTION" HeaderText="Destription" HeaderStyle-CssClass="SortColumn" />
+                                            <asp:BoundField ItemStyle-Width="100px" DataField="" HeaderText="File" ItemStyle-HorizontalAlign="Center" />
+                                            <asp:BoundField ItemStyle-Width="100px" DataField="" HeaderText="Last Update" ItemStyle-HorizontalAlign="Center" HeaderStyle-CssClass="SortColumn" />
+                                        </Columns>
+                                    </asp:GridView><br />
+                                </div>
+                                <div id="Pagination29" class="Pagination"></div><br />
+                            </div>
+                            <div style="display: block;" id="tab30" class="tab_content">
+                                <h2>Webcast</h2>
+                                <div id="div_WEBCAST" class="div_gv30">
+                                    <asp:GridView ID="GridView30" runat="server" AutoGenerateColumns="false" Font-Names="Arial" CellPadding="5"
+                                        Font-Size="10pt" ShowHeaderWhenEmpty="false" CssClass="SortTable">
+                                        <Columns>
+                                            <asp:BoundField ItemStyle-Width="40px" DataField="" HeaderText="No." ItemStyle-HorizontalAlign="Center" />
+                                            <asp:BoundField ItemStyle-Width="500px" DataField="DESCRIPTION" HeaderText="Destription" HeaderStyle-CssClass="SortColumn" />
+                                            <asp:BoundField ItemStyle-Width="80px" DataField="" HeaderText="Size" ItemStyle-HorizontalAlign="Center" />
+                                            <asp:BoundField ItemStyle-Width="100px" DataField="" HeaderText="File" ItemStyle-HorizontalAlign="Center" />
+                                            <asp:BoundField ItemStyle-Width="100px" DataField="" HeaderText="Last Update" ItemStyle-HorizontalAlign="Center" HeaderStyle-CssClass="SortColumn" />
+                                        </Columns>
+                                    </asp:GridView><br />
+                                </div>
+                                <div id="Pagination30" class="Pagination"></div><br />
+                            </div>
+                            <div style="display: block;" id="tab31" class="tab_content">
+                                <h2>White Paper</h2>
+                                <div id="div_WHITE_PAPERS" class="div_gv31">
+                                    <asp:GridView ID="GridView31" runat="server" AutoGenerateColumns="false" Font-Names="Arial" CellPadding="5"
+                                        Font-Size="10pt" ShowHeaderWhenEmpty="false" CssClass="SortTable">
+                                        <Columns>
+                                            <asp:BoundField ItemStyle-Width="40px" DataField="" HeaderText="No." ItemStyle-HorizontalAlign="Center" />
+                                            <asp:BoundField ItemStyle-Width="420px" DataField="DESCRIPTION" HeaderText="Destription" HeaderStyle-CssClass="SortColumn" />
+                                            <asp:BoundField ItemStyle-Width="80px" DataField="" HeaderText="Language" ItemStyle-HorizontalAlign="Center" />
+                                            <asp:BoundField ItemStyle-Width="80px" DataField="" HeaderText="Size" ItemStyle-HorizontalAlign="Center" />
+                                            <asp:BoundField ItemStyle-Width="100px" DataField="" HeaderText="File" ItemStyle-HorizontalAlign="Center" />
+                                            <asp:BoundField ItemStyle-Width="100px" DataField="" HeaderText="Last Update" ItemStyle-HorizontalAlign="Center" HeaderStyle-CssClass="SortColumn" />
+                                        </Columns>
+                                    </asp:GridView><br />
+                                </div>
+                                <div id="Pagination31" class="Pagination"></div><br />
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            
+            </td>
+        </tr>
+    </table>
+    
+</asp:Panel>
+
+</asp:Content>
+

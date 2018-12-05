@@ -1,0 +1,284 @@
+﻿<%@ Page Language="VB" MasterPageFile="~/Includes/MyMaster.master" Title="MyAdvantech - Approval Flow Definition" %>
+
+<script runat="server">
+    Dim Otype As String = ""
+    Protected Sub Page_Load(ByVal sender As Object, ByVal e As System.EventArgs)
+        If Request("type") <> "" Then
+            Otype = Request("type")
+        Else
+            Otype = "GP"
+        End If
+        
+        If Otype = "GP" Then
+            Me.lbCriterion.Text = "GP% : "
+            Me.lbRangeFlag.Visible = False
+        Else
+            Me.lbCriterion.Text = "Amount Range : "
+            Me.lbPercentageSign.Visible = False
+        End If
+        
+        Dim Sqlstr As String = "select [Office_Name],[Group_Name],[gp_level],[approver],[active],[id] from GPBLOCK_LOGIC where office_name='" & Me.drpOfficeSelecter.SelectedItem.Text.Trim & "' and type='" & Otype & "' order by GROUP_CODE,GP_LEVEL"
+        Me.SqlDataSource1.SelectCommand = Sqlstr
+        filter(Me.txtStr.Text)
+        'Response.Write(Chr(95) & Chr(45))
+        If Not IsPostBack Then
+            Me.GridView1.DataBind()
+            Me.drpType.SelectedValue = Otype
+        End If
+    End Sub
+    
+    
+    Sub filter(ByVal key As String)
+        key = Replace(key, "-", "–")
+        Me.SqlDataSource1.FilterExpression = Me.drpFields.SelectedValue & " like '%" & key & "%'"
+    End Sub
+
+    Protected Sub btnSubmit_Click(ByVal sender As Object, ByVal e As System.EventArgs)
+        Dim oApprover As String = Me.TxtApprover.Text
+        Dim oGP As Decimal = CType(Me.TxtGP.Text.ToString, Decimal) / 100
+        Dim oOffice As String = Me.drpOffice.SelectedItem.Text
+        Dim oOfficeCode As String = Me.drpOffice.SelectedValue
+        Dim oGroup As String = Me.drpGroup.SelectedItem.Text
+        Dim oGroupCode As String = Me.drpGroup.SelectedValue
+        Dim oActive As Integer = Me.DrpStatus.SelectedValue
+        
+        
+        dbUtil.dbExecuteNoQuery("B2B", "insert into GPBLOCK_LOGIC (Approver,gp_level,office_name,office_code,group_name,group_code,active,TYPE) values " & _
+                                "('" & oApprover & "','" & oGP & "','" & oOffice & "','" & oOfficeCode & "','" & oGroup & "','" & oGroupCode & "','" & oActive & "','" & Otype & "')")
+            
+       
+        Me.TxtApprover.Text = ""
+        Me.TxtGP.Text = ""
+        Me.drpOffice.SelectedIndex = 0
+        Me.drpGroup.SelectedIndex = 0
+        Me.DrpStatus.SelectedIndex = 0
+        Me.GridView1.DataBind()
+    End Sub
+
+    Protected Sub btnSH_Click(ByVal sender As Object, ByVal e As System.EventArgs)
+        
+        Me.GridView1.DataBind()
+    End Sub
+
+    Protected Sub drpOfficeSelecter_SelectedIndexChanged(ByVal sender As Object, ByVal e As System.EventArgs)
+        Me.GridView1.DataBind()
+    End Sub
+
+    Protected Sub drpType_SelectedIndexChanged(ByVal sender As Object, ByVal e As System.EventArgs)
+        Response.Redirect("GPBlockManagement.aspx?type=" & Me.drpType.SelectedValue)
+    End Sub
+</script>
+
+<asp:Content ID="Content1" ContentPlaceHolderID="_main" Runat="Server">
+<table width="100%" height="100%" border="0" cellspacing="0" cellpadding="0">
+			<!-- ******* page header (start) ********-->
+			<tr valign="top">
+				<td>
+                    
+					<!--include virtual="/includes/header_inc.asp" -->
+				</td>
+			</tr>
+			<!-- ******* page header (end) ********-->
+			<tr valign="top">
+				<td >
+					<!-- ******* main pane (start) ********-->
+					<table width="100%" ID="Table2" >
+	
+						<tr valign="top">
+							<td height="2">&nbsp;
+							</td>
+						</tr>
+						<!-- ******* page title (start) ********-->
+						<tr valign="top">
+							<td colspan="2"><div class="euPageTitle">Approval Flow Definition</div>
+							</td>
+						</tr>
+						<tr>
+						<td colspan="2" align="right">
+						<table><tr><td><font color="#336699"><b>Approval Type: </b></font></td>
+						<td><asp:DropDownList runat="server" ID="drpType" AutoPostBack="true" OnSelectedIndexChanged="drpType_SelectedIndexChanged">
+                                <asp:ListItem Text="GP" Value="GP" />
+                                <asp:ListItem Text="Amonut" Value="Amount" />
+                            </asp:DropDownList></td></tr></table>
+							</td>
+						</tr>
+						<tr valign="top"><td colspan="2" height="2" align="center" >
+						
+						
+						<table width="500px" cellpadding="2" cellspacing="0" runat="server" border="0" id="RegTable">   
+                                   
+                   
+                    <tr>
+                        <th align="left" style="width:20%; border-bottom:SOLID 1PX #EEEEEE;">Approver :</th>
+                        <td align="left" style="width:70%; border-bottom:SOLID 1PX #EEEEEE; border-left:SOLID 1PX #EEEEEE">
+                            &nbsp;<asp:TextBox runat="server" ID="TxtApprover" Width="250px" />
+                        </td>
+                    </tr>
+                    <tr>
+                        <th align="left" style="width:20%; border-bottom:SOLID 1PX #EEEEEE;"><ASP:label runat="server" id="lbCriterion" text="GP% :"></ASP:label></th>
+                        <td align="left" style="width:70%; border-bottom:SOLID 1PX #EEEEEE; border-left:SOLID 1PX #EEEEEE">
+                            &nbsp;<ASP:label runat="server" id="lbRangeFlag" text=">"></ASP:label><asp:TextBox runat="server" ID="TxtGP" Width="25px" /><ASP:label runat="server" id="lbPercentageSign" text="%"></ASP:label>
+                        </td>                        
+                    </tr>
+                    <tr>
+                        <th align="left" style="width:20%; border-bottom:SOLID 1PX #EEEEEE;">Office :</th>
+                        <td align="left" style="width:70%; border-bottom:SOLID 1PX #EEEEEE; border-left:SOLID 1PX #EEEEEE">
+                            &nbsp;<asp:DropDownList runat="server" ID="drpOffice">
+                                <asp:ListItem Text="ADL" Value="3000" />
+                                <asp:ListItem Text="ABN" Value="3100" />
+                                <asp:ListItem Text="AFR" Value="3200" />
+                                <asp:ListItem Text="AIT" Value="3300" />
+                                <asp:ListItem Text="AUK" Value="3400" />
+                                <asp:ListItem Text="AEE" Value="3600" />
+                                <asp:ListItem Text="ET" Value="3700" />
+                                <asp:ListItem Text="Others" Value="9999" />
+                            </asp:DropDownList>
+                            </td>
+                    </tr>
+                    <tr>
+                        <th align="left" style="width:20%; border-bottom:SOLID 1PX #EEEEEE;">Group :</th>
+                        <td align="left" style="width:70%; border-bottom:SOLID 1PX #EEEEEE; border-left:SOLID 1PX #EEEEEE">
+                            &nbsp;<asp:DropDownList runat="server" ID="drpGroup">
+                                <asp:ListItem Text="eAutomation Distribution" Value="313" />
+                                <asp:ListItem Text="eAutomation GA" Value="315" />
+                                <asp:ListItem Text="eAutomation KA" Value="312" />
+                                <asp:ListItem Text="eAutomation KA SI" Value="316" />
+                                <asp:ListItem Text="eAutomation KA SP" Value="317" />
+                                <asp:ListItem Text="eAutomation PCP" Value="311" />
+                                <asp:ListItem Text="eAutomation PKA" Value="310" />
+                                <asp:ListItem Text="eAutomation SI" Value="314" />
+                                <asp:ListItem Text="ePlatform CSF" Value="321" />
+                                <asp:ListItem Text="ePlatform GA (DMF & Potential KS)" Value="322" />
+                                <asp:ListItem Text="ePlatform KA Embedded" Value="323" />
+                                <asp:ListItem Text="ePlatform KA Medical" Value="324" />
+                                <asp:ListItem Text="ePlatform KA Telecom" Value="325" />
+                                <asp:ListItem Text="ePlatform PCP" Value="320" />
+                                <asp:ListItem Text="eP" Value="998" />
+                                <asp:ListItem Text="IA" Value="997" />
+                                <asp:ListItem Text="DMF" Value="996" />
+                                <asp:ListItem Text="Others" Value="999" />
+                            </asp:DropDownList>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th align="left" style="width:20%">Status :</th>
+                        <td align="left" style="width:70%;  border-left:SOLID 1PX #EEEEEE">
+                            &nbsp;<asp:DropDownList runat="server" ID="DrpStatus">
+                                <asp:ListItem Text="Active" Value="1" />
+                                <asp:ListItem Text="Non-Active" Value="0" />
+                            </asp:DropDownList>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td colspan="2" align="left">
+                        </td>
+                    </tr>
+                    <tr>
+                        <td colspan="2" align="center">
+                            <asp:Button runat="server" ID="btnSubmit" OnClick="btnSubmit_Click" text=" Add "/>                           
+                        </td>
+                    </tr>
+                </table>
+						</td></tr>
+						<tr><td colspan="2" style ="border-bottom:dashed 1px #6699CC">&nbsp;</td></tr>
+						<tr valign="top">
+							<td align="left" >
+							<table><tr><td>Office:</td><td>
+							<asp:DropDownList runat="server" ID="drpOfficeSelecter" AutoPostBack="true" OnSelectedIndexChanged="drpOfficeSelecter_SelectedIndexChanged">
+                                <asp:ListItem Text="ADL" Value="3000" />
+                                <asp:ListItem Text="ABN" Value="3100" />
+                                <asp:ListItem Text="AFR" Value="3200" />
+                                <asp:ListItem Text="AIT" Value="3300" />
+                                <asp:ListItem Text="AUK" Value="3400" />
+                                <asp:ListItem Text="AEE" Value="3600" />
+                                <asp:ListItem Text="ET" Value="3700" />
+                                   <asp:ListItem Text="Others" Value="9999" />
+                            </asp:DropDownList>
+							</td><td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td><td>Search By:</td><td>
+                                             <asp:DropDownList ID="drpFields" runat="server">
+                                             <asp:ListItem Value="group_name">Group</asp:ListItem>
+                                             <asp:ListItem Value="Approver">Approver</asp:ListItem>
+                                            </asp:DropDownList>
+                                        </td>
+                                        <td><asp:TextBox ID="txtStr" runat="server"></asp:TextBox></td><td>
+                                            <asp:Button ID="btnSH" runat="server" Text="Search" OnClick="btnSH_Click" />
+                                            </td></tr></table>
+			<!-- include virtual = "/quote/QuoteHistory_List_main.asp" -->
+	<table cellpadding="1"  width="100%"><tr><td style="background-color:#666666">
+		<table width="100%" border="0" cellspacing="0" cellpadding="0" align="center" style="vertical-align:middle" ID="Table3">
+           <tr>
+             <td style="padding-left:10px;border-bottom:#ffffff 1px solid;height:20px;background-color:#6699CC" align="left" valign="middle" class="text">
+                   <font color="#ffffff"><b>List</b></font></td></tr>
+                        <tr><td>
+                                            <asp:GridView runat="server" ID="GridView1" 
+                                                          DataSourceID ="SqlDataSource1" 
+                                                          AllowPaging="True" 
+                                                          PageIndex="0" 
+                                                          PageSize="30" 
+                                                          Width="100%" AutoGenerateColumns="false" DataKeyNames ="ID">
+                                        <Columns>
+                                        <asp:BoundField DataField="Office_Name" HeaderText="Office" ReadOnly="true" />
+                                        <asp:BoundField DataField="Group_Name" HeaderText="Group"   ReadOnly="true" />
+                                        <asp:BoundField DataField="gp_level" HeaderText="GP%"/>
+                                        <asp:BoundField DataField="approver" HeaderText="Approver"/>
+                                        <asp:TemplateField HeaderText="Status">
+                                        <ItemTemplate>
+                                        <asp:DropDownList runat ="server" SelectedValue='<%#Bind("active") %>' ID="active" Enabled="false">
+                                        <asp:ListItem Value="1">Active</asp:ListItem>
+                                        <asp:ListItem Value="0">Non-Active</asp:ListItem>
+                                        </asp:DropDownList>
+                                        </ItemTemplate>
+                                        <EditItemTemplate>
+                                        <asp:DropDownList runat ="server" SelectedValue='<%#Bind("active") %>' ID="active">
+                                        <asp:ListItem Value="1">Active</asp:ListItem>
+                                        <asp:ListItem Value="0">Non-Active</asp:ListItem>
+                                        </asp:DropDownList>
+                                        </EditItemTemplate>
+                                        </asp:TemplateField>
+                                        
+                                        <asp:CommandField ShowDeleteButton="true" />
+                                        <asp:CommandField ShowEditButton="true"  />
+                                        </Columns>
+                                            </asp:GridView>		
+													
+                                            <asp:SqlDataSource ID="SqlDataSource1" 
+                                                               runat="server" 
+                                                               ConnectionString="<%$ ConnectionStrings:B2B %>"
+                                                                UpdateCommand ="update [GPBLOCK_LOGIC] set [approver]=@approver,[active]=@active,[Gp_level]=@gp_level
+                                                                 where ID=@ID"
+                                                                 DeleteCommand="DELETE FROM [GPBLOCK_LOGIC] WHERE ID=@ID">
+                                                               <UpdateParameters>
+                                                               <asp:Parameter Type="string" Name="approver" />
+                                                               <asp:Parameter Type="string" Name="active" />
+                                                               <asp:Parameter Type="string" Name="GP_LEVEL" />
+                                                               </UpdateParameters>
+                                            </asp:SqlDataSource>
+						</td></tr>
+			<tr><td id="tdTotal" align="right" style="background-color:#ffffff" runat="server"></td></tr></table>
+				</td></tr></table>
+							</td>
+						</tr>
+						<!-- ******* record list1 (end) ********-->
+						<tr valign="top">
+							<td height="2">&nbsp;
+							</td>
+						</tr>
+					</table>
+					<!-- ******* main pane (end) ********-->
+				</td>
+			</tr>
+			<tr valign="top">
+				<td height="2">&nbsp;
+				</td>
+			</tr>
+			<!-- *******  page footer (start) ********-->
+			<tr valign="top">
+				<td>
+                   
+					<!--include virtual="/utility/footer_inc.asp" -->
+				</td>
+			</tr>
+			<!-- *******  page footer (end) ********-->
+		</table>
+</asp:Content>
+

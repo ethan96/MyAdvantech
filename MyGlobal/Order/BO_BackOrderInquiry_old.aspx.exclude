@@ -1,0 +1,700 @@
+﻿<%@ Page Language="VB" MasterPageFile="~/Includes/MyMaster.master" Title="MyAdvantech - Back Order Inquiry" %>
+
+<%@ Import Namespace="System.Data.SqlClient" %>
+<%@ Register TagPrefix="NaviOrderTracking" TagName="Inc" Src="~/Includes/OrderTrackingNavi_Inc.ascx" %>
+
+<script runat="server">
+    Dim BackOrder_DT As New DataTable
+    Protected Sub gv1_PageIndexChanging(ByVal sender As Object, ByVal e As System.Web.UI.WebControls.GridViewPageEventArgs) Handles gv1.PageIndexChanging
+        gv1.PageIndex = e.NewPageIndex
+        gv1.DataSource = BackOrder_DT
+        gv1.DataBind()
+    End Sub
+    
+    Private Property GridViewSortDirection() As String
+        Get
+            Return IIf(ViewState("SortDirection") = Nothing, "ASC", ViewState("SortDirection"))
+        End Get
+        Set(ByVal value As String)
+            ViewState("SortDirection") = value
+        End Set
+    End Property
+
+    Private Property GridViewSortExpression() As String
+        Get
+            Return IIf(ViewState("SortExpression") = Nothing, String.Empty, ViewState("SortExpression"))
+        End Get
+        Set(ByVal value As String)
+            ViewState("SortExpression") = value
+        End Set
+    End Property
+    
+    Private Function GetSortDirection() As String
+        Select Case GridViewSortDirection
+            Case "ASC"
+                GridViewSortDirection = "DESC"
+            Case "DESC"
+                GridViewSortDirection = "ASC"
+        End Select
+        Return GridViewSortDirection
+    End Function
+
+    Protected Sub gv1_Sorting(ByVal sender As Object, ByVal e As GridViewSortEventArgs) Handles gv1.Sorting
+        GridViewSortExpression = e.SortExpression
+        Dim pageIndex As Integer = gv1.PageIndex
+        gv1.DataSource = SortDataTable(gv1.DataSource, False)
+        gv1.DataBind()
+        gv1.PageIndex = pageIndex
+    End Sub
+
+    Protected Function SortDataTable(ByVal dataTable As DataTable, ByVal isPageIndexChanging As Boolean) As DataView
+        If Not dataTable Is Nothing Then
+            Dim dataView As New DataView(dataTable)
+            If GridViewSortExpression <> String.Empty Then
+                If isPageIndexChanging Then
+                    dataView.Sort = String.Format("{0} {1}", GridViewSortExpression, GridViewSortDirection)
+                Else
+                    dataView.Sort = String.Format("{0} {1}", GridViewSortExpression, GetSortDirection())
+                End If
+            End If
+            Return dataView
+        Else
+            Return New DataView()
+        End If
+    End Function
+
+    Dim dtorderdateFrom As String = "", dtorderdateTo As String = ""
+    Private Sub page_load(ByVal sender As Object, ByVal e As System.EventArgs)
+        If Not Page.IsPostBack Then
+            If Trim(Request("txtOrderDateFrom") = "") Then
+                Me.txtOrderDateFrom.Text = FormatDate_SAP(Date.Now.AddDays(-30))
+            Else
+                Me.txtOrderDateFrom.Text = FormatDate_SAP(Request("txtOrderDateFrom"))
+            End If
+            If Trim(Request("txtOrderDateTo") = "") Then
+                Me.txtOrderDateTo.Text = FormatDate_SAP(Date.Now())
+            Else
+                Me.txtOrderDateTo.Text = FormatDate_SAP(Request("txtOrderDateTo"))
+            End If
+            If Request("txtSONO") IsNot Nothing Then Me.txtSO_NO.Text = Trim(Request("txtSONO"))
+            If Request("txtPONO") IsNot Nothing Then Me.txtPO_NO.Text = Trim(Request("txtPONO"))
+            If Request("txtPN") IsNot Nothing Then Me.txtPart_NO.Text = Trim(Request("txtPN"))
+        End If
+        Call initSearch()
+        
+    End Sub
+    
+    Private Sub initSearch()
+        'Get Data for DataGrid (START)
+        '----------------------------------------------------------------------------
+        Dim strSQLBackOrder As String = ""
+        
+        '--1. SO,PO,PartNo all Empty
+        '--2. Query By PO 
+        '--3. Query By ProductID
+        '======Maybe contain both Component Order and BTOS Order
+        '--4. Query By SO
+        If Me.txtSO_NO.Text.Trim = "" And Me.txtPO_NO.Text.Trim = "" And Me.txtPart_NO.Text.Trim = "" Then
+            Dim strConn As String = ConfigurationManager.ConnectionStrings("B2B").ToString
+            Dim oAdp As New SqlDataAdapter
+            oAdp.SelectCommand = New SqlCommand
+            oAdp.SelectCommand.Connection = New SqlConnection(strConn)
+            oAdp.SelectCommand.CommandType = CommandType.StoredProcedure
+            oAdp.SelectCommand.CommandText = "[dbo].[SP_PAGE_GETBACKORDER]"
+            Dim oPara1 As SqlParameter = New SqlParameter("@CompanyID", SqlDbType.VarChar)
+            oPara1.Value = Session("Company_ID")
+            oAdp.SelectCommand.Parameters.Add(oPara1)
+            Dim oPara2 As SqlParameter = New SqlParameter("@PONo", SqlDbType.VarChar)
+            oPara2.Value = ""
+            oAdp.SelectCommand.Parameters.Add(oPara2)
+            Dim oPara3 As SqlParameter = New SqlParameter("@DateFrom", SqlDbType.DateTime)
+            oPara3.Value = CDate(Me.txtOrderDateFrom.Text.Trim)
+            oAdp.SelectCommand.Parameters.Add(oPara3)
+            Dim oPara4 As SqlParameter = New SqlParameter("@DateTo", SqlDbType.DateTime)
+            oPara4.Value = CDate(Me.txtOrderDateTo.Text.Trim)
+            oAdp.SelectCommand.Parameters.Add(oPara4)
+            oAdp.Fill(BackOrder_DT)
+            oAdp.Dispose()
+        Else
+            If Me.txtSO_NO.Text.Trim = "" And Me.txtPart_NO.Text.Trim = "" And Me.txtPO_NO.Text.Trim <> "" Then
+                Dim strConn As String = ConfigurationManager.ConnectionStrings("B2B").ToString
+                Dim oAdp As New SqlDataAdapter
+                oAdp.SelectCommand = New SqlCommand
+                oAdp.SelectCommand.Connection = New SqlConnection(strConn)
+                oAdp.SelectCommand.CommandType = CommandType.StoredProcedure
+                oAdp.SelectCommand.CommandText = "[dbo].[SP_PAGE_GETBACKORDER]"
+                Dim oPara1 As SqlParameter = New SqlParameter("@CompanyID", SqlDbType.VarChar)
+                oPara1.Value = Session("Company_ID")
+                oAdp.SelectCommand.Parameters.Add(oPara1)
+                Dim oPara2 As SqlParameter = New SqlParameter("@PONo", SqlDbType.VarChar)
+                oPara2.Value = Me.txtPO_NO.Text.Trim
+                oAdp.SelectCommand.Parameters.Add(oPara2)
+                Dim oPara3 As SqlParameter = New SqlParameter("@DateFrom", SqlDbType.DateTime)
+                oPara3.Value = CDate(Me.txtOrderDateFrom.Text.Trim)
+                oAdp.SelectCommand.Parameters.Add(oPara3)
+                Dim oPara4 As SqlParameter = New SqlParameter("@DateTo", SqlDbType.DateTime)
+                oPara4.Value = CDate(Me.txtOrderDateTo.Text.Trim)
+                oAdp.SelectCommand.Parameters.Add(oPara4)
+                oAdp.Fill(BackOrder_DT)
+                oAdp.Dispose()
+            ElseIf Me.txtSO_NO.Text.Trim = "" And Me.txtPart_NO.Text.Trim <> "" And Me.txtPO_NO.Text.Trim = "" Then
+                Dim strConn As String = ConfigurationManager.ConnectionStrings("B2B").ToString
+                Dim oAdp As New SqlDataAdapter
+                oAdp.SelectCommand = New SqlCommand
+                oAdp.SelectCommand.Connection = New SqlConnection(strConn)
+                oAdp.SelectCommand.CommandType = CommandType.StoredProcedure
+                oAdp.SelectCommand.CommandText = "[dbo].[SP_PAGE_GETBACKORDER_ByProductID]"
+                Dim oPara1 As SqlParameter = New SqlParameter("@CompanyID", SqlDbType.VarChar)
+                oPara1.Value = Session("Company_ID")
+                oAdp.SelectCommand.Parameters.Add(oPara1)
+                Dim oPara2 As SqlParameter = New SqlParameter("@ProductID", SqlDbType.VarChar)
+                oPara2.Value = Me.txtPart_NO.Text.Trim
+                oAdp.SelectCommand.Parameters.Add(oPara2)
+                Dim oPara3 As SqlParameter = New SqlParameter("@DateFrom", SqlDbType.DateTime)
+                oPara3.Value = CDate(Me.txtOrderDateFrom.Text.Trim)
+                oAdp.SelectCommand.Parameters.Add(oPara3)
+                Dim oPara4 As SqlParameter = New SqlParameter("@DateTo", SqlDbType.DateTime)
+                oPara4.Value = CDate(Me.txtOrderDateTo.Text.Trim)
+                oAdp.SelectCommand.Parameters.Add(oPara4)
+                oAdp.Fill(BackOrder_DT)
+                oAdp.Dispose()
+            ElseIf Me.txtSO_NO.Text.Trim <> "" Then
+                Dim strConn As String = ConfigurationManager.ConnectionStrings("B2B").ToString
+                Dim tDT As New DataTable
+                strSQLBackOrder = "Select OrderNo, " & _
+                          " PONo, " & _
+                          " ShipToId, " & _
+                          " BillToId, " & _
+                          " OrderDate, " & _
+                          " Currency, " & _
+                          " OrderLine, " & _
+                          " SchdLineNo, " & _
+                          " ProductId, " & _
+                          " SchdLineConfirmQty, " & _
+                          " (SchdLineConfirmQty - SchdLineOpenQty) as SchedLineShipedQty , " & _
+                          " UnitPrice, " & _
+                          " (SchdLineConfirmQty * UnitPrice) as TotalPrice, " & _
+                          " DueDate,DueDate as OriginalDD, " & _
+                          " SchdLineOpenQty, " & _
+                          " IsNull(ExWarranty,'00') as ExWarranty,NoATPFlag " & _
+                          " From factOrder " & _
+                          " Where SchdLineStatus <> 'C' And CustomerID = '" & Session("COMPANY_ID") & "' " & _
+                          "   And OrderNo = '" & Me.txtSO_NO.Text.Trim & "' " & _
+                          " Order By OrderNo Desc,OrderLine,SchdLineNo"
+            
+                Dim oAdp As SqlDataAdapter = New SqlDataAdapter(strSQLBackOrder, strConn)
+                oAdp.Fill(tDT)
+                oAdp.Dispose()
+                If tDT.Rows.Count > 0 Then
+                    If Left(tDT.Rows(0).Item("ProductId").ToString, 5).ToUpper = "C-CTOS" Or Right(tDT.Rows(0).Item("ProductId").ToString, 4).ToUpper = "-BTO" Then
+                        For j As Integer = 2 To tDT.Columns.Count - 1
+                            BackOrder_DT.Columns.Add(New DataColumn(tDT.Columns(j).ColumnName, tDT.Columns(j).DataType))
+                        Next
+                        Dim xDataRow() As DataRow = tDT.Select("OrderLine='000100'")
+                        Dim yDataRow As DataRow
+                        For m As Integer = 1 To xDataRow.Length - 1
+                            yDataRow = BackOrder_DT.NewRow
+                            For n As Integer = 0 To BackOrder_DT.Columns.Count - 1
+                                yDataRow.Item(n) = xDataRow(m).Item(n)
+                            Next
+                            BackOrder_DT.Rows.Add(yDataRow)
+                        Next
+                        
+                        For i As Integer = 0 To BackOrder_DT.Rows.Count - 1
+                            BackOrder_DT.Rows(i).Item("UnitPrice") = CDec(tDT.Compute("Sum(UnitPrice)", "SchdLineNo='" & BackOrder_DT.Rows(i).Item("SchdLineNo") & "'"))
+                            BackOrder_DT.Rows(i).Item("TotalPrice") = CDec(tDT.Compute("Sum(UnitPrice)", "SchdLineNo='" & BackOrder_DT.Rows(i).Item("SchdLineNo") & "'")) * CInt(BackOrder_DT.Rows(i).Item("SchdLineConfirmQty"))
+                        Next
+                        BackOrder_DT.AcceptChanges()
+                    Else
+                        BackOrder_DT = tDT
+                    End If
+                End If
+            Else
+                Dim strConn As String = ConfigurationManager.ConnectionStrings("B2B").ToString
+               
+                strSQLBackOrder = "Select OrderNo, " & _
+                          " PONo, " & _
+                          " ShipToId, " & _
+                          " BillToId, " & _
+                          " OrderDate, " & _
+                          " Currency, " & _
+                          " OrderLine, " & _
+                          " SchdLineNo, " & _
+                          " ProductId, " & _
+                          " SchdLineConfirmQty, " & _
+                          " (SchdLineConfirmQty - SchdLineOpenQty) as SchedLineShipedQty , " & _
+                          " UnitPrice, " & _
+                          " (SchdLineConfirmQty * UnitPrice) as TotalPrice, " & _
+                          " DueDate,DueDate as OriginalDD, " & _
+                          " SchdLineOpenQty, " & _
+                          " IsNull(ExWarranty,'00') as ExWarranty,NoATPFlag " & _
+                          " From factOrder " & _
+                          " Where 1<>1 "
+                Dim oAdp As SqlDataAdapter = New SqlDataAdapter(strSQLBackOrder, strConn)
+                oAdp.Fill(BackOrder_DT)
+                oAdp.Dispose()
+            End If
+        End If
+        If BackOrder_DT.Rows.Count < 1 Then
+            Dim strConn As String = ConfigurationManager.ConnectionStrings("B2B").ToString
+               
+            strSQLBackOrder = "Select OrderNo, " & _
+                      " PONo, " & _
+                      " ShipToId, " & _
+                      " BillToId, " & _
+                      " OrderDate, " & _
+                      " Currency, " & _
+                      " OrderLine, " & _
+                      " SchdLineNo, " & _
+                      " ProductId, " & _
+                      " SchdLineConfirmQty, " & _
+                      " (SchdLineConfirmQty - SchdLineOpenQty) as SchedLineShipedQty , " & _
+                      " UnitPrice, " & _
+                      " (SchdLineConfirmQty * UnitPrice) as TotalPrice, " & _
+                      " DueDate, DueDate as OriginalDD," & _
+                      " SchdLineOpenQty, " & _
+                      " IsNull(ExWarranty,'00') as ExWarranty,NoATPFlag " & _
+                      " From factOrder " & _
+                      " Where 1<>1 "
+            Dim oAdp As SqlDataAdapter = New SqlDataAdapter(strSQLBackOrder, strConn)
+            BackOrder_DT.Clear()
+            oAdp.Fill(BackOrder_DT)
+            oAdp.Dispose()
+        End If
+        Me.gv1.DataSource = BackOrder_DT
+        If Not Page.IsPostBack Or Me.SearchFlag.Text = "YES" Then
+            Me.SearchFlag.Text = "NO"
+            Me.gv1.DataBind()
+        End If
+    End Sub
+    
+    Function FormatDate(ByVal xDate As String) As String
+        Dim xYear As String = "0000"
+        Dim xMonth As String = "00"
+        Dim xDay As String = "00"
+        
+        If IsDate(xDate) = True Then
+            xYear = Year(xDate).ToString
+            xMonth = Month(xDate).ToString
+            xDay = Day(xDate).ToString
+        Else
+            Dim ArrDate() As String = xDate.Split("/")
+        
+            If ArrDate(0).Length = 4 Then
+                xYear = ArrDate(0)
+                xMonth = ArrDate(1)
+                xDay = ArrDate(2)
+            Else
+                xYear = ArrDate(2)
+                xMonth = ArrDate(0)
+                xDay = ArrDate(1)
+            End If
+        End If
+        
+        If xMonth.Length = 1 Then
+            xMonth = "0" & xMonth
+        End If
+        If xDay.Length = 1 Then
+            xDay = "0" & xDay
+        End If
+        FormatDate = xMonth & "/" & xDay & "/" & xYear
+    End Function
+    Function FormatDate_SAP(ByVal xDate As String) As String
+        If xDate Is Nothing Then Return Now.ToString("yyyy/MM/dd")
+        Dim xYear As String = "0000"
+        Dim xMonth As String = "00"
+        Dim xDay As String = "00"
+        'Response.Write(xDate)
+        'Response.End()
+        If IsDate(xDate) = True Then
+            xYear = Year(xDate).ToString
+            xMonth = Month(xDate).ToString
+            xDay = Day(xDate).ToString
+        Else
+            Dim ArrDate() As String = xDate.Split("/")
+        
+            If ArrDate(0).Length = 4 Then
+                xYear = ArrDate(0)
+                xMonth = ArrDate(1)
+                xDay = ArrDate(2)
+            Else
+                xYear = ArrDate(2)
+                xMonth = ArrDate(0)
+                xDay = ArrDate(1)
+            End If
+        End If
+        
+        If xMonth.Length = 1 Then
+            xMonth = "0" & xMonth
+        End If
+        If xDay.Length = 1 Then
+            xDay = "0" & xDay
+        End If
+        FormatDate_SAP = xYear & "/" & xMonth & "/" & xDay
+    End Function
+    
+    Function FormatDate_Daive(ByVal xDate As String) As String
+        Dim xYear As String = "0000"
+        Dim xMonth As String = "00"
+        Dim xDay As String = "00"
+        
+        xYear = Left(xDate, 4)
+        xMonth = Mid(xDate, 5, 2)
+        xDay = Right(xDate, 2)
+        
+        If xMonth.Length = 1 Then
+            xMonth = "0" & xMonth
+        End If
+        If xDay.Length = 1 Then
+            xDay = "0" & xDay
+        End If
+        FormatDate_Daive = xYear & "/" & xMonth & "/" & xDay
+    End Function
+    
+    Protected Sub submit_Click(ByVal sender As Object, ByVal e As System.Web.UI.ImageClickEventArgs)
+        Me.SearchFlag.Text = "YES"
+        Call initSearch()
+    End Sub
+    
+    Protected Sub gv1_RowDataBound(ByVal sender As Object, ByVal e As System.Web.UI.WebControls.GridViewRowEventArgs)
+        If e.Row.RowType = DataControlRowType.DataRow Then
+            e.Row.Attributes.Add("onmouseover", "currentcolor=this.style.backgroundColor;this.style.backgroundColor='#FFEEAA'")
+            e.Row.Attributes.Add("onmouseout", "this.style.backgroundColor=currentcolor")
+            e.Row.Cells(1).Text = "<a target='_blank' href='/Order/BO_OrderTracking.aspx?SO_NO=" & e.Row.Cells(1).Text & "&PO_No=" & e.Row.Cells(2).Text & "'>" & e.Row.Cells(1).Text & "</a>"
+            e.Row.Cells(5).Text = Replace(CDate(e.Row.Cells(5).Text).ToString("yyyy/MM/dd"), "-", "/")
+            e.Row.Cells(7).Text = CInt(e.Row.Cells(7).Text)
+            Select Case e.Row.Cells(6).Text.ToUpper
+                Case "US", "USD"
+                    e.Row.Cells(12).Text = "$" & FormatNumber(e.Row.Cells(12).Text, 2)
+                    e.Row.Cells(13).Text = "$" & FormatNumber(e.Row.Cells(13).Text, 2)
+                Case "EUR"
+                    e.Row.Cells(12).Text = "&euro;" & FormatNumber(e.Row.Cells(12).Text, 2)
+                    e.Row.Cells(13).Text = "&euro;" & FormatNumber(e.Row.Cells(13).Text, 2)
+                Case "YEN"
+                    e.Row.Cells(12).Text = "&yen;" & FormatNumber(e.Row.Cells(12).Text, 2)
+                    e.Row.Cells(13).Text = "&yen;" & FormatNumber(e.Row.Cells(13).Text, 2)
+                Case "GBP"
+                    e.Row.Cells(12).Text = "&pound;" & FormatNumber(e.Row.Cells(12).Text, 2)
+                    e.Row.Cells(13).Text = "&pound;" & FormatNumber(e.Row.Cells(13).Text, 2)
+                Case Else
+                    e.Row.Cells(12).Text = "&euro;" & FormatNumber(e.Row.Cells(12).Text, 2)
+                    e.Row.Cells(13).Text = "&euro;" & FormatNumber(e.Row.Cells(13).Text, 2)
+            End Select
+            e.Row.Cells(14).Text = Replace(CDate(e.Row.Cells(14).Text).ToString("yyyy/MM/dd"), "-", "/")
+            e.Row.Cells(15).Text = Replace(CDate(e.Row.Cells(15).Text).ToString("yyyy/MM/dd"), "-", "/")
+            If e.Row.Cells(17).Text.Trim = "&nbsp;" Or e.Row.Cells(17).Text.Trim = "" Or e.Row.Cells(17).Text.Trim = "0" Or e.Row.Cells(17).Text.Trim = "00" Then
+                e.Row.Cells(17).Text = ""
+            Else
+                e.Row.Cells(17).Text = e.Row.Cells(17).Text.Trim & "&nbsp;" & "M(s)"
+            End If
+            If e.Row.Cells(18).Text = "1" Then
+                For i As Integer = 0 To 17
+                    e.Row.Cells(i).Style.Value = "BACKGROUND-COLOR: #99ff66"
+                Next
+                e.Row.Cells(14).Text = "<b>" & e.Row.Cells(14).Text & "</b>"
+                'e.Item.Cells(15).Text = "--"
+            End If
+        End If
+        If e.Row.RowType = DataControlRowType.Header Or e.Row.RowType = DataControlRowType.DataRow Then
+            e.Row.Cells(8).Visible = False : e.Row.Cells(11).Visible = False : e.Row.Cells(18).Visible = False
+            If Session("user_role").ToString.ToLower = "administrator" Or _
+                Session("user_role").ToString.ToLower = "logistics" Then
+                e.Row.Cells(15).Visible = True
+            Else
+                e.Row.Cells(15).Visible = False
+            End If
+        End If
+        
+    End Sub
+    
+    Protected Sub btnToXls_Click(ByVal sender As Object, ByVal e As System.EventArgs)
+        gv1.AllowPaging = False
+        gv1.DataBind()
+        gv1.Export2Excel("BackOrder.xls")
+    End Sub
+</script>
+
+<asp:Content runat="server" ID="_main" ContentPlaceHolderID="_main">
+    <div>
+    <table width="100%" border="0" cellspacing="0" cellpadding="0">
+			<tr>
+				<td style="height:15px">
+				</td>
+			</tr>
+			<tr>
+				<td>
+					<table align="center" width="100%" border="0" cellspacing="0" cellpadding="0">
+						<tr>
+							<td style="width:10px">
+							</td>
+							<td style="width: 684px">
+								<!--Page Navi Bar-->
+								<table border="0" cellspacing="0" cellpadding="0">
+									<tr>
+										<td><asp:HyperLink runat="server" ID="hlHome" NavigateUrl="~/home.aspx" Text="Home" /></td>
+										<td width="15" align="center">></td>
+										<td><asp:HyperLink runat="server" ID="hlHere" NavigateUrl="~/Order/BO_OrderTracking.aspx" Text="Order Tracking" /></td>
+										<td width="15" align="center">></td>
+										<td><div class="euPageNaviBar">Back Order Inquiry</div></td>
+									</tr>
+								</table>
+							</td>
+							<td style="width:20px">
+							</td>
+						</tr>
+						<tr>
+							<td colspan="3" style="height:15px">
+							</td>
+						</tr>
+						<tr>
+							<td style="width:10px">
+							</td>
+							<td style="width: 684px">
+								<!--Page Title-->
+								<div class="euPageTitle">Back Order Inquiry</div>
+							</td>
+							<td style="width:20px">
+							</td>
+						</tr>
+						<tr>
+							<td colspan="3" style="height:15px">
+							</td>
+						</tr>
+						<tr>
+							<td style="width:10px">
+							</td>
+							<td valign="top">
+								<table border="0" cellpadding="0" cellspacing="0">
+									<tr valign="top">
+										<td>
+											<!--New Table Start-->
+											<table width="445" border="0" cellpadding="0" cellspacing="0" id="Table1">
+												<tr>
+													<td>
+														<table width="100%" border="0" cellpadding="0" cellspacing="0" class="text" id="Table2">
+															<tr>
+																<td style="width:2%" rowspan="2"><img alt="" src="../images/ebiz.aeu.face/bluefolder_left.jpg" width="7" height="23"/></td>
+																<td style="width:15%;background-color:#A3BFD4" valign="top"><img alt="" src="../images/ebiz.aeu.face/bluefolder_top.jpg" width="138" height="3"/></td>
+																<td style="width:2%" rowspan="2"><img alt="" src="../images/ebiz.aeu.face/bluefolder_right.jpg" width="7" height="23"/></td>
+																<td style="width:2%" rowspan="2"><img alt="" src="../images/ebiz.aeu.face/clear.gif" width="5" height="8"/></td>
+																<td style="width:2%" rowspan="2"><img alt="" src="../images/ebiz.aeu.face/skyfolder_left.jpg" width="6" height="23"/></td>
+																<td style="width:17%;background-color:#E7EFF1"><img alt="" src="../images/ebiz.aeu.face/skyfolder_top.jpg" width="140" height="3"/></td>
+																<td style="width:2%" rowspan="2"><img alt="" src="../images/ebiz.aeu.face/skyfolder_right.jpg" width="7" height="23"/></td>
+																<td style="width:2%" rowspan="2"><img alt="" src="../images/ebiz.aeu.face/clear.gif" width="5" height="8"/></td>
+																<td style="width:2%" rowspan="2"><img alt="" src="../images/ebiz.aeu.face/skyfolder_left.jpg" width="6" height="23"/></td>
+																<td style="width:31%;background-color:#E7EFF1"><img alt="" src="../images/ebiz.aeu.face/skyfolder_top.jpg" width="140" height="3"/></td>
+																<td style="width:2%" rowspan="2"><img alt="" src="../images/ebiz.aeu.face/skyfolder_right.jpg" width="7" height="23"/></td>
+															</tr>
+															<tr>
+																<td style="height:13" class="euFormCaption">
+																	Query Criteria
+																</td>
+																<td style="width:17%" class="euFormCaptionInactive">
+																	&nbsp;
+																</td>
+																<td style="width:31%" class="euFormCaptionInactive">
+																	&nbsp;
+																</td>
+															</tr>
+														</table>
+													</td>
+												</tr>
+												<tr>
+													<td style="width:100%;height:5;background-color:#A0BFD3" ></td>
+												</tr>
+												<tr>
+													<td style="height:145px;width:50%;background-color:#A4B5BD">
+														<table width="100%" border="0" cellpadding="0" cellspacing="1" id="Table3">
+															<tr valign="top">
+																<td style="height:100%;background-color:#F1F2F4">
+																    <asp:Panel runat="server" ID="searchPanel" DefaultButton="submit">
+																        <table width="100%" border="0" cellpadding="0" cellspacing="0">
+																		    <!--form id="bofrm" name="bofrm" action="BackOrderInquiry.asp" method="post"-->
+																			    <tr>
+																				    <td colspan="4" style="height:4px">
+																				    </td>
+																			    </tr>
+																			    <tr valign="middle">
+																				    <td style="width:5%;height:30px" align="right">
+																					    <img alt="" src="../images/ebiz.aeu.face/square_gray.gif" width="7" height="7"/>&nbsp;&nbsp;
+																				    </td>
+																				    <td style="width:20%">
+																					    <div class="euFormFieldCaption">SO Number&nbsp;:</div>
+																				    </td>
+																				    <td style="width:40%">
+																				        <ajaxToolkit:AutoCompleteExtender runat="server" ID="ace1"                                             
+                                                                                            ServiceMethod="GetSO" TargetControlID="txtSO_NO" ServicePath="~/Services/AutoComplete.asmx" 
+                                                                                            MinimumPrefixLength="0" CompletionInterval="1000" />
+                                                                                        &nbsp;<asp:TextBox ID="txtSO_NO" runat="server" Width="95px"></asp:TextBox></td>
+																				    <td align="left">
+																					    <div class="euFormFieldDesc"></div>
+																				    </td>
+																			    </tr>
+																			    <tr valign="middle">
+																				    <td style="width:5%;height:30px" align="right">
+																					    <img alt="" src="../images/ebiz.aeu.face/square_gray.gif" width="7" height="7"/>&nbsp;&nbsp;
+																				    </td>
+																				    <td style="width:20%">
+																					    <div class="euFormFieldCaption">PO Number&nbsp;:</div>
+																				    </td>
+																				    <td style="width:40%">
+																				        <ajaxToolkit:AutoCompleteExtender runat="server" ID="ace2"                                             
+                                                                                            ServiceMethod="GetPO" TargetControlID="txtPO_NO" ServicePath="~/Services/AutoComplete.asmx" 
+                                                                                            MinimumPrefixLength="0" CompletionInterval="1000" />
+                                                                                        &nbsp;<asp:TextBox ID="txtPO_NO" runat="server" Width="95px"></asp:TextBox></td>
+																				    <td align="left">
+																					    <div class="euFormFieldDesc"></div>
+																				    </td>
+																			    </tr>
+																			    <tr valign="middle">
+																				    <td style="width:5%;height:30px"  align="right">
+																					    <img alt="" src="../images/ebiz.aeu.face/square_gray.gif" width="7" height="7"/>&nbsp;&nbsp;
+																				    </td>
+																				    <td style="width:25%">
+																					    <div class="euFormFieldCaption">Contain Part No.&nbsp;:</div>
+																				    </td>
+																				    <td style="width:40%">
+																				        <ajaxToolkit:AutoCompleteExtender runat="server" ID="ace3"                                             
+                                                                                            ServiceMethod="GetPartNo" TargetControlID="txtPart_No" ServicePath="~/Services/AutoComplete.asmx" 
+                                                                                            MinimumPrefixLength="1" FirstRowSelected="true" CompletionInterval="1000" />
+                                                                                        &nbsp;<asp:TextBox ID="txtPart_NO" runat="server" Width="95px"></asp:TextBox></td>
+																				    <td align="left">
+																					    <div class="euFormFieldDesc"></div>
+																				    </td>
+																			    </tr>
+																			    <tr valign="middle">
+																				    <td style="width:5%;height:30px" align="right">
+																					    <img alt="" src="../images/ebiz.aeu.face/square_gray.gif" width="7" height="7"/>&nbsp;&nbsp;
+																				    </td>
+																				    <td style="width:20%">
+																					    <div class="euFormFieldCaption">Order Date&nbsp;:</div>
+																				    </td>
+																				    <td style="width:40%">
+                                                                                        &nbsp;<asp:TextBox ID="txtOrderDateFrom" runat="server" Width="76px"></asp:TextBox>&nbsp;~&nbsp;
+                                                                                        <asp:TextBox ID="txtOrderDateTo" runat="server" Width="76px"></asp:TextBox></td>
+																				        <ajaxToolkit:CalendarExtender runat="server" ID="ce1" TargetControlID="txtOrderDateFrom" />
+																					    <ajaxToolkit:CalendarExtender runat="server" ID="ce2" TargetControlID="txtOrderDateTo" />
+																				    <td align="left">
+																					    <div class="euFormFieldDesc">yyyy/mm/dd</div>
+																				    </td>
+																			    </tr>
+																			    <tr>
+																				    <td colspan="4" style="height:3px">
+																				    </td>
+																			    </tr>
+																			    <tr valign="middle">
+																				    <td style="width:5%;height:30px"  align="right">
+																				    </td>
+																				    <td style="width:20%">
+																				    </td>
+																				    <td style="width:40%">
+																					    <asp:Label runat="server" ID="SearchFlag" Text="NO" Visible="false"></asp:Label>
+																					    <asp:ImageButton runat="server" ID="submit" ImageUrl="../Images/ebiz.aeu.face/btn_search2.gif" OnClick="submit_Click" />
+																				    </td>
+																				    <td align="left">
+                                                                                        </td>
+																			    </tr>
+																			    <tr>
+																				    <td colspan="4" style="height:4px">
+																				    </td>
+																			    </tr>
+																		    <!--/form-->
+																	    </table>
+																    </asp:Panel>
+																</td>
+															</tr>
+														</table>
+													</td>
+												</tr>
+											</table>
+    
+											<!--New Table End--></td>
+										<td style="width:150px">&nbsp;
+										</td>
+										<td>
+											<!--Navi Table Start-->
+												<!-- include file = "incOrderTrackingNavi_WS.asp" -->
+												<NaviOrderTracking:Inc runat="server" ID="NaviOrderTrackingInc1"></NaviOrderTracking:Inc>
+											<!--Navi Table End-->
+										</td>
+									</tr>
+								</table>
+							</td>
+							<td style="width:20px">
+							</td>
+						</tr>
+						<%If Session("user_role") = "Logistics" Or Session("user_role") = "Administrator" Then%>
+						<tr>
+						    <td></td>
+						    <td colspan="2"><asp:HyperLink runat="server" ID="hlNewBackOrder" NavigateUrl="/Order/New_BO_BackOrderInquiry.aspx" Text=">> Go To New Back Order Inquiry Page" /></td>
+						</tr>
+						<tr><td style="height:15px"></td><td colspan="2"></td></tr>
+						<%End If%>
+						<tr>
+						    <td></td>
+							<td colspan="2" style="height:15px"><asp:Button runat="server" ID="btnToXls" Text="Export To Excel" OnClick="btnToXls_Click" />
+							</td>
+						</tr>
+						<tr>
+							<td style="width:10px">
+							</td>
+							<td valign="top">
+								<table border="0" cellpadding="0" cellspacing="0" width="100%">
+								    <tr>
+								        <td>
+								            <sgv:SmartGridView runat="server" ID="gv1" AutoGenerateColumns="false" AllowPaging="true" AllowSorting="true" PageSize="50" Width="100%"
+								                OnRowDataBound="gv1_RowDataBound">
+								                <Columns>
+								                    <asp:TemplateField ItemStyle-Width="50px" ItemStyle-HorizontalAlign="Center">
+                                                        <headertemplate>
+                                                            No.
+                                                        </headertemplate>
+                                                        <itemtemplate>
+                                                            <%# Container.DataItemIndex + 1 %>
+                                                        </itemtemplate>
+                                                    </asp:TemplateField>
+                                                    <asp:BoundField HeaderText="Order NO." DataField="OrderNo" SortExpression="OrderNo" ItemStyle-HorizontalAlign="Center" />
+                                                    <asp:BoundField HeaderText="PO NO." DataField="PONO" SortExpression="PONO" />
+                                                    <asp:BoundField HeaderText="Ship To" DataField="SHIPTOID" SortExpression="SHIPTOID" />
+                                                    <asp:BoundField HeaderText="Bill To" DataField="BILLTOID" SortExpression="BILLTOID" />
+                                                    <asp:BoundField HeaderText="Order Date" DataField="ORDERDATE" SortExpression="ORDERDATE" ItemStyle-HorizontalAlign="Right" />
+                                                    <asp:BoundField HeaderText="Currency" DataField="CURRENCY" SortExpression="CURRENCY" />
+                                                    <asp:BoundField HeaderText="Order Line" DataField="OrderLine" SortExpression="OrderLine" />
+                                                    <asp:BoundField HeaderText="Ln_Partial" DataField="SchdLineNo" SortExpression="SchdLineNo" />
+                                                    <asp:BoundField HeaderText="Part NO" DataField="ProductId" SortExpression="ProductId" />
+                                                    <asp:BoundField HeaderText="Order QTY" DataField="SchdLineConfirmQty" SortExpression="SchdLineConfirmQty" ItemStyle-HorizontalAlign="Right" />
+                                                    <asp:BoundField HeaderText="Shipped Qty" DataField="SchedLineShipedQty" SortExpression="SchedLineShipedQty" ItemStyle-HorizontalAlign="Right" />
+                                                    <asp:BoundField HeaderText="Unit Price" DataField="UNITPRICE" SortExpression="UNITPRICE" ItemStyle-HorizontalAlign="Right" />
+                                                    <asp:BoundField HeaderText="Total Price" DataField="TOTALPRICE" SortExpression="TOTALPRICE" ItemStyle-HorizontalAlign="Right" />
+                                                    <asp:BoundField HeaderText="Due Date" DataField="DUEDATE" SortExpression="DUEDATE" ItemStyle-HorizontalAlign="Center" />
+                                                    <asp:BoundField HeaderText="Original DD" DataField="OriginalDD" SortExpression="OriginalDD" ItemStyle-HorizontalAlign="Center" />
+                                                    <asp:BoundField HeaderText="Open QTY" DataField="SchdLineOpenQty" SortExpression="SchdLineOpenQty" ItemStyle-HorizontalAlign="Right" />
+                                                    <asp:BoundField HeaderText="Extended Warranty Months" DataField="ExWarranty" SortExpression="ExWarranty" ItemStyle-HorizontalAlign="Right" />
+                                                    <asp:BoundField HeaderText="NoATPFlag" DataField="NoATPFlag" SortExpression="NoATPFlag" />
+								                </Columns>
+								                <FooterStyle BackColor="#A4B5BD" ForeColor="White" Font-Bold="True" />
+	                                            <RowStyle BackColor="#F7F6F3" ForeColor="#333333" />
+	                                            <SelectedRowStyle BackColor="#E2DED6" Font-Bold="True" ForeColor="#333333" />
+	                                            <PagerStyle BackColor="#284775" ForeColor="White" HorizontalAlign="Justify"  />
+	                                            <HeaderStyle BackColor="#A4B5BD" Font-Bold="True" ForeColor="White" />
+	                                            <AlternatingRowStyle BackColor="White" ForeColor="#284775" />
+                                                <PagerSettings PageButtonCount="10" Position="TopAndBottom" />
+								            </sgv:SmartGridView>
+								        </td>
+								    </tr>
+								</table>
+							</td>
+							<td style="width:20px">
+							</td>
+						</tr>
+					</table>
+				</td>
+			</tr>
+			<tr>
+				<td style="height:150px">
+					<!--Buffer--> &nbsp;
+				</td>
+			</tr>
+		</table>
+    </div>
+</asp:Content>

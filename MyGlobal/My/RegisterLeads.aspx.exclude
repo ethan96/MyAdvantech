@@ -1,0 +1,705 @@
+﻿<%@ Page Title="MyAdvantech - Project Registration" Language="VB" MasterPageFile="~/Includes/MyMaster.master" %>
+
+<script runat="server">
+    Sub FillAccountTeam()
+        Dim sb As New System.Text.StringBuilder
+        With sb
+            .AppendLine(String.Format(" 	select distinct d.ROW_ID, b.POSITION_ID+'|'+e.LOGIN+'|'+d.ROW_ID as IDPAIR, IsNull(d.FST_NAME,'') +' '+IsNull(d.LAST_NAME,'') as NAME "))
+            .AppendLine(String.Format(" 	from S_ORG_EXT_X a left join S_ACCNT_POSTN b on a.ROW_ID=b.OU_EXT_ID  "))
+            .AppendLine(String.Format(" 	left join S_POSTN c on b.POSITION_ID=c.ROW_ID left join S_CONTACT d on c.PR_EMP_ID=d.ROW_ID inner join S_USER e on d.ROW_ID=e.PAR_ROW_ID "))
+            .AppendLine(String.Format(" 	WHERE Upper(a.ATTRIB_05)='{0}' and d.ACTIVE_FLG='Y' and d.EMAIL_ADDR<>'sieowner@advantech.com.tw' and e.LOGIN is not null and d.ROW_ID is not null	 ", Session("company_id").ToString().ToUpper()))
+            .AppendLine(String.Format(" 	order by d.ROW_ID "))
+
+        End With
+        Dim dt As DataTable = dbUtil.dbGetDataTable("CRMDB75", sb.ToString())
+        If dt.Rows.Count > 0 Then
+            dlOptyOwner.DataTextField = "NAME" : dlOptyOwner.DataValueField = "IDPAIR"
+            dlOptyOwner.DataSource = dt
+            dlOptyOwner.DataBind()
+            Dim rnd As New Random
+            dlOptyOwner.SelectedIndex = rnd.Next(0, dt.Rows.Count)
+        End If
+       
+    End Sub
+    Public Shared Function GetMyChildrenAccount(ByVal custname As String) As String
+        Dim sb As New System.Text.StringBuilder
+        With sb
+            .AppendLine(String.Format(" select top 200 a.ROW_ID, a.NAME as ACCOUNT_NAME, a.CUST_STAT_CD as ACCOUNT_STATUS, "))
+            .AppendLine(String.Format(" IsNull(a.MAIN_FAX_PH_NUM, '') as FAX_NUM, IsNull(a.MAIN_PH_NUM, '') as PHONE_NUM,  "))
+            .AppendLine(String.Format(" IsNull(a.OU_TYPE_CD, '') as OU_TYPE_CD, IsNull(d.COUNTRY,'') as COUNTRY, "))
+            .AppendLine(String.Format(" IsNull(d.CITY,'') as CITY, IsNull(d.ADDR,'') as ADDRESS, IsNull(d.ADDR_LINE_2,'') as ADDRESS2, "))
+            .AppendLine(String.Format(" IsNull(d.STATE,'') as STATE, IsNull(d.ZIPCODE,'') as ZIPCODE, Isnull(a.LOC,'') as LOCATION, "))
+            .AppendLine(String.Format(" IsNull(d.PROVINCE,'') as PROVINCE "))
+            .AppendLine(String.Format(" from S_ORG_EXT a left join S_ADDR_ORG d on a.PR_ADDR_ID=d.ROW_ID "))
+            .AppendLine(String.Format(" where a.PAR_OU_ID is not null and a.PAR_OU_ID in  "))
+            .AppendLine(String.Format(" ( "))
+            .AppendLine(String.Format(" 	select z.ROW_ID from S_ORG_EXT_X z where Upper(z.ATTRIB_05)=Upper('{0}') ", _
+                                      HttpContext.Current.Session("company_id").ToString.Replace("'", "").Trim().ToUpper()))
+            .AppendLine(String.Format(" ) "))
+            If custname.Trim <> "" Then
+                .AppendLine(String.Format(" and Upper(a.NAME) like N'%{0}%' ", custname.Trim.Replace("'", "''").ToUpper()))
+            End If
+            .AppendLine(String.Format(" order by a.ROW_ID "))
+        End With
+        Return sb.ToString()
+    End Function
+    
+    <Services.WebMethod()> _
+    <Web.Script.Services.ScriptMethod()> _
+    Public Shared Function GetEndCustomer(ByVal CustName As String) As String
+        If CustName.Trim().Length < 1 andalso httpcontext.current.session("org_id")="TW01" Then Return ""
+        Dim dt As DataTable = dbUtil.dbGetDataTable("CRMDB75", GetMyChildrenAccount(CustName))
+        If dt.Rows.Count = 0 Then
+            Return "No customer"
+        End If
+        Dim sb As New System.Text.StringBuilder
+        With sb
+            .AppendLine(String.Format("<table width='100%'>"))
+            .AppendLine(String.Format("<tr><th>Name</th><th>Address</th></tr>"))
+            For i As Integer = 0 To dt.Rows.Count - 1
+                Dim r As DataRow = dt.Rows(i)
+                Dim bcolor As String = "FEFEFE"
+                If i Mod 2 = 1 Then bcolor = "DCDBDB"
+                .AppendLine(String.Format("<tr style='background-color:#" + bcolor + ";'>" + _
+                                          " <td>" + _
+                                          "     <a href='javascript:void(0);' onclick='FillAccountInfo(""{0}"",""{1}"",""{2}"",""{3}"",""{4}"");'>{1}</a>" + _
+                                          " </td>" + _
+                                          " <td>{2}</td>" + _
+                                          "</tr>", r.Item("ROW_ID"), r.Item("ACCOUNT_NAME"), r.Item("ADDRESS"), r.Item("COUNTRY"), r.Item("CITY")))
+            Next
+            .AppendLine(String.Format("</table>"))
+        End With
+        Return sb.ToString()
+    End Function
+    
+    <Services.WebMethod()> _
+    <Web.Script.Services.ScriptMethod()> _
+    Public Shared Function GetEndContact(ByVal AccountId As String, ByVal ContactName As String) As String
+        If ContactName.Trim() = "" Then Return ""
+        Dim sb As New System.Text.StringBuilder
+        With sb
+            .AppendLine(String.Format(" SELECT A.ROW_ID, IsNull(A.FST_NAME, '') AS FirstName,  "))
+            .AppendLine(String.Format(" IsNull(A.MID_NAME, '') as MiddleName, IsNull(A.LAST_NAME, '') AS LastName,  "))
+            .AppendLine(String.Format(" IsNull(A.WORK_PH_NUM, '') as WorkPhone, IsNull(E.ATTRIB_37, '') as JOB_FUNCTION,  "))
+            .AppendLine(String.Format(" IsNull(A.JOB_TITLE, '') as JOB_TITLE, IsNull(A.EMAIL_ADDR, '') AS EMAIL_ADDRESS "))
+            .AppendLine(String.Format(" FROM S_CONTACT A LEFT JOIN S_CONTACT_X E ON A.ROW_ID = E.ROW_ID   "))
+            .AppendLine(String.Format(" WHERE A.ROW_ID = A.PAR_ROW_ID and A.PR_DEPT_OU_ID='{0}' ", AccountId))
+            If ContactName.Trim <> "" Then
+                .AppendLine(String.Format(" and (Upper(A.FST_NAME) like N'%{0}%' or Upper(A.LAST_NAME) like N'%{0}%' or Upper(A.LAST_NAME)+Upper(A.FST_NAME) like N'%{0}%' or Upper(A.FST_NAME)+Upper(A.LAST_NAME) like N'%{0}%') ", ContactName.Replace("'", "''").Trim().ToUpper()))
+            End If
+            .AppendLine(String.Format(" order by A.ROW_ID "))
+        End With
+        Dim dt As DataTable = dbUtil.dbGetDataTable("CRMDB75", sb.ToString())
+        If dt.Rows.Count = 0 Then Return "No Contact maintained under this customer"
+        sb = New System.Text.StringBuilder
+        With sb
+            .AppendLine(String.Format("<table width='100%'>"))
+            .AppendLine(String.Format("<tr><th>Name</th><th>Email</th><th>Phone #</th></tr>"))
+            For i As Integer = 0 To dt.Rows.Count - 1
+                Dim r As DataRow = dt.Rows(i)
+                Dim bcolor As String = "FEFEFE"
+                If i Mod 2 = 1 Then bcolor = "DCDBDB"
+                .AppendLine(String.Format("<tr style='background-color:#" + bcolor + ";'>" + _
+                                         " <td>" + _
+                                         "     <a href='javascript:void(0);' onclick='FillContactInfo(""{0}"",""{1}"",""{2}"",""{3}"");'>{2} {1}</a>" + _
+                                         " </td>" + _
+                                         " <td>{3}</td><td>{4}</td>" + _
+                                         "</tr>", _
+                                         r.Item("ROW_ID"), r.Item("FirstName"), r.Item("LastName"), _
+                                         r.Item("EMAIL_ADDRESS"), r.Item("WorkPhone")))
+            Next
+            .AppendLine(String.Format("</table>"))
+        End With
+        Return sb.ToString()
+    End Function
+    
+    <Services.WebMethod()> _
+    <Web.Script.Services.ScriptMethod()> _
+    Public Shared Function GetCustDetail(ByVal ROWID As String) As String
+        Dim dt As DataTable = dbUtil.dbGetDataTable("CRMDB75", String.Format( _
+                                                    "select a.NAME, IsNull(d.ADDR,'') as ADDRESS, IsNull(d.ADDR_LINE_2,'') as ADDRESS2 from S_ORG_EXT a left join S_ADDR_ORG d on a.PR_ADDR_ID=d.ROW_ID where a.ROW_ID='{0}'", ROWID))
+        If dt.Rows.Count > 0 Then
+            Return dt.Rows(0).Item("ADDRESS")
+        Else
+            Return ""
+        End If
+    End Function
+
+    Protected Sub btnSubmit_Click(ByVal sender As Object, ByVal e As System.EventArgs)
+        lbMsg.Text = ""
+        Dim strPosId As String = "1-HXERP"  'Winnie Tsai's position id
+        Dim strOwner As String = "WINNIETSAI"
+        Dim strOwnerEmail As String = "winnie.tsai@advantech.com.tw"
+        Dim AccountRowID As String = hidden_PickedAccountRowId.Value.Trim()
+        Dim ContactRowId As String = hd_ContactRowId.Value.Trim()
+        Dim PROJ_NAME As String = txtPrjName.Text
+        Dim strComment As String = txtPrjDesc.Text
+        Dim closedate As String = DateAdd(Microsoft.VisualBasic.DateInterval.Month, 1, Now).ToString("MM/dd/yyyy")
+        Dim TOTALrevenue As String = txtPrjAmt.Text
+        Dim Curr As String = "NTD"
+        Dim ws As New aeu_eai2000.Siebel_WS
+        ws.Timeout = -1 : ws.UseDefaultCredentials = True
+        If AccountRowID = "" Then
+            lbMsg.Text = "Please pick a customer first" : Exit Sub
+        End If
+        If PROJ_NAME = "" Then
+            lbMsg.Text = "Please enter project name" : Exit Sub
+        End If
+        If cbNewContact.Checked Then
+            ContactRowId = ""
+            If txtNCFName.Text.Trim() = "" OrElse txtNCLName.Text.Trim() = "" Then
+                lbMsg.Text = "Please input new contact's fist and last name" : Exit Sub
+            End If
+            If txtNCEmail.Text.Trim() <> "" AndAlso Util.IsValidEmailFormat(txtNCEmail.Text) = False Then
+                lbMsg.Text = "New Contact's Email is in incorrect format" : Exit Sub
+            End If
+            Try
+                ContactRowId = ws.CreateNewContact(txtNCEmail.Text.Trim(), AccountRowID, txtNCFName.Text.Trim(), txtNCLName.Text.Trim(), False, False, txtJobTitle.Text.Trim(), "+886" + txtNCTel.Text)
+            Catch ex As Exception
+                lbMsg.Text = "Error while creating new contact. Please contact eBusiness.AEU@advantech.eu"
+                Util.SendEmail("tc.chen@advantech.eu", "ebiz.aeu@advantech.eu", _
+                               String.Format("Error creating contact fname:{0} lname:{1} email:{2} tel:{3} accid:{4}", _
+                                             txtNCFName.Text, txtNCLName.Text, txtNCEmail.Text, txtNCTel.Text, AccountRowID), _
+                               ex.ToString(), False, "", "")
+                Exit Sub
+            End Try
+            
+        End If
+        If strComment.Trim = "" Then strComment = PROJ_NAME
+        If Double.TryParse(TOTALrevenue, 0) = False OrElse CDbl(TOTALrevenue) < 0 Then TOTALrevenue = "0"
+        Dim curObj As Object = dbUtil.dbExecuteScalar("CRMDB75", String.Format("select top 1 IsNull(BASE_CURCY_CD,'USD') from S_ORG_EXT where ROW_ID='{0}'", AccountRowID.Replace("'", "''")))
+        If curObj IsNot Nothing Then Curr = curObj.ToString()
+        'Dim oDt As DataTable = Util.GetOwnerOfAccount(AccountRowID)
+        If dlOptyOwner.Items.Count > 0 AndAlso dlOptyOwner.SelectedIndex >= 0 Then
+            Dim idpar() As String = Split(dlOptyOwner.SelectedValue, "|")
+            If idpar.Length = 2 Then
+                strPosId = idpar(0) : strOwner = idpar(1)
+            End If
+        End If
+        Try
+            Dim OptyId As String = ws.Import_Opportunity(strPosId, strOwner, AccountRowID, ContactRowId, PROJ_NAME, strComment, "Funnel Sales Methodology", _
+                                                        "25% Proposing/Quoting", closedate, TOTALrevenue, "25", "Pending", "", Curr)
+            Dim ActId As String = ws.CreateActivityWithOwnerAccountContact("Channel Update", "Done", PROJ_NAME, strComment, Nothing, 0, ContactRowId, OptyId, strOwnerEmail, AccountRowID, "")
+            Dim dtPF As New DataTable
+            dtPF.Columns.Add("part_no") : dtPF.Columns.Add("QTY")
+            If OptyId <> "" AndAlso Not IsNothing(OptyId) Then
+                For i As Integer = 1 To 20
+                    If CType(panel1.FindControl("tr" + i.ToString), HtmlTableRow).Visible = True Then
+                        Dim txtP As TextBox = CType(panel1.FindControl("txtPartNo" + i.ToString), TextBox)
+                        Dim txtQ As TextBox = CType(panel1.FindControl("txtQty" + i.ToString), TextBox)
+                        If txtP.Text.Trim <> "" AndAlso Integer.TryParse(txtQ.Text, 0) = True Then
+                            Dim r As DataRow = dtPF.NewRow()
+                            r.Item("part_no") = txtP.Text.Trim
+                            r.Item("QTY") = txtQ.Text
+                            dtPF.Rows.Add(r)
+                        End If
+                    End If
+                Next
+            End If
+            
+            If dtPF.Rows.Count > 0 Then ws.ImportOptyForecast(OptyId, dtPF)
+            
+            Dim OwnerEmail As String = ""
+            If dlOptyOwner.SelectedValue.Contains("|") Then
+                Dim sdt As DataTable = dbUtil.dbGetDataTable("CRMDB75", String.Format("select isnull(EMAIL_ADDR,'') as email from S_CONTACT where ROW_ID='{0}' ", dlOptyOwner.SelectedValue.Split("|")(2)))
+                If sdt.Rows.Count > 0 Then
+                    OwnerEmail = sdt.Rows(0).Item(0).ToString
+                End If
+            End If
+            Dim body As New StringBuilder
+            With body
+                .AppendFormat("<table>")
+                .AppendFormat("<tr><th align='left'>Project Name: </th><td>{0}({1})</td></tr>", HttpUtility.HtmlEncode(txtPrjName.Text.Trim()), OptyId)
+                '.AppendFormat("<tr><th align='left'>Project Name: </th><td>{0}({1})</td></tr>", HttpUtility.HtmlEncode(txtPrjName.Text.Trim()), "123")
+                .AppendFormat("<tr><th align='left'>Total Amount: </th><td>{0}</td></tr>", HttpUtility.HtmlEncode(txtPrjAmt.Text.Trim()))
+                .AppendFormat("<tr><th align='left'>Project Description: </th><td>{0}</td></tr>", HttpUtility.HtmlEncode(txtPrjDesc.Text.Trim()))
+                .AppendFormat("<tr><th align='left'>Customer Name: </th><td>{0}</td></tr>", HttpUtility.HtmlEncode(hdnCustName.Value.Trim()))
+                .AppendFormat("<tr><th align='left'>Customer Address: </th><td>{0}</td></tr>", HttpUtility.HtmlEncode(txtCustAddr.Text.Trim()))
+                .AppendFormat("<tr><th align='left'>Customer Country: </th><td>{0}</td></tr>", HttpUtility.HtmlEncode(txtCustCountry.Text.Trim()))
+                .AppendFormat("<tr><th align='left'>Customer City: </th><td>{0}</td></tr>", HttpUtility.HtmlEncode(txtcustCity.Text.Trim()))
+                If cbNewContact.Checked Then
+                    .AppendFormat("<tr><th align='left'>Is it a new Contact? </th><td>Yes</td></tr>")
+                    .AppendFormat("<tr><th align='left'>Contact Name: </th><td>{0}</td></tr>", HttpUtility.HtmlEncode(txtNCLName.Text.Trim()) + " " + HttpUtility.HtmlEncode(txtNCFName.Text.Trim()))
+                    .AppendFormat("<tr><th align='left'>Contact Email: </th><td>{0}</td></tr>", HttpUtility.HtmlEncode(txtNCEmail.Text.Trim()))
+                    .AppendFormat("<tr><th align='left'>Contact Phone: </th><td>{0}</td></tr>", HttpUtility.HtmlEncode(txtNCTel.Text.Trim()))
+                Else
+                    .AppendFormat("<tr><th align='left'>Is it a new Contact? </th><td>No</td></tr>")
+                    Dim dtContact As DataTable = dbUtil.dbGetDataTable("CRMDB75", String.Format("select isnull(FST_NAME,'') as firstname, isnull(LAST_NAME,'') as lastname, isnull(WORK_PH_NUM,'') as workphone, isnull(EMAIL_ADDR,'') as email from S_CONTACT where ROW_ID='{0}'", hd_ContactRowId.Value))
+                    If dtContact.Rows.Count > 0 Then
+                        .AppendFormat("<tr><th align='left'>Contact Name: </th><td>{0}</td></tr>", dtContact.Rows(0).Item("lastname").ToString + " " + dtContact.Rows(0).Item("firstname").ToString)
+                        .AppendFormat("<tr><th align='left'>Contact Email: </th><td>{0}</td></tr>", dtContact.Rows(0).Item("email").ToString)
+                        .AppendFormat("<tr><th align='left'>Contact Phone: </th><td>{0}</td></tr>", dtContact.Rows(0).Item("workphone").ToString)
+                    End If
+                End If
+                If dlOptyOwner.SelectedValue.Contains("|") Then .AppendFormat("<tr><th align='left'>Opportunity's Owner: </th><td>{0}</td></tr>", dlOptyOwner.SelectedItem.Text)
+                .AppendFormat("</table>")
+            End With
+            Dim SendTo As String = Session("user_id").ToString
+            If OwnerEmail <> "" Then SendTo += "," + OwnerEmail
+            Util.SendEmail(SendTo, "ebiz.aeu@advantech.eu", _
+                           Session("user_id") + " submitted a new opportunity " + PROJ_NAME, body.ToString, True, "ebusiness.aeu@advantech.eu", "")
+            'Util.SendEmail("ebusiness.aeu@advantech.eu", "ebiz.aeu@advantech.eu", _
+            '               Session("user_id") + " submitted a new opportunity: " + PROJ_NAME, dt.Rows.Count.ToString + "<br/>" + dlOptyOwner.SelectedItem.Text + "<br/>" + OwnerEmail, True, "ebusiness.aeu@advantech.eu", "")
+        Catch ex As Exception
+            If Util.IsAdmin() Then lbMsg.Text = ex.ToString()
+            Exit Sub
+        End Try
+        lbMsg.Text = "Project has been logged in"
+    End Sub
+    
+    <Services.WebMethod(enablesession:=True)> _
+    <Web.Script.Services.ScriptMethod()> _
+    Public Shared Function AutoSuggestPN(ByVal prefixText As String, ByVal count As Integer) As String()
+        Dim sb As New System.Text.StringBuilder
+        With sb
+            .AppendLine(String.Format(" select distinct top 20 a.PART_NO  "))
+            .AppendLine(String.Format(" from sap_product a inner join SAP_PRODUCT_ORG b on a.PART_NO=b.PART_NO inner join SAP_PRODUCT_STATUS c on b.PART_NO=c.PART_NO  "))
+            .AppendLine(String.Format(" where a.material_group not in ('T','ODM', 'BTOS') and a.PART_NO like '{0}%' and b.ORG_ID='{1}' and c.PRODUCT_STATUS in ('A','N','H') and c.DLV_PLANT='{2}H1' ", _
+                                      prefixText.Trim().Replace("'", "").Replace("*", "%"), HttpContext.Current.Session("org_id").ToString(), Left(HttpContext.Current.Session("org_id"), 2)))
+            .AppendLine(String.Format(" order by a.PART_NO  "))
+        End With
+        Dim dt As DataTable = dbUtil.dbGetDataTable("MY", sb.ToString())
+        If dt.Rows.Count > 0 Then
+            Dim str(dt.Rows.Count - 1) As String
+            For i As Integer = 0 To dt.Rows.Count - 1
+                str(i) = dt.Rows(i).Item(0)
+            Next
+            Return str
+        End If
+        Return Nothing
+    End Function
+
+    Protected Sub Page_Load(ByVal sender As Object, ByVal e As System.EventArgs)
+        If Not Page.IsPostBack Then
+            FillAccountTeam()
+            If Request("SPRID") IsNot Nothing AndAlso Request("SPRID").ToString() <> "" Then
+                Dim tmpSPRId As String = Trim(Request("SPRID").ToString())
+                Dim sprDt As DataTable = dbUtil.dbGetDataTable("MY", "select * from MY_SPR where ROW_ID='" + tmpSPRId.Replace("'", "") + "' and company_id='" + Session("company_id") + "'")
+                If sprDt.Rows.Count = 0 Then
+                    Util.JSAlert(Me.Page, "Invalid SPR request") : Response.End()
+                End If
+                Dim strXml As String = dbUtil.dbExecuteScalar("MY", "select SPR_XML from MY_SPR where ROW_ID='" + tmpSPRId + "'")
+                Dim XMLreader As New System.IO.StringReader(strXml)
+                Dim dt1 As DataTable = Nothing, endContactDt As DataTable = Nothing
+                Dim dt2 As DataTable = Nothing
+                Dim dt3 As DataTable = Nothing, copContactDt As DataTable = Nothing
+                Dim dt4 As DataTable = Nothing
+                Dim ds As DataSet = Util.InitSPRDataSet(endContactDt, copContactDt)
+                dt1 = ds.Tables(0) : dt2 = ds.Tables(1) : dt3 = ds.Tables(2) : dt4 = ds.Tables(3)
+                ds.ReadXml(XMLreader, System.Data.XmlReadMode.Fragment)
+                hidden_PickedAccountRowId.Value = dt1.Rows(0).Item("ROW_ID")
+                txtCustName.Text = HttpUtility.HtmlDecode(dt1.Rows(0).Item("Company_Name"))
+                hdnCustName.Value = HttpUtility.HtmlDecode(dt1.Rows(0).Item("Company_Name"))
+                txtCustAddr.Text = HttpUtility.HtmlDecode(dt1.Rows(0).Item("Address"))
+                txtCustCountry.Text = HttpUtility.HtmlDecode(dt1.Rows(0).Item("Country"))
+                Dim EndContactsDt As DataTable = CType(dt1.Rows(0).Item("Contacts"), DataTable)
+                txtPrjAmt.Text = dt2.Rows(0).Item("Total_Amount")
+                hdnContactName.Value = EndContactsDt.Rows(0).Item("Last_Name") + " " + EndContactsDt.Rows(0).Item("First_Name")
+                txtContact.Text = HttpUtility.HtmlDecode(hdnContactName.Value)
+                txtNCFName.Text = HttpUtility.HtmlDecode(EndContactsDt.Rows(0).Item("First_Name"))
+                txtNCLName.Text = HttpUtility.HtmlDecode(EndContactsDt.Rows(0).Item("Last_Name"))
+                If EndContactsDt.Rows(0).IsNull("Email") = False Then txtNCEmail.Text = EndContactsDt.Rows(0).Item("Email")
+                If EndContactsDt.Rows(0).IsNull("Telephone") = False Then txtNCTel.Text = EndContactsDt.Rows(0).Item("Telephone")
+                txtPrjName.Text = HttpUtility.HtmlDecode(dt2.Rows(0).Item("Project_Name"))
+                txtPrjDesc.Text = HttpUtility.HtmlDecode(dt2.Rows(0).Item("Project_Description"))
+                Dim jscript As String = _
+                    "<script type='text/javascript'>" + vbCrLf + _
+                    "InitNewContactDiv();" + vbCrLf + _
+                    "</" + "script>"
+                Page.ClientScript.RegisterStartupScript(Me.GetType(), "FocusNewContact", jscript)
+            End If
+        End If
+    End Sub
+
+    Protected Sub btnAddPartNo_Click(ByVal sender As Object, ByVal e As System.EventArgs)
+        For i As Integer = 1 To 20
+            If CType(panel1.FindControl("tr" + i.ToString), HtmlTableRow).Visible = False Then
+                CType(panel1.FindControl("tr" + i.ToString), HtmlTableRow).Visible = True
+                Exit For
+            End If
+        Next
+    End Sub
+</script>
+
+<asp:Content ID="Content1" ContentPlaceHolderID="_main" Runat="Server"> 
+    <script type="text/javascript">
+        function ShowEndCustDiv() {
+            var divEC = document.getElementById('div_MyEndCustomer');
+            var divECData = document.getElementById('div_MyEndCustomerData');
+            var qCustName = document.getElementById('txtQCustName').value;
+            divEC.style.display = 'block';
+            document.getElementById('div_Contact').style.display = 'none';
+            if (true) {
+                divECData.innerHTML = "<center><img src='/Images/loading2.gif' alt='Loading...' width='35' height='35' />Loading My End Customer...</center> ";
+                PageMethods.GetEndCustomer(qCustName,
+                function (pagedResult, eleid, methodName) {
+                    divECData.innerHTML = pagedResult;
+                },
+                function (error, userContext, methodName) {
+                    //alert(error.get_message());
+                    divECData.innerHTML = "";
+                }); 
+            }                       
+        }
+        function FillAccountInfo(rid, cname, caddr, ccountry, ccity) {
+            //alert(rid);
+            document.getElementById('<%=hidden_PickedAccountRowId.ClientID %>').value = rid;
+            document.getElementById('<%=txtCustName.ClientID %>').value = cname;
+            document.getElementById('<%=hdnCustName.ClientID %>').value = cname;
+            document.getElementById('<%=txtCustCountry.ClientID %>').value = ccountry;
+            document.getElementById('<%=txtCustAddr.ClientID %>').value = caddr;
+            document.getElementById('<%=txtcustCity.ClientID %>').value = ccity;
+            var divEC = document.getElementById('div_MyEndCustomer');
+            divEC.style.display = 'none';
+        }
+        function FillContactInfo(rid, fname, lname, email) {
+            document.getElementById('<%=hd_ContactRowId.ClientID %>').value = rid;
+            document.getElementById('<%=txtContact.ClientID %>').value = lname + ' ' + fname;
+            document.getElementById('<%=hdnContactName.ClientID %>').value = lname + ' ' + fname;
+            document.getElementById('div_Contact').style.display = 'none';
+        }
+        function ShowEndContactDiv() {
+            var accId = document.getElementById('<%=hidden_PickedAccountRowId.ClientID %>').value;
+            if (accId == '') {alert('Please pick a customer first.');return false;}
+            var divEC = document.getElementById('div_Contact');
+            var divECData = document.getElementById('div_ContactData');
+            var qCustName = document.getElementById('txtQContact').value;
+            divEC.style.display = 'block';
+            document.getElementById('div_MyEndCustomer').style.display = 'none';
+            if (qCustName != '') {                
+                divECData.innerHTML = "<center><img src='/Images/loading2.gif' alt='Loading...' width='35' height='35' />Loading Contact...</center> ";
+                PageMethods.GetEndContact(accId, qCustName,
+                function (pagedResult, eleid, methodName) {
+                    divECData.innerHTML = pagedResult;
+                },
+                function (error, userContext, methodName) {
+                    //alert(error.get_message());
+                    divECData.innerHTML = "";
+                });
+            } 
+        }
+        function CheckBe4Submit() {
+            if (document.getElementById('<%=hidden_PickedAccountRowId.ClientID %>').value == '' ||
+            document.getElementById('<%=hd_ContactRowId.ClientID %>').value == '' ||
+            document.getElementById('<%=txtPrjName.ClientID %>').value == '') {
+                alert('Please pick a customer and contact person, and enter project name first');
+                return false;
+            }
+            document.getElementById('<%=btnSubmit.ClientID %>').disabled = true;
+            return true;
+        }
+        function HideElement(eid) {
+            var ele = document.getElementById(eid);
+            if (ele) { ele.style.display='none';}
+        }
+        function InitNewContactDiv() {
+            var ShowOrHide = document.getElementById('<%=cbNewContact.ClientID %>').checked;
+            //alert(ShowOrHide);
+            var divNewContact = document.getElementById('divNewContact');
+            var divNPickContact = document.getElementById('divPickContact');
+            var cidElement = document.getElementById('<%=hd_ContactRowId.ClientID %>');
+            if (ShowOrHide != true) {
+                divNewContact.style.display = 'none';
+                divNPickContact.style.display = 'block';
+                cidElement.value = '';
+            }
+            else {
+                divNewContact.style.display = 'block';
+                divNPickContact.style.display = 'none';
+            }
+        }
+    </script>   
+    <table width="100%">
+        <tr><td><a href="MyLeads.aspx">[My Sales Leads]</a></td></tr>
+        <tr>
+            <th align="left" style="font-size:large; color:Navy;">Project Registration</th>
+        </tr>
+        <tr style="height:10px"><td>&nbsp;</td></tr>
+        <tr valign="top">
+            <td>
+                <table width="900px">
+                    <tr>
+                        <th align="left" colspan="2">End Customer Information</th>
+                    </tr>
+                    <tr><td colspan="2"><hr /></td></tr>
+                    <tr>
+                        <th align="left" style="width:150px">Customer Name</th>
+                        <td>
+                            <asp:HiddenField runat="server" ID="hidden_PickedAccountRowId" />
+                            <asp:HiddenField runat="server" ID="hdnCustName" />
+                            <asp:TextBox ReadOnly="true" runat="server" ID="txtCustName" Width="250px" onclick="ShowEndCustDiv(); return false;"/>&nbsp;                           
+                            <asp:Label runat="server" ID="lbStarCustName" Font-Bold="true" ForeColor="Tomato" Text="*" Font-Size="Medium" />
+                            <input type="image" src="../images/pickPick.gif" 
+                                style="border-width:0px;" onclick="ShowEndCustDiv(); return false;" width="18" height="18" />
+                            <div id="div_MyEndCustomer" style="display:none; position:absolute; 
+                                background-color:white;border: solid 1px silver;padding:10px; 
+                                width:650px; height:300px;overflow:auto;">
+                                <table width="100%">
+                                    <tr valign="top">
+                                        <td>Name:</td>
+                                        <td><input type="text" id="txtQCustName" /></td>
+                                        <td>
+                                            <input type="button" id="btnQCustomer" value="Query" 
+                                                onclick='ShowEndCustDiv(); return false;'/>
+                                        </td>
+                                        <td align="right">
+                                            <a href="javascript:void(0)" onclick="javascript:document.getElementById('div_MyEndCustomer').style.display='none';">Close</a>
+                                        </td>
+                                    </tr>
+                                    <tr valign="top">
+                                        <td colspan="4" id='div_MyEndCustomerData'></td>
+                                    </tr>
+                                </table>
+                            </div> 
+                        </td>
+                    </tr>
+                    <tr>
+                        <th align="left" style="width:150px">Customer Address</th>
+                        <td><asp:TextBox runat="server" ID="txtCustAddr" Width="300px" /></td>
+                    </tr>
+                    <tr>
+                        <th align="left" style="width:150px">Customer Country</th>
+                        <td><asp:TextBox runat="server" ID="txtCustCountry" /></td>
+                    </tr>
+                    <tr>
+                        <th align="left" style="width:150px">Customer City</th>
+                        <td><asp:TextBox runat="server" ID="txtcustCity" /></td>
+                    </tr>
+                    <tr>
+                        <th align="left">Contact Person</th>
+                        <td>
+                            <asp:CheckBox runat="server" Checked="false" ID="cbNewContact" Text="Create a New Contact?" onclick="InitNewContactDiv();" />
+                            <div id="divPickContact" style="display:block;">
+                                <asp:HiddenField runat="server" ID="hd_ContactRowId" />
+                                <asp:HiddenField runat="server" ID="hdnContactName" />
+                                <asp:TextBox ReadOnly="true" runat="server" ID="txtContact" onclick="ShowEndContactDiv(); return false;" />&nbsp;
+                                <input type="image" src="../images/pickPick.gif" onclick="ShowEndContactDiv(); return false;" width="18" height="18" />
+                                <div id="div_Contact" style="display:none; position:absolute; 
+                                    background-color:white;border: solid 1px silver;padding:10px; 
+                                    width:650px; height:300px;overflow:auto;">
+                                    <table width="100%">
+                                        <tr valign="top">
+                                            <td>Contact Name:</td>
+                                            <td><input type="text" id="txtQContact" /></td>
+                                            <td>
+                                                <input type="button" id="btnQContact" value="Query" 
+                                                    onclick='ShowEndContactDiv(); return false;'/>
+                                            </td>
+                                            <td align="right">
+                                                <a href="javascript:void(0)" onclick="javascript:document.getElementById('div_Contact').style.display='none';">Close</a>
+                                            </td>
+                                        </tr>
+                                        <tr valign="top">
+                                            <td colspan="4" id='div_ContactData'></td>
+                                        </tr>
+                                    </table>
+                                </div>
+                            </div>
+                            <div id="divNewContact" style="display:none">
+                                <table width="85%">                                    
+                                    <tr valign="top">
+                                        <th align="left">First Name</th>
+                                        <td><asp:TextBox runat="server" ID="txtNCFName" Width="70px" /></td>
+                                        <th align="left">Last Name</th>
+                                        <td><asp:TextBox runat="server" ID="txtNCLName" Width="80px" /></td>
+                                        <th align="left">Email</th>
+                                        <td><asp:TextBox runat="server" ID="txtNCEmail" Width="130px" /></td>
+                                        <th align="left">Tel</th>
+                                        <td><asp:TextBox runat="server" ID="txtNCTel" Width="120px" /></td>
+                                    </tr>
+                                    <tr>
+                                        <th align="left">Job Title</th>
+                                        <td colspan="7"><asp:TextBox runat="server" ID="txtJobTitle" Width="250px" /></td>
+                                    </tr>
+                                </table>
+                            </div>                         
+                        </td>
+                    </tr>
+                    <tr>
+                        <th align="left" style="width:150px">Opportunity's Owner</th>
+                        <td>
+                            <asp:DropDownList runat="server" ID="dlOptyOwner" Width="200px"/>
+
+                        </td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+        <tr style="height:30px"><td>&nbsp;</td></tr>
+        <tr valign="top">
+            <td>
+                <table width="600px">
+                    <tr>
+                        <th align="left" colspan="2">Project Information</th>
+                    </tr>
+                    <tr><td colspan="2"><hr /></td></tr>
+                    <tr>
+                        <th align="left">Project Name</th>
+                        <td>
+                            <asp:TextBox runat="server" ID="txtPrjName" Width="250px" MaxLength="100" />&nbsp;
+                            <asp:Label runat="server" ID="lbStarPrjName" Font-Bold="true" ForeColor="Tomato" Text="*" Font-Size="Medium" />
+                        </td>
+                    </tr>
+                    <tr>
+                        <th align="left">Total Amount</th>
+                        <td>
+                            <ajaxToolkit:FilteredTextBoxExtender runat="server" ID="FilteredTextBoxExtender" 
+                                TargetControlID="txtPrjAmt" FilterType="Numbers" FilterMode="ValidChars" />
+                            <asp:TextBox runat="server" ID="txtPrjAmt" Text="0" />
+                        </td>
+                    </tr>
+                    <tr valign="top">
+                        <th align="left">Project Description</th>
+                        <td>
+                            <asp:TextBox runat="server" ID="txtPrjDesc" TextMode="MultiLine" 
+                                Width="450px" Rows="10" MaxLength="1000" />
+                        </td>
+                    </tr>   
+                </table>
+            </td>
+        </tr>
+        <tr style="height:30px"><td>&nbsp;</td></tr>
+        <tr valign="top">
+            <td>
+                <table width="600px">
+                    <tr>
+                        <th align="left">Product(s) Information</th>
+                    </tr>
+                    <tr><td><hr /></td></tr>
+                    <tr>
+                        <td>
+                            <asp:UpdatePanel runat="server" ID="upPartNo">
+                                <ContentTemplate>
+                                    <asp:Panel runat="server" ID="panel1">
+                                        <table>
+                                            <tr>
+                                                <td>Part No.</td>
+                                                <td>Qty</td>
+                                            </tr>
+                                            <tr runat="server" id="tr1">
+                                                <td><asp:TextBox runat="server" ID="txtPartNo1" Width="200px" />
+                                                <ajaxToolkit:AutoCompleteExtender runat="server" ID="AutoCompleteExtender1" TargetControlID="txtPartNo1" 
+                                                            ServiceMethod="AutoSuggestPN" CompletionInterval="100" MinimumPrefixLength="1" /></td>
+                                                <td><asp:TextBox runat="server" ID="txtQty1" Width="50px" /></td>
+                                            </tr>
+                                            <tr runat="server" id="tr2">
+                                                <td><asp:TextBox runat="server" ID="txtPartNo2" Width="200px" />
+                                                <ajaxToolkit:AutoCompleteExtender runat="server" ID="AutoCompleteExtender2" TargetControlID="txtPartNo2" 
+                                                            ServiceMethod="AutoSuggestPN" CompletionInterval="100" MinimumPrefixLength="1" /></td>
+                                                <td><asp:TextBox runat="server" ID="txtQty2" Width="50px" /></td>
+                                            </tr>
+                                            <tr runat="server" id="tr3" visible="false">
+                                                <td><asp:TextBox runat="server" ID="txtPartNo3" Width="200px" />
+                                                <ajaxToolkit:AutoCompleteExtender runat="server" ID="AutoCompleteExtender3" TargetControlID="txtPartNo3" 
+                                                            ServiceMethod="AutoSuggestPN" CompletionInterval="100" MinimumPrefixLength="1" /></td>
+                                                <td><asp:TextBox runat="server" ID="txtQty3" Width="50px" /></td>
+                                            </tr>
+                                            <tr runat="server" id="tr4" visible="false">
+                                                <td><asp:TextBox runat="server" ID="txtPartNo4" Width="200px" />
+                                                <ajaxToolkit:AutoCompleteExtender runat="server" ID="AutoCompleteExtender4" TargetControlID="txtPartNo4" 
+                                                            ServiceMethod="AutoSuggestPN" CompletionInterval="100" MinimumPrefixLength="1" /></td>
+                                                <td><asp:TextBox runat="server" ID="txtQty4" Width="50px" /></td>
+                                            </tr>
+                                            <tr runat="server" id="tr5" visible="false">
+                                                <td><asp:TextBox runat="server" ID="txtPartNo5" Width="200px" />
+                                                <ajaxToolkit:AutoCompleteExtender runat="server" ID="AutoCompleteExtender5" TargetControlID="txtPartNo5" 
+                                                            ServiceMethod="AutoSuggestPN" CompletionInterval="100" MinimumPrefixLength="1" /></td>
+                                                <td><asp:TextBox runat="server" ID="txtQty5" Width="50px" /></td>
+                                            </tr>
+                                            <tr runat="server" id="tr6" visible="false">
+                                                <td><asp:TextBox runat="server" ID="txtPartNo6" Width="200px" />
+                                                <ajaxToolkit:AutoCompleteExtender runat="server" ID="AutoCompleteExtender6" TargetControlID="txtPartNo6" 
+                                                            ServiceMethod="AutoSuggestPN" CompletionInterval="100" MinimumPrefixLength="1" /></td>
+                                                <td><asp:TextBox runat="server" ID="txtQty6" Width="50px" /></td>
+                                            </tr>
+                                            <tr runat="server" id="tr7" visible="false">
+                                                <td><asp:TextBox runat="server" ID="txtPartNo7" Width="200px" />
+                                                <ajaxToolkit:AutoCompleteExtender runat="server" ID="AutoCompleteExtender7" TargetControlID="txtPartNo7" 
+                                                            ServiceMethod="AutoSuggestPN" CompletionInterval="100" MinimumPrefixLength="1" /></td>
+                                                <td><asp:TextBox runat="server" ID="txtQty7" Width="50px" /></td>
+                                            </tr>
+                                            <tr runat="server" id="tr8" visible="false">
+                                                <td><asp:TextBox runat="server" ID="txtPartNo8" Width="200px" />
+                                                <ajaxToolkit:AutoCompleteExtender runat="server" ID="AutoCompleteExtender8" TargetControlID="txtPartNo8" 
+                                                            ServiceMethod="AutoSuggestPN" CompletionInterval="100" MinimumPrefixLength="1" /></td>
+                                                <td><asp:TextBox runat="server" ID="txtQty8" Width="50px" /></td>
+                                            </tr>
+                                            <tr runat="server" id="tr9" visible="false">
+                                                <td><asp:TextBox runat="server" ID="txtPartNo9" Width="200px" />
+                                                <ajaxToolkit:AutoCompleteExtender runat="server" ID="AutoCompleteExtender9" TargetControlID="txtPartNo9" 
+                                                            ServiceMethod="AutoSuggestPN" CompletionInterval="100" MinimumPrefixLength="1" /></td>
+                                                <td><asp:TextBox runat="server" ID="txtQty9" Width="50px" /></td>
+                                            </tr>
+                                            <tr runat="server" id="tr10" visible="false">
+                                                <td><asp:TextBox runat="server" ID="txtPartNo10" Width="200px" />
+                                                <ajaxToolkit:AutoCompleteExtender runat="server" ID="AutoCompleteExtender10" TargetControlID="txtPartNo10" 
+                                                            ServiceMethod="AutoSuggestPN" CompletionInterval="100" MinimumPrefixLength="1" /></td>
+                                                <td><asp:TextBox runat="server" ID="txtQty10" Width="50px" /></td>
+                                            </tr>
+                                            <tr runat="server" id="tr11" visible="false">
+                                                <td><asp:TextBox runat="server" ID="txtPartNo11" Width="200px" /></td>
+                                                <td><asp:TextBox runat="server" ID="txtQty11" Width="50px" /></td>
+                                            </tr>
+                                            <tr runat="server" id="tr12" visible="false">
+                                                <td><asp:TextBox runat="server" ID="txtPartNo12" Width="200px" /></td>
+                                                <td><asp:TextBox runat="server" ID="txtQty12" Width="50px" /></td>
+                                            </tr>
+                                            <tr runat="server" id="tr13" visible="false">
+                                                <td><asp:TextBox runat="server" ID="txtPartNo13" Width="200px" /></td>
+                                                <td><asp:TextBox runat="server" ID="txtQty13" Width="50px" /></td>
+                                            </tr>
+                                            <tr runat="server" id="tr14" visible="false">
+                                                <td><asp:TextBox runat="server" ID="txtPartNo14" Width="200px" /></td>
+                                                <td><asp:TextBox runat="server" ID="txtQty14" Width="50px" /></td>
+                                            </tr>
+                                            <tr runat="server" id="tr15" visible="false">
+                                                <td><asp:TextBox runat="server" ID="txtPartNo15" Width="200px" /></td>
+                                                <td><asp:TextBox runat="server" ID="txtQty15" Width="50px" /></td>
+                                            </tr>
+                                            <tr runat="server" id="tr16" visible="false">
+                                                <td><asp:TextBox runat="server" ID="txtPartNo16" Width="200px" /></td>
+                                                <td><asp:TextBox runat="server" ID="txtQty16" Width="50px" /></td>
+                                            </tr>
+                                            <tr runat="server" id="tr17" visible="false">
+                                                <td><asp:TextBox runat="server" ID="txtPartNo17" Width="200px" /></td>
+                                                <td><asp:TextBox runat="server" ID="txtQty17" Width="50px" /></td>
+                                            </tr>
+                                            <tr runat="server" id="tr18" visible="false">
+                                                <td><asp:TextBox runat="server" ID="txtPartNo18" Width="200px" /></td>
+                                                <td><asp:TextBox runat="server" ID="txtQty18" Width="50px" /></td>
+                                            </tr>
+                                            <tr runat="server" id="tr19" visible="false">
+                                                <td><asp:TextBox runat="server" ID="txtPartNo19" Width="200px" /></td>
+                                                <td><asp:TextBox runat="server" ID="txtQty19" Width="50px" /></td>
+                                            </tr>
+                                            <tr runat="server" id="tr20" visible="false">
+                                                <td><asp:TextBox runat="server" ID="txtPartNo20" Width="200px" /></td>
+                                                <td><asp:TextBox runat="server" ID="txtQty20" Width="50px" /></td>
+                                            </tr>
+                                        </table>
+                                    </asp:Panel>
+                                    <asp:Button runat="server" ID="btnAddPartNo" Text="+More" OnClick="btnAddPartNo_Click" />
+                                </ContentTemplate>
+                            </asp:UpdatePanel>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td align="center">
+                            <asp:Button runat="server" ID="btnSubmit" 
+                                Text="Submit" OnClick="btnSubmit_Click" />
+                            <asp:UpdatePanel runat="server" ID="upMsg" UpdateMode="Conditional">
+                                <ContentTemplate>
+                                    <asp:Label runat="server" ID="lbMsg" Font-Bold="true" ForeColor="Tomato" />
+                                </ContentTemplate>
+                                <Triggers>
+                                    <asp:AsyncPostBackTrigger ControlID="btnSubmit" EventName="Click" />
+                                </Triggers>
+                            </asp:UpdatePanel>                            
+                        </td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+    </table>
+</asp:Content>
+

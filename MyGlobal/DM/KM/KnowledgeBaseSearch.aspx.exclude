@@ -1,0 +1,303 @@
+﻿<%@ Page Title="MyAdvantech DataMining - Knowledge Base Search" Language="VB" MasterPageFile="~/Includes/MyMaster.master" ValidateRequest="false" EnableEventValidation="false" %>
+<%@ Register namespace="eBizAEUControls" tagprefix="uc1" %>
+
+<script runat="server">
+
+    Protected Sub gvRowCreated(ByVal sender As Object, ByVal e As System.Web.UI.WebControls.GridViewRowEventArgs)
+        If Not (e.Row Is Nothing) AndAlso e.Row.RowType = DataControlRowType.Header Then
+            Dim GridView1 As GridView = sender
+            For Each cell As TableCell In e.Row.Cells
+                If cell.HasControls Then
+                    Dim button As LinkButton = DirectCast(cell.Controls(0), LinkButton)
+                    If Not (button Is Nothing) Then
+                        Dim image As New ImageButton
+                        image.ImageUrl = Util.GetRuntimeSiteUrl() + "/Images/sort_1.jpg"
+                        image.CommandArgument = button.CommandArgument : image.CommandName = button.CommandName
+                        If GridView1.SortExpression = button.CommandArgument Then
+                            If GridView1.SortDirection = SortDirection.Ascending Then
+                                image.ImageUrl = Util.GetRuntimeSiteUrl() + "/Images/sort_2.jpg"
+                            Else
+                                image.ImageUrl = Util.GetRuntimeSiteUrl() + "/Images/sort_1.jpg"
+                            End If
+                        End If
+                        cell.Controls.Add(image)
+                    End If
+                End If
+            Next
+        End If
+    End Sub
+    
+    Protected Sub cbAll_CheckedChanged(sender As Object, e As System.EventArgs)
+        cbEC.Checked = cbAll.Checked : cbIPlanet.Checked = cbAll.Checked : cbSR.Checked = cbAll.Checked : cbPIS.Checked = cbAll.Checked : cbADAM.Checked = cbAll.Checked
+    End Sub
+    
+    Public Function GetInnerText_removed(ByVal str As String) As String
+        Dim doc As New HtmlAgilityPack.HtmlDocument
+        doc.LoadHtml(str)
+        Return doc.DocumentNode.InnerText
+    End Function
+    
+    'Public Function Highlight(ByVal Search_Str As String, ByVal InputTxt As String) As String
+    '    If Search_Str <> String.Empty AndAlso Search_Str.Trim <> "" AndAlso Search_Str <> "*" Then
+    '        Search_Str = Replace(Search_Str, "*", "{0,}")
+    '        Try
+    '            Dim RegExp As New Regex(Search_Str.Replace(" ", "|").Trim(), RegexOptions.IgnoreCase)
+    '            Return RegExp.Replace(InputTxt, New MatchEvaluator(AddressOf ReplaceKeyWords))
+    '            RegExp = Nothing
+    '        Catch ex As System.ArgumentException
+    '            Dim sm As New System.Net.Mail.SmtpClient(ConfigurationManager.AppSettings("SMTPServer"))
+    '            sm.Send("tc.chen@advantech.com.tw", "tc.chen@advantech.com.tw", "Highlight error for search:" + Search_Str + ". inputTxt:" + InputTxt, ex.ToString())
+    '        End Try
+    '    End If
+    '    Return ""
+    'End Function
+    
+    'Public Function ReplaceKeyWords(ByVal m As Match) As String
+    '    Return "<span style='background-color:Yellow'>" + m.Value + "</span>"
+    'End Function
+
+    Protected Sub btnSearch_Click(sender As Object, e As System.EventArgs)
+        If String.IsNullOrEmpty(txtKey.Text) Then txtKey.Text = "*"
+        src1.SelectParameters("SID").DefaultValue = ""
+        If String.IsNullOrEmpty(txtKey.Text) = False And _
+            (cbEC.Checked Or cbIPlanet.Checked Or cbSR.Checked Or cbPIS.Checked Or cbADAM.Checked Or cbFTP.Checked) Then
+            Go4It()
+        Else
+            
+        End If
+    End Sub
+    
+    Sub Go4It()
+        dbUtil.dbExecuteNoQuery("MyLocal", _
+                                " delete from KM_SEARCH_TMP_DETAIL where SEARCH_ROW_ID in " + _
+                                " (select row_id from KM_SEARCH_TMP_MASTER where USERID='" + User.Identity.Name + "')")
+        Dim dtMaster As New DataTable
+        With dtMaster.Columns
+            .Add("ROW_ID") : .Add("SESSIONID") : .Add("USERID") : .Add("QUERY_DATETIME", GetType(DateTime)) : .Add("KEYWORDS")
+        End With
+        Dim r As DataRow = dtMaster.NewRow()
+        r.Item("ROW_ID") = Left(Util.NewRowId("KM_SEARCH_TMP_MASTER", "MyLocal"), 10)
+        : r.Item("SESSIONID") = Session.SessionID : r.Item("USERID") = User.Identity.Name : r.Item("QUERY_DATETIME") = Now() : r.Item("KEYWORDS") = txtKey.Text
+        dtMaster.Rows.Add(r)
+        Dim bk As New SqlClient.SqlBulkCopy(ConfigurationManager.ConnectionStrings("MyLocal").ConnectionString)
+        bk.DestinationTableName = "KM_SEARCH_TMP_MASTER"
+        bk.WriteToServer(dtMaster)
+        Dim ThreadList As New ArrayList, KSObj As New ArrayList
+        If cbEC.Checked Then
+            Dim ks As New KM_Search(txtKey.Text, Session.SessionID, r.Item("ROW_ID"))
+            Dim t As New Threading.Thread(AddressOf ks.SearchEDM) : t.Start()
+            ThreadList.Add(t) : KSObj.Add(ks)
+        End If
+        If cbIPlanet.Checked Then
+            Dim ks As New KM_Search(txtKey.Text, Session.SessionID, r.Item("ROW_ID"))
+            ks.strWebAppName = "iPlanet"
+            Dim t As New Threading.Thread(AddressOf ks.SearchWEB) : t.Start()
+            ThreadList.Add(t) : KSObj.Add(ks)
+        End If
+        If cbADAM.Checked Then
+            Dim ks As New KM_Search(txtKey.Text, Session.SessionID, r.Item("ROW_ID"))
+            ks.strWebAppName = "ADAM Community"
+            Dim t As New Threading.Thread(AddressOf ks.SearchWEB) : t.Start()
+            ThreadList.Add(t) : KSObj.Add(ks)
+        End If
+        If cbFTP.Checked Then
+            Dim ks As New KM_Search(txtKey.Text, Session.SessionID, r.Item("ROW_ID"))
+            Dim t As New Threading.Thread(AddressOf ks.SearchAEFTP) : t.Start()
+            ThreadList.Add(t) : KSObj.Add(ks)
+        End If
+        If cbPIS.Checked Then
+            Dim ks As New KM_Search(txtKey.Text, Session.SessionID, r.Item("ROW_ID"))
+            Dim t As New Threading.Thread(AddressOf ks.SearchMKTLit) : t.Start()
+            ThreadList.Add(t) : KSObj.Add(ks)
+            Dim ks2 As New KM_Search(txtKey.Text, Session.SessionID, r.Item("ROW_ID"))
+            Dim t2 As New Threading.Thread(AddressOf ks2.SearchCMS) : t2.Start()
+            ThreadList.Add(t2) : KSObj.Add(ks2)
+        End If
+        If cbSR.Checked Then
+            Dim ks As New KM_Search(txtKey.Text, Session.SessionID, r.Item("ROW_ID"))
+            Dim t As New Threading.Thread(AddressOf ks.SearchSR) : t.Start()
+            ThreadList.Add(t) : KSObj.Add(ks)
+        End If
+        For Each t As Threading.Thread In ThreadList
+            t.Join()
+        Next
+        For Each ks As KM_Search In KSObj
+            If ks.SearchFlg Then
+                Dim dt As DataTable = ks.ResultDt
+                Dim bk2 As New SqlClient.SqlBulkCopy(ConfigurationManager.ConnectionStrings("MyLocal").ConnectionString)
+                bk2.DestinationTableName = "KM_SEARCH_TMP_DETAIL"
+                bk2.WriteToServer(dt)
+            Else
+                txtMsg.Text += "|" + ks.strErrMsg
+            End If
+        Next
+        Response.Write(txtMsg.Text)
+        src1.SelectParameters("SID").DefaultValue = r.Item("ROW_ID")
+    End Sub
+    
+    Function ShowHideLink(ByVal Url As String) As String
+        If String.IsNullOrEmpty(Url) = False Then Return Url
+        Return "javascript:void(0);"
+    End Function
+    
+    Function ShowFwdEmailLink(ByVal srcApp As String, ByVal SrcId As String) As String
+        If srcApp = "eCampaign" Or srcApp = "PIS" Or srcApp = "CMS" Then
+            Return "<a href='../AOnline/ForwardContent.aspx?SrcApp=" + srcApp + "&SrcId=" + SrcId + "&SearchSid=" + _
+                src1.SelectParameters("SID").DefaultValue + "'>Forward Content</a>"
+        End If
+        Return ""
+    End Function
+    
+    Protected Sub gvResult_RowDataBound(sender As Object, e As System.Web.UI.WebControls.GridViewRowEventArgs)
+        If e.Row.RowType = DataControlRowType.DataRow Then
+            Dim srcType As String = CType(e.Row.FindControl("hdSrcApp"), HiddenField).Value
+            Dim srcID As String = CType(e.Row.FindControl("hdSrcID"), HiddenField).Value
+            If srcType = "eCampaign" Then
+                Dim ed As AjaxControlToolkit.HTMLEditor.Editor = e.Row.FindControl("RowEditor")
+                Dim pnl As Panel = e.Row.FindControl("EDMPanel")
+                ed.Visible = False
+                Dim lit As New Literal
+                lit.Text = "<iframe src='" + Util.GetRuntimeSiteUrl() + "/Includes/GetTemplate.ashx?RowId=" + srcID + "&txtKey=" + txtKey.Text + "' width='750px' height='180px'></iframe>"
+                pnl.Controls.Add(lit)
+                pnl.Visible = True
+            End If
+        End If
+    End Sub
+
+    Protected Sub Page_Load(sender As Object, e As System.EventArgs)
+        If Not Page.IsPostBack AndAlso Request("SearchSid") IsNot Nothing Then
+            src1.SelectParameters("SID").DefaultValue = Request("SearchSid")
+        Else
+            'If Request("SrcId") IsNot Nothing AndAlso Request("SrcType") IsNot Nothing _
+            '    AndAlso Not String.IsNullOrEmpty(Request("SrcId")) AndAlso Not String.IsNullOrEmpty(Request("SrcType")) Then
+            '    Dim cmd As New SqlClient.SqlCommand( _
+            '        " select top 1 ORIGINAL_URL from KM_SEARCH_TMP_DETAIL " + _
+            '        " where SOURCE_APP=@APP and SOURCE_ID=@ID " + _
+            '        " and (ORIGINAL_URL like 'http%//%' or ORIGINAL_URL like 'ftp%')", _
+            '        New SqlClient.SqlConnection(ConfigurationManager.ConnectionStrings("MyLocal").ConnectionString))
+            '    cmd.Parameters.AddWithValue("APP", Trim(Request("SrcType"))) : cmd.Parameters.AddWithValue("ID", Trim(Request("SrcId")))
+            '    Dim tmpURL As Object = Nothing
+            '    cmd.Connection.Open() : tmpURL = cmd.ExecuteScalar() : cmd.Connection.Close()
+            '    If tmpURL IsNot Nothing Then
+            '        Response.Redirect(tmpURL.ToString())
+            '    End If
+            'End If
+        End If
+    End Sub
+</script>
+
+<asp:Content ID="Content1" ContentPlaceHolderID="_main" Runat="Server">   
+    <h2 style="color:Navy">Advantech Knowledge Base Search</h2><br />
+    <table>
+        <tr align="center">
+            <td>
+                <asp:Panel runat="server" ID="pSearch" DefaultButton="btnSearch">
+                    <table>
+                        <tr>
+                            <th align="left">
+                                Keyword:
+                            </th>
+                            <td>
+                                <asp:TextBox runat="server" ID="txtKey" Width="300px" />
+                            </td>
+                            <td>
+                                <asp:Button runat="server" ID="btnSearch" Text="Search" OnClick="btnSearch_Click" />
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <asp:CheckBox runat="server" ID="cbAll" AutoPostBack="true" Text="All" OnCheckedChanged="cbAll_CheckedChanged" />
+                            </td>
+                            <td colspan="2">
+                                <asp:UpdatePanel runat="server" ID="upCheckBoxes" UpdateMode="Conditional">
+                                    <ContentTemplate>
+                                        <asp:CheckBox runat="server" ID="cbIPlanet" Text="iPlanet Forum" Checked="true" />
+                                        <asp:CheckBox runat="server" ID="cbSR" Text="Service Request" Checked="true" />
+                                        <asp:CheckBox runat="server" ID="cbFTP" Text="AE FTP" Checked="true" />
+                                        <asp:CheckBox runat="server" ID="cbADAM" Text="ADAM Community" />
+                                        <asp:CheckBox runat="server" ID="cbEC" Text="eCampaign/eDM" />
+                                        <asp:CheckBox runat="server" ID="cbPIS" Text="Marketing Material" />
+                                    </ContentTemplate>
+                                    <Triggers>
+                                        <asp:AsyncPostBackTrigger ControlID="cbAll" EventName="CheckedChanged" />
+                                    </Triggers>
+                                </asp:UpdatePanel>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td colspan="3">
+                                <asp:TextBox runat="server" ID="txtMsg" Width="400px" Height="50px" TextMode="MultiLine" Visible="false" />
+                            </td>
+                        </tr>
+                    </table>
+                </asp:Panel>                
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <asp:GridView runat="server" ID="gvResult" Width="100%" AutoGenerateColumns="false" DataSourceID="src1" 
+                    AllowPaging="true" PageSize="10" AllowSorting="true" OnRowCreated="gvRowCreated" OnRowDataBound="gvResult_RowDataBound">
+                    <Columns>
+                        <asp:BoundField HeaderText="Source" DataField="SOURCE_APP" SortExpression="SOURCE_APP" HeaderStyle-Width="10%" ItemStyle-HorizontalAlign="Center" />
+                        <asp:BoundField HeaderText="Type" DataField="SOURCE_TYPE" SortExpression="SOURCE_TYPE" HeaderStyle-Width="10%" ItemStyle-HorizontalAlign="Center" />                        
+                        <asp:TemplateField HeaderText="Content" HeaderStyle-Width="80%">
+                            <ItemTemplate>
+                                <asp:HiddenField runat="server" ID="hdSrcApp" Value='<%#Eval("SOURCE_APP") %>' />
+                                <asp:HiddenField runat="server" ID="hdSrcID" Value='<%#Eval("SOURCE_ID") %>' />
+                                <table width="100%">
+                                    <tr>                                        
+                                        <td>
+                                            <a href='<%#ShowHideLink(Eval("ORIGINAL_URL")) %>' target="_blank"><%# Util.Highlight(Me.txtKey.Text, Eval("NAME"))%></a>
+                                        </td> 
+                                        <td align="right" style="display:none"><a href='javascript:void(0);' onclick=ShowKMDetail('<%#Eval("SOURCE_APP") %>','<%#Eval("SOURCE_ID") %>')>Detail</a></td>
+                                    </tr>
+                                    <tr><td colspan="2" style="font-size:small"><i>Last updated on <%#CDate(Eval("LAST_UPD_DATE")).ToString("yyyy/MM/dd")%></i></td></tr>
+                                    <tr>
+                                        <td colspan="2">                                            
+                                            <uc1:NoToolBarEditor2 runat="server" ID="RowEditor" Content='<%# Util.Highlight(Me.txtKey.Text, Eval("CONTENT_TEXT"))%>' 
+                                                Width="750px" Height="120px" ActiveMode="Preview" />   
+                                            <asp:Panel runat="server" ID="EDMPanel" Visible="false" />                                   
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>
+                                            <%#ShowFwdEmailLink(Eval("SOURCE_APP"), Eval("SOURCE_ID"))%>
+                                        </td>
+                                    </tr>
+                                </table>                                
+                            </ItemTemplate>
+                        </asp:TemplateField>
+                    </Columns>
+                </asp:GridView>
+                <asp:SqlDataSource runat="server" ID="src1" ConnectionString="<%$ConnectionStrings:MyLocal %>" 
+                    SelectCommand="
+                        SELECT a.SOURCE_APP, a.SOURCE_ID, a.SOURCE_TYPE, a.NAME, IsNull(a.CONTENT_TEXT,'') as CONTENT_TEXT, a.ORIGINAL_URL, a.THUMBNAIL_URL, a.RANK_VALUE, a.LAST_UPD_DATE
+                        FROM KM_SEARCH_TMP_DETAIL a
+                        where a.SEARCH_ROW_ID=@SID
+                        order by a.RANK_VALUE desc, a.SOURCE_APP desc, a.LAST_UPD_DATE desc, a.SOURCE_ID">
+                    <SelectParameters>
+                        <asp:Parameter ConvertEmptyStringToNull="false" Name="SID" />
+                    </SelectParameters>
+                </asp:SqlDataSource>
+            </td>
+        </tr>
+    </table>
+    <ajaxToolkit:AlwaysVisibleControlExtender ID="AlwaysVisibleControlExtender1" runat="server"
+        TargetControlID="PanelDetail" HorizontalSide="Center" VerticalSide="Middle"
+        HorizontalOffset="250" VerticalOffset="200" />
+    <asp:Panel runat="server" ID="PanelDetail">
+        <div id="div_KM" style="display: none; background-color: white;
+            border: solid 1px silver; padding: 10px; width: 500px; height: 350px; overflow: auto;">
+            <table width="100%">
+                <tr>
+                    <td><a href="javascript:void(0);" onclick="CloseKM();">Close</a></td>
+                </tr>
+                <tr>
+                    <td>
+                        <div id="div_KMDetail"></div>
+                    </td>
+                </tr>
+            </table>
+        </div>
+    </asp:Panel> 
+</asp:Content>

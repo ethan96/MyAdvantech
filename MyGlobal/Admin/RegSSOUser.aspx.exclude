@@ -1,0 +1,78 @@
+﻿<%@ Page Language="VB" MasterPageFile="~/Includes/MyMaster.master" Title="MyAdvantech - SSO User Register" %>
+
+<script runat="server">
+
+    Protected Sub btnCreate_Click(ByVal sender As Object, ByVal e As System.EventArgs)
+        If OraDbUtil.dbExecuteScalar("SAP_PRD", "select * from saprdp.kna1 where rownum=1 and kunnr='" + TextBox1.Text.Trim().ToUpper.Replace("'", "") + "'") Is Nothing Then
+            Util.JSAlert(Me.Page, "company id is incorrect")
+            Exit Sub
+        End If
+        Dim p As New SSO.SSOUSER
+        Dim ws As New SSO.MembershipWebservice
+        If ws.getProfile(TextBox2.Text.Trim(), "PZ") IsNot Nothing Then
+            Util.JSAlert(Me.Page, "User exists") : Exit Sub
+        End If
+        With p
+            p.company_id = TextBox1.Text.Trim() : p.erpid = TextBox1.Text.Trim()
+            p.email_addr = TextBox2.Text.Trim()
+            p.login_password = TextBox5.Text
+            p.first_name = TextBox3.Text : p.last_name = TextBox4.Text
+        End With       
+        If ws.register("PZ", p) <> "" Then Util.JSAlert(Me.Page, "User registered into SSO")    
+    End Sub
+
+    Protected Sub btnIsExist_Click(ByVal sender As Object, ByVal e As System.EventArgs)
+        Dim ws As New SSO.MembershipWebservice
+        Dim p As SSO.SSOUSER = ws.getProfile(TextBox2.Text.Trim(), "PZ")
+        If p IsNot Nothing Then
+            Util.JSAlert(Me.Page, "User exists")
+        Else
+            Util.JSAlert(Me.Page, "User not exist")
+        End If
+    End Sub
+</script>
+<asp:Content runat="server" ID="_main" ContentPlaceHolderID="_main">
+    <table width="100%">
+        <tr>
+            <td>
+                <table width="100%">
+                    <tr>
+                        <th align="right">Company Id</th>
+                        <td>
+                            <asp:TextBox runat="server" ID="TextBox1" Width="200px" />
+                        </td>
+                    </tr>
+                    <tr>
+                        <th align="right">Email Address</th>
+                        <td>
+                            <asp:TextBox runat="server" ID="TextBox2" Width="200px" /><asp:Button runat="server" ID="btnIsExist" Text="Check Existance" OnClick="btnIsExist_Click" />
+                        </td>
+                    </tr>
+                    <tr>
+                        <th align="right">First Name</th>
+                        <td>
+                            <asp:TextBox runat="server" ID="TextBox3" Width="200px" />
+                        </td>
+                    </tr>
+                    <tr>
+                        <th align="right">Last Name</th>
+                        <td>
+                            <asp:TextBox runat="server" ID="TextBox4" Width="200px" />
+                        </td>
+                    </tr>
+                    <tr>
+                        <th align="right">Login Password</th>
+                        <td>
+                            <asp:TextBox runat="server" ID="TextBox5" Width="200px" />
+                        </td>
+                    </tr>
+                    <tr>
+                        <td colspan="2" align="center">
+                            <asp:Button runat="server" ID="btnCreate" Text="Register" OnClick="btnCreate_Click" />
+                        </td>
+                    </tr>
+                </table>
+            </td>
+        </tr>        
+    </table>
+</asp:Content>

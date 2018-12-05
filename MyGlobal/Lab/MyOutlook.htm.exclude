@@ -1,0 +1,183 @@
+﻿<html>
+<head>  
+    <title>Test My Outlook</title>
+    <meta http-equiv="content-type" content="text/html; charset=UTF-8" />
+    <meta name="viewport" id="iphone-viewport" content="width=320; maximum-scale=1.0; minimum-scale=1.0; initial-scale=1.0; user-scalable=no" />
+    <style type="text/css">
+        body, td, div, span, p
+        {
+            font-family: arial,sans-serif;
+        }
+        a
+        {
+            color: #00c;
+        }
+        a:visited
+        {
+            color: #551a8b;
+        }
+        a:active
+        {
+            color: #f00;
+        }
+        body
+        {
+            margin: 0;
+            padding: 0;
+            background-color: white;
+        }
+    </style>
+</head>
+<body style="-webkit-text-size-adjust: none">
+    <script type="text/javascript" src="//www-ig-opensocial.googleusercontent.com/gadgets/js/rpc.js?container=ig&amp;nocache=0&amp;debug=0&amp;c=1&amp;v=ea8289bd3846c57bd64db8aa8a3f2928&amp;sv=10"></script>
+    <script type="text/javascript">        var FLAG_use_rpc_js = true;</script>
+    <script type="text/javascript" src="http://www.google.com/ig/extern_js/f/CgV6aC1UVysw8gE4ACwrMP4BOAAseAGIAQGQAoOGzAmoAgE/NxbrPXVAl94.js"></script>
+    <script type="text/javascript">        gadgets.rpc.setRelayUrl('..', 'http://www.google.com/ig/ifpc_relay', false);</script>
+    <script type="text/javascript">        function sendRequest(iframe_id, service_name, args_list, remote_relay_url, callback, local_relay_url) { _IFPC.call(iframe_id, service_name, args_list, remote_relay_url, callback, local_relay_url); } function _IFPC_SetPref(key, value) { throw new Error('To use this feature, you must add ' + '<Require feature="setprefs"/> to your ' + '<ModulePrefs> tag.'); }
+        function _IG_SetTitle(title) { throw new Error('To use this feature, you must add ' + '<Require feature="settitle"/> to your ' + '<ModulePrefs> tag.'); } function _IG_AdjustIFrameHeight() { throw new Error('To use this feature, you must add ' + '<Require feature="dynamic-height"/> to your ' + '<ModulePrefs> tag.'); }
+        var gv = null; if (window.gadgets && window.gadgets.views) { var errFunc = function () { throw new Error('To use this feature, you must add ' + '<Require feature="views"/> to your ' + '<ModulePrefs> tag.'); }; gv = window.gadgets.views; gv.requestNavigateTo = gv.getCurrentView = gv.getParams = errFunc; }
+    </script>
+    <script type="text/javascript">        _et = ''; _IG_Prefs._parseURL('7');</script>
+    <script type="text/javascript">        _IG_Prefs._addAll("7", [["up_DefaultView", "Inbox"], ["up_.lang", "zh-TW"], ["up_.country", "tw"], ["up_synd", "ig"]]); if (window._isk) { window._isk[7] = "-6175944047655950646"; }</script>
+    
+    <div id="remote_7" style="border: 0; padding: 0; margin: 0; width: 100%; height: auto;
+        overflow: hidden">
+        <script type="text/javascript">
+            strInboxFile = "_WPR_/Inbox.xml"; strInboxName = "Inbox"; strOutboxFile = "_WPR_/Outbox.xml"; strOutboxName = "Outbox";
+            strSentFile = "_WPR_/Sent.xml"; strSentName = "Sent Items"; strDraftsFile = "_WPR_/Drafts.xml"; strDraftsName = "Drafts";
+            strCalendarFile = "_WPR_/Calendar.xml"; strCalendarName = "Calendar"; strTasksFile = "_WPR_/Tasks.xml"; strTasksName = "Tasks"; 
+            strContactsFile = "_WPR_/Contacts.xml"; strContactsName = "Contacts"; DefaultHeight = "400px";
+        </script>
+        <table style="width: 100%">
+            <tr>
+                <td>
+                    <table border="0" cellpadding="0" cellspacing="0" id="MainTable" style="width: 100%;
+                        height: 23px; display: none; font-size: 15px; font-weight: bold;">
+                        <tr style="background-color: #e5ecf9;" valign="middle">
+                            <td>
+                                <a href="javascript:createNewItem()" style="font-weight: bold; color: #4567A5;" title="New">
+                                    New</a>
+                            </td>
+                            <td align="right" id="ToolbarButtons" nowrap="nowrap">
+                                <table id="Table1" style="font-size: 15px; font-weight: bold; color: #97acd4;">
+                                    <tr>
+                                        <td>
+                                            <a href="javascript:ChangeView(strInboxName);" style="font-weight: bold; color: #4567A5;">
+                                                Inbox </a>
+                                        </td>
+                                        <td>
+                                            |
+                                        </td>
+                                        <td>
+                                            <a href="javascript:ChangeView(strCalendarName);" style="font-weight: bold; color: #4567A5;">
+                                                Calendar </a>
+                                        </td>
+                                        <td>
+                                            |
+                                        </td>
+                                        <td>
+                                            <a href="javascript:ChangeView(strTasksName);" style="font-weight: bold; color: #4567A5;">
+                                                Tasks </a>
+                                        </td>
+                                        <td>
+                                            |
+                                        </td>
+                                        <td>
+                                            <a href="javascript:ChangeView(strContactsName);" style="font-weight: bold; color: #4567A5;">
+                                                Contacts </a>
+                                        </td>
+                                    </tr>
+                                </table>
+                            </td>
+                        </tr>
+                    </table>
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    <table border="0" cellpadding="0" cellspacing="0" id="OutlookControlTable" style="width: 100%;
+                        display: none">
+                        <tr valign="top">
+                            <td style="width: 100%; border-left: 1 solid white; border-top: 1 solid white">
+                                <object VIEWASTEXT classid=clsid:0006F063-0000-0000-C000-000000000046 codebase=http://activex.microsoft.com/activex/controls/office/outlctlx.CAB#ver=9,0,0,3203 height=100% id=OutlookControl style="margin:-1;z-index: -1" width="100%">
+                                    <param name=Folder value="" />
+                                    <param name=Namespace value=MAPI />
+                                    <param name=Restriction value="" />
+                                    <param name=DeferUpdate value=0 />
+                                </object>
+                            </td>
+                        </tr>
+                    </table>
+                </td>
+            </tr> 
+            <tr>
+                <td>
+                    <table border="0" cellpadding="0" cellspacing="0" id="ErrorTable" style="width: 100%;
+                        height: 100%">
+                        <tr valign="top">
+                            <td height="100%" width="100%">
+                                <br />
+                                <br />
+                                <br />
+                                <div style="font-size: 12">
+                                    <b>Unable To Display</b><br />
+                                    To use this Gadget, you must have Microsoft Internet Explorer 5 or later and Microsoft
+                                    Office XP or later.<br />
+                                    You will also have to enable ActiveX Controls in your browsers security settings.
+                                    <br />
+                                    <br />
+                                    To use this gadget with FireFox you must have FireFox v2.0 and install the IE Tab
+                                    addin. (<a href="https://addons.mozilla.org/en-US/firefox/addon/1419">https://addons.mozilla.org/en-US/firefox/addon/1419</a>)
+                                    <br />
+                                    Then you must configure the Address http://www.google.com/ig to be displayed in
+                                    IE emulation.
+                                    <br />
+                                    To do this click Tools >> IE Tab Options
+                                    <br />
+                                    In the URL field paste http://www.google.com/ig and click Add. Then click OK<br />
+                                    That should do it. Navigate to google.com and log into your personalized home and
+                                    this gadget should display.
+                                    <br />
+                                    <br />
+                                    This gadget displays better using Google's new tab layouts that allow more space
+                                    for gadgets. Click the down arrow on the tab that this gadget is on to select a
+                                    better format.
+                                    <br />
+                                    <br />
+                                    If you have more questions, please let me know.
+                                    <br />
+                                    <br />
+                                    <br />
+                                    <br />
+                                    Andy Steinmann<br />
+                                    andyast@gmail.com
+                                </div>
+                            </td>
+                    </table>
+                </td>
+            </tr>
+        </table>
+        <script type="text/javascript">            
+            if (window.navigator.appVersion.indexOf("MSIE") != -1) {
+                var l_sVer = ""; var intCount; intCount = window.navigator.appVersion.indexOf("MSIE") + 5; while (window.navigator.appVersion.charAt(intCount) != '.') {
+                    l_sVer += window.navigator.appVersion.charAt(intCount); intCount++;
+                }
+                if (parseInt(l_sVer) >= 5 && OutlookControl.object) {
+                    MainTable.style.display = "inline"; ErrorTable.style.display = "none"; OutlookControlTable.style.display = "inline"; OutlookControlTable.style.height = DefaultHeight;
+                }
+            }
+            function createNewItem() {
+                OutlookControl.NewDefaultItem();
+            }
+            function ChangeView(strFolder) {
+                try {
+                    OutlookControl.Folder = strFolder;
+                } catch (ex) {
+                    window.setTimeout('ChangeView("' + strFolder + '");', 10);
+                }
+            }
+            ChangeView('Inbox');</script>
+    </div>
+    <script type="text/javascript">        _IG_TriggerEvent('domload');</script>
+</body>
+</html>

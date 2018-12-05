@@ -1,0 +1,591 @@
+﻿Imports System.Web
+Imports System.Web.Services
+Imports System.Web.Services.Protocols
+
+' To allow this Web Service to be called from script, using ASP.NET AJAX, uncomment the following line.
+' <System.Web.Script.Services.ScriptService()> _
+<WebService(Namespace:="MyAdvantechWS")> _
+<WebServiceBinding(ConformsTo:=WsiProfiles.BasicProfile1_1)> _
+<Global.Microsoft.VisualBasic.CompilerServices.DesignerGenerated()> _
+Public Class WISEPortalOrder
+    Inherits System.Web.Services.WebService
+
+    Public IsToSAPPRD As Boolean = True
+
+    <WebMethod()> _
+    Public Function HelloKitty() As String
+        Return "Hello Kitty! Shit!"
+    End Function
+
+    Public Function EA_Usage_To_SAP_SO(ERPId As String, OrgId As String, UsageDateFrom As Date, UsageDateTo As Date, ByRef dtUsageDetail As DataTable) As String
+        Dim ReturnResult1 As New ReturnResult(), jsr As New Script.Serialization.JavaScriptSerializer()
+
+        Dim sqlAzureUsage As String = _
+            " select a.AccountName, a.Date, a.Product, a.Service, a.ServiceType, a.ServiceRegion,  " + _
+            " a.ServiceResource, a.ResourceQtyConsumed, a.ResourceRate, a.ExtendedCost,  " + _
+            " a.ServiceSubRegion, a.ServiceInfo " + _
+            " from AZURE_ADV_EA_USAGE a (nolock) " + _
+            " where a.AccountName like '" + ERPId + "%' and a.Date between '" + UsageDateFrom.ToString("yyyy-MM-dd") + "' and '" + UsageDateTo.ToString("yyyy-MM-dd") + "' " + _
+            " order by a.Date, a.Product   "
+        Dim dtUsage As New DataTable
+        Dim aptMyLocal As New SqlClient.SqlDataAdapter(sqlAzureUsage, ConfigurationManager.ConnectionStrings("MyLocal").ConnectionString)
+        aptMyLocal.Fill(dtUsage)
+        aptMyLocal.SelectCommand.Connection.Close()
+        If dtUsage.Rows.Count = 0 Then Return ""
+        dtUsageDetail = dtUsage.Copy()
+        Dim SumExtCost As Decimal = 0
+        For Each r As DataRow In dtUsage.Rows
+            SumExtCost += r.Item("ExtendedCost")
+        Next
+        'gv1.DataSource = dtUsage : gv1.DataBind()
+        SumExtCost = Math.Floor(SumExtCost)
+        'Response.Write("SumExtCost:" + SumExtCost.ToString())
+
+
+        Dim dtSAPAccount As New DataTable
+        Dim aptMyGlobal As New SqlClient.SqlDataAdapter( _
+            " select a.ORG_ID, a.salesoffice, a.CURRENCY from sap_dimcompany a (nolock) " + _
+            " where a.company_id=@ERPID and company_type='Z001' ", ConfigurationManager.ConnectionStrings("MY").ConnectionString)
+        aptMyGlobal.SelectCommand.Parameters.AddWithValue("ERPID", ERPId)
+        aptMyGlobal.Fill(dtSAPAccount)
+        aptMyGlobal.SelectCommand.Connection.Close()
+        If dtSAPAccount.Rows.Count = 0 Then Return ""
+
+        'Dim OrgId = dtSAPAccount.Rows(0).Item("ORG_ID")
+
+        Dim proxy1 As New SO_CREATE_COMMIT.SO_CREATE_COMMIT, OrderHeader As New SO_CREATE_COMMIT.BAPISDHD1, ItemIn As New SO_CREATE_COMMIT.BAPISDITMTable
+        Dim PartNr As New SO_CREATE_COMMIT.BAPIPARNRTable, ScheLine As New SO_CREATE_COMMIT.BAPISCHDLTable, Conditions As New SO_CREATE_COMMIT.BAPICONDTable
+
+        Dim distr_chan As String = "10", division As String = "00"
+        'If Trim(OrgId).ToUpper() = "US01" Then
+        '    If dtSAPAccount.Rows(0).Item("salesoffice") = "2300" Then
+        '        distr_chan = "10" : division = "20"
+        '    Else
+        '        distr_chan = "30" : division = "10"
+        '    End If
+        'End If
+
+
+        Dim Currency As String = dtSAPAccount.Rows(0).Item("CURRENCY")
+
+        With OrderHeader
+            .Doc_Type = "ZOR" : .Sales_Org = OrgId : .Distr_Chan = distr_chan : .Division = division : .Currency = Currency
+            .Purch_No_C = String.Format("Azure方案{0}~{1}", UsageDateFrom.ToString("yyyy/MM/dd"), UsageDateTo.ToString("yyyy/MM/dd"))
+        End With
+
+        'ERPId = "T00694868"
+        Dim PartNr_Ship_Record As New SO_CREATE_COMMIT.BAPIPARNR
+        PartNr_Ship_Record.Partn_Role = "WE" : PartNr_Ship_Record.Partn_Numb = ERPId
+        PartNr.Add(PartNr_Ship_Record)
+        Dim PartNr_Sold_Record As New SO_CREATE_COMMIT.BAPIPARNR
+        PartNr_Sold_Record.Partn_Role = "AG" : PartNr_Sold_Record.Partn_Numb = ERPId
+        PartNr.Add(PartNr_Sold_Record)
+
+
+
+
+        Dim Item_Record_Azure As New SO_CREATE_COMMIT.BAPISDITM, ScheLine_Record_Azure As New SO_CREATE_COMMIT.BAPISCHDL, S_ConditionRow_Azure As New SO_CREATE_COMMIT.BAPICOND
+
+        Item_Record_Azure.Material = "9806AZURE0"
+        'Item_Record_Azure.Material = "ADAM-4520-EE"
+        Item_Record_Azure.Itm_Number = 1 : Item_Record_Azure.Ref_1 = "MyAdvantech"
+        ItemIn.Add(Item_Record_Azure)
+
+        ScheLine_Record_Azure.Itm_Number = Item_Record_Azure.Itm_Number
+        ScheLine_Record_Azure.Req_Qty = 1 : ScheLine_Record_Azure.Req_Date = Now.ToString("yyyyMMdd")
+
+        ScheLine.Add(ScheLine_Record_Azure)
+
+        S_ConditionRow_Azure.Itm_Number = Item_Record_Azure.Itm_Number : S_ConditionRow_Azure.Cond_Type = "ZPN0" : S_ConditionRow_Azure.Currency = Currency
+        S_ConditionRow_Azure.Cond_Value = SumExtCost : Conditions.Add(S_ConditionRow_Azure)
+
+        proxy1.Connection = New SAP.Connector.SAPConnection(System.Configuration.ConfigurationManager.AppSettings("SAPConnTest"))
+        proxy1.ConnectionString = ConfigurationManager.AppSettings("SAP_PRD")
+        proxy1.Connection.Open()
+        Dim strError As String = "", strRelationType As String = "", strPConvert As String = "", strpintnumassign As String = ""
+        Dim strPTestRun As String = "", Doc_Number As String = ""
+        Dim retTable As New SO_CREATE_COMMIT.BAPIRET2Table
+        Dim refDoc_Number As String = ""
+        Doc_Number = refDoc_Number
+
+        ReturnResult1.SONO = refDoc_Number
+
+        proxy1.Bapi_Salesorder_Createfromdat2( _
+            strError, strRelationType, strPConvert, strpintnumassign, New SO_CREATE_COMMIT.BAPISDLS, _
+            OrderHeader, New SO_CREATE_COMMIT.BAPISDHD1X, Doc_Number, New SO_CREATE_COMMIT.BAPI_SENDER, _
+            strPTestRun, refDoc_Number, New SO_CREATE_COMMIT.BAPIPAREXTable, New SO_CREATE_COMMIT.BAPICCARDTable, _
+            New SO_CREATE_COMMIT.BAPICUBLBTable, New SO_CREATE_COMMIT.BAPICUINSTable, New SO_CREATE_COMMIT.BAPICUPRTTable, _
+            New SO_CREATE_COMMIT.BAPICUCFGTable, New SO_CREATE_COMMIT.BAPICUREFTable, New SO_CREATE_COMMIT.BAPICUVALTable, _
+            New SO_CREATE_COMMIT.BAPICUVKTable, Conditions, New SO_CREATE_COMMIT.BAPICONDXTable, ItemIn, _
+            New SO_CREATE_COMMIT.BAPISDITMXTable, New SO_CREATE_COMMIT.BAPISDKEYTable, PartNr, ScheLine, _
+            New SO_CREATE_COMMIT.BAPISCHDLXTable, New SO_CREATE_COMMIT.BAPISDTEXTTable, New SO_CREATE_COMMIT.BAPIADDR1Table, retTable)
+
+        proxy1.CommitWork() : proxy1.Connection.Close()
+        'gv1.DataSource = retTable.ToADODataTable() : gv1.DataBind()
+
+        'Response.Write("refDoc_Number:" + refDoc_Number)
+
+        Dim SOReturnList As New List(Of SO_CREATE_COMMIT.BAPIRET2)
+        SOReturnList.AddRange(Util.DataTableToList(Of SO_CREATE_COMMIT.BAPIRET2)(retTable.ToADODataTable()))
+
+        Dim SOErrors = From q In SOReturnList Where q.Type = "E"
+
+        If SOErrors.Count > 0 Then
+            ReturnResult1.ErrorMessage += vbCrLf + "Error occurred when creating SO:"
+            For Each er In SOErrors
+                ReturnResult1.ErrorMessage += String.Format("{0}" + vbCrLf, er.Message)
+            Next
+            ReturnResult1.IsSuccess = False
+            Return jsr.Serialize(ReturnResult1)
+        End If
+        ReturnResult1.SONO = Util.RemovePrecedingZeros(refDoc_Number)
+        ReturnResult1.IsSuccess = True
+
+        Return jsr.Serialize(ReturnResult1)
+    End Function
+
+    <Serializable()> _
+    Public Class ReturnResult
+        Public Property IsSuccess As Boolean : Public Property ErrorMessage As String
+        Public Property ERPID As String : Public Property OrgId As String : Public Property SONO As String : Public Property InventoryMatDoc As String
+        Public Sub New()
+            Me.IsSuccess = False : Me.ErrorMessage = ""
+        End Sub
+    End Class
+
+    Public Class WISEPointItem_Amount
+        Public Property Point_Part_No As String : Public Property Amount As Decimal
+    End Class
+    Public Enum SAP_Currency
+        AUD
+        BRL
+        CNY
+        EUR
+        GBP
+        IDR
+        INR
+        JPY
+        KRW
+        MXN
+        MYR
+        SGD
+        THB
+        TWD
+        USD
+    End Enum
+
+    Public Class WisePoint2OrderException
+        Inherits Exception
+        Public ErrorMessage As String
+        Public Sub New(ErrorMessage As String)
+            Me.ErrorMessage = ErrorMessage
+        End Sub
+    End Class
+
+    Public Class WISEPoint2OrderV2Input
+        Public Property MembershipEmail As String : Public Property WISE_PartNo As String : Public Property Qty As Integer
+        Public Property RedeemPoints As Integer : Public Property AssetId As String
+    End Class
+
+    <WebMethod()> _
+    Public Function WISEPoint2OrderV2() As String
+
+    End Function
+
+
+    <WebMethod()> _
+    Public Function WISEPoint2Order( _
+                                   MembershipEmail As String, WISEPointItems As List(Of WISEPointItem_Amount), WISE_PartNo As String, _
+                                   Qty As Integer, Amount As Decimal, AmountCurrency As SAP_Currency, AssetId As String) As String
+        If Util.GetRuntimeSiteUrl().ToLower().Contains("my.advantech.com:4002") Then
+            IsToSAPPRD = False
+        ElseIf Util.GetRuntimeSiteUrl().ToLower().Contains("my.advantech.com") And HttpContext.Current.Request.ServerVariables("SERVER_PORT") = "80" Then
+            IsToSAPPRD = True
+        End If
+
+        If True Then
+            Dim smtpServer As New Net.Mail.SmtpClient(ConfigurationManager.AppSettings("SMTPServer"))
+            smtpServer.Send("tc.chen@advantech.com.tw", "tc.chen@advantech.com.tw", "WS WISEPoint2Order is invoked from " + Util.GetClientIP() + ", IsToSAPPRD:" + IsToSAPPRD.ToString(), _
+                            String.Format("Email:{0},WISE_PartNo:{1},AssetId:{2}, Server URL:{3}", MembershipEmail, WISE_PartNo, AssetId, Util.GetRuntimeSiteUrl()))
+        End If
+        Amount = Math.Abs(Amount) : WISE_PartNo = Trim(WISE_PartNo)
+        Dim ReturnResult1 As New ReturnResult(), jsr As New Script.Serialization.JavaScriptSerializer()
+
+        Try
+            If WISEPointItems.Count = 0 Then
+                Throw New WisePoint2OrderException("Please pass at least one item to parameter WISEPointItems")
+            End If
+
+            For Each WPItem In WISEPointItems
+                If Not WPItem.Point_Part_No.StartsWith("98DPW", StringComparison.CurrentCultureIgnoreCase) Then
+                    Throw New WisePoint2OrderException(WPItem.Point_Part_No + " is not a WISE Point Item")
+                End If
+                WPItem.Point_Part_No = WPItem.Point_Part_No.ToUpper() : WPItem.Amount = Math.Abs(WPItem.Amount)
+            Next
+
+            Dim SumWiseItemAmount = Aggregate q In WISEPointItems Into Sum(q.Amount)
+
+            If SumWiseItemAmount <> Amount Then
+                Throw New WisePoint2OrderException("Sum of amount of WISEPointItems " + SumWiseItemAmount.ToString() + " is not equal to Amount " + Amount.ToString())
+            End If
+
+
+            Dim ERPId As String = String.Empty, OrgId As String = String.Empty ', SAPPartNo As String = String.Empty
+            Dim sqlGetERPId As String = _
+                " select distinct top 1 b.COMPANY_ID, b.ORG_ID, b.salesoffice, b.CURRENCY " + _
+                " from SIEBEL_CONTACT a (nolock) inner join SAP_DIMCOMPANY b (nolock) on a.ERPID=b.COMPANY_ID  " + _
+                " where a.EMAIL_ADDRESS not like '%@advantech%.%' and a.EMPLOYEE_FLAG='N' and a.ACTIVE_FLAG='Y' and b.COMPANY_TYPE='Z001' " + _
+                " and b.ORG_ID not in ('CN02','CN11','CN12','CN13','CN20','CN30','CN40','EU20','EU30','EU31','EU32','EU33','EU34','EU50','TW02','TW03','TW04','TWCP','TW07') " + _
+                " and dbo.IsEmail(a.EMAIL_ADDRESS)=1 " + _
+                " and a.EMAIL_ADDRESS=@EMAIL " + _
+                " order by b.ORG_ID  "
+            Dim AptSiebel As New SqlClient.SqlDataAdapter(sqlGetERPId, ConfigurationManager.ConnectionStrings("MY").ConnectionString)
+            Dim dtERPId As New DataTable
+            AptSiebel.SelectCommand.Parameters.AddWithValue("EMAIL", MembershipEmail)
+            AptSiebel.Fill(dtERPId)
+            AptSiebel.SelectCommand.Connection.Close()
+            If dtERPId.Rows.Count = 0 Then
+                Throw New WisePoint2OrderException("Cannot find a valid ERPID for this customer from Siebel")
+            Else
+                ERPId = dtERPId.Rows(0).Item("COMPANY_ID") : OrgId = dtERPId.Rows(0).Item("ORG_ID")
+            End If
+
+            Dim sqlCheckWisePN As String = "select count(*) from WISE_PORTAL_PRODUCT where PART_NO=@PN"
+            Dim cmdMyLocal As New SqlClient.SqlCommand(sqlCheckWisePN, New SqlClient.SqlConnection(ConfigurationManager.ConnectionStrings("MyLocal").ConnectionString))
+            cmdMyLocal.Parameters.AddWithValue("PN", WISE_PartNo)
+            cmdMyLocal.Connection.Open()
+            Dim chkCount As Integer = CInt(cmdMyLocal.ExecuteScalar())
+            cmdMyLocal.Connection.Close()
+            If chkCount = 0 Then
+                Throw New WisePoint2OrderException(String.Format("{0} is not a WISE Portal Part Number", WISE_PartNo))
+            End If
+
+            ReturnResult1.ERPID = ERPId : ReturnResult1.OrgId = OrgId
+
+            Dim proxy1 As New SO_CREATE_COMMIT.SO_CREATE_COMMIT, OrderHeader As New SO_CREATE_COMMIT.BAPISDHD1, ItemIn As New SO_CREATE_COMMIT.BAPISDITMTable
+            Dim PartNr As New SO_CREATE_COMMIT.BAPIPARNRTable, ScheLine As New SO_CREATE_COMMIT.BAPISCHDLTable, Conditions As New SO_CREATE_COMMIT.BAPICONDTable
+
+            Dim distr_chan As String = "10", division As String = "00"
+
+            If Trim(OrgId).ToUpper() = "US01" Then
+                If dtERPId.Rows(0).Item("salesoffice") = "2300" Then
+                    distr_chan = "10" : division = "20"
+                Else
+                    distr_chan = "30" : division = "10"
+                End If
+            End If
+
+            'Dim Currency As String = dtERPId.Rows(0).Item("CURRENCY")
+            Dim Currency As String = AmountCurrency.ToString()
+
+            With OrderHeader
+                .Doc_Type = "ZOR2" : .Sales_Org = OrgId : .Distr_Chan = distr_chan : .Division = division : .Currency = Currency
+                '20160323 TC: Chris asked to tick complete delivery for WISE Point's SO
+                .Compl_Dlv = "X"
+            End With
+
+            'ERPId = "T00694868"
+            Dim PartNr_Ship_Record As New SO_CREATE_COMMIT.BAPIPARNR
+            PartNr_Ship_Record.Partn_Role = "WE" : PartNr_Ship_Record.Partn_Numb = ERPId
+            PartNr.Add(PartNr_Ship_Record)
+            Dim PartNr_Sold_Record As New SO_CREATE_COMMIT.BAPIPARNR
+            PartNr_Sold_Record.Partn_Role = "AG" : PartNr_Sold_Record.Partn_Numb = ERPId
+            PartNr.Add(PartNr_Sold_Record)
+
+            Dim LineNo As Integer = 1
+
+            For Each WPItem In WISEPointItems
+                Dim Item_Record_DownPay As New SO_CREATE_COMMIT.BAPISDITM, ScheLine_Record_DownPay As New SO_CREATE_COMMIT.BAPISCHDL, S_ConditionRow_DownPay As New SO_CREATE_COMMIT.BAPICOND
+
+                Item_Record_DownPay.Material = WPItem.Point_Part_No
+                Item_Record_DownPay.Itm_Number = LineNo : Item_Record_DownPay.Ref_1 = "MyAdvantech"
+                Item_Record_DownPay.Purch_No_C = AssetId
+                ItemIn.Add(Item_Record_DownPay)
+
+                ScheLine_Record_DownPay.Itm_Number = Item_Record_DownPay.Itm_Number
+                ScheLine_Record_DownPay.Req_Qty = Qty : ScheLine_Record_DownPay.Req_Date = Now.ToString("yyyyMMdd")
+
+                ScheLine.Add(ScheLine_Record_DownPay)
+
+                S_ConditionRow_DownPay.Itm_Number = Item_Record_DownPay.Itm_Number : S_ConditionRow_DownPay.Cond_Type = "ZPN0" : S_ConditionRow_DownPay.Currency = Currency
+                S_ConditionRow_DownPay.Cond_Value = WPItem.Amount / Qty * -1 : Conditions.Add(S_ConditionRow_DownPay)
+                LineNo += 1
+            Next
+
+            Dim Item_Record_WISE As New SO_CREATE_COMMIT.BAPISDITM, ScheLine_Record_WISE As New SO_CREATE_COMMIT.BAPISCHDL, S_ConditionRow_WISE As New SO_CREATE_COMMIT.BAPICOND
+
+            Item_Record_WISE.Material = Global_Inc.Format2SAPItem(WISE_PartNo)
+            Item_Record_WISE.Itm_Number = LineNo : Item_Record_WISE.Ref_1 = "MyAdvantech"
+            Item_Record_WISE.Purch_No_C = AssetId
+            ItemIn.Add(Item_Record_WISE)
+
+            ScheLine_Record_WISE.Itm_Number = Item_Record_WISE.Itm_Number
+            ScheLine_Record_WISE.Req_Qty = Qty : ScheLine_Record_WISE.Req_Date = Now.ToString("yyyyMMdd")
+
+            ScheLine.Add(ScheLine_Record_WISE)
+
+            S_ConditionRow_WISE.Itm_Number = Item_Record_WISE.Itm_Number : S_ConditionRow_WISE.Cond_Type = "ZPN0" : S_ConditionRow_WISE.Currency = Currency
+            S_ConditionRow_WISE.Cond_Value = Amount / Qty : Conditions.Add(S_ConditionRow_WISE)
+
+            proxy1.Connection = New SAP.Connector.SAPConnection(System.Configuration.ConfigurationManager.AppSettings("SAPConnTest"))
+            If IsToSAPPRD Then proxy1.ConnectionString = ConfigurationManager.AppSettings("SAP_PRD")
+            proxy1.Connection.Open()
+            Dim strError As String = "", strRelationType As String = "", strPConvert As String = "", strpintnumassign As String = ""
+            Dim strPTestRun As String = "", Doc_Number As String = ""
+            Dim retTable As New SO_CREATE_COMMIT.BAPIRET2Table
+            Dim refDoc_Number As String = SAPDAL.SAPDAL.SO_GetNumber("WISE")
+            Doc_Number = refDoc_Number
+
+            ReturnResult1.SONO = refDoc_Number
+
+            proxy1.Bapi_Salesorder_Createfromdat2( _
+                strError, strRelationType, strPConvert, strpintnumassign, New SO_CREATE_COMMIT.BAPISDLS, _
+                OrderHeader, New SO_CREATE_COMMIT.BAPISDHD1X, Doc_Number, New SO_CREATE_COMMIT.BAPI_SENDER, _
+                strPTestRun, refDoc_Number, New SO_CREATE_COMMIT.BAPIPAREXTable, New SO_CREATE_COMMIT.BAPICCARDTable, _
+                New SO_CREATE_COMMIT.BAPICUBLBTable, New SO_CREATE_COMMIT.BAPICUINSTable, New SO_CREATE_COMMIT.BAPICUPRTTable, _
+                New SO_CREATE_COMMIT.BAPICUCFGTable, New SO_CREATE_COMMIT.BAPICUREFTable, New SO_CREATE_COMMIT.BAPICUVALTable, _
+                New SO_CREATE_COMMIT.BAPICUVKTable, Conditions, New SO_CREATE_COMMIT.BAPICONDXTable, ItemIn, _
+                New SO_CREATE_COMMIT.BAPISDITMXTable, New SO_CREATE_COMMIT.BAPISDKEYTable, PartNr, ScheLine, _
+                New SO_CREATE_COMMIT.BAPISCHDLXTable, New SO_CREATE_COMMIT.BAPISDTEXTTable, New SO_CREATE_COMMIT.BAPIADDR1Table, retTable)
+
+            proxy1.CommitWork() : proxy1.Connection.Close()
+
+            Dim SOReturnList As New List(Of SO_CREATE_COMMIT.BAPIRET2)
+            SOReturnList.AddRange(Util.DataTableToList(Of SO_CREATE_COMMIT.BAPIRET2)(retTable.ToADODataTable()))
+
+            Dim SOErrors = From q In SOReturnList Where q.Type = "E"
+
+            If SOErrors.Count > 0 Then
+                ReturnResult1.ErrorMessage += vbCrLf + "Error occurred when creating SO:"
+                For Each er In SOErrors
+                    ReturnResult1.ErrorMessage += String.Format("{0}" + vbCrLf, er.Message)
+                Next
+                Throw New WisePoint2OrderException(ReturnResult1.ErrorMessage)
+                'ReturnResult1.IsSuccess = False
+                'LogWisePointRedeemRequest(MembershipEmail, WISEPointItems, WISE_PartNo, Qty, Amount, AssetId, ReturnResult1)
+                'Return jsr.Serialize(ReturnResult1)
+            End If
+            'gv1.DataSource = SOReturnList : gv1.DataBind()
+
+
+            '20160310 Poki: 灌庫存部分, 必須是自製軟體才能灌庫存, 請用material type = ZINT 判斷, 其他的不需要灌庫存
+            Dim SAPApt As New Oracle.DataAccess.Client.OracleDataAdapter("select MTART from saprdp.mara where matnr='" + Item_Record_WISE.Material + "'", ConfigurationManager.ConnectionStrings("SAP_PRD").ConnectionString)
+            Dim dtMaterialType As New DataTable
+            SAPApt.Fill(dtMaterialType)
+            SAPApt.SelectCommand.Connection.Close()
+            If dtMaterialType.Rows.Count > 0 AndAlso dtMaterialType.Rows(0).Item("MTART") = "ZINT" Then
+                Dim proxy2 As New ZBAPI_GOODSMVT_CREATE.ZBAPI_GOODSMVT_CREATE(ConfigurationManager.AppSettings("SAPConnTest"))
+                If IsToSAPPRD Then proxy1.ConnectionString = ConfigurationManager.AppSettings("SAP_PRD")
+                Dim GOODSMVT_HEADER As New ZBAPI_GOODSMVT_CREATE.BAPI2017_GM_HEAD_01()
+                Dim GOODSMVT_CODE As New ZBAPI_GOODSMVT_CREATE.BAPI2017_GM_CODE()
+                Dim GOODSMVT_ITEM As New ZBAPI_GOODSMVT_CREATE.BAPI2017_GM_ITEM_CREATETable()
+                Dim GOODSMVT_SERIALNUMBER As New ZBAPI_GOODSMVT_CREATE.BAPI2017_GM_SERIALNUMBERTable()
+                Dim GOODSMVT_Return As New ZBAPI_GOODSMVT_CREATE.BAPIRET2Table()
+                Dim GOODSMVT_HEADRET As New ZBAPI_GOODSMVT_CREATE.BAPI2017_GM_HEAD_RET()
+                Dim MATERIALDOCUMENT As String = "", MATDOCUMENTYEAR As String = ""
+
+                With GOODSMVT_HEADER
+                    .Pstng_Date = Now.ToString("yyyyMMdd")  '實際過帳日期
+                    .Doc_Date = Now.ToString("yyyyMMdd")    '單據日期
+                    .Pr_Uname = "b2baeu"
+                End With
+                GOODSMVT_CODE.Gm_Code = "05"    'fix "05" 
+
+                Dim GOODSMVTItem1 As New ZBAPI_GOODSMVT_CREATE.BAPI2017_GM_ITEM_CREATE()
+                With GOODSMVTItem1
+                    .Material = Item_Record_WISE.Material : .Plant = Left(OrgId, 2) + "H1" : .Stge_Loc = "0000" : .Move_Type = "913" : .Entry_Qnt = Qty
+                End With
+                GOODSMVT_ITEM.Add(GOODSMVTItem1)
+
+
+                proxy2.Connection.Open()
+                proxy2.Zbapi_Goodsmvt_Create(GOODSMVT_CODE, GOODSMVT_HEADER, "", GOODSMVT_HEADRET, MATDOCUMENTYEAR, MATERIALDOCUMENT, GOODSMVT_ITEM, GOODSMVT_SERIALNUMBER, GOODSMVT_Return)
+                proxy2.Connection.Close()
+
+                Dim GoodMVTReturn As New List(Of ZBAPI_GOODSMVT_CREATE.BAPIRET2)
+                GoodMVTReturn.AddRange(Util.DataTableToList(Of ZBAPI_GOODSMVT_CREATE.BAPIRET2)(GOODSMVT_Return.ToADODataTable()))
+
+                Dim GoodMVTErrors = From q In GoodMVTReturn Where q.Type = "E"
+
+                If GoodMVTErrors.Count > 0 Then
+                    ReturnResult1.ErrorMessage += vbCrLf + "Error occurred when adding inventory:"
+                    For Each er In GoodMVTErrors
+                        ReturnResult1.ErrorMessage += String.Format("{0}" + vbCrLf, er.Message)
+                    Next
+                    Throw New WisePoint2OrderException(ReturnResult1.ErrorMessage)
+                    'ReturnResult1.IsSuccess = False
+                    'LogWisePointRedeemRequest(MembershipEmail, WISEPointItems, WISE_PartNo, Qty, Amount, AssetId, ReturnResult1)
+                    'Return jsr.Serialize(ReturnResult1)
+                Else
+                    ReturnResult1.InventoryMatDoc = GOODSMVT_HEADRET.Mat_Doc
+                End If
+            Else
+                ReturnResult1.InventoryMatDoc = "No need"
+            End If
+
+
+            '20160323 TC: Check if any order line has GP block, call RFC to unblock it
+            Threading.Thread.Sleep(10000)
+            If IsToSAPPRD Then
+                UnblockSOGP(ReturnResult1.SONO)
+            End If
+
+            SendWisePortalPIEmail(MembershipEmail, WISE_PartNo, ReturnResult1.SONO)
+            ReturnResult1.IsSuccess = True
+        Catch ex As WisePoint2OrderException
+            ReturnResult1.IsSuccess = False : ReturnResult1.ErrorMessage = ex.ErrorMessage
+        Catch ex2 As Exception
+            ReturnResult1.IsSuccess = False : ReturnResult1.ErrorMessage = "Runtime error:" + ex2.ToString()
+        End Try
+        LogWisePointRedeemRequest(MembershipEmail, WISEPointItems, WISE_PartNo, Qty, Amount, AssetId, ReturnResult1)
+        ReturnResult1.ERPID = "" : ReturnResult1.InventoryMatDoc = "" : ReturnResult1.OrgId = "" : ReturnResult1.SONO = ""
+        Return jsr.Serialize(ReturnResult1)
+    End Function
+
+    Function SendWisePortalPIEmail(ContactEmail As String, WisePN As String, SONO As String) As Boolean
+        Dim sqlSOSalesEmail As String = _
+            " select distinct b.usrid_long as email  " + _
+            " from saprdp.vbpa a inner join saprdp.pa0105 b on a.pernr=b.pernr " + _
+            " where a.vbeln='" + Global_Inc.SONoBuildSAPFormat(SONO) + "' and a.pernr<>'00000000' and b.subty in ('0010','MAIL') and b.usrid_long like '%@%.%' "
+        Dim SAPApt As New Oracle.DataAccess.Client.OracleDataAdapter(sqlSOSalesEmail, ConfigurationManager.ConnectionStrings("SAP_PRD").ConnectionString)
+        Dim dtSOEmails As New DataTable, dtCust As New DataTable, dtSODetail As New DataTable
+        SAPApt.Fill(dtSOEmails)
+
+        SAPApt.SelectCommand.CommandText = _
+            " select a.name1, a.name2, a.kunnr " + _
+            " from saprdp.kna1 a inner join saprdp.vbak b on a.kunnr=b.kunnr " + _
+            " where a.mandt='168' and b.vbeln='" + Global_Inc.SONoBuildSAPFormat(SONO) + "'"
+        SAPApt.Fill(dtCust)
+
+        SAPApt.SelectCommand.CommandText = _
+            " select a.posnr as line_no, a.matnr as part_no, a.arktx as product_desc,  " + _
+            " b.mtart as material_type, a.kwmeng as order_qty, a.waerk as currency, a.netpr as unit_price " + _
+            " from saprdp.vbap a inner join saprdp.mara b on a.matnr=b.matnr " + _
+            " where a.mandt='168' and a.vbeln='" + Global_Inc.SONoBuildSAPFormat(SONO) + "' " + _
+            " order by a.posnr "
+        SAPApt.Fill(dtSODetail)
+
+        For Each OrderRow As DataRow In dtSODetail.Rows
+            Select Case OrderRow.Item("currency")
+                Case "TWD"
+                    OrderRow.Item("unit_price") = Math.Pow(10, 2 - 0) * CDbl(OrderRow.Item("unit_price"))
+            End Select
+            OrderRow.Item("line_no") = Global_Inc.RemoveZeroString(OrderRow.Item("line_no"))
+            OrderRow.Item("part_no") = Global_Inc.RemoveZeroString(OrderRow.Item("part_no"))
+        Next
+
+        SAPApt.SelectCommand.Connection.Close()
+        If dtCust.Rows.Count = 0 Or dtSODetail.Rows.Count = 0 Then Return False
+
+        Dim sbMailBody As New System.Text.StringBuilder
+
+        With sbMailBody
+            .AppendFormat("Dear Sales/OP,<br/><br/>")
+            .Append(String.Format("Customer {0} just used wise point to convert to product: {1}, SO No.: {2}.<br/>", ContactEmail, WisePN, SONO))
+            .Append("Following is the order detail:<br/>")
+            .Append("<table border='1' style='width:100%'>")
+            .Append("<tr><th>Line No.</th><th>Part No.</th><th>Desc.</th><th>material type</th><th>qty.</th><th>unit price</th></tr>")
+            For Each OrderRow As DataRow In dtSODetail.Rows
+                .AppendFormat("<tr><td align='center'>{0}</td><td>{1}</td><td>{2}</td><td align='center'>{3}</td><td align='center'>{4}</td><td align='right'>{5}{6}</td></tr>", _
+                              OrderRow.Item("line_no"), OrderRow.Item("part_no"), OrderRow.Item("product_desc"), OrderRow.Item("material_type"), _
+                              OrderRow.Item("order_qty"), OrderRow.Item("currency"), OrderRow.Item("unit_price"))
+            Next
+            .Append("</table>")
+            .Append("<br/>Thank you.<br/>")
+            .Append("<a href='mailto:myadvantech@advantech.com'>MyAdvantech IT Team</a>")
+        End With
+
+        Dim msg As New System.Net.Mail.MailMessage()
+        msg.IsBodyHtml = True
+        msg.Body = sbMailBody.ToString()
+        msg.From = New Net.Mail.MailAddress("MyAdvantech@advantech.com")
+
+        If dtSOEmails.Rows.Count > 0 Then
+            For Each EmailRow As DataRow In dtSOEmails.Rows
+                msg.To.Add(EmailRow.Item("email"))
+                If Not IsToSAPPRD Then msg.Body = EmailRow.Item("email") + "<br/>" + msg.Body
+            Next
+        Else
+            msg.To.Add("tc.chen@advantech.com.tw")
+        End If
+
+        If IsToSAPPRD Then msg.CC.Add("alice.wang@advantech.com.tw")
+
+        msg.Bcc.Add("tc.chen@advantech.com.tw")
+
+        msg.SubjectEncoding = Text.Encoding.UTF8 : msg.BodyEncoding = Text.Encoding.UTF8
+        msg.Subject = String.Format("WISE Point Order ({0}) for {1} {2}({3}){4}", SONO, dtCust.Rows(0).Item("name1"), dtCust.Rows(0).Item("name2"), dtCust.Rows(0).Item("kunnr"), IIf(IsToSAPPRD, "", " (TEST)"))
+        Dim smtpServer As New Net.Mail.SmtpClient(ConfigurationManager.AppSettings("SMTPServer"))
+        If Not IsToSAPPRD Then msg.To.Clear()
+        smtpServer.Send(msg)
+        smtpServer.Dispose()
+        Return True
+    End Function
+
+    Public Function Z_VBRP_SELECT_01(WisePN As String) As DataTable
+        Dim proxy1 As New Z_VBRP_SELECT_01.Z_VBRP_SELECT_01(ConfigurationManager.AppSettings("SAP_PRD"))
+        Dim ZVBRP As New Z_VBRP_SELECT_01.ZVBRPVB_T
+        proxy1.Connection.Open()
+        proxy1.Z_Vbrp_Select_01("20160101", "99991231", "98DP", ZVBRP)
+        proxy1.Connection.Close()
+    End Function
+
+    Sub LogWisePointRedeemRequest( _
+                                 MembershipEmail As String, WISEPointItems As List(Of WISEPortalOrder.WISEPointItem_Amount), _
+                                 WISE_PartNo As String, Qty As Integer, Amount As Decimal, AssetId As String, _
+                                 ReturnResult1 As WISEPortalOrder.ReturnResult)
+        Dim WiseRec1 As New WISE_PORTAL_REDEEM_RECORD(MembershipEmail, WISEPointItems, WISE_PartNo, Qty, Amount, AssetId, ReturnResult1)
+        Dim WiseRecords As New List(Of WISE_PORTAL_REDEEM_RECORD)
+        WiseRecords.Add(WiseRec1)
+        Dim dtWiseRec As DataTable = Util.ListToDataTable(Of WISE_PORTAL_REDEEM_RECORD)(WiseRecords)
+
+        'gv2.DataSource = dtWiseRec : gv2.DataBind() : Exit Sub
+
+        Dim bk As New SqlClient.SqlBulkCopy(ConfigurationManager.ConnectionStrings("MyLocal").ConnectionString)
+        bk.DestinationTableName = "WISE_PORTAL_REDEEM_RECORD"
+        bk.WriteToServer(dtWiseRec)
+        bk.Close()
+    End Sub
+
+    Function UnblockSOGP(SONO As String) As Boolean
+        Dim sqlSOGPBlockLines As String = _
+            " select POSNR, LSSTA from saprdp.vbup where LSSTA='C' and vbeln='" + Global_Inc.SONoBuildSAPFormat(SONO) + "' "
+        Dim SAPGPApt As New Oracle.DataAccess.Client.OracleDataAdapter(sqlSOGPBlockLines, ConfigurationManager.ConnectionStrings("SAP_PRD").ConnectionString)
+        Dim dtSOGPLines As New DataTable
+        SAPGPApt.Fill(dtSOGPLines)
+        SAPGPApt.SelectCommand.Connection.Close()
+        If dtSOGPLines.Rows.Count > 0 Then
+            Dim pro1 As New Z_RELEASE_GP_ITEM.Z_RELEASE_GP_ITEM(ConfigurationManager.AppSettings("SAP_PRD"))
+            pro1.Connection.Open()
+            For Each GPLineRow As DataRow In dtSOGPLines.Rows
+                pro1.Z_Release_Gp_Item(GPLineRow.Item("POSNR"), SONO, "", 0)
+            Next
+            pro1.Connection.Close()
+        End If
+        Return True
+    End Function
+
+    Public Class WISE_PORTAL_REDEEM_RECORD
+        Public Property ROW_ID As Integer : Public Property CONTACT_EMAIL As String : Public Property WISEPointItems As String
+        Public Property WisePN As String : Public Property Qty As Integer : Public Property Amount As Decimal
+        Public Property AssetId As String : Public Property Redeem_Date As DateTime : Public Property IsSuccess As Boolean
+        Public Property ErrorMessage As String : Public Property ERPID As String : Public Property OrgId As String
+        Public Property SONO As String : Public Property InventoryMatDoc As String : Public Property LastProcDate As DateTime
+        Public Property LastProcBy As String : Public Property WSClientIP As String
+        Public Sub New(MembershipEmail As String, WISEPointItems As List(Of WISEPortalOrder.WISEPointItem_Amount), _
+                                 WISE_PartNo As String, Qty As Integer, Amount As Decimal, AssetId As String, _
+                                 ReturnResult1 As WISEPortalOrder.ReturnResult)
+            Dim jsr As New Script.Serialization.JavaScriptSerializer()
+            Me.CONTACT_EMAIL = MembershipEmail : Me.WISEPointItems = jsr.Serialize(WISEPointItems) : Me.WisePN = WISE_PartNo
+            Me.Qty = Qty : Me.Amount = Amount : Me.AssetId = AssetId : Me.Redeem_Date = Now
+            With ReturnResult1
+                Me.IsSuccess = .IsSuccess : Me.ErrorMessage = .ErrorMessage : Me.ERPID = .ERPID
+                Me.OrgId = .OrgId : Me.SONO = .SONO : Me.InventoryMatDoc = .InventoryMatDoc
+                Me.LastProcDate = Me.Redeem_Date
+            End With
+            Me.WSClientIP = Util.GetClientIP()
+            'Me.WISEPointItems = ""
+        End Sub
+    End Class
+
+End Class

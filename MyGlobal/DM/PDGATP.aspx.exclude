@@ -1,0 +1,205 @@
+﻿<%@ Page Title="MyAdvantech - Global Inventory" Language="VB" MasterPageFile="~/Includes/MyMaster.master" %>
+<%@ MasterType VirtualPath="~/Includes/MyMaster.master" %>
+<script runat="server">
+    Protected Sub TimerRowATP_Tick(ByVal sender As Object, ByVal e As System.EventArgs)
+        Dim tm As Timer = sender
+        Dim pn As String = CType(tm.NamingContainer.FindControl("hd_RowPN"), HiddenField).Value
+        Dim gv As GridView = tm.NamingContainer.FindControl("gvRowATP")
+        Dim loadImg As Image = tm.NamingContainer.FindControl("imgRowLoadATP")
+        tm.Interval = 999999
+        Try
+            SyncLock GetType(Integer)
+                If ViewState("ConcurrentATPThreads") Is Nothing Then ViewState("ConcurrentATPThreads") = 0
+                If ViewState("ConcurrentATPThreads") > 5 Then
+                    For i As Integer = 0 To 10
+                        If CInt(ViewState("ConcurrentATPThreads")) > 5 Then
+                            Threading.Thread.Sleep(500)
+                        Else
+                            Exit For
+                        End If
+                    Next
+                End If
+                ViewState("ConcurrentATPThreads") = ViewState("ConcurrentATPThreads") + 1
+            End SyncLock
+            Dim adt As DataTable = GetATP(pn)
+            gv.DataSource = adt : gv.DataBind()
+            loadImg.Visible = False : gv.Visible = True : gv.EmptyDataText = "N/A"
+            Dim intQty As Integer = 0
+            For Each r As DataRow In adt.Rows
+                intQty += r.Item("atp_qty")
+            Next
+            If intQty > 0 Then
+                If intQty > 1 Then
+                    'Me.lbInvTotal.Text = "Total: " + intQty.ToString() + " pcs"
+                Else
+                    'Me.lbInvTotal.Text = "Total: " + intQty.ToString() + " pc"
+                End If
+            End If
+            SyncLock GetType(Integer)
+                ViewState("ConcurrentATPThreads") = ViewState("ConcurrentATPThreads") - 1
+            End SyncLock
+        Catch ex As Exception
+        End Try
+        tm.Enabled = False
+    End Sub
+    
+    Function GetATP(ByVal pn As String) As DataTable
+        'imgInvLoad.Visible = True
+        Dim gdt As New DataTable
+        gdt.Columns.Add("plant") : gdt.Columns.Add("atp_date") : gdt.Columns.Add("atp_qty", Type.GetType("System.Double"))
+        Dim p1 As New GET_MATERIAL_ATP.GET_MATERIAL_ATP
+        p1.Connection = New SAP.Connector.SAPConnection(ConfigurationManager.AppSettings("SAP_PRD"))
+        p1.Connection.Open()
+        pn = Global_Inc.Format2SAPItem(Trim(UCase(pn)))
+        'Dim retDt As New DataTable("DueDate")
+        Try
+            Dim plants() As String = {"EUH1", "TWH1", "CNH1", "JPH1", "KRH1", "SGH1", "MYH1", "USH1"}
+            'Dim retDate As Date = DateAdd(DateInterval.Day, -1, Now), retQty As Integer = 0
+            For Each plant In plants
+                'Dim culQty As Integer = 0
+                Dim retTb As New GET_MATERIAL_ATP.BAPIWMDVSTable, atpTb As New GET_MATERIAL_ATP.BAPIWMDVETable
+                p1.Bapi_Material_Availability("", "A", "", New Short, "", "", "", pn, plant, "", "", "", "", "PC", "", 9999, "", "", _
+                                              New GET_MATERIAL_ATP.BAPIRETURN, atpTb, retTb)
+                Dim adt As DataTable = atpTb.ToADODataTable()
+                For Each r As DataRow In adt.Rows
+                    If r.Item(4) > 0 And r.Item(4) < 99999999 Then
+                        Dim r2 As DataRow = gdt.NewRow
+                        r2.Item("plant") = plant
+                        r2.Item("atp_date") = Date.ParseExact(r.Item(3).ToString(), "yyyyMMdd", New Globalization.CultureInfo("fr-FR")).ToString("yyyy/MM/dd")
+                        r2.Item("atp_qty") = CDbl(r.Item(4))
+                        gdt.Rows.Add(r2)
+                    End If
+                Next
+                'retDt.Merge(atpTb.ToADODataTable())
+            Next
+        Catch ex As Exception
+        End Try
+        p1.Connection.Close()
+        'imgInvLoad.Visible = False
+        Return gdt
+    End Function
+    
+    Protected Sub gvATP_RowDataBound(ByVal sender As Object, ByVal e As System.Web.UI.WebControls.GridViewRowEventArgs)
+        If e.Row.RowType = DataControlRowType.DataRow Then
+            Dim rt As Timer = e.Row.FindControl("TimerRowATP")
+            Dim hd As HiddenField = e.Row.FindControl("hd_RowPN")
+            If rt IsNot Nothing AndAlso hd IsNot Nothing AndAlso hd.Value <> "" Then
+                rt.Enabled = True
+                If e.Row.RowIndex <= 10 Then
+                    rt.Interval = 2000 + e.Row.RowIndex * 100
+                Else
+                    rt.Interval = 2000 + e.Row.RowIndex * 500
+                End If
+               
+            End If
+        End If
+    End Sub
+    
+    Function GetGATPPNSql() As String
+        If hd_PL.Value = "" Then Return ""
+        Dim sb As New System.Text.StringBuilder
+        With sb
+            .AppendLine(String.Format(" select a.PART_NO, a.PRODUCT_DESC, a.STATUS,  "))
+            .AppendLine(String.Format(" IsNull((select top 1 abc_indicator from SAP_PRODUCT_ABC z where z.PART_NO=a.PART_NO and z.PLANT='TWH1'),'') as ABCD_IND  "))
+            .AppendLine(String.Format(" from SAP_PRODUCT a  "))
+            .AppendLine(String.Format(" where a.PRODUCT_LINE='{0}' and a.STATUS in ('A','N','H','S5') and a.MATERIAL_GROUP in ('PRODUCT') ", hd_PL.Value))
+            .AppendLine(String.Format(" order by a.PART_NO  "))
+        End With
+        Return sb.ToString()
+    End Function
+
+    Protected Sub Page_Init(ByVal sender As Object, ByVal e As System.EventArgs)
+        If Not Page.IsPostBack Then
+            If Request("PL") IsNot Nothing Then
+                hd_PL.Value = Trim(Request("PL"))
+                Me.Title = "MyAdvantech - Global Inventory of Product Line " + hd_PL.Value
+                If Request("xls") Is Nothing Then
+                    ViewState("ConcurrentATPThreads") = 0
+                    srcGATPPN.SelectCommand = GetGATPPNSql()
+                Else
+                    Dim gatpDt As New DataTable()
+                    With gatpDt.Columns
+                        .Add("PART_NO") : .Add("plant") : .Add("atp_date", GetType(Date)) : .Add("atp_qty", GetType(Integer))
+                    End With
+                    Dim pdt As DataTable = dbUtil.dbGetDataTable("MY", GetGATPPNSql())
+                    For Each pr As DataRow In pdt.Rows
+                        Dim gdt As DataTable = GetATP(pr.Item("PART_NO"))
+                        If gdt IsNot Nothing AndAlso gdt.Rows.Count > 0 Then
+                            For Each gr As DataRow In gdt.Rows
+                                Dim nr As DataRow = gatpDt.NewRow()
+                                With nr
+                                    .Item("PART_NO") = pr.Item("PART_NO")
+                                    .Item("plant") = gr.Item("plant") : .Item("atp_date") = gr.Item("atp_date") : .Item("atp_qty") = gr.Item("atp_qty")
+                                End With
+                                gatpDt.Rows.Add(nr)
+                            Next
+                        Else
+                            Dim nr As DataRow = gatpDt.NewRow()
+                            With nr
+                                .Item("PART_NO") = pr.Item("PART_NO")
+                                .Item("plant") = "No Inventory"
+                            End With
+                            gatpDt.Rows.Add(nr)
+                        End If
+                    Next
+                    Util.DataTable2ExcelDownload(gatpDt, "AEUIT_GATP_" + hd_PL.Value + ".xls")
+                End If
+               
+            End If
+        End If
+    End Sub
+
+    Protected Sub Page_Load(ByVal sender As Object, ByVal e As System.EventArgs)
+        If Not Page.IsPostBack Then
+            'Me.Master.LogoImgPath = "~/Images/dm_logo.JPG"
+        End If
+    End Sub
+
+    Protected Sub srcGATPPN_Selecting(ByVal sender As Object, ByVal e As System.Web.UI.WebControls.SqlDataSourceSelectingEventArgs)
+        e.Command.CommandTimeout = 600
+    End Sub
+</script>
+
+<asp:Content ID="Content1" ContentPlaceHolderID="_main" Runat="Server">
+    <asp:HiddenField runat="server" ID="hd_PL" />
+    <table width="100%">
+        <tr>
+            <td>
+                <asp:GridView runat="server" ID="gvATP" Width="95%" DataSourceID="srcGATPPN" AutoGenerateColumns="false" 
+                    OnRowDataBound="gvATP_RowDataBound">
+                    <Columns>
+                        <asp:HyperLinkField HeaderText="Part No." DataNavigateUrlFields="part_no" 
+                            DataNavigateUrlFormatString="ProductDashboard.aspx?PN={0}" DataTextField="part_no" Target="_blank" ItemStyle-VerticalAlign="Top" />
+                        <asp:TemplateField HeaderText="Inventory" ItemStyle-Width="400px">
+                            <ItemTemplate>
+                                <asp:UpdatePanel runat="server" ID="upRowATP" UpdateMode="Conditional">
+                                    <ContentTemplate>
+                                        <asp:Timer runat="server" ID="TimerRowATP" Interval="25000" OnTick="TimerRowATP_Tick" Enabled="false" />
+                                        <asp:HiddenField runat="server" ID="hd_RowPN" Value='<%#Eval("part_no") %>' />
+                                        <asp:Image runat="server" ID="imgRowLoadATP" ImageUrl="~/Images/Loading2.gif" AlternateText="Loading Availability..." ImageAlign="Middle" />
+                                        <asp:GridView runat="server" ID="gvRowATP" AutoGenerateColumns="false" Width="400px" Visible="false"
+                                            AllowSorting="false" AllowPaging="false" PageSize="50" PagerSettings-Position="TopAndBottom" EmptyDataText="N/A">
+                                            <Columns>
+                                                <asp:BoundField HeaderText="Plant" DataField="Plant" SortExpression="Plant" ItemStyle-HorizontalAlign="Center" HeaderStyle-HorizontalAlign="Center" />
+                                                <asp:BoundField HeaderText="Available Date" DataField="atp_date" SortExpression="atp_date" ItemStyle-HorizontalAlign="Center" HeaderStyle-HorizontalAlign="Center" />
+                                                <asp:BoundField HeaderText="Available Qty." DataField="atp_qty" SortExpression="atp_qty" ItemStyle-HorizontalAlign="Center" HeaderStyle-HorizontalAlign="Center" />
+                                            </Columns>
+                                        </asp:GridView>
+                                    </ContentTemplate>
+                                </asp:UpdatePanel>
+                            </ItemTemplate>
+                        </asp:TemplateField>
+                        <asp:BoundField HeaderText="Product Description" DataField="product_desc" />
+                        <asp:BoundField HeaderText="Status" DataField="STATUS" ItemStyle-HorizontalAlign="Center" />
+                        <asp:BoundField HeaderText="ABCD Indicator" DataField="ABCD_IND" ItemStyle-HorizontalAlign="Center" />
+                    </Columns>
+                </asp:GridView>
+                <asp:SqlDataSource runat="server" ID="srcGATPPN" ConnectionString="<%$ConnectionStrings:MY %>" OnSelecting="srcGATPPN_Selecting" />
+            </td>
+        </tr>
+    </table>
+    <script type="text/javascript">
+        //document.getElementById('ctl00_table1').style.display = 'none';
+        //document.getElementById('ctl00_table2').style.display = 'none';
+    </script>
+</asp:Content>

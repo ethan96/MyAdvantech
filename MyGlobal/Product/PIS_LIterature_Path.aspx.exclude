@@ -1,0 +1,29 @@
+﻿<%@ Page Title="" Language="VB" MasterPageFile="~/Includes/MyMaster.master" %>
+
+<script runat="server">
+
+    Protected Sub Page_Load(ByVal sender As Object, ByVal e As System.EventArgs)
+        If Request("Lit_ID") = "" Or IsNothing(Request("Lit_ID")) Then
+            lblMsg.Visible = False
+        Else
+            Dim dt As DataTable = dbUtil.dbGetDataTable("PIS", String.Format("exec getDwonloadURL @LiteratureID='{0}'", Request("Lit_ID")))
+            If dt.Rows.Count > 0 Then
+                lblMsg.Visible = False
+                Response.Redirect("http://download.advantech.com.tw" + dt.Rows(0).Item(0).ToString)
+            Else
+                lblMsg.Visible = True
+            End If
+        End If
+    End Sub
+</script>
+
+<asp:Content ID="Content1" ContentPlaceHolderID="_main" Runat="Server">
+    <table width="100%">
+        <tr><td height="20"></td></tr>
+        <tr>
+            <td align="center"><asp:Label runat="server" ID="lblMsg" Text="File Not Found" ForeColor="Red" Font-Bold="true" Visible="false" /></td>
+        </tr>
+        <tr><td height="20"></td></tr>
+    </table>
+</asp:Content>
+

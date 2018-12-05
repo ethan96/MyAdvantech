@@ -1,0 +1,66 @@
+﻿<%@ Page Title="MyAdvantech - Test Anything" Language="VB" MasterPageFile="~/Includes/MyMaster.master"
+    ValidateRequest="false" %>
+
+<%@ Import Namespace="SAPDAL.SAPDAL" %>
+
+<%@ Import Namespace="System.Globalization" %>
+<%@ Import Namespace="quote" %>
+<%@ Import Namespace="SAP.Connector" %>
+
+<script runat="server">
+    
+    Protected Sub Page_Load(sender As Object, e As System.EventArgs)
+        Dim license As New Aspose.Words.License()
+        Dim strFPath As String = HttpContext.Current.Server.MapPath("~/Files/Aspose.Total.lic")
+        license.SetLicense(strFPath)
+        Dim aspDoc As New Aspose.Words.Document()
+        Dim docBuilder As New Aspose.Words.DocumentBuilder(aspDoc)
+        docBuilder.PageSetup.Orientation = Aspose.Words.Orientation.Landscape
+        docBuilder.PageSetup.PaperSize = Aspose.Words.PaperSize.A4
+        
+        Dim sr As New IO.StreamReader("D:\BingoDoc\Index.html")
+        Dim strBingoContent As String = sr.ReadToEnd()
+        sr.Close()
+        'ed1.Content = strBingoContent
+        Dim dt As DataTable = dbUtil.dbGetDataTable("MYLOCAL_NEW", "select * from MyTemp.dbo.IAG_2012_Bingo")
+        For i As Integer = 1 To 80
+            Dim arr As ArrayList = GetBingoRandAns(dt)
+            Threading.Thread.Sleep(200)
+            Dim arr2 As ArrayList = GetBingoRandAns(dt)
+            Dim doc1 As New HtmlAgilityPack.HtmlDocument
+            doc1.LoadHtml(strBingoContent)
+            For J As Integer = 0 To 24
+                Dim n As HtmlAgilityPack.HtmlNode = doc1.DocumentNode.SelectSingleNode("//div[@id='Div" + (J + 25).ToString() + "']")
+                n.InnerHtml = arr(J)
+                Dim n2 As HtmlAgilityPack.HtmlNode = doc1.DocumentNode.SelectSingleNode("//div[@id='Div" + (J + 50).ToString() + "']")
+                n2.InnerHtml = arr2(J)
+            Next
+            docBuilder.InsertHtml(doc1.DocumentNode.InnerHtml)
+            docBuilder.InsertBreak(Aspose.Words.BreakType.PageBreak)
+        Next
+        aspDoc.Save("D:\BingoDoc\Bingo_" + Now.ToString("yyyyMMddHHmmss") + ".doc", Aspose.Words.SaveFormat.Doc)
+    End Sub
+    
+    Function GetBingoRandAns(ByRef dt As DataTable) As ArrayList
+        Dim arr As New ArrayList(), rnd As New Random()
+        For i As Integer = 0 To 24
+            arr.Add(dt.Rows(i).Item(0).ToString())
+        Next
+        Randomize()
+        For i As Integer = 0 To 23
+            Dim rndNum As Integer = rnd.Next(i, 25)
+            Dim oldValue As String = arr(i), NewValue As String = arr(rndNum)
+            arr(i) = NewValue : arr(rndNum) = oldValue
+        Next
+      
+        Return arr
+    End Function
+    
+    
+    Protected Sub btn1_Click(sender As Object, e As System.EventArgs)
+
+    End Sub
+</script>
+<asp:Content ID="Content1" ContentPlaceHolderID="_main" runat="Server">   
+    
+</asp:Content>

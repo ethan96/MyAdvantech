@@ -1,0 +1,52 @@
+﻿<%@ WebHandler Language="VB" Class="DlOPC" %>
+
+Imports System
+Imports System.Web
+Imports System.IO
+
+Public Class DlOPC : Implements IHttpHandler
+    
+    Public Sub ProcessRequest(ByVal context As HttpContext) Implements IHttpHandler.ProcessRequest
+        If context.Request("ROWID") IsNot Nothing AndAlso context.Request("ROWID").ToString().Trim() <> "" Then
+            Dim dt As DataTable = dbUtil.dbGetDataTable("MYLOCAL", String.Format("select row_id,CREATE_TIME from MADAM_OPC_REQUEST where row_id='{0}'", context.Request("ROWID").ToString().Trim()))
+            If dt.Rows.Count > 0 Then
+                If Not IsDBNull(dt.Rows(0).Item("CREATE_TIME")) Then
+                    If Not DateTime.Now.AddHours(-24) < CDate(dt.Rows(0).Item("CREATE_TIME")) Then
+                        context.Response.Write("<img src=""./images/NOTICE.png"" />")
+                        Exit Sub
+                    End If
+                End If
+                dbUtil.dbExecuteNoQuery("MYLOCAL", String.Format( _
+                " update MADAM_OPC_REQUEST set DL_TIMES=DL_TIMES+1, LAST_DL_TIME=GETDATE(), " + _
+                " LAST_DL_IP='{0}' where ROW_ID='{1}'", Util.GetClientIP(), dt.Rows(0).Item("row_id")))
+                Dim fs As FileStream = Nothing
+                For i As Integer = 0 To 2
+                    Try
+                        fs = New FileStream(context.Server.MapPath("~") + "/Files/ADAMOPCServer.zip", FileMode.Open)
+                        Dim bs(fs.Length) As Byte
+                        fs.Read(bs, 0, fs.Length)
+                        fs.Close()
+                        context.Response.Clear()
+                        context.Response.ContentType = "application/x-zip-compressed"
+                        context.Response.AppendHeader("Content-Disposition", "filename=ADAMOPCServer.zip")
+                        context.Response.BinaryWrite(bs)
+                        Exit For
+                    Catch ex As Exception
+                        Threading.Thread.Sleep(500)
+                    End Try
+                Next
+            Else
+                context.Response.Write("Invalid request")
+            End If
+        Else
+            context.Response.Write("Invalid request")
+        End If
+    End Sub
+ 
+    Public ReadOnly Property IsReusable() As Boolean Implements IHttpHandler.IsReusable
+        Get
+            Return False
+        End Get
+    End Property
+
+End Class

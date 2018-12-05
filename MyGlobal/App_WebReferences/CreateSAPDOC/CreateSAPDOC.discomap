@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<DiscoveryClientResultsFile xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+  <Results>
+    <DiscoveryClientResult referenceType="System.Web.Services.Discovery.SchemaReference" url="http://myadvan-global:9000/CreateSAPDOC.asmx?schema=SalesOrder1" filename="SalesOrder1.xsd" />
+    <DiscoveryClientResult referenceType="System.Web.Services.Discovery.SchemaReference" url="http://myadvan-global:9000/CreateSAPDOC.asmx?schema=SalesOrder" filename="SalesOrder.xsd" />
+    <DiscoveryClientResult referenceType="System.Web.Services.Discovery.ContractReference" url="http://myadvan-global:9000/CreateSAPDOC.asmx?wsdl" filename="CreateSAPDOC.wsdl" />
+    <DiscoveryClientResult referenceType="System.Web.Services.Discovery.DiscoveryDocumentReference" url="http://myadvan-global:9000/CreateSAPDOC.asmx?disco" filename="CreateSAPDOC.disco" />
+  </Results>
+</DiscoveryClientResultsFile>

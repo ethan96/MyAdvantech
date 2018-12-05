@@ -1,0 +1,146 @@
+﻿<%@ Page Title="DCP Company, Part Number, Min. Order Qty. Admin" Language="VB" MasterPageFile="~/Includes/MyMaster.master" %>
+
+<script runat="server">
+    Protected Sub Button1_Click(ByVal sender As Object, ByVal e As System.EventArgs)
+        LabWarn.Text = ""
+        If COMPANY_ID.Text.Trim() = "" Then
+            LabWarn.Text = "* Please input Company ID." : Exit Sub
+        End If
+        If COMPANY_ID.Text.Trim <> "" Then
+            Dim sql As String = "select top 1 * from SAP_DIMCOMPANY where company_id ='" + COMPANY_ID.Text.Trim() + "'"
+            Dim dt As DataTable = dbUtil.dbGetDataTable("B2B", sql)
+            If dt.Rows.Count = 0 Then
+                LabWarn.Text = "* Incorrect Company ID." : Exit Sub
+            End If
+        End If
+        If PART_NO.Text.Trim() = "" Then
+            LabWarn.Text = "* Please input Part NO." : Exit Sub
+        End If
+        If PART_NO.Text.Trim <> "" Then
+            Dim sql As String = "select top 1 * from SAP_PRODUCT where PART_NO ='" + PART_NO.Text.Trim() + "'"
+            Dim dt As DataTable = dbUtil.dbGetDataTable("my", sql)
+            If dt.Rows.Count = 0 Then
+                LabWarn.Text = "* Incorrect Part NO." : Exit Sub
+            End If
+        End If
+        
+        If MIN_ORDER_QTY.Text.Trim() = "" Then
+            LabWarn.Text = "* Please input Min Order Qty." : Exit Sub
+        End If
+        If Double.TryParse(MIN_ORDER_QTY.Text.Trim, 0) = True Then
+        Else
+            LabWarn.Text = "* Min Order Qty must be a number." : Exit Sub
+        End If
+        Dim insSql As String = String.Format("INSERT INTO ADMIN_PREFERENTIAL_PRODS (COMPANY_ID,PART_NO,MIN_ORDER_QTY ,CREATE_TIME)  VALUES ( N'{0}', N'{1}',{2}, GETDATE())", COMPANY_ID.Text.Trim.Replace("'", "''").ToUpper, PART_NO.Text.Trim.Replace("'", "''"), CInt(MIN_ORDER_QTY.Text.Trim).ToString)
+        'lbMsg.Text = insSql
+        dbUtil.dbExecuteNoQuery("MYLOCAL", insSql)
+        gv1.DataBind()
+    End Sub
+    <System.Web.Services.WebMethod()> _
+    Public Shared Function GetCompanyID(ByVal prefixText As String, ByVal count As Integer) As String()
+        prefixText = prefixText.Trim().Replace("'", "''")
+        Dim sql As String = String.Format("select DISTINCT top 10 company_id from SAP_DIMCOMPANY where company_id  like '{0}%'", prefixText)
+        Dim dt As DataTable = dbUtil.dbGetDataTable("B2B", sql)
+        If dt.Rows.Count > 0 Then
+            Dim strArray As String() = New String(dt.Rows.Count - 1) {}
+            For i As Integer = 0 To dt.Rows.Count - 1
+                strArray(i) = dt.Rows(i)(0).ToString()
+            Next
+            Return strArray
+        End If
+        Return Nothing
+    End Function
+    <System.Web.Services.WebMethod()> _
+    Public Shared Function GetPartNO(ByVal prefixText As String, ByVal count As Integer) As String()
+        prefixText = prefixText.Trim().Replace("'", "''")
+        Dim sql As String = String.Format("select DISTINCT top 10 PART_NO from SAP_PRODUCT where PART_NO  like '{0}%'", prefixText)
+        Dim dt As DataTable = dbUtil.dbGetDataTable("MY", sql)
+        If dt.Rows.Count > 0 Then
+            Dim strArray As String() = New String(dt.Rows.Count - 1) {}
+            For i As Integer = 0 To dt.Rows.Count - 1
+                strArray(i) = dt.Rows(i)(0).ToString()
+            Next
+            Return strArray
+        End If
+        Return Nothing
+    End Function
+</script>
+
+<asp:Content ID="Content1" ContentPlaceHolderID="_main" Runat="Server">
+      
+<table width="60%" border="0" align="center">
+  <tr>
+    <td>
+        <table width="60%" border="0" align="LEFT">
+          <tr>
+            <td>
+                <B>Company ID: </B>
+                <asp:TextBox ID="COMPANY_ID" runat="server"></asp:TextBox>
+                <ajaxToolkit:AutoCompleteExtender ID="AutoCompleteExtender1" runat="server" TargetControlID="COMPANY_ID"  CompletionInterval="50" ServiceMethod="GetCompanyID" MinimumPrefixLength="1">
+                </ajaxToolkit:AutoCompleteExtender>
+            </td>
+            <td>
+                <B>Part NO:</B> 
+                <asp:TextBox ID="PART_NO" runat="server"></asp:TextBox>
+                <ajaxToolkit:AutoCompleteExtender ID="AutoCompleteExtender2" runat="server" TargetControlID="PART_NO"  CompletionInterval="50" ServiceMethod="GetPartNO" MinimumPrefixLength="1">
+                </ajaxToolkit:AutoCompleteExtender>
+            </td>
+            <td>
+                <B>Min Order Qty:</B>
+                <asp:TextBox ID="MIN_ORDER_QTY" runat="server"></asp:TextBox>
+            </td>
+            <td valign="bottom">
+                <asp:Button ID="Button1" runat="server" Text="Add" OnClick="Button1_Click" />                
+            </td>
+          </tr>
+          <tr>
+            <td colspan="3">
+                <asp:Label ID="LabWarn" runat="server" ForeColor="Red" Text=""></asp:Label>
+            </td>
+          </tr>
+        </table>
+    </td>
+  </tr>
+  <tr>
+    <td>
+        <asp:GridView ShowWhenEmpty="true" runat="server" ID="gv1" DataKeyNames="create_time" DataSourceID="SqlDataSource1" AutoGenerateColumns="false" 
+            HeaderStyle-HorizontalAlign="Center" AllowSorting="true" Width="100%" PageSize="100" AllowPaging="true" >
+            <Columns>
+                <asp:TemplateField ItemStyle-Width="50px" ItemStyle-HorizontalAlign="Center">
+                    <headertemplate>
+                        No.
+                    </headertemplate>
+                    <itemtemplate>
+                        <%# Container.DataItemIndex + 1 %>
+                    </itemtemplate>
+                </asp:TemplateField>
+                <asp:BoundField HeaderText="COMPANY_ID" DataField="COMPANY_ID" SortExpression="COMPANY_ID"  ItemStyle-HorizontalAlign="Center"/>
+                <asp:BoundField HeaderText="PART_NO" DataField="PART_NO" SortExpression="PART_NO" />
+                <asp:BoundField HeaderText="MIN_ORDER_QTY" DataField="MIN_ORDER_QTY" SortExpression="MIN_ORDER_QTY" ItemStyle-HorizontalAlign="Center"/>
+                <asp:CommandField ShowDeleteButton="True"  ItemStyle-HorizontalAlign="Center"  />
+                <asp:BoundField HeaderText="create_time" DataField="create_time" SortExpression="create_time"  Visible="false" />
+            </Columns>
+            <FooterStyle BackColor="#A4B5BD" ForeColor="White" Font-Bold="True" />
+            <RowStyle BackColor="#F7F6F3" ForeColor="#333333" />
+            <SelectedRowStyle BackColor="#E2DED6" Font-Bold="True" ForeColor="#333333" />
+            <PagerStyle BackColor="#284775" ForeColor="White" HorizontalAlign="Justify"  />
+            <HeaderStyle BackColor="#A4B5BD" Font-Bold="True" ForeColor="White" />
+            <AlternatingRowStyle BackColor="White" ForeColor="#284775" />
+            <PagerSettings PageButtonCount="10" Position="TopAndBottom" />
+        </asp:GridView>
+        <asp:SqlDataSource runat="server" ID="SqlDataSource1" ConnectionString="<%$ connectionStrings:MYLOCAL %>" 
+            SelectCommand="select COMPANY_ID, PART_NO, MIN_ORDER_QTY,create_time from ADMIN_PREFERENTIAL_PRODS order by create_time desc"
+            DeleteCommand="DELETE FROM ADMIN_PREFERENTIAL_PRODS WHERE create_time = @create_time" 
+            >
+            <DeleteParameters>
+                <asp:Parameter Name="create_time"  Type="datetime"  />
+            </DeleteParameters>
+        </asp:SqlDataSource>
+    </td>
+  </tr>
+</table>
+      
+</asp:Content>
+<asp:Content ID="Content2" ContentPlaceHolderID="cph1" Runat="Server">
+</asp:Content>
+

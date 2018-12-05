@@ -1,0 +1,782 @@
+﻿<%@ Master Language="VB" %>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<script runat="server">
+
+    Protected Sub Page_Load(ByVal sender As Object, ByVal e As System.EventArgs)
+        AddGoogleTrackingToSearch()
+        Me.imgHeader.ImageUrl = "./images/logo_advantech.gif"
+        headerHref.HRef = "/"
+        headerHref.Target = "_self"
+        headerHref.Title = "Advantech"
+        If Not IsPostBack Then
+          
+        End If
+             
+    End Sub
+
+    Private Sub AddGoogleTrackingToSearch()
+        Me.txtSearchBox.Attributes.Add("onkeydown", "SubmitKeyClick('Header1_txtSearchBox',event)")
+        Me.txtSearchBox.Attributes.Add("onclick", "GoogleTracking(""/"",""search"",""type the content"") ")
+    End Sub
+
+    Private Sub goSearch()
+        Dim strURL As String
+
+        If Request.RawUrl.ToLower.IndexOf("products/search/default.aspx") > 0 Then
+            strURL = "/products/search/Default.aspx?keyword=" & Me.txtSearchBox.Text
+        Else
+            strURL = "/products/search.aspx?keyword=" & Me.txtSearchBox.Text
+        End If
+        Response.Redirect(strURL)
+    End Sub
+    Public ImgFolder As String = "./images"
+    Dim Keywords As String = "", Desc As String = ""
+    Protected Sub Page_Init(ByVal sender As Object, ByVal e As System.EventArgs)
+        If Not IsPostBack Then       
+            If Session("Browser_lan") Is Nothing OrElse Session("Browser_lan").ToString() = "" Then
+                If Request.ServerVariables("HTTP_ACCEPT_LANGUAGE") IsNot Nothing AndAlso Request.ServerVariables("HTTP_ACCEPT_LANGUAGE").ToString.Trim <> "" Then
+                    Dim lan As String = Request.ServerVariables("HTTP_ACCEPT_LANGUAGE").ToString.ToLower
+                    Select Case 1
+                        Case InStr(lan, "zh-cn")
+                            Session("Browser_lan") = "zh-cn"
+                        Case InStr(lan, "zh-tw")
+                            'Session("Browser_lan") = "zh-tw"
+                            Session("Browser_lan") = "en"
+                        Case Else
+                            Session("Browser_lan") = "en"
+                    End Select
+                Else
+                    Session("Browser_lan") = "en"
+                End If
+                                     
+            End If
+        
+        End If
+      
+        If Session("Browser_lan") IsNot Nothing AndAlso Session("Browser_lan").ToString() <> "" Then
+            Dim lan As String = Session("Browser_lan").ToString.ToLower
+            Select Case lan
+                Case "zh-cn"
+                    ImgFolder = "./images_cn"
+                    hlHome.Text = "首页" : hlMyAdvantech.Text = "我的研华" : lblWW.Text = "国家/地区"
+                    hlProducts.Text = "研华产品" : hlSolution.Text = "解决方案" : HyperLink1.Text = "合作伙伴"
+                    hlSupport.Text = "技术支持"
+                    HyperLink3.Text = "服务"
+                    hlContact.Text = "联系我们"
+                    HyperLink4.Text = "在线购买"
+                    SolutionsTBChina.Visible = True : PartnersTBChina.Visible = True : SupportTBChina.Visible = True : ServicesTBChina.Visible = True
+                    If LCase(Request.ServerVariables("PATH_INFO")) Like "*home*" Then
+                        Me.Page.Title = "研华百万亚当庆祝活动进行中，参与赢取iPad等好礼，研华I/O采集模块，研华ADAM，远程I/O解决方案，工业I/O"
+                    End If
+                    If LCase(Request.ServerVariables("PATH_INFO")) Like "*story*" Then
+                        Me.Page.Title = "研华百万亚当庆祝活动进行中，参与赢取iPad等好礼，亚当故事，研华I/O采集模块，研华ADAM，远程I/O解决方案，工业I/O"
+                    End If
+                    If LCase(Request.ServerVariables("PATH_INFO")) Like "*main_1*" Then
+                        Me.Page.Title = "研华百万亚当庆祝活动进行中，参与赢取iPad等好礼，亚当故事，研华I/O采集模块，研华ADAM，远程I/O解决方案，工业I/O"
+                    End If
+                    If LCase(Request.ServerVariables("PATH_INFO")) Like "*main_2*" Then
+                        Me.Page.Title = "研华百万亚当庆祝活动进行中，参与赢取iPad等好礼，亚当故事，研华I/O采集模块，研华ADAM，远程I/O解决方案，工业I/O"
+                    End If
+                    If LCase(Request.ServerVariables("PATH_INFO")) Like "*download*" Then
+                        Me.Page.Title = "研华百万亚当庆祝活动进行中，参与赢取iPad等好礼，上eStore免费下载OPC Server"
+                    End If
+                    Desc = "研华的亚当模块在全球的总销售量即将迎来第一百万片的历史记录！现推出一系列的""百万亚当""庆祝活动与限量好礼，邀请您共同见证这一里程碑、庆祝这一辉煌时刻！現在，分享您喜欢亚当的三个理由，即有机会获得iPad等好礼。同时您还可以上研华网上商城eStore，获得免费OPC Server！活动将于2011年2月28日结束。"
+                    Keywords = "研华百万亚当,研华I/O采集模块,研华ADAM,远程I/O解决方案,工业I/O"
+                    imagenewtd1.Visible = False
+                    imagenewtd2.Visible = False
+                    tdt.Width = "114px"
+                    tdt.Attributes.Add("style", "")
+                    tdt.InnerHtml = "<img src=""images/menu_01.jpg""  height=""67"" width=""114"" />"
+                    tdm.Width = "115px"
+                    tdm.Attributes.Add("style", "")
+                    tdm.InnerHtml = "<img src=""images/menu_13.jpg""  height=""67""  width=""115""/>"
+                    tdnn.ColSpan = 13
+                Case Else        
+                    SolutionsTBENG.Visible = True : PartnersTBENG.Visible = True : SupportTBENG.Visible = True : ServicesTBENG.Visible = True
+            End Select
+       
+        End If
+        
+        Dim img As HtmlImage = CType(Me.FindControl("Image04"), HtmlImage)
+        img.Attributes.Add("onMouseOver", "MM_swapImage('" + img.ClientID + "','','" + ImgFolder + "/menu_over_04.jpg',1)")
+        img.Src = ImgFolder + "/menu_04.jpg"
+        img = CType(Me.FindControl("Image06"), HtmlImage)
+        img.Attributes.Add("onMouseOver", "MM_swapImage('" + img.ClientID + "','','" + ImgFolder + "/menu_over_06.jpg',1)")
+        img.Src = ImgFolder + "/menu_06.jpg"
+        img = CType(Me.FindControl("Image08"), HtmlImage)
+        img.Attributes.Add("onMouseOver", "MM_swapImage('" + img.ClientID + "','','" + ImgFolder + "/menu_over_08.jpg',1)")
+        img.Src = ImgFolder + "/menu_08.jpg"
+        img = CType(Me.FindControl("Image10"), HtmlImage)
+        img.Attributes.Add("onMouseOver", "MM_swapImage('" + img.ClientID + "','','" + ImgFolder + "/menu_over_10.jpg',1)")
+        img.Src = ImgFolder + "/menu_10.jpg"
+        img = CType(Me.FindControl("Image1"), HtmlImage)
+        img.Attributes.Add("onMouseOver", "MM_swapImage('" + img.ClientID + "','','" + ImgFolder + "/menu_over_02.jpg',1)")
+        img.Src = ImgFolder + "/menu_02.jpg"
+        img = CType(Me.FindControl("Image6"), HtmlImage)
+        img.Attributes.Add("onMouseOver", "MM_swapImage('" + img.ClientID + "','','" + ImgFolder + "/menu_over_12.jpg',1)")
+        img.Src = ImgFolder + "/menu_12.jpg"
+        img = CType(Me.FindControl("Image10"), HtmlImage)
+        img.Attributes.Add("onMouseOver", "MM_swapImage('" + img.ClientID + "','','" + ImgFolder + "/q2.jpg',1)")
+        img.Src = ImgFolder + "/menu_10.jpg"
+        img = CType(Me.FindControl("imgnew"), HtmlImage)
+        img.Attributes.Add("onMouseOver", "MM_swapImage('" + img.ClientID + "','','" + "images_new" + "/menu_over_06.jpg',1)")
+        img.Src = "images_new" + "/menu_06.jpg"
+        
+        If LCase(Request.ServerVariables("PATH_INFO")) Like "*story*" Then
+            SetFocusState("04")
+        End If
+        If LCase(Request.ServerVariables("PATH_INFO")) Like "*main_1*" Then
+            SetFocusState("06")
+        End If
+        If LCase(Request.ServerVariables("PATH_INFO")) Like "*main_2*" Then
+            SetFocusState("06")
+        End If
+        If LCase(Request.ServerVariables("PATH_INFO")) Like "*download*" Then
+            SetFocusState("08")
+        End If
+        If LCase(Request.ServerVariables("PATH_INFO")) Like "*wwfeedback*" Then
+            img = CType(Me.FindControl("imgnew"), HtmlImage)          
+            img.Attributes.Add("src", "./" + "images_new/" + "menu_over_06.jpg")
+            img.Attributes.Add("onMouseOver", "return false;")
+            img.Attributes.Add("onMouseOut", "return false;")
+        End If
+    End Sub
+    Function SetFocusState(ByVal ImgNum As String) As Integer
+        Dim img As HtmlImage = CType(Me.FindControl("Image" + ImgNum), HtmlImage)
+        If LCase(Request.ServerVariables("PATH_INFO")) Like "*main_1*" Then
+            img.Attributes.Add("src", "./" + ImgFolder + "/menu_up_15.jpg")
+        Else
+            img.Attributes.Add("src", "./" + ImgFolder + "/menu_up_" + ImgNum + ".jpg")
+        End If   
+        img.Attributes.Add("onMouseOver", "return false;")
+        img.Attributes.Add("onMouseOut", "return false;")
+        Return 1
+    End Function
+    Protected Sub lan_Click(ByVal sender As Object, ByVal e As System.EventArgs)
+        Dim linkbt As LinkButton = CType(sender, LinkButton)
+        Select Case linkbt.ID.Trim.ToLower
+            Case "lan1"
+                Session("Browser_lan") = "zh-cn"
+            Case "lan2"
+                Session("Browser_lan") = "zh-tw"
+            Case Else               
+                Session("Browser_lan") = "en"
+        End Select       
+        If Request.ServerVariables("HTTP_REFERER") IsNot Nothing Then Response.Redirect(Request.ServerVariables("HTTP_REFERER"))
+    End Sub
+ 
+</script>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+<meta name="description" content='<%= Desc %>' />
+<meta name="keywords" content='<%= Keywords %>' />
+<head runat="server">
+    <title>Advantech Celebrates One Million ADAM Remote I/O Modules Sold!</title>
+    <asp:ContentPlaceHolder id="head" runat="server">
+    </asp:ContentPlaceHolder>
+    <style type="text/css">
+<!--
+body {
+	background-color: #f1f2ed;
+}
+
+popupHover {		
+	background-color:Gray;
+}
+transparentdiv {
+    filter:alpha(opacity=95);
+    -moz-opacity:0.95;
+    -khtml-opacity: 0.95;
+    opacity: 0.95;
+}
+-->
+</style>
+<link rel="image_src" type="image/jpeg" href="http://www.1millionadam.advantech.com/MADAM/images/preview.jpg" />
+<link href="css.css" rel="stylesheet" type="text/css">
+<link href="./includes/main_base.css" rel="Stylesheet" />
+<link href="./includes/style-Layout.css" rel="Stylesheet" />
+<script type="text/javascript" src="./includes/AdvantechFunctions.js"></script>
+<link href="../daq/css.css" rel="stylesheet" type="text/css" /> 
+<meta name="description" content="Advantech is now celebrating the milestone of having sold over one million modules worldwide. Share your three favorite features of the ADAM series with us and be entered for chance to win an Apple iPad and more. Or you can download our OPC Server program for free simply by joining Advantech eStore. Promotion ends Feb. 28th 2011." />
+<meta name="keywords" content="Advantech,1 millionth adam,1000000 adam,1 million adam,adam celebration,1 million celebration,ADAM,Ethernet IO,Remote IO,Distributed IO,Digital IO,Industrial IO,RS-485 IO,Analog IO" />
+<script type="text/javascript">
+<!--
+    function MM_preloadImages() { //v3.0
+        var d = document; if (d.images) {
+            if (!d.MM_p) d.MM_p = new Array();
+            var i, j = d.MM_p.length, a = MM_preloadImages.arguments; for (i = 0; i < a.length; i++)
+                if (a[i].indexOf("#") != 0) { d.MM_p[j] = new Image; d.MM_p[j++].src = a[i]; } 
+        }
+    }
+
+    function MM_swapImgRestore() { //v3.0
+        var i, x, a = document.MM_sr; for (i = 0; a && i < a.length && (x = a[i]) && x.oSrc; i++) x.src = x.oSrc;
+    }
+
+    function MM_findObj(n, d) { //v4.01
+        var p, i, x; if (!d) d = document; if ((p = n.indexOf("?")) > 0 && parent.frames.length) {
+            d = parent.frames[n.substring(p + 1)].document; n = n.substring(0, p);
+        }
+        if (!(x = d[n]) && d.all) x = d.all[n]; for (i = 0; !x && i < d.forms.length; i++) x = d.forms[i][n];
+        for (i = 0; !x && d.layers && i < d.layers.length; i++) x = MM_findObj(n, d.layers[i].document);
+        if (!x && d.getElementById) x = d.getElementById(n); return x;
+    }
+
+    function MM_swapImage() { //v3.0
+        var i, j = 0, x, a = MM_swapImage.arguments; document.MM_sr = new Array; for (i = 0; i < (a.length - 2); i += 3)
+            if ((x = MM_findObj(a[i])) != null) { document.MM_sr[j++] = x; if (!x.oSrc) x.oSrc = x.src; x.src = a[i + 2]; }
+    }
+//-->
+</script>
+<%-- <script type="text/javascript">
+     function search_advantech() {
+         var item = document.getElementById("search_box").value;
+         if (item == "") { alert("The Keyword can't empty"); return false; }
+         window.open('http://my-global.advantech.eu/Product/ProductSearch.aspx?key=' + item);
+         //location.replace('http://my-global.advantech.eu/Product/ProductSearch.aspx?key=' + item);
+     }
+</script>--%>
+</head>
+<body leftmargin="0" topmargin="0" marginwidth="0" marginheight="0" runat="server" id="masterbody">
+    <form id="form1" runat="server">
+         <ajaxToolkit:ToolkitScriptManager runat="server" ID="tlsm1" AsyncPostBackTimeout="600"    enablescriptglobalization="true" enablescriptlocalization="true" EnablePageMethods="true" ScriptMode="Debug">            
+       </ajaxToolkit:ToolkitScriptManager> 
+        
+<div id="header2010">
+    <div id="logo">
+		<a id="headerHref" runat="server" style="border: 0">
+				<asp:Image ID="imgHeader" runat="server" alt="" /></a>
+    </div>
+            <div runat="server" id="divHeaderKeywords" visible="false" class="headerKeywords text_mini">
+			</div>
+			<div id="change_area2010">
+				<span id="divSEOTool">
+                    <asp:LinkButton ID="lan1" CssClass="lantext" runat="server" OnClick="lan_Click">[ 简体中文 ]</asp:LinkButton>
+                    <asp:LinkButton ID="lan2" CssClass="lantext"  runat="server" Visible="false" OnClick="lan_Click">[ 繁体中文 ]</asp:LinkButton>
+                    <asp:LinkButton ID="lan3" CssClass="lantext" runat="server" OnClick="lan_Click">[ English ]</asp:LinkButton>
+                </span>
+                <span id="header-home">
+                    <asp:HyperLink ID="hlHome" runat="Server"  NavigateUrl="./index.aspx" Text="Home" />
+				</span>
+                <span id="headerMyAdvantech" runat="server">
+                    <span id="header-embedded-home">
+                        <asp:HyperLink ID="hlMyAdvantech" runat="Server"  NavigateUrl="http://my.advantech.com" Text="MyAdvantech" />
+                    </span> 
+                </span>
+                <span>
+                    <span style="text-align: center;" runat="server" id="divChangeWW">
+						<asp:Label ID="lblWW" runat="server" Text="Country / Region" />
+						[ <a href="#SelectCountry">
+							<asp:Label ID="lblChange" runat="server" ForeColor="#062F67" Text="Change" /></a> ] 
+                    </span>
+                    </span><span runat="Server" id="spanMyAdv">
+				</span>
+				<div id="divLoginStatus" runat="Server" class="text">
+				</div>
+				<div align="center" runat="Server" id="DivLogin" visible="false">
+					<a href="https://www.advantech.com.tw/membership/login.aspx" style="color: #062F67">Log in</a>
+				</div>
+				<div align="center" runat="server" id="DivLogout" visible="false">
+					<a href="https://www.advantech.com.tw/membership/login.aspx" style="color: #062F67">Log out</a>
+				</div>
+			</div>
+</div>
+<div id="menu">
+           <div id="top_menu">
+
+                <div id="header_search_box">
+                        <asp:TextBox ID="txtSearchBox" runat="Server" CssClass="text"></asp:TextBox>
+                    <input id="Button1" type="button" value="Search" style="width:55px;" class="mainBorderRadius mainGradient header_search_button text" onclick='search("<%= txtSearchBox.ClientID %>");' />
+                </div>
+
+                <ul id="sddm">
+                    <li onmouseover="mopen('SubMenu1',this)"  onmouseout="mclosetime()">
+                        <table border="0" cellpadding="0" cellspacing="0">
+                            <tr>
+                                <td>
+                                    <asp:HyperLink ID="hlProducts"  runat="Server" NavigateUrl="http://www.advantech.com/products/" Text="Products" />
+                                </td>
+                            </tr>
+                        </table>
+                    </li>
+                    <li onmouseover="mopen('SubMenu2',this)"  onmouseout="mclosetime()" >
+                        <table border="0" cellpadding="0" cellspacing="0">
+                            <tr>
+                                <td>
+                                    <asp:HyperLink ID="hlSolution" runat="Server" NavigateUrl="http://www.advantech.com/sector/default.aspx" Text="Solutions" />
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <div id="SubMenu2" class="layer" >
+                                    <table style="width:270px;" id="SolutionsTBENG" runat="server" visible="false" cellpadding="0" cellspacing="0" border="0">
+                                            <tr>
+                                                <td colspan="3" style="background-color:#F0F0F0;height:5px">
+                                                    
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td style="background-color:#F0F0F0;width:5px">&nbsp;</td>
+                                                <td style="background-color:#FFFFFF;">
+                                                        <table width="100%" border="0" cellspacing="0" cellpadding="0">
+				                                            <tr>
+					                                            <td width="100%" valign="top">
+                        
+                                                                        <asp:HyperLink ID="hlHGreenEnergy" runat="server" NavigateUrl="http://www.advantech.com/sector/Green-Energy/default.aspx" Text="Green Energy"></asp:HyperLink><br />
+                                                                        <asp:HyperLink ID="hlHPD" runat="server" NavigateUrl="http://www.advantech.com/sector/Power-Generation-Distribution/default.aspx" Text="Power Generation & Distribution"></asp:HyperLink><br />
+                                                                        <asp:HyperLink ID="hlHTelecommunication" runat="server" NavigateUrl="http://www.advantech.com/sector/networks-telecom/default.aspx" Text="Communications & Networking"></asp:HyperLink><br />
+                                                                        <asp:HyperLink ID="hlHEnvironmentalandFacility" runat="server" NavigateUrl="http://www.advantech.com/sector/environmental-facility-management/default.aspx" Text="Environmental & Facility Management"></asp:HyperLink><br />
+                                                                        <asp:HyperLink ID="hlHGamingPOS" runat="server" NavigateUrl="http://www.advantech.com/sector/gaming/default.aspx" Text="Gaming Platforms"></asp:HyperLink><br />
+                                                                        <asp:HyperLink ID="hlHTransportation" runat="server" NavigateUrl="http://www.advantech.com/sector/transportation/default.aspx" Text="Transportation"></asp:HyperLink><br />
+                                                                        <asp:HyperLink ID="hlHMachineAutomation" runat="server" NavigateUrl="http://www.advantech.com/sector/machine-automation/default.aspx" Text="Machine Automation"></asp:HyperLink><br />
+                                                                        <asp:HyperLink ID="hlHMedical" runat="server" NavigateUrl="http://www.advantech.com/sector/medical/default.aspx" Text="Medical"></asp:HyperLink><br />
+			                                                            <asp:HyperLink ID="hlHrealestateintelligence" runat="server" NavigateUrl="http://www.advantech.com/sector/real-estate-intelligence/default.aspx" Text="Real Estate Intelligence"></asp:HyperLink><br />
+                                                                        <asp:HyperLink ID="hlHSelfserviceRetailIntelligence" runat="server" NavigateUrl="http://www.advantech.com/sector/self-service/default.aspx" Text="Self-service & Retail Intelligence"></asp:HyperLink><br />
+                                                                        <asp:HyperLink ID="hlHVihecleComputing" runat="server" NavigateUrl="http://www.advantech.com/sector/vehicle/default.aspx" Text="Mobile Resource Management"></asp:HyperLink><br />
+		                
+					                                            </td>
+				                                            </tr>
+			                                            </table>
+                                                </td>
+                                                <td style="background-color:#F0F0F0;width:5px">&nbsp;</td>
+                                            </tr>
+                                            <tr>
+                                                <td colspan="3" style="background-color:#F0F0F0;height:5px">
+                                                        
+                                                </td>
+                                            </tr>
+                                        </table>
+                                    <table style="width:270px;" cellpadding="0" id="SolutionsTBChina" runat="server" visible="false" cellspacing="0" border="0">
+                                            <tr>
+                                                <td colspan="3" style="background-color:#F0F0F0;height:5px">
+                                                    
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td style="background-color:#F0F0F0;width:5px">&nbsp;</td>
+                                                <td style="background-color:#FFFFFF;">
+                                                        <table width="100%" border="0" cellspacing="0" cellpadding="0">
+				<tr>
+					<td width="100%" valign="top">
+                        
+                            <a id="Header1_hlHGreenEnergy" href="http://www.advantech.com.cn/sector/Green-Energy/default.aspx">Green Energy</a><br />
+                            <a id="Header1_hlHPD" href="http://www.advantech.com.cn/sector/Power-Generation-Distribution/default.aspx">Power Generation &amp; Distribution</a><br />
+                            <a id="Header1_hlHTelecommunication" href="http://www.advantech.com.cn/sector/networks-telecom/default.aspx">网络通讯平台</a><br />
+                            <a id="Header1_hlHEnvironmentalandFacility" href="http://www.advantech.com.cn/sector/environmental-facility-management/default.aspx">环境和设施监控</a><br />
+                            <a id="Header1_hlHGamingPOS" href="http://www.advantech.com.cn/sector/gaming/default.aspx">电玩游戏/POS</a><br />
+                            <a id="Header1_hlHTransportation" href="http://www.advantech.com.cn/sector/transportation/default.aspx">Transportation</a><br />
+                            <a id="Header1_hlHMachineAutomation" href="http://www.advantech.com.cn/sector/machine-automation/default.aspx">机械自动化</a><br />
+                            <a id="Header1_hlHMedical" href="http://www.advantech.com.cn/sector/medical/default.aspx">医疗/医护</a><br />
+			                <a id="Header1_hlHrealestateintelligence" href="http://www.advantech.com.cn/sector/real-estate-intelligence/default.aspx">智能不动产</a><br />
+                            <a id="Header1_hlHSelfserviceRetailIntelligence" href="http://www.advantech.com.cn/sector/self-service/default.aspx">自助服务和智能零售</a><br />
+                            <a id="Header1_hlHVihecleComputing" href="http://www.advantech.com.cn/sector/vehicle/default.aspx">车载电脑/高效管理</a><br />
+		                
+					</td>
+				</tr>
+			</table>
+                                                </td>
+                                                <td style="background-color:#F0F0F0;width:5px">&nbsp;</td>
+                                            </tr>
+                                            <tr>
+                                                <td colspan="3" style="background-color:#F0F0F0;height:5px">
+                                                        
+                                                </td>
+                                            </tr>
+                                        </table>
+                            </div>
+                                </td>
+                            </tr>
+                        </table>
+                    </li>
+                    <li  onmouseover="mopen('SubMenu3',this)"  onmouseout="mclosetime()" >
+                        <table border="0" cellpadding="0" cellspacing="0">
+                            <tr>
+                                <td>
+                                    <asp:HyperLink ID="HyperLink1" runat="Server" NavigateUrl="http://www.advantech.com/solutions/" Text="Partners" />
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>
+                                        <div id="SubMenu3" class="layer">
+                                            <table style="width:205px;" id="PartnersTBENG" runat="server" visible="false" cellpadding="0" cellspacing="0" border="0">
+                                                <tr>
+                                                    <td colspan="3" style="background-color:#F0F0F0;height:5px">
+                                                    
+                                                    </td>
+                                                </tr>
+                                                <tr>
+                                                    <td style="background-color:#F0F0F0;width:5px">&nbsp;</td>
+                                                    <td style="background-color:#FFFFFF;">
+                                                            <table width="100%" border="0" cellspacing="0" cellpadding="0">
+				                                                <tr>
+					                                                <td width="100%" valign="top">
+                        
+                                                                            <asp:HyperLink ID="hlHChannelPartners" runat="server" NavigateUrl="http://www.advantech.com/solutions/Default.aspx?sta=Partner_Index" Text="Channel Partners"></asp:HyperLink><br />
+                                                                            <asp:HyperLink ID="hlHSolutionPartner" runat="server" NavigateUrl="http://www.advantech.com/solutions/Default.aspx?sta=SolutionPartner_Index" Text="Solution Partners"></asp:HyperLink><br />
+                                                                            <asp:HyperLink ID="hlHBusinessAlliancePartner" runat="server" NavigateUrl="http://www.advantech.com/solutions/Default.aspx?sta=BusinessAlliancePartner_Index" Text="Business Alliance Partners"></asp:HyperLink><br />
+                                                                            <asp:HyperLink ID="hlHloginpartnerzone" runat="server" NavigateUrl="http://partner.advantech.com.tw/default.aspx" Text="Log-in Partner Zone"></asp:HyperLink><br />
+		                
+					                                                </td>
+				                                                </tr>
+			                                                </table>
+                                                    </td>
+                                                    <td style="background-color:#F0F0F0;width:5px">&nbsp;</td>
+                                                </tr>
+                                                <tr>
+                                                    <td colspan="3" style="background-color:#F0F0F0;height:5px">
+                                                        
+                                                    </td>
+                                                </tr>
+                                            </table>
+                                            <table style="width:205px;" id="PartnersTBChina" runat="server" visible="false" cellpadding="0" cellspacing="0" border="0">
+                                            <tr>
+                                                <td colspan="3" style="background-color:#F0F0F0;height:5px">
+                                                    
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td style="background-color:#F0F0F0;width:5px">&nbsp;</td>
+                                                <td style="background-color:#FFFFFF;">
+                                                        <table width="100%" border="0" cellspacing="0" cellpadding="0">
+				                                            <tr>
+					                                            <td width="100%" valign="top">
+                        
+                                                                        <a id="Header1_hlHChannelPartners" href="http://www.advantech.com.cn/solutions/Default.aspx?sta=Partner_Index">研华授权经销商查询</a><br />
+                                                                        <a id="Header1_hlHSolutionPartner" href="http://www.advantech.com.cn/solutions/Default.aspx?sta=SolutionPartner_Index">经销商解决案例查询</a><br />
+                            
+                                                                        <a id="Header1_hlHBusinessAlliancePartner" href="http://www.advantech.com.cn/solutions/Default.aspx?sta=BusinessAlliancePartner_Index">商业合作伙伴</a><br />
+                                                                        <a id="Header1_hlHloginpartnerzone" href="http://partner.advantech.com.tw/default.aspx">登陆 Partner Zone</a><br />
+		                
+					                                            </td>
+				                                            </tr>
+			                                            </table>
+                                                </td>
+                                                <td style="background-color:#F0F0F0;width:5px">&nbsp;</td>
+                                            </tr>
+                                            <tr>
+                                                <td colspan="3" style="background-color:#F0F0F0;height:5px">
+                                                        
+                                                </td>
+                                            </tr>
+                                        </table>
+                                        </div>
+                                </td>
+                            </tr>
+                        </table>
+                    </li>
+                    <li onmouseover="mopen('SubMenu4',this)"  onmouseout="mclosetime()">
+                        <table border="0" cellpadding="0" cellspacing="0">
+                            <tr>
+                                <td>
+                                        <asp:HyperLink ID="hlSupport"  runat="Server" NavigateUrl="http://support.advantech.com/" Text="Support" />
+                                </td>
+                                </tr>
+                                <tr>
+                                <td>
+                                        <div id="SubMenu4" class="layer">
+                                        <table style="width:140px;" id="SupportTBENG"  runat="server" visible="false" cellpadding="0" cellspacing="0" border="0">
+                                            <tr>
+                                                <td colspan="3" style="background-color:#F0F0F0;height:5px">
+                                                    
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td style="background-color:#F0F0F0;width:5px">&nbsp;</td>
+                                                <td style="background-color:#FFFFFF;">
+                                                        <table width="100%" border="0" cellspacing="0" cellpadding="0">
+				                                            <tr>
+					                                            <td width="100%" valign="top">
+                        
+                                                                        <asp:HyperLink ID="hlHDownloads" runat="server" NavigateUrl="http://support.advantech.com.tw/" Text="Downloads"></asp:HyperLink><br />
+                                                                        <asp:HyperLink ID="hlHRMAServices" runat="server" NavigateUrl="http://erma.advantech.com.tw/" Text="RMA Services"></asp:HyperLink><br />
+                                                                        <asp:HyperLink ID="hlHCatalogueRequest" runat="server" NavigateUrl="http://www.advantech.com/catalogs/default.aspx" Text="Online Catalog"></asp:HyperLink><br />
+							                                            <asp:HyperLink ID="hlHResource" runat="server" NavigateUrl="http://resources.advantech.com/" Text="Resources for"></asp:HyperLink><br />
+                                                                        <asp:HyperLink ID="hlHAdvantechRSS" runat="server" NavigateUrl="http://www.advantech.com/rss/" Text="Advantech RSS"></asp:HyperLink><br />
+    	                
+					                                            </td>
+				                                            </tr>
+			                                            </table>
+                                                </td>
+                                                <td style="background-color:#F0F0F0;width:5px">&nbsp;</td>
+                                            </tr>
+                                            <tr>
+                                                <td colspan="3" style="background-color:#F0F0F0;height:5px">
+                                                        
+                                                </td>
+                                            </tr>
+                                        </table>
+                                        <table style="width:140px;" id="SupportTBChina"  runat="server" visible="false" cellpadding="0" cellspacing="0" border="0">
+                                            <tr>
+                                                <td colspan="3" style="background-color:#F0F0F0;height:5px">
+                                                    
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td style="background-color:#F0F0F0;width:5px">&nbsp;</td>
+                                                <td style="background-color:#FFFFFF;">
+                                                        <table width="100%" border="0" cellspacing="0" cellpadding="0">
+				                                            <tr>
+					                                            <td width="100%" valign="top">
+                        
+                                                                        <a id="Header1_hlHDownloads" href="http://support.advantech.com.tw/">技术支持</a><br />
+                                                                        <div>
+                                                                            <a id="Header1_hlTraining" href="http://training.advantech.com.cn/">客户培训</a>
+                                                                        </div>
+                                                                        <a id="Header1_hlHRMAServices" href="http://erma.advantech.com.tw/">RMA服务</a><br />
+                                                                        <a id="Header1_hlHCatalogueRequest" href="http://www.advantech.com.cn/catalogs/default.aspx">索取型录</a><br />
+							                                            <a id="Header1_hlHResource" href="http://resources.advantech.com/">Resources</a><br />
+                                                                        <a id="Header1_hlHAdvantechRSS" href="http://www.advantech.com.cn/rss/">Advantech RSS</a><br />
+    	                
+					                                            </td>
+				                                            </tr>
+			                                            </table>
+                                                </td>
+                                                <td style="background-color:#F0F0F0;width:5px">&nbsp;</td>
+                                            </tr>
+                                            <tr>
+                                                <td colspan="3" style="background-color:#F0F0F0;height:5px">
+                                                        
+                                                </td>
+                                            </tr>
+                                        </table>
+                        </div>
+                                </td>
+                            </tr>
+                        </table>
+                    </li>
+                    <li onmouseover="mopen('SubMenu5',this)"  onmouseout="mclosetime()">
+                        <table border="0" cellpadding="0" cellspacing="0">
+                            <tr>
+                                <td>
+                                        <asp:Label ID="HyperLink3" runat="Server"  Text="Services" ForeColor="#767373" />
+                                </td>
+                                </tr>
+                                <tr>
+                                <td>
+                                        <div id="SubMenu5" class="layer">
+                                        <table style="width:220px;" id="ServicesTBENG" runat="server" visible="false" cellpadding="0" cellspacing="0" border="0">
+                                            <tr>
+                                                <td colspan="3" style="background-color:#F0F0F0;height:5px">
+                                                    
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td style="background-color:#F0F0F0;width:5px">&nbsp;</td>
+                                                <td style="background-color:#FFFFFF;">
+                                                        <table width="100%" border="0" cellspacing="0" cellpadding="0">
+				                                            <tr>
+					                                            <td width="100%" valign="top">
+                        
+							                                            <asp:HyperLink ID="HyperLink19" runat="server"  NavigateUrl="http://www.advantech.com/dtos/"
+                                                                    Text="Design To Order Services" /><br />
+							                                            <asp:HyperLink ID="HyperLink20" runat="server" NavigateUrl="http://www.advantech.com/sis/"
+                                                                    Text="Solution Integration Services" /><br />
+							                                            <asp:HyperLink ID="HyperLink21" runat="server" NavigateUrl="http://www.advantech.com/ags/"
+                                                                    Text="Advantech Global Services" /><br />
+							                                            <asp:HyperLink ID="HyperLink5" runat="server"  NavigateUrl="http://www.advantech.com/service/"
+                                                                    Text="Service Packages" /><br />
+    	                
+					                                            </td>
+				                                            </tr>
+			                                            </table>
+                                                </td>
+                                                <td style="background-color:#F0F0F0;width:5px">&nbsp;</td>
+                                            </tr>
+                                            <tr>
+                                                <td colspan="3" style="background-color:#F0F0F0;height:5px">
+                                                        
+                                                </td>
+                                            </tr>
+                                        </table>
+                                        <table style="width:220px;" id="ServicesTBChina" runat="server" visible="false" cellpadding="0" cellspacing="0" border="0">
+                                            <tr>
+                                                <td colspan="3" style="background-color:#F0F0F0;height:5px">
+                                                    
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td style="background-color:#F0F0F0;width:5px">&nbsp;</td>
+                                                <td style="background-color:#FFFFFF;">
+                                                        <table width="100%" border="0" cellspacing="0" cellpadding="0">
+				                                            <tr>
+					                                            <td width="100%" valign="top">
+                        
+							                                            <a id="Header1_HyperLink19" href="http://www.advantech.com.cn/dtos/">客制化服务</a><br />
+							                                            <a id="Header1_HyperLink20" href="http://www.advantech.com.cn/sis/">研华解决方案整合服务</a><br />
+							                                            <a id="Header1_HyperLink21" href="http://www.advantech.com.cn/ags/">研华全球服务体系</a><br />
+							                                            <a id="Header1_HyperLink5" href="http://www.advantech.com.cn/service/">销售工具</a><br />
+    	                
+					                                            </td>
+				                                            </tr>
+			                                            </table>
+                                                </td>
+                                                <td style="background-color:#F0F0F0;width:5px">&nbsp;</td>
+                                            </tr>
+                                            <tr>
+                                                <td colspan="3" style="background-color:#F0F0F0;height:5px">
+                                                        
+                                                </td>
+                                            </tr>
+                                        </table>
+                                  </div>
+                                </td>
+                            </tr>
+                        </table>
+                    </li>
+                    <li onmouseover="mopen('SubMenu6',this)"  onmouseout="mclosetime()">
+                        <table border="0" cellpadding="0" cellspacing="0">
+                            <tr>
+                                <td>
+                                        <asp:HyperLink ID="hlContact" runat="Server" NavigateUrl="http://www.advantech.com/contact/"  Text="Contact" />    
+                                </td>
+                                </tr>
+                                <tr>
+                                <td>
+                                        
+                                </td>
+                            </tr>
+                        </table>
+                    </li>
+                    <li>
+                        <asp:Image runat="server" ID="imgBuy" ImageUrl="~/MADAM/images/shop_car.jpg" AlternateText="Shopping Cart" Width="33px" Height="27px" />
+                    </li>
+                    <li>
+                        <asp:HyperLink ID="HyperLink4" runat="Server"  Text="eStore" NavigateUrl="http://buy.advantech.com/" />
+                    </li>
+                    
+                    
+                </ul>
+
+                
+            </div>
+    
+    
+</div>
+
+<div id="headerLine" runat="server" visible="true" style="margin-top:3px;height:8px;background-image:url('http://www.advantech.com.tw/images/2010/bg_footer.jpg');background-repeat:repeat-x;"></div>
+
+<ajaxToolkit:PopupControlExtender ID="pce1" runat="server" TargetControlID="lblChange" PopupControlID="divSelectCountry" OffsetX="-400" OffsetY="20">
+</ajaxToolkit:PopupControlExtender>
+<div id="divSelectCountry" style="display: none; width: 450px; z-index: 999;" runat="server">
+	<asp:XmlDataSource ID="XmlDataSource1" runat="server" DataFile="./CountrySelection.xml" XPath="Countries/Country"></asp:XmlDataSource>
+	<asp:Repeater ID="rpCountry" runat="server" DataSourceID="XmlDataSource1">
+		<HeaderTemplate>
+			<ul class="divSelectCountryul text">
+		</HeaderTemplate>
+		<FooterTemplate>
+			</ul>
+		</FooterTemplate>
+		<ItemTemplate>
+			<li><a href='<%# Eval("URL") %>' onclick='GoogleTracking("/","To Another Country","<%# Eval("Name") %>")'>
+				<%# Eval("Name") %></a></li>
+		</ItemTemplate>
+	</asp:Repeater>
+</div>
+<script type="text/javascript">
+    var timeout = 500;
+    var closetimer = 0;
+    var ddmenuitem = 0;
+    var senderDiv = 0;
+    // open hidden layer
+    function mopen(id, sender) {
+        // cancel close timer
+        mcancelclosetime();
+        // close old layer
+        if (ddmenuitem) {
+            ddmenuitem.style.visibility = 'hidden';
+            senderDiv.style.backgroundColor = '#ffffff';
+        }
+        // get new layer and show it
+        ddmenuitem = document.getElementById(id);
+        if (ddmenuitem) {
+        ddmenuitem.style.visibility = 'visible';
+        sender.style.backgroundColor = '#f0f0f0';
+        senderDiv = sender;}
+    }
+    // close showed layer
+    function mclose() {
+        if (ddmenuitem) {
+            ddmenuitem.style.visibility = 'hidden';
+            senderDiv.style.backgroundColor = '#ffffff';
+        }
+    }
+    // go close timer
+    function mclosetime() {
+        closetimer = window.setTimeout(mclose, timeout);
+    }
+    // cancel close timer
+    function mcancelclosetime() {
+        if (closetimer) {
+            window.clearTimeout(closetimer);
+            closetimer = null;
+        }
+    }
+    // close layer when click-out
+    document.onclick = mclose; 
+
+</script>
+        <asp:ContentPlaceHolder id="ContentPlaceHolder1" runat="server">
+        
+        </asp:ContentPlaceHolder>
+<table width="977" valign="top" border="0" align="center" cellpadding="0" cellspacing="0" id="footTB" runat="server">
+		<tr>
+		<td style="background-image: url(images/menu_01.jpg);background-repeat: no-repeat;background-position: right;" width="50" id="tdt" runat="server">
+			<%--<img src="images/menu_01.jpg"  height="67" width="114" alt="">--%></td>
+		<td>
+			<a href="index.aspx"><img src="images/menu_02.jpg" alt="" runat="server" width="123" height="67" border="0" id="Image1" onMouseOver="MM_swapImage('Image1','','images/menu_over_02.jpg',1)" onMouseOut="MM_swapImgRestore()"/></a></td>
+        <td>
+			        <img src="images/menu_03.jpg" width="8" height="67" alt=""></td>
+		        <td>
+			        <a href="story.aspx"><img src="images/menu_04.jpg" alt="" width="123" height="67" runat="server" border="0" id="Image04" onMouseOver="MM_swapImage('Image2','','images/menu_over_04.jpg',1)" onMouseOut="MM_swapImgRestore()"/></a></td>
+
+
+
+           <td id="imagenewtd1" runat="server" >
+			        <img src="images_new/menu_03.jpg" width="8" height="67" alt=""/></td>
+		        <td id="imagenewtd2" runat="server">
+			        <a href="wwfeedback.aspx"><img src="images_new/menu_06.jpg" alt="" width="123" height="67" runat="server" border="0" id="imgnew" onMouseOver="MM_swapImage('Image2','','images_new/menu_over_06.jpg',1)" onMouseOut="MM_swapImgRestore()"/></a></td>
+
+
+
+        <td>
+			        <img src="images/menu_05.jpg" width="8" height="67" alt=""/></td>
+		        <td>
+			        <a href="main_1.aspx"><img src="images/menu_06.jpg" alt="" width="123" height="67" border="0" runat="server" id="Image06" onMouseOver="MM_swapImage('Image3','','images/menu_over_06.jpg',1)" onMouseOut="MM_swapImgRestore()"/></a></td>
+        <td>
+			        <img src="images/menu_07.jpg" width="8" height="67" alt=""/></td>
+		        <td>
+			        <a href="download.aspx"><img src="images/menu_08.jpg" alt="" width="113" height="67" border="0" runat="server" id="Image08" onMouseOver="MM_swapImage('Image4','','images/menu_over_08.jpg',1)" onMouseOut="MM_swapImgRestore()"/></a></td>
+        <td>
+			        <img src="images/menu_09.jpg" width="8" height="67" alt=""/></td>
+		        <td>
+			        <a href="http://www.advantech.com/eautomation/remote-io/news.aspx?doc_id={4C2692BC-CFE8-4B13-AA4A-CC4C8F2DCB0" target="_blank"><img src="images/menu_10.jpg" alt="" width="113" height="67" border="0" runat="server" id="Image10" onMouseOver="MM_swapImage('Image5','','images/menu_over_10.jpg',1)" onMouseOut="MM_swapImgRestore()"/></a></td>
+        <td>
+			        <img src="images/menu_11.jpg" width="8" height="67" alt=""/></td>
+		        <td>
+			        <a target="_blank" href="http://www.daqyourway.advantech.com"><img src="images/menu_12.jpg" alt="" runat="server" width="113" height="67" border="0" id="Image6" onMouseOver="MM_swapImage('Image6','','images/menu_over_12.jpg',1)" onMouseOut="MM_swapImgRestore()"/></a></td>
+        <td style="background-image: url(images/menu_13.jpg);background-repeat: no-repeat;background-position: left;" width="50" id="tdm" runat="server">
+			<%--<img src="images/menu_13.jpg"  height="67" alt="" width="115"/>--%>
+        </td>
+	</tr>
+	<tr>
+		<td colspan="15" id="tdnn" runat="server">
+			<img src="images/menu_14.jpg" width="977" height="38" alt=""/></td>
+	</tr>
+</table>
+    <script type="text/javascript">
+
+        var _gaq = _gaq || [];
+        _gaq.push(['_setAccount', 'UA-21633043-1']);
+        _gaq.push(['_setDomainName', '.1millionadam.advantech.com']);
+        _gaq.push(['_trackPageview']);
+
+        (function () {
+            var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+            ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+            var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+        })();
+
+    </script>
+    </form>
+</body>
+</html>

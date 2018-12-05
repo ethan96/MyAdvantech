@@ -1,0 +1,419 @@
+﻿<%@ Page Title="" Language="VB" MasterPageFile="~/Includes/MyMaster.master" %>
+
+<script runat="server">
+
+    Protected Sub Page_Load(sender As Object, e As System.EventArgs)
+        If Not IsPostBack Then
+            If Not Util.IsAEUIT() Then
+                Response.End()
+            End If
+        End If
+    End Sub
+
+    Protected Sub bt1_Click(sender As Object, e As System.EventArgs)
+        'contrl(Me.Page.Controls)
+        contrl(Me.TabPanel1.Controls)
+    End Sub
+    Private Sub contrl(objcc As ControlCollection)
+        For i As Integer = 0 To objcc.Count - 1
+            If objcc(i).[GetType]() = GetType(TextBox) Then
+                CType(objcc(i), TextBox).Text = ""
+            End If
+            If objcc(i).HasControls() Then
+                contrl(objcc(i).Controls)
+            End If
+        Next
+    End Sub
+    Protected Sub bt2_Click(sender As Object, e As System.EventArgs)
+      
+    End Sub
+</script>
+<asp:Content ID="Content1" ContentPlaceHolderID="_main" runat="Server">
+    <ajaxToolkit:TabContainer ID="TabContainer1" runat="server" ActiveTabIndex="1">
+        <ajaxToolkit:TabPanel runat="server" HeaderText="Sold-to" ID="TabPanel1">
+            <ContentTemplate>
+                <table width="90%" align="center" border="0" cellpadding="0" cellspacing="4">
+                    <tr>
+                        <td colspan="2" align="center" height="30">
+                            <h2>
+                                Sold-to</h2>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="tdti">
+                            Existing Customer Code:
+                        </td>
+                        <td class="tdtx">
+                            <asp:TextBox runat="server" ID="ExistingCustomerCode"></asp:TextBox>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="tdti">
+                            Company Name:<span class="red">* </span>
+                        </td>
+                        <td class="tdtx">
+                            <asp:TextBox runat="server" ID="CompanyName"></asp:TextBox>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="tdti">
+                            Legal Form:<span class="red">* </span>
+                        </td>
+                        <td class="tdtx">
+                            <asp:TextBox runat="server" ID="LegalForm"></asp:TextBox>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="tdti">
+                            VAT Number:<span class="red">* </span>
+                        </td>
+                        <td class="tdtx">
+                            <asp:TextBox runat="server" ID="VATNumber"></asp:TextBox>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="tdti">
+                            Company register code:
+                        </td>
+                        <td class="tdtx">
+                            <asp:TextBox runat="server" ID="Companyregistercode"></asp:TextBox>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="tdti">
+                            Website:<span class="red">* </span>
+                        </td>
+                        <td class="tdtx">
+                            <asp:TextBox runat="server" ID="Website"></asp:TextBox>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="tdti">
+                            Adress:<span class="red">* </span>
+                        </td>
+                        <td class="tdtx">
+                            <asp:TextBox runat="server" ID="Adress"></asp:TextBox>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="tdti">
+                            Postal code:<span class="red">* </span>
+                        </td>
+                        <td class="tdtx">
+                            <asp:TextBox runat="server" ID="Postalcode"></asp:TextBox>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="tdti">
+                            City:<span class="red">* </span>
+                        </td>
+                        <td class="tdtx">
+                            <asp:TextBox runat="server" ID="City"></asp:TextBox>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="tdti">
+                            Country:<span class="red">* </span>
+                        </td>
+                        <td class="tdtx">
+                            <asp:TextBox runat="server" ID="Country"></asp:TextBox>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="tdti">
+                            Telephone:
+                        </td>
+                        <td class="tdtx">
+                            <asp:TextBox runat="server" ID="Telephone"></asp:TextBox>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="tdti">
+                            Fax:
+                        </td>
+                        <td class="tdtx">
+                            <asp:TextBox runat="server" ID="Fax"></asp:TextBox>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="tdti">
+                            Contactperson:
+                        </td>
+                        <td class="tdtx">
+                            <asp:TextBox runat="server" ID="Contactperson"></asp:TextBox>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="tdti">
+                            Email address contact person:
+                        </td>
+                        <td class="tdtx">
+                            <asp:TextBox runat="server" ID="Emailaddresscontactperson"></asp:TextBox>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="tdti">
+                            Forwarder/Transporter:
+                        </td>
+                        <td class="tdtx">
+                            <asp:TextBox runat="server" ID="ForwarderTransporter"></asp:TextBox>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="tdti">
+                            Branch Office:<span class="red">* </span>
+                        </td>
+                        <td class="tdtx">
+                            <asp:DropDownList runat="server" ID="BranchOffice">
+                                <asp:ListItem Text="Select.."></asp:ListItem>
+                                <asp:ListItem Text="ADL"></asp:ListItem>
+                                <asp:ListItem Text="ABN"></asp:ListItem>
+                                <asp:ListItem Text="AFR"></asp:ListItem>
+                                <asp:ListItem Text="AIT"></asp:ListItem>
+                                <asp:ListItem Text="AUK"></asp:ListItem>
+                                <asp:ListItem Text="Eastern Europe"></asp:ListItem>
+                                <asp:ListItem Text="Emerging Territory"></asp:ListItem>
+                                <asp:ListItem Text="AESC"></asp:ListItem>
+                            </asp:DropDownList>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="tdti">
+                            Sales Person + code:<span class="red">* </span>
+                        </td>
+                        <td class="tdtx">
+                            <asp:TextBox runat="server" ID="SalesPersoncode"></asp:TextBox>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="tdti">
+                            Inside Sales + code:<span class="red">* </span>
+                        </td>
+                        <td class="tdtx">
+                            <asp:TextBox runat="server" ID="InsideSalescode"></asp:TextBox>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="tdti">
+                            OP + code:<span class="red">* </span>
+                        </td>
+                        <td class="tdtx">
+                            <asp:DropDownList runat="server" ID="OPcode">
+                                <asp:ListItem Text="Select.."></asp:ListItem>
+                                <asp:ListItem Text="OP SOUTH EUROPE / 39050003"></asp:ListItem>
+                                <asp:ListItem Text="OP EAST EUROPE / 39050006"></asp:ListItem>
+                                <asp:ListItem Text="OP CENTRAL EUROPE / 39050007"></asp:ListItem>
+                                <asp:ListItem Text="OP NORTH EUROPE / 39050012"></asp:ListItem>
+                            </asp:DropDownList>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="tdti">
+                            Customer type:<span class="red">* </span>
+                        </td>
+                        <td class="tdtx">
+                            <asp:DropDownList runat="server" ID="Customertype">
+                                <asp:ListItem Text="Select.."></asp:ListItem>
+                                <asp:ListItem Text="312 = eA KA"></asp:ListItem>
+                                <asp:ListItem Text="315 = GA eAutomation"></asp:ListItem>
+                                <asp:ListItem Text="321 = CSF & East Europe"></asp:ListItem>
+                                <asp:ListItem Text="322 = eP GA"></asp:ListItem>
+                                <asp:ListItem Text="323 = eP KA Embedded"></asp:ListItem>
+                                <asp:ListItem Text="324 = eP KA Medical"></asp:ListItem>
+                                <asp:ListItem Text="325 = eP KA Telecom"></asp:ListItem>
+                                <asp:ListItem Text="327 = eP Gaming"></asp:ListItem>
+                            </asp:DropDownList>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="tdti">
+                            VM Definition (only for KA):<span class="red">* </span>
+                        </td>
+                        <td class="tdtx">
+                            <asp:DropDownList runat="server" ID="VMDefinition">
+                                <asp:ListItem Text="Select.."></asp:ListItem>
+                                <asp:ListItem Text="080 / (BA) Building Automation"></asp:ListItem>
+                                <asp:ListItem Text="100 / (MA) Machine Automation "></asp:ListItem>
+                                <asp:ListItem Text="130 / (FA) Factory Automation "></asp:ListItem>
+                                <asp:ListItem Text="140 / (EFMS) Environmental and Facility Management "></asp:ListItem>
+                                <asp:ListItem Text="150 / (P&E) Power & Energy"></asp:ListItem>
+                                <asp:ListItem Text="170 / Education"></asp:ListItem>
+                                <asp:ListItem Text="200 / Transportation"></asp:ListItem>
+                                <asp:ListItem Text="260 / Networks & Telecom"></asp:ListItem>
+                                <asp:ListItem Text="270 / Military"></asp:ListItem>
+                                <asp:ListItem Text="400 / Gaming/ POS"></asp:ListItem>
+                                <asp:ListItem Text="401 / Gaming / Innocore"></asp:ListItem>
+                                <asp:ListItem Text="590 / Medical"></asp:ListItem>
+                                <asp:ListItem Text="610 / Self Service"></asp:ListItem>
+                                <asp:ListItem Text="700 / Brand Store (AiS)"></asp:ListItem>
+                                <asp:ListItem Text="710 / eHome (AiS)"></asp:ListItem>
+                                <asp:ListItem Text="720 / Enterprise (AiS)"></asp:ListItem>
+                                <asp:ListItem Text="730 / Exhibition (AiS)"></asp:ListItem>
+                                <asp:ListItem Text="740 / Hospitality (AiS)"></asp:ListItem>
+                                <asp:ListItem Text="750 / Hotel (AiS)"></asp:ListItem>
+                                <asp:ListItem Text="760 / Lifestyle Service (AiS)"></asp:ListItem>
+                                <asp:ListItem Text="770 / Museum (AiS)"></asp:ListItem>
+                                <asp:ListItem Text="780 / Public Space (AiS)"></asp:ListItem>
+                                <asp:ListItem Text="790 / Restaurant (AiS)"></asp:ListItem>
+                                <asp:ListItem Text="800 / Retail (AiS)"></asp:ListItem>
+                                <asp:ListItem Text="810 / School Campus (AiS)"></asp:ListItem>
+                                <asp:ListItem Text="999 / Others / General Biz"></asp:ListItem>
+                            </asp:DropDownList>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="tdti">
+                            Credit Limit & Payment Terms
+                        </td>
+                        <td class="tdtx" height="35">
+                            <span style="margin-left: 50PX;">
+                                <asp:Button runat="server" Text="NO" ID="bt1" CssClass="BT" OnClick="bt1_Click" /></span><span
+                                    style="margin-left: 30PX;">
+                                    <asp:Button runat="server" Text="YES" ID="bt2" CssClass="BT" OnClick="bt2_Click" /></span>
+                        </td>
+                    </tr>
+                </table>
+            </ContentTemplate>
+        </ajaxToolkit:TabPanel>
+        <ajaxToolkit:TabPanel runat="server" HeaderText="Ship-to" ID="TabPanel2">
+            <ContentTemplate>
+                <table width="80%" align="center" border="0" cellpadding="0" cellspacing="4">
+                    <tr>
+                        <td colspan="2" align="center" height="30">
+                            <h2>
+                                Ship-to (when different from Sold-to)</h2>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="tdti">
+                            Existing Customer Code:
+                        </td>
+                        <td class="tdtx">
+                            <asp:TextBox runat="server" ID="ExistingCustomerCode2"></asp:TextBox>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="tdti">
+                            Company Name:<span class="red">* </span>
+                        </td>
+                        <td class="tdtx">
+                            <asp:TextBox runat="server" ID="CompanyName2"></asp:TextBox>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="tdti">
+                            Legal Form:<span class="red">* </span>
+                        </td>
+                        <td class="tdtx">
+                            <asp:TextBox runat="server" ID="LegalForm2"></asp:TextBox>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="tdti">
+                            VAT Number:<span class="red">* </span>
+                        </td>
+                        <td class="tdtx">
+                            <asp:TextBox runat="server" ID="VATNumber2"></asp:TextBox>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="tdti">
+                            Adress:<span class="red">* </span>
+                        </td>
+                        <td class="tdtx">
+                            <asp:TextBox runat="server" ID="Adress2"></asp:TextBox>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="tdti">
+                            Postal code:<span class="red">* </span>
+                        </td>
+                        <td class="tdtx">
+                            <asp:TextBox runat="server" ID="Postalcode2"></asp:TextBox>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="tdti">
+                            City:<span class="red">* </span>
+                        </td>
+                        <td class="tdtx">
+                            <asp:TextBox runat="server" ID="City2"></asp:TextBox>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="tdti">
+                            Country:<span class="red">* </span>
+                        </td>
+                        <td class="tdtx">
+                            <asp:TextBox runat="server" ID="Country2"></asp:TextBox>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="tdti">
+                            Telephone:
+                        </td>
+                        <td class="tdtx">
+                            <asp:TextBox runat="server" ID="Telephone2"></asp:TextBox>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="tdti">
+                            Fax:
+                        </td>
+                        <td class="tdtx">
+                            <asp:TextBox runat="server" ID="Fax2"></asp:TextBox>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="tdti">
+                            Contact person:
+                        </td>
+                        <td class="tdtx">
+                            <asp:TextBox runat="server" ID="Contactperson2"></asp:TextBox>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="tdti" style="background-color: #ffffff">
+                        </td>
+                        <td class="tdtx" height="35">
+                            <span style="margin-left: 50PX;">
+                                <asp:Button runat="server" Text="NO" ID="bt3" CssClass="BT" /></span><span style="margin-left: 30PX;">
+                                    <asp:Button runat="server" Text="YES" ID="bt4" CssClass="BT" /></span>
+                        </td>
+                    </tr>
+                </table>
+            </ContentTemplate>
+        </ajaxToolkit:TabPanel>
+    </ajaxToolkit:TabContainer>
+    <style type="text/css">
+        .tdti
+        {
+            width: 200px;
+            text-align: right;
+            padding-right: 8px;
+            font-weight: bolder;
+            height: 25px;
+            background-color: #eae6e6;
+        }
+        .tdtx
+        {
+            padding-left: 5px;
+        }
+        .tdtx input
+        {
+            width: 400px;
+            padding-left: 2px;
+        }
+        input.BT
+        {
+            width: 50px;
+        }
+        .red
+        {
+            color: Red;
+            font-size: 9px;
+        }
+    </style>
+</asp:Content>
+<asp:Content ID="Content2" ContentPlaceHolderID="cph1" runat="Server">
+</asp:Content>

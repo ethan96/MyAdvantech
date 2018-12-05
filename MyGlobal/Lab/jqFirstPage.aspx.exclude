@@ -1,0 +1,12 @@
+﻿<%@ Page Title="" Language="VB" MasterPageFile="~/Includes/MyMaster.master" %>
+
+<script runat="server">
+
+    Protected Sub lnkNextPage_Click(sender As Object, e As EventArgs)
+        Response.Redirect("jqSecondPage.aspx")
+    End Sub
+</script>
+
+<asp:Content ID="Content1" ContentPlaceHolderID="_main" Runat="Server">
+    <asp:LinkButton runat="server" ID="lnkNextPage" Text="Next Page" OnClick="lnkNextPage_Click" />
+</asp:Content>

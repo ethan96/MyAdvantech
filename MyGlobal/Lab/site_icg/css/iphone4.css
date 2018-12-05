@@ -1,0 +1,82 @@
+@charset "utf-8";
+
+@media only screen and (-o-min-device-pixel-ratio: 2/1), /* Opera */
+only screen and (min--moz-device-pixel-ratio: 2), /* Firefox 16 之前 */
+only screen and (-webkit-min-device-pixel-ratio: 2), /* Webkit */
+only screen and (min-resolution: 240DPI), /* 標準 */
+only screen and (min-resolution: 2dppx) /* 標準 */
+{
+	.searchbar #searchBtn
+	{
+		background-image:url(../img/icon_search@2x.png);
+		background-size: 30px 30px;
+	}
+
+	.login-tablet-mobile .favorite
+	{
+		background-image:url(../img/icon_folder@2x.png);
+		background-size: 25px 20px;
+	}
+	.login-tablet-mobile button
+	{
+		background-image:url(../img/icon_login@2x.png);
+		background-size: 20px 20px;
+	}
+	.topLoginBox , div.box_popup
+	{
+		background-image:url(../img/popup_bg@2x.png);
+		background-size: 90px 90px;
+	}
+
+	.resultsBox .listType .list
+	{
+		background-image:url(../img/icon_listType_list@2x.png);
+		background-size: 22px 22px;
+	}
+	.resultsBox .listType .thumbnail
+	{
+		background-image:url(../img/icon_listType_thumbnail@2x.png);
+		background-size: 22px 22px;
+	}
+
+	.resultsBox .listType .list.on
+	{
+		background-image:url(../img/icon_listType_list_on@2x.png);
+		background-size: 22px 22px;
+	}
+	.resultsBox .listType .thumbnail.on
+	{
+		background-image:url(../img/icon_listType_thumbnail_on@2x.png);
+		background-size: 22px 22px;
+	}
+	.addFavoriteAlert
+	{
+		background-image:url(../img/popup_alert@2x.png);
+		background-size: 100px 100px;
+	}
+	.favoriteBox .favoriteList .deleteBtn a
+	{
+		background-image:url(../img/icon_x@2x.png);
+		background-size: 20px 20px;
+	}
+	.pages .btn.arrowL
+	{
+		background-image:url(../img/icon_arrowL@2x.png);
+		background-size: 30px 30px;
+	}
+	.pages .btn.arrowR
+	{
+		background-image:url(../img/icon_arrowR@2x.png);
+		background-size: 30px 30px;
+	}
+	.for-mobile .productsBox dl dt
+	{
+		background-image:url(../img/icon_open@2x.png);
+		background-size: 30px 30px;
+	}
+	.for-mobile .productsBox dl.closeIcon dt
+	{
+		background-image:url(../img/icon_close@2x.png);
+		background-size: 30px 30px;
+	}
+}

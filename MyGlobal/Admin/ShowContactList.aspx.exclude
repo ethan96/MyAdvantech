@@ -1,0 +1,60 @@
+﻿<%@ Page Language="VB" MasterPageFile="~/Includes/MyMaster.master" Title="MyAdvantech KPI - Contact List" %>
+
+<script runat="server">
+    
+    Protected Sub Page_Load(ByVal sender As Object, ByVal e As System.EventArgs)
+        If Request("account_status") = "" And Request("DataSetName") = "" And Request("xLabel") = "" Then
+            SqlDataSource1.SelectCommand = "select * from testKPI"
+        ElseIf Request("account_status") <> "" Then
+            SqlDataSource1.SelectCommand = "select * from testKPI where account_status = '" + Request("account_status") + "'"
+        ElseIf Request("DataSetName") <> "" And Request("xLabel") <> "" Then
+            SqlDataSource1.SelectCommand = "select * from testKPI where country='" + Request("DataSetName") + "' and login_month='" + Request("xLabel") + "'"
+        End If
+        ViewState("SqlCommand") = SqlDataSource1.SelectCommand
+        gv1.DataBind()
+    End Sub
+
+    Protected Sub SqlDataSource1_Load(ByVal sender As Object, ByVal e As System.EventArgs)
+        If ViewState("SqlCommand") <> "" Then
+            SqlDataSource1.SelectCommand = ViewState("SqlCommand")
+        End If
+    End Sub
+</script>
+
+<asp:Content runat="server" ID="_main" ContentPlaceHolderID="_main">
+    <table width="100%" border="0" cellpadding="0" cellspacing="0">
+        <tr>
+            <td>
+                <asp:GridView runat="server" ID="gv1" AllowPaging="True" PageSize="30" HeaderStyle-HorizontalAlign="Center"
+                    AllowSorting="True" AutoGenerateColumns="False" DataSourceID="SqlDataSource1" HeaderStyle-BackColor="#EBEADB">
+                    <Columns>
+                        <asp:TemplateField ItemStyle-Width="50px" ItemStyle-HorizontalAlign="Center">
+                            <headertemplate>
+                                No.
+                            </headertemplate>
+                            <itemtemplate>
+                                <%# Container.DataItemIndex + 1 %>
+                            </itemtemplate>
+                        </asp:TemplateField>
+                        <asp:BoundField DataField="UserID" HeaderText="UserID" HeaderStyle-Width="160px" ItemStyle-Width="160px"
+                            ReadOnly="True" SortExpression="UserID" />
+                        <asp:BoundField DataField="Account_Status" HeaderText="Account Status" HeaderStyle-Width="160px" ItemStyle-Width="160px"
+                            ReadOnly="True" SortExpression="Account Status" />    
+                        <asp:BoundField DataField="Country" HeaderText="Country" HeaderStyle-Width="160px" ItemStyle-Width="160px"
+                            ReadOnly="true" SortExpression="Country" />
+                    </Columns>
+                    <FooterStyle BackColor="#A4B5BD" ForeColor="White" Font-Bold="True" />
+                    <RowStyle BackColor="#F7F6F3" ForeColor="#333333" />
+                    <SelectedRowStyle BackColor="#E2DED6" Font-Bold="True" ForeColor="#333333" />
+                    <PagerStyle BackColor="#284775" ForeColor="White" HorizontalAlign="Justify"  />
+                    <HeaderStyle BackColor="#A4B5BD" Font-Bold="True" ForeColor="White" />
+                    <AlternatingRowStyle BackColor="White" ForeColor="#284775" />
+                    <PagerSettings PageButtonCount="10" Position="TopAndBottom" />
+                </asp:GridView>
+                <asp:SqlDataSource ID="SqlDataSource1" runat="server" ConnectionString="<%$ ConnectionStrings:MY %>" 
+                    SelectCommand="" OnLoad="SqlDataSource1_Load">
+                </asp:SqlDataSource>
+            </td>
+        </tr>
+    </table>
+</asp:Content>

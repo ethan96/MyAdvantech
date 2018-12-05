@@ -1,0 +1,290 @@
+﻿<%@ Page Language="VB" MasterPageFile="~/Includes/MyMaster.master" Title="MyAdvantech - Category Navigation"
+    ValidateRequest="false" %>
+
+<%@ Import Namespace="System.Data.SqlClient" %>
+<script runat="server">
+    
+    Dim _SpecCategoriesUrl As String = "ProductSpecConfigration.aspx?Category_id="
+    
+    Protected Sub Page_Load(sender As Object, e As System.EventArgs)
+        
+        'Me.HF_Category_ID.Value = Request("Category_ID")
+        
+        If Not Page.IsPostBack Then
+            'Load Category
+            Me.LoadCategoryLevel1()
+            HideCategoryRow(1)
+        End If
+
+    End Sub
+    
+    Protected Sub DDL_CategoryLevel1_SelectedIndexChanged(sender As Object, e As System.EventArgs)
+
+        Dim _SelectedValue As String = CType(sender, DropDownList).SelectedValue
+        Me.HideCategoryRow(1)
+        Me.LoadSubCategory(_SelectedValue, 2)
+        Me.UpdatePanel1.Update()
+
+    End Sub
+    
+    Protected Sub SubCategory_SelectedIndexChanged(ByVal sender As Object, ByVal e As EventArgs)
+        
+        Dim _ddl As DropDownList = CType(sender, DropDownList), _SelectedValue As String = _ddl.SelectedValue
+        Dim _id As String = _ddl.ID, _afterreplace As String = String.Empty, _Level As Integer = 2
+        
+        _afterreplace = _id.Replace("DDL_CategoryLevel", "")
+        
+        If Not Integer.TryParse(_afterreplace, _Level) Then Exit Sub
+        
+        Me.HideCategoryRow(_Level)
+        Me.LoadSubCategory(_SelectedValue, _afterreplace + 1)
+        Me.UpdatePanel1.Update()
+
+    End Sub
+
+    
+    Private Sub LoadCategoryLevel1()
+        Dim _SQL As New StringBuilder
+        _SQL.Append(" SELECT c.CATEGORY_ID,c.DISPLAY_NAME,c.PARENT_CATEGORY_ID ")
+        _SQL.Append(" FROM [Catalog] a Left Join CATALOG_CATEGORY b on a.catalogid=b.catalogid ")
+        _SQL.Append(" Left Join Category c On b.CATEGORY_ID=c.CATEGORY_ID ")
+        _SQL.Append(" Where a.catalogid in ('1-2JKBQD','1-2MLAX2') ")
+        _SQL.Append(" And c.PARENT_CATEGORY_ID='root' ")
+        _SQL.Append(" And c.ACTIVE_FLG='Y' ")
+        _SQL.Append(" Order by c.SEQ_NO ")
+        
+        Dim _dt As DataTable = dbUtil.dbGetDataTable("PIS", _SQL.ToString)
+        
+        Dim _NewRow As DataRow = _dt.NewRow
+        _NewRow.Item("CATEGORY_ID") = ""
+        _NewRow.Item("DISPLAY_NAME") = "Select"
+        _dt.Rows.InsertAt(_NewRow, 0)
+        
+        Me.DDL_CategoryLevel1.DataTextField = "DISPLAY_NAME"
+        Me.DDL_CategoryLevel1.DataValueField = "CATEGORY_ID"
+        Me.DDL_CategoryLevel1.DataSource = _dt
+        Me.DDL_CategoryLevel1.DataBind()
+
+        'Loading next level sub category
+        'Me.LoadSubCategory(Me.DDL_CategoryLevel1.SelectedValue, 2)
+        
+    End Sub
+
+    Private Function LoadSubCategory(ByVal _Parent_Category_ID As String, ByRef _Nextlevel As Integer) As Boolean
+        
+        If String.IsNullOrEmpty(_Parent_Category_ID) Then Return False
+        
+        
+        Dim _SQL As New StringBuilder
+        _SQL.Append(" SELECT CATEGORY_ID,DISPLAY_NAME,PARENT_CATEGORY_ID ")
+        _SQL.Append(" FROM Category ")
+        _SQL.Append(" Where PARENT_CATEGORY_ID='" & _Parent_Category_ID & "' ")
+        _SQL.Append(" And ACTIVE_FLG='Y' ")
+        _SQL.Append(" Order by SEQ_NO ")
+        
+        Dim _dt As DataTable = dbUtil.dbGetDataTable("PIS", _SQL.ToString)
+        
+        Dim _ddl As DropDownList = CType(Me.Table_Category.FindControl("DDL_CategoryLevel" & _Nextlevel), DropDownList)
+        Dim _tr As TableRow = CType(Me.Table_Category.FindControl("TableRow_CategoryLevel" & _Nextlevel), TableRow)
+        
+        If _dt IsNot Nothing AndAlso _dt.Rows.Count > 0 Then
+            _tr.Visible = True
+        
+            Dim _NewRow As DataRow = _dt.NewRow
+            _NewRow.Item("CATEGORY_ID") = ""
+            _NewRow.Item("DISPLAY_NAME") = "Select"
+            _dt.Rows.InsertAt(_NewRow, 0)
+
+            
+            _ddl.DataTextField = "DISPLAY_NAME"
+            _ddl.DataValueField = "CATEGORY_ID"
+            _ddl.Enabled = True
+            _ddl.DataSource = _dt
+            _ddl.DataBind()
+
+            ''Loading next level sub category
+            'If Not LoadSubCategory(_ddl.SelectedValue, _Nextlevel + 1) Then
+            '    'load model list
+            '    'LoadModelList(_ddl.SelectedValue)
+            'End If
+        Else
+            'load model list
+            Dim _tr1 As TableRow = CType(Me.Table_Category.FindControl("TableRow_CategoryLevel" & (_Nextlevel - 1)), TableRow)
+            Dim cmd As New Button, _ddl2 As DropDownList
+
+            _ddl2 = CType(_tr1.Cells(1).FindControl("DDL_CategoryLevel" & (_Nextlevel - 1)), DropDownList)
+            
+            cmd.ID = "Button_GoToSpecCategories"
+            cmd.PostBackUrl = _SpecCategoriesUrl & _ddl2.SelectedValue
+            cmd.Text = "Maintain Spec Categories"
+
+            'AddHandler cmd.Click, AddressOf Button_EditSpecItem_Click
+            _tr1.Cells(1).Controls.Add(cmd)
+
+            
+            
+            LoadModelList(_Parent_Category_ID)
+            Return False
+        End If
+        Return True
+    End Function
+
+    
+    Private Sub LoadModelList(ByVal _Category_id As String)
+        Dim _SQL As New StringBuilder
+        _SQL.Append(" SELECT b.Model_Name,b.DISPLAY_NAME ")
+        _SQL.Append(" FROM Category_Model a Left Join Model b on a.Model_Name=b.Model_Name ")
+        _SQL.Append(" Where a.Category_ID ='" & _Category_id & "' ")
+        _SQL.Append(" Order by A.SEQ ")
+        
+        Dim _dt As DataTable = dbUtil.dbGetDataTable("PIS", _SQL.ToString)
+        
+        
+        'Dim _NewRow As DataRow = _dt.NewRow
+        '_NewRow.Item("Model_Name") = ""
+        '_NewRow.Item("DISPLAY_NAME") = "Select"
+        '_dt.Rows.InsertAt(_NewRow, 0)
+        
+        Me.DDL_ModelList.DataTextField = "DISPLAY_NAME"
+        Me.DDL_ModelList.DataValueField = "Model_Name"
+        Me.DDL_ModelList.DataSource = _dt
+        Me.DDL_ModelList.DataBind()
+
+        Me.TableRow_ModelList.Visible = True
+        
+        
+    End Sub
+
+    
+    Private Sub HideCategoryRow(ByVal _RowIndex As Integer)
+        Dim _ddl As DropDownList = Nothing
+        For i As Integer = _RowIndex To Me.Table_Category.Rows.Count - 1
+            _ddl = CType(Me.Table_Category.FindControl("DDL_CategoryLevel" & (i + 1)), DropDownList)
+            _ddl.DataSource = Nothing
+            _ddl.DataBind()
+            _ddl.Items.Clear()
+            If i > 1 Then
+                Me.Table_Category.Rows(i).Visible = False
+            Else
+                _ddl.Enabled = False
+            End If
+        Next
+        
+        Me.TableRow_ModelList.Visible = False
+        'Me.UpdatePanel1.Update
+        
+    End Sub
+
+    Private Function GetParentCategoryIDOfSelectedModel() As String
+        
+        For i = Me.Table_Category.Rows.Count - 1 To 0 Step -1
+            If Me.Table_Category.Rows(i).Visible = True Then
+                'Dim _ddl As DropDownList = CType(Me.Table_Category.Rows(i).FindControl("DDL_CategoryLevel" & (i + 1)), DropDownList)
+                Dim _ddl As DropDownList = CType(Me.Table_Category.Rows(i).Cells(1).Controls(0), DropDownList)
+                Return _ddl.SelectedValue
+            End If
+        Next
+
+        Return ""
+    End Function
+    
+    
+    Protected Sub Button_EditSpecContent_Click(sender As Object, e As System.EventArgs)
+        Dim _parent_category_id As String = GetParentCategoryIDOfSelectedModel()
+        Dim _url As String = "ProductSpecEditor.aspx?Model_Name=" & Me.DDL_ModelList.SelectedValue & "&Category_id=" & _parent_category_id
+        Response.Redirect(_url)
+    End Sub
+
+    
+    
+    Protected Sub Button_EditSpecItem_Click(sender As Object, e As System.EventArgs)
+        Dim _parent_category_id As String = GetParentCategoryIDOfSelectedModel()
+        Dim _url As String = "ProductSpecConfigration.aspx?Category_id=" & _parent_category_id
+        Response.Redirect(_url)
+    End Sub
+
+</script>
+<asp:Content runat="server" ID="_main" ContentPlaceHolderID="_main">
+    <asp:UpdatePanel ID="UpdatePanel1" UpdateMode="Conditional" runat="server">
+        <ContentTemplate>
+            <asp:Table ID="Table_Category" runat="server">
+                <asp:TableRow ID="TableRow_CategoryLevel1" runat="server">
+                    <asp:TableHeaderCell Width="150px">Business Group</asp:TableHeaderCell>
+                    <asp:TableCell>
+                        <asp:DropDownList ID="DDL_CategoryLevel1" runat="server" AutoPostBack="true" OnSelectedIndexChanged="DDL_CategoryLevel1_SelectedIndexChanged">
+                        </asp:DropDownList>
+                        &nbsp;
+                    </asp:TableCell>
+                </asp:TableRow>
+                <asp:TableRow ID="TableRow_CategoryLevel2" runat="server">
+                    <asp:TableHeaderCell>Primary Category</asp:TableHeaderCell>
+                    <asp:TableCell>
+                        <asp:DropDownList ID="DDL_CategoryLevel2" runat="server" AutoPostBack="true" OnSelectedIndexChanged="SubCategory_SelectedIndexChanged">
+                        </asp:DropDownList>
+                        &nbsp;
+                    </asp:TableCell>
+                </asp:TableRow>
+                <asp:TableRow ID="TableRow_CategoryLevel3" runat="server" Visible="false">
+                    <asp:TableHeaderCell>Sub Category</asp:TableHeaderCell>
+                    <asp:TableCell>
+                        <asp:DropDownList ID="DDL_CategoryLevel3" runat="server" AutoPostBack="true" OnSelectedIndexChanged="SubCategory_SelectedIndexChanged">
+                        </asp:DropDownList>
+                        &nbsp;
+                    </asp:TableCell>
+                </asp:TableRow>
+                <asp:TableRow ID="TableRow_CategoryLevel4" runat="server" Visible="false">
+                    <asp:TableHeaderCell>Category Level 4</asp:TableHeaderCell>
+                    <asp:TableCell>
+                        <asp:DropDownList ID="DDL_CategoryLevel4" runat="server" AutoPostBack="true" OnSelectedIndexChanged="SubCategory_SelectedIndexChanged">
+                        </asp:DropDownList>
+                        &nbsp;
+                    </asp:TableCell>
+                </asp:TableRow>
+                <asp:TableRow ID="TableRow_CategoryLevel5" runat="server" Visible="false">
+                    <asp:TableHeaderCell>Category Level 5</asp:TableHeaderCell>
+                    <asp:TableCell>
+                        <asp:DropDownList ID="DDL_CategoryLevel5" runat="server" AutoPostBack="true" OnSelectedIndexChanged="SubCategory_SelectedIndexChanged">
+                        </asp:DropDownList>
+                        &nbsp;
+                    </asp:TableCell>
+                </asp:TableRow>
+                <asp:TableRow ID="TableRow_CategoryLevel6" runat="server" Visible="false">
+                    <asp:TableHeaderCell>Category Level 6</asp:TableHeaderCell>
+                    <asp:TableCell>
+                        <asp:DropDownList ID="DDL_CategoryLevel6" runat="server" AutoPostBack="true" OnSelectedIndexChanged="SubCategory_SelectedIndexChanged">
+                        </asp:DropDownList>
+                        &nbsp;
+                    </asp:TableCell>
+                </asp:TableRow>
+            </asp:Table>
+            <asp:Table ID="Table_Model" runat="server">
+                <asp:TableRow ID="TableRow_ModelList" runat="server" Visible="false">
+                    <asp:TableHeaderCell Width="150px">Model Name</asp:TableHeaderCell>
+                    <asp:TableCell>
+                        <asp:DropDownList ID="DDL_ModelList" runat="server"></asp:DropDownList>
+                        &nbsp;
+                        <asp:Button ID="Button_EditSpecContent" runat="server" Text="Edit Spec" OnClick="Button_EditSpecContent_Click" />
+                    </asp:TableCell>
+                </asp:TableRow>
+                <asp:TableRow ID="TableRow1" runat="server" Visible="true">
+                    <asp:TableHeaderCell Width="150px"></asp:TableHeaderCell>
+                    <asp:TableCell>
+                        <%--<asp:Button ID="Button_EditSpecContent" runat="server" Text="Edit Spec" OnClick="Button_EditSpecContent_Click" />
+                        <asp:Button ID="Button_EditSpecItem" Visible="false" runat="server" Text="Maintain Spec Categories" OnClick="Button_EditSpecItem_Click" />--%>
+                    </asp:TableCell>
+                </asp:TableRow>
+            </asp:Table>
+
+        </ContentTemplate>
+        <Triggers>
+            <asp:AsyncPostBackTrigger ControlID="DDL_CategoryLevel1" EventName="SelectedIndexChanged" />
+            <asp:AsyncPostBackTrigger ControlID="DDL_CategoryLevel2" EventName="SelectedIndexChanged" />
+            <asp:AsyncPostBackTrigger ControlID="DDL_CategoryLevel3" EventName="SelectedIndexChanged" />
+            <asp:AsyncPostBackTrigger ControlID="DDL_CategoryLevel4" EventName="SelectedIndexChanged" />
+            <asp:AsyncPostBackTrigger ControlID="DDL_CategoryLevel5" EventName="SelectedIndexChanged" />
+            <asp:AsyncPostBackTrigger ControlID="DDL_CategoryLevel6" EventName="SelectedIndexChanged" />
+            <asp:AsyncPostBackTrigger ControlID="Button_EditSpecContent" />
+<%--            <asp:AsyncPostBackTrigger ControlID="Button_EditSpecItem" />
+--%>        </Triggers>
+    </asp:UpdatePanel>
+</asp:Content>

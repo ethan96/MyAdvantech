@@ -1,0 +1,252 @@
+﻿<%@ Page Title="Advantech Celebrates One Million ADAM Remote I/O Modules Sold!" Language="VB"  ValidateRequest="false" MasterPageFile="~/MADAM/MADAM_MP.master" %>
+
+<%@ Import Namespace="System.IO" %>
+
+<%@ Import Namespace="System.Security.Cryptography" %>
+
+<script runat="server">
+    Dim updatelabletext As String = "Updated successful!", updatelabletext2 As String = "Update failed."
+    Dim confirmlabletext As String = "Thank you for your confirmation.", confirmlabletext2 As String = "There is an error in your submission."
+    Dim Iname As String = "Name:"
+    Dim ICONTACT_NUMBER As String = "Contact Number :"
+    Dim ICITY As String = "City :"
+    Dim IZIP_CODE As String = "Zip Code :"
+    Dim ICOUNTRY As String = "Country :"
+    Dim IMAIL_ADDR As String = "Address :"
+    Protected Sub Page_Load(ByVal sender As Object, ByVal e As System.EventArgs)
+        Label3.Text=""
+        'If Session("user_id") IsNot Nothing AndAlso (Util.IsAEUIT() OrElse Session("user_id").ToString.ToLower.StartsWith("julia.ko")) Then
+        'Else
+        '    Response.End()
+        'End If
+        If Not IsPostBack Then
+            Try
+                Dim mailbody As String = "<BR/>"
+                If Session("user_id") IsNot Nothing AndAlso Session("user_id").ToString() <> "" Then
+                    mailbody += "<BR/>user_id: " + Session("user_id").ToString().Trim()
+                End If
+                If Request.Url.AbsoluteUri IsNot Nothing Then
+                    mailbody += "<BR/>URL: " + Request.Url.AbsoluteUri.ToString().Trim()
+                End If
+                If Request("UID") IsNot Nothing AndAlso Request("UID").ToString <> "" Then
+                    mailbody += "<br/>UID: " + Request("UID").ToString
+                End If
+                Util.SendEmail("tc.chen@advantech.com.tw,ming.zhao@advantech.com.cn,Julia.Ko@advantech.com.tw", "ebiz.aeu@advantech.eu", _
+                            "MADAM winner is visiting.", _
+                            mailbody, True, "", "")
+            Catch ex As Exception
+
+            End Try
+            Dim DT As DataTable = dbUtil.dbGetDataTable("MYLOCAL", GetSQL())
+            If DT.Rows.Count > 0 Then
+                With DT.Rows(0)
+                    name.Text = HttpUtility.HtmlDecode(.Item("NAME").ToString.Trim)
+                    CONTACT_NUMBER.Text = HttpUtility.HtmlDecode(.Item("CONTACT_NUMBER").ToString.Trim)
+                    CITY.Text = HttpUtility.HtmlDecode(.Item("CITY").ToString.Trim)
+                    ZIP_CODE.Text = HttpUtility.HtmlDecode(.Item("ZIP_CODE").ToString.Trim)
+                    COUNTRY.Text = HttpUtility.HtmlDecode(.Item("COUNTRY").ToString.Trim)
+                    MAIL_ADDR.Text = HttpUtility.HtmlDecode(.Item("MAIL_ADDR").ToString.Trim)
+                End With
+            Else
+                Response.End()
+            End If
+        End If
+        If Session("Browser_lan") IsNot Nothing AndAlso Session("Browser_lan").ToString() <> "" Then
+            Dim lan As String = Session("Browser_lan").ToString.ToLower
+            Select Case lan
+                Case "zh-cn"
+                    Label1.Text = "您好! 感谢您参与研华""百万亚当""庆祝活动!恭喜您抽中""限量ADAM造型便利贴""一个! <br /> 为确保奖品如期寄至您处，请于<strong>2011年4月6日</strong>之前确认您以下的邮寄地址信息。谢谢!"
+                    Label2.Text = "再次感谢所有关注、参与研华""百万亚当""活动的朋友，研华将会不断开展更多精彩活动，期待您的关注与参与！如您有任何问题，欢迎联系：ia@advantech.com.tw。谢谢!"
+                    updatelabletext = "更新成功." : updatelabletext2 = "更新失败."
+                    confirmlabletext = "谢谢您的确认." : confirmlabletext2 = "确认失败."
+                    Iname = "名字 :"
+                    ICONTACT_NUMBER = "联系电话 :"
+                    ICITY = "城市 :"
+                    IZIP_CODE = "邮政编码 :"
+                    ICOUNTRY = "国家 :"
+                    IMAIL_ADDR = "邮寄地址 :"
+                    Button1.Text = "更新"
+                    Button2.Text = "确认提交"
+                Case Else
+                    Label1.Text = "Congratulations on being one of the 1 Million ADAM Celebration winners and thank you for your participation! Please confirm the contact information before<strong> April 6<sup>th</sup>, 2011</strong>; otherwise, the gift can’t be delivered."
+                    Label2.Text = "Thanks again to all the participants in this event. Advantech will have more fascinating events in the future! If you have any questions, feel free to contact ia@advantech.com.tw anytime."
+            End Select
+           
+        End If
+    End Sub
+    Public Function GetSQL() As String
+        If Request("UID") IsNot Nothing AndAlso Request("UID").ToString <> "" Then
+            Dim Email As String = GetEmailByUniqueId(Request("UID"))
+            If Email <> "" Then
+                HiddenField1.Value = Email
+                Return "select * from MADAM_Winner_Prize where EMAIL ='" + Email + "'"
+            Else
+                Response.End()
+            End If
+        Else
+            Response.End()
+        End If
+        Return ""
+    End Function
+    Public Shared Function GetEmailByUniqueId(ByVal uid As String) As String
+        Dim email As Object = dbUtil.dbExecuteScalar("RFM", _
+       String.Format("select top 1 email from email_uniqueid where hashvalue=N'{0}'", uid.Replace("'", "").Trim()))
+        If email IsNot Nothing Then
+            Return email.ToString()
+        Else
+            Return ""
+        End If
+    End Function
+  
+    Protected Sub Button1_Click(ByVal sender As Object, ByVal e As System.EventArgs)
+       
+    End Sub
+
+    Protected Sub Button2_Click(ByVal sender As Object, ByVal e As System.EventArgs)
+        Dim email As String = HiddenField1.Value.ToString.Trim
+        Dim name9 As String = HttpUtility.HtmlEncode(name.Text.Trim.Replace("'", "''"))
+        Dim CONTACT_NUMBER9 As String = HttpUtility.HtmlEncode(CONTACT_NUMBER.Text.Trim.Replace("'", "''"))
+        Dim CITY9 As String = HttpUtility.HtmlEncode(CITY.Text.Trim.Replace("'", "''"))
+        Dim ZIP_CODE9 As String = HttpUtility.HtmlEncode(ZIP_CODE.Text.Trim.Replace("'", "''"))
+        Dim COUNTRY9 As String = HttpUtility.HtmlEncode(COUNTRY.Text.Trim.Replace("'", "''"))
+        Dim MAIL_ADDR9 As String = HttpUtility.HtmlEncode(MAIL_ADDR.Text.Trim.Replace("'", "''"))
+        Dim IsFull As Boolean = True
+        If name9.Trim = "" OrElse CONTACT_NUMBER9.Trim = "" OrElse CITY9.Trim = "" OrElse ZIP_CODE9.Trim = "" OrElse COUNTRY9.Trim = "" OrElse MAIL_ADDR9.Trim = "" Then
+            IsFull = False
+        End If
+        If IsFull = False Then
+            If Session("Browser_lan") IsNot Nothing AndAlso Session("Browser_lan").ToString() = "zh-cn" Then             
+                Label3.Text = "请将所有信息填写完整，谢谢！"
+            Else
+               Label3.Text = "Please complete all your details, thanks!" 
+            End If
+            Exit Sub
+        End If
+            Dim sql As String = String.Format(" update MADAM_Winner_Prize set NAME=N'{0}' ,MAIL_ADDR=N'{1}',contact_number=N'{2}',city=N'{3}'" & _
+                                                             ",zip_code=N'{4}',country=N'{5}',UPD_DATE = GETDATE() where EMAIL=N'{6}'", _
+                                                             name9, MAIL_ADDR9, CONTACT_NUMBER9, CITY9, ZIP_CODE9, COUNTRY9, email)
+            'Response.Write(sql)
+            Dim Reint As Integer = dbUtil.dbExecuteNoQuery("MYLOCAL", sql)
+            If Reint <> -1 Then
+                Label3.Text = updatelabletext
+            Else
+                Label3.Text = updatelabletext
+                Exit Sub
+            End If
+            Dim sql2 As String = String.Format(" update MADAM_Winner_Prize set ISCONFIRMATION='1',UPD_DATE = GETDATE() where EMAIL=N'{0}'", _
+                                                                  GetEmailByUniqueId(Request("UID")).Replace("'", "''"))
+            Dim Reint2 As Integer = dbUtil.dbExecuteNoQuery("MYLOCAL", sql2)
+            If Reint2 <> -1 Then
+                Label3.Text = confirmlabletext
+                Button1.Enabled = False
+                Button2.Enabled = False
+            Else
+                Label3.Text = confirmlabletext2
+            End If
+    End Sub
+</script>
+<asp:Content ID="Content2" ContentPlaceHolderID="ContentPlaceHolder1" Runat="Server">
+  <center>
+      <asp:HiddenField ID="HiddenField1" runat="server" />
+    <table width="977" cellpadding="0" cellspacing="0" style="background-image: url(./images/bg2.gif);background-repeat: repeat-x;background-position: top;background-color: #F6EAC0;">
+        <tr>
+            <td>
+                 <table width="515" align="center" >
+                        <tr>
+                            <td height="15"></td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <asp:Label ID="Label1" runat="server" Text="" Font-Size="14px" CssClass="winer01"></asp:Label>  
+                            </td>
+                        </tr>
+                        <tr>
+                            <td height="7"></td>
+                        </tr>
+                        <tr>
+                            <td >                                                           
+                                <table width="100%" style="border-color:#507CD1;" border="0" cellspacing="0">
+                                    <tr style="background-color:#FFFFFF;">
+                                        <td align="right" WIDTH="150PX" style="padding-left:10px;">
+                                            <%= Iname%>
+                                        </td>
+                                        <td>
+                                            <asp:TextBox ID="name" runat="server" Text='<%# Eval("NAME")%>'></asp:TextBox>
+                                        </td>
+                                    </tr>
+                                     <tr style="background-color:#EFF3FB;">
+                                        <td align="right" style="padding-left:10px;">
+                                            <%= ICONTACT_NUMBER%>
+                                        </td>
+                                        <td>
+                                             <asp:TextBox ID="CONTACT_NUMBER" runat="server" Text='<%# Eval("CONTACT_NUMBER")%>'></asp:TextBox>
+                                        </td>
+                                    </tr>
+                                    <tr style="background-color:#FFFFFF;">
+                                        <td align="right" style="padding-left:10px;">
+                                            <%= ICITY%>
+                                        </td>
+                                        <td>
+                                             <asp:TextBox ID="CITY" runat="server" Text='<%# Eval("CITY")%>'></asp:TextBox>
+                                        </td>
+                                    </tr>
+                                    <tr style="background-color:#EFF3FB;">
+                                        <td align="right" style="padding-left:10px;">
+                                            <%= IZIP_CODE%>
+                                        </td>
+                                        <td>
+                                             <asp:TextBox ID="ZIP_CODE" runat="server" Text='<%# Eval("ZIP_CODE")%>'></asp:TextBox>
+                                        </td>
+                                    </tr>
+                                    <tr style="background-color:#FFFFFF;">
+                                        <td align="right" style="padding-left:10px;">
+                                            <%= ICOUNTRY%>
+                                        </td>
+                                        <td>
+                                             <asp:TextBox ID="COUNTRY" runat="server" Text='<%# Eval("COUNTRY")%>'></asp:TextBox>
+                                        </td>
+                                    </tr>
+                                    <tr style="background-color:#EFF3FB;">
+                                        <td align="right" style="padding-left:10px;">
+                                            <%= IMAIL_ADDR%>
+                                        </td>
+                                        <td>
+                                            <asp:TextBox ID="MAIL_ADDR" runat="server" Width="280px" Height="50px" TextMode="MultiLine" Text='<%# Eval("MAIL_ADDR")%>'></asp:TextBox>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td align="center" colspan="2" style="background-color:#507CD1;HEIGHT:30PX; text-align:center;"    >
+                                            <asp:Button ID="Button1" runat="server" Text="Update" OnClick="Button1_Click" Visible="false" />
+                                            <span style="padding-left:20px;"><asp:Button ID="Button2" runat="server" Text="Confirm" OnClick="Button2_Click" /></span>
+                                        </td>                                      
+                                    </tr>
+                                </table>  
+                            </td>
+                        </tr>
+                        <tr>
+                            <td height="8"></td>
+                        </tr>
+                        <tr>
+                            <td>                                
+                               <asp:Label ID="Label3" runat="server" Text="" ForeColor="Red"></asp:Label>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td height="8"></td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <asp:Label ID="Label2" runat="server" Text="" Font-Size="14px" CssClass="winer01"></asp:Label>  
+                            </td>
+                        </tr>
+                        <tr>
+                            <td height="5"></td>
+                        </tr>
+                    </table>     
+            </td>
+        </tr>
+    </table>
+       
+  </center>   
+</asp:Content>
+

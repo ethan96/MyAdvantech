@@ -1,0 +1,210 @@
+﻿<%@ Control Language="VB" ClassName="GetATP" %>
+<%@ Import Namespace="B2BAEU_SAP_WS" %>
+
+<script runat="server">
+    Private _part_no As String = ""
+
+    Public Property Part_No() As String
+        Get
+            Dim o As Object = ViewState("part_no")
+            If IsNothing(o) Then
+                Return String.Empty
+            Else
+                Return CStr(o)
+            End If
+        End Get
+        Set(ByVal value As String)
+            ViewState("part_no") = value
+        End Set
+    End Property
+    
+    Protected Sub Page_Load(ByVal sender As Object, ByVal e As System.EventArgs)
+        
+    End Sub
+    
+    Public Sub initialSearch()
+        Me._part_no = ViewState("part_no")
+        Dim iRet As Integer = 0
+        Dim dt As New DataTable
+        Dim plant As String = "EUH1", qty As Integer = 99999, requiredDate As String = "00000000", unit As String = "PC"
+        Dim xmlInput As String = "", xmlOut As String = "", xmlLog As String = ""
+        Dim RDT As New DataTable
+        
+        Me.lblPartNo.Text += "<font color='red'>" + Me._part_no + "</font>"
+        iRet = OrderUtilities.initRsATP(dt, plant, Me._part_no, qty.ToString(), Global_Inc.FormatDate(System.DateTime.Now), unit)
+        xmlInput = Global_Inc.DataTableToADOXML(dt)
+        Dim WS As New B2B_AEU_WS.B2B_AEU_WS
+        Dim WSDL_URL As String = ""
+        
+        Global_Inc.SiteDefinition_Get("AeuEbizB2BWs", WSDL_URL)
+        WS.Url = WSDL_URL
+        Dim company_str As String = UCase(Session("company_id"))
+        If UCase(Session("company_id")) = "EHLA002" Then
+            company_str = "UUAAESC"
+        End If
+        If 1 <> 1 Then
+            iRet = WS.GetMultiDueDate_RDQ(company_str, company_str, "EU10", "10", "00", xmlInput, xmlOut, xmlLog)
+            Response.Write("<br/>log query:" & xmlLog)
+        Else
+            iRet = WS.GetMultiDueDate(company_str, company_str, "EU10", "10", "00", xmlInput, xmlOut, xmlLog)
+        End If
+        
+        If iRet = -1 Then
+            'Response.Write("Calling SAP function Error!<br>" & xmlLog & "<br>")
+        Else
+            Dim sr As System.IO.StringReader = New System.IO.StringReader(xmlOut)
+            Dim ds As New DataSet
+            ds.ReadXml(sr)
+                
+            'dt.Merge(ds.Tables("row"))
+            If Not IsNothing(ds.Tables("row")) Then
+                RDT.Merge(ds.Tables("row"))
+                '---------------------------
+                '---------------------------
+                'If Session("user_id") = "nada.liu@advantech.com.cn" Then
+                '    Dim i As Integer
+                '    Dim j As Integer
+                '    For i = 0 To dt.Columns.Count - 1
+                '        Response.Write("<b>" + rdt.Columns.Item(i).ColumnName + "</b>--")
+                '        For j = 0 To rdt.Rows.Count - 1
+                '            Response.Write("<br/>")
+                '            Response.Write(rdt.Rows(j)(i).ToString() + "--<br/>")
+                '        Next
+                '    Next
+                'End If
+                '---------------------------
+                '---------------------------
+            Else
+                'Nada add 2008215
+                'If Session("user_id") = "nada.liu@advantech.com.cn" Then
+                RDT = dbUtil.dbGetDataTable("B2B", _
+                " select 'EU10' as entity, part_no as part, " & _
+                " DeliveryPlant as site, sum(qty) as qty_req, '" & "2020/10/10" & "' as date, " & _
+                " '' as flag, '' as type, sum(qty) as qty_atb, sum(qty) as qty_atp, " & _
+                " 0 as qty_lack, sum(qty) as qty_fulfill, '0' as flag_scm from logistics_detail where logistics_id='" & _
+                Session("cart_id") & "' and DeliveryPlant like 'TW%' group by part_no,DeliveryPlant ")
+                For i As Integer = 0 To dt.Rows.Count - 1
+                    If Left(dt.Rows(i).Item("WERK"), 2) <> "TW" Then
+                        Dim drr As DataRow = RDT.NewRow
+                        drr.Item("entity") = "EUH1"
+                        drr.Item("part") = dt.Rows(i).Item("MATNR")
+                        'Response.Write("<b>" & dt.Rows(i).Item("MATNR").ToString() & "</b>")
+                        drr.Item("site") = dt.Rows(i).Item("WERK")
+                        drr.Item("qty_req") = dt.Rows(i).Item("REQ_QTY")
+                        If Not IsNumeric(dt.Rows(i).Item("MATNR")) Then
+                            drr.Item("date") = Global_Inc.GetRPL(Session("company_id"), dt.Rows(i).Item("MATNR"), DateTime.Today())
+                        Else
+                            drr.Item("date") = Global_Inc.GetRPL(Session("company_id"), Mid(dt.Rows(i).Item("MATNR"), 9), DateTime.Today())
+                        End If
+                        drr.Item("flag") = ""
+                        drr.Item("type") = ""
+                        drr.Item("qty_atb") = dt.Rows(i).Item("REQ_QTY")
+                        drr.Item("qty_atp") = dt.Rows(i).Item("REQ_QTY")
+                        drr.Item("qty_lack") = 0
+                        drr.Item("qty_fulfill") = dt.Rows(i).Item("REQ_QTY")
+                        'drr.Item("flag_scm") = "-1"
+                        RDT.Rows.Add(drr)
+                        dbUtil.dbExecuteNoQuery("B2B", "update logistics_detail set NoATPFlag='Y'" & _
+                            " where logistics_id='" & Session("logistics_id") & "' and part_no='" & _
+                            dt.Rows(i).Item("MATNR") & "' and DeliveryPlant='" & _
+                            dt.Rows(i).Item("WERK") & "'")
+                    End If
+                Next
+                'Else
+                'Me.Page.ClientScript.RegisterStartupScript(GetType(String), "alert", "<script>alert('There is no ATP currently for this item.\nFor Further inquiry,Please contact Advantech.')</" & "script>")
+                'Exit Sub
+                'End If
+            End If
+                
+            If RDT.Rows.Count > 1 AndAlso RDT.Rows(RDT.Rows.Count - 1).Item("qty_atp").ToString = "99999" Then
+                RDT.Rows(dt.Rows.Count - 1).Delete()
+                RDT.AcceptChanges()
+            End If
+            
+            If Not IsNothing(RDT) Then
+                gv1.DataSource = RDT
+                gv1.DataBind()
+            End If
+        End If
+    End Sub
+    
+    Protected Sub gv1_RowDataBound(ByVal sender As Object, ByVal e As System.Web.UI.WebControls.GridViewRowEventArgs)
+        If e.Row.RowType = DataControlRowType.DataRow Then
+            e.Row.Cells(1).Text = CDate(e.Row.Cells(1).Text).ToString("yyyy/MM/dd")
+            If CInt(e.Row.Cells(2).Text) = 99999 Then
+                e.Row.Cells(2).Text = "No availability until this date, please contact Advantech for further check."
+                'msgbox("Due date for reference only.  A confirmation with ship dates will follow, normally within 48 hours.")
+            End If
+        End If
+    End Sub
+    
+    Protected Sub btnClose_Click(ByVal sender As Object, ByVal e As System.Web.UI.ImageClickEventArgs)
+        ModalPopupExtender1.Hide()
+        up2.Update()
+    End Sub
+    
+    Protected Sub btnQueryATP_Click(ByVal sender As Object, ByVal e As System.Web.UI.ImageClickEventArgs)
+        Call initialSearch()
+        ModalPopupExtender1.Show()
+        up2.Update()
+    End Sub
+</script>
+
+<asp:UpdatePanel runat="server" ID="up1" UpdateMode="Conditional" ChildrenAsTriggers="false">
+    <ContentTemplate>
+        <asp:ImageButton runat="server" ID="btnQueryATP" ImageUrl="/Images/btn_check.gif" OnClick="btnQueryATP_Click" />
+        <asp:LinkButton runat="server" ID="link1" />
+        <ajaxToolkit:ModalPopupExtender runat="server" ID="ModalPopupExtender1" PopupControlID="Panel1" 
+                     PopupDragHandleControlID="Panel1" TargetControlID="link1" BackgroundCssClass="modalBackground" />
+        <asp:Panel runat="server" ID="Panel1" style="display:none">
+            <asp:UpdatePanel runat="server" ID="up2" UpdateMode="Conditional">
+                <ContentTemplate>
+                    <table width="550" height="300" border="0" cellpadding="0" cellspacing="0" bgcolor="f1f2f4">
+                        <tr><td><asp:Label runat="server" ID="lblPartNo" Font-Bold="true" Text="Part NO : " /></td></tr>
+                        <tr>
+                            <td>
+                                <asp:GridView runat="server" ID="gv1" AutoGenerateColumns="false" AllowPaging="true" AllowSorting="true" PageSize="20" Width="100%"
+                                     EmptyDataText="No search results were found.<br /> Please try again or submit the feedback form to let us know what you need . " 
+                                     EmptyDataRowStyle-Font-Size="Larger" EmptyDataRowStyle-Font-Bold="true" OnRowDataBound="gv1_RowDataBound">
+                                    <Columns>
+                                        <asp:TemplateField ItemStyle-Width="50px" ItemStyle-HorizontalAlign="Center">
+                                            <headertemplate>
+                                                No.
+                                            </headertemplate>
+                                            <itemtemplate>
+                                                <%# Container.DataItemIndex + 1 %>
+                                            </itemtemplate>
+                                        </asp:TemplateField>
+                                        <asp:BoundField HeaderText="Available Date" DataField="date" ItemStyle-HorizontalAlign="Center" />
+                                        <asp:BoundField HeaderText="Availability" DataField="Qty_Fulfill" ItemStyle-HorizontalAlign="Center" />
+                                    </Columns>
+                                    <FooterStyle BackColor="#A4B5BD" ForeColor="White" Font-Bold="True" />
+                                    <RowStyle BackColor="#F7F6F3" ForeColor="#333333" />
+                                    <SelectedRowStyle BackColor="#E2DED6" Font-Bold="True" ForeColor="#333333" />
+                                    <PagerStyle BackColor="#284775" ForeColor="White" HorizontalAlign="Justify"  />
+                                    <HeaderStyle BackColor="#A4B5BD" Font-Bold="True" ForeColor="White" />
+                                    <AlternatingRowStyle BackColor="White" ForeColor="#284775" />
+                                    <PagerSettings PageButtonCount="10" Position="TopAndBottom" />
+                                </asp:GridView>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td align="center"><asp:ImageButton runat="server" ID="btnClose" ImageUrl="/Images/close.gif" Width="15" Height="15" AlternateText="Close" OnClick="btnClose_Click" /></td>
+                        </tr>
+                    </table>
+                </ContentTemplate>
+            </asp:UpdatePanel>
+        </asp:Panel>
+        <ajaxToolkit:UpdatePanelAnimationExtender runat="server" ID="upae1" TargetControlID="up2">
+            <Animations>
+                <OnUpdating>
+                    <FadeOut minimumOpacity=".8" Animationtarget="Panel1" />
+                </OnUpdating>
+                <OnUpdated>
+                    <FadeIn minimumOpacity=".8" AnimationTarget="Panel1" />
+                </OnUpdated>
+            </Animations>
+        </ajaxToolkit:UpdatePanelAnimationExtender>
+    </ContentTemplate>
+</asp:UpdatePanel>
+

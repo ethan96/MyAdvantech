@@ -1,0 +1,18 @@
+﻿<%@ Page Title="MyAdvantech - Resource List" Language="VB" MasterPageFile="~/Includes/MyMaster.master" %>
+
+<script runat="server">
+
+</script>
+
+<asp:Content ID="Content1" ContentPlaceHolderID="_main" Runat="Server">
+    <asp:GridView runat="server" ID="gvRec" Width="100%" DataSourceID="src1">
+        <Columns>
+        
+        </Columns>
+    </asp:GridView>
+    <asp:SqlDataSource runat="server" ID="src1" ConnectionString="<%$ConnectionStrings:MY %>"
+        SelectCommand="select distinct top 9999 a.CATEGORY_NAME, a.TITLE, a.ABSTRACT, a.AP_TYPE, a.BAA, b.CMS_CONTENT,
+        'http://resources.advantech.com/resources/Details.aspx?rid='+a.RECORD_ID+'&cid=Material&type=rot' as LINK, a.EVENT_START, a.EVENT_START 
+        from WWW_RESOURCES a inner join WWW_RESOURCES_DETAIL b on a.RECORD_ID=b.RECORD_ID 
+        where a.RBU not in ('ATW','AKR','ABJ','ASG','AJP','AKMC')"/>
+</asp:Content>

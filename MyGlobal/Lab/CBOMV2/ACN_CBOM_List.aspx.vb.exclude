@@ -1,0 +1,5 @@
+﻿
+Partial Class Lab_ACN_CBOM_List
+    Inherits System.Web.UI.Page
+
+End Class

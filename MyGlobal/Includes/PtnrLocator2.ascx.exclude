@@ -1,0 +1,270 @@
+﻿<%@ Control Language="VB" ClassName="PtnrLocator2" %>
+
+<script runat="server">
+    Dim ExcludeBAAs As String = "('Entertainment','*FA/MA','System On Module / DTOS','Parallel Computing','Public Services: ATM/POI/KIOSK/Vending Machine','Content Delivery Network','Banking','ASP/ISP','Embedded Software','Converged Communication','ePlatforms','Transporation','Enterprise Networking','eMedical / Healthcare','Building / Facility Automation','Computer Telephony','Networked Storage','Network Appliances','ePublic Service','Environment&Facility Monitoring','Factory/ Machine Automation','Embedded Computing.')"
+
+    Protected Sub Page_Load(ByVal sender As Object, ByVal e As System.EventArgs)
+        If Not Page.IsPostBack Then
+            SetDefaultCountryByIP(Request.ServerVariables("REMOTE_ADDR"))
+            SetGP()
+        End If
+    End Sub
+    
+    Private Function FromCountryToAlternativeCountry(ByVal selCountry As String) As String
+        Dim cCountry As String = selCountry.ToUpper()
+        Select Case cCountry
+            Case "UNITED KINGDOM", "UK"
+                Return "N'UK','UNITED KINGDOM'"
+            Case "ITALY", "FRANCE", "NETHERLANDS", "BELGIUM", "GERMANY", "NORWAY", "SWEDEN"
+                Return "N'" + cCountry + "'"
+            Case "LUXEMBOURG"
+                Return "N'LUXEMBOURG',N'BELGIUM'"
+            Case "IRELAND"
+                Return "N'IRELAND',N'UK',N'UNITED KINGDOM'"
+            Case "ICELAND"
+                Return "N'ICELAND',N'NORWAY'"
+            Case "MALTA"
+                Return "N'MALTA',N'ITALY'"
+            Case Else
+                Return "N'" + cCountry + "'"
+        End Select
+        
+    End Function
+    Function GetAddressForGeodecode(ByVal addr As String, ByVal zipcode As String, ByVal city As String, ByVal country As String) As String
+        Return zipcode + " " + city + ", " + country
+        'If zipcode IsNot Nothing AndAlso zipcode <> "" Then
+        '    If country.ToUpper() = "GERMANY" Then
+        '        Return zipcode + ", " + country
+        '    Else
+        '        Return zipcode + " " + city + ", " + country
+        '    End If
+        'Else
+        '    Return city + ", " + country
+        'End If
+    End Function
+    Private Function GetSql() As String
+        Dim sb As New System.Text.StringBuilder
+        With sb
+            .AppendFormat(" select distinct a.row_id, a.erp_id, a.account_name, a.account_status, ")
+            .AppendFormat(" IsNull((select top 1 z.TEL_NO from sap_dimcompany z where z.company_id=a.erp_id),'') as phone_num, a.url, a.rbu, ")
+            .AppendFormat(" IsNull((select top 1 logo_width from sap_company_logo z where z.company_id=a.erp_id),330) as logo_width, ")
+            .AppendFormat(" IsNull((select top 1 logo_height from sap_company_logo z where z.company_id=a.erp_id),120) as logo_height, ")
+            .AppendFormat(" IsNull((select count(z.company_id) from sap_company_logo z where z.company_id=a.erp_id),0) as HasLogo,   ")
+            .AppendFormat(" case a.country when 'UK' then 'UNITED KINGDOM' else a.country end as country, a.city, a.address, a.zipcode, a.baa as baa, a.primary_sales_email ")
+            .AppendFormat(" FROM SIEBEL_ACCOUNT AS a ")
+            .AppendFormat(" WHERE a.account_name not like N'%delete%' ")
+            .AppendFormat(" and (a.ACCOUNT_STATUS IN ('01-Platinum Channel Partner','02-Gold Channel Partner','03-Certified Channel Partner')) ")
+            .AppendFormat(" and a.PRIMARY_SALES_EMAIL<>'' and a.primary_sales_email<>'sieowner@advantech.com.tw' ")
+            .AppendFormat(" and a.RBU in ('ADL','AFR','AIT','AEE','AUK','ABN') ")
+            .AppendFormat(" and a.COUNTRY in ({0}) ", FromCountryToAlternativeCountry(dlCountry.SelectedValue))
+            .AppendFormat(" order by a.city ")
+        End With
+        'Response.Write(sb.ToString())
+        'If Session IsNot Nothing AndAlso Session("user_id") = "tc.chen@advantech.com.tw" Then lbSql.Text = sb.ToString()
+        Return sb.ToString()
+    End Function
+    
+    Sub SetDefaultCountryByIP(ByVal IP As String)
+        Dim tmpCountry As String = ""
+        If IP Like "172.*" Then
+            Dim ipp() As String = Split(IP, ".")
+            Dim prefixIP As String = ipp(0) + "." + ipp(1) + "." + ipp(2)
+            Select Case prefixIP
+                Case "172.21.32", "172.21.36", "172.21.42"
+                    tmpCountry = "Netherlands"
+                Case "172.21.33", "172.21.34", "172.21.35", "172.21.45", "172.21.48"
+                    tmpCountry = "Germany"
+                Case "172.21.37"
+                    tmpCountry = "UK"
+                Case "172.21.38"
+                    tmpCountry = "Italy"
+                Case "172.21.40", "172.21.44"
+                    tmpCountry = "France"
+                Case "172.21.41"
+                    tmpCountry = "Poland"
+                Case Else
+                    tmpCountry = "Germany"
+            End Select
+        Else
+            Util.IP2CountryCity(IP, tmpCountry, "")
+        End If
+        tmpCountry = tmpCountry.ToUpper()
+        If tmpCountry <> "UK" AndAlso tmpCountry.Length > 1 Then
+            tmpCountry = tmpCountry.Substring(0, 1).ToUpper() + tmpCountry.Substring(1).ToLower()
+        End If
+        If dlCountry.Items.FindByValue(tmpCountry) IsNot Nothing Then
+            dlCountry.Items.FindByValue(tmpCountry).Selected = True
+        Else
+            dlCountry.Items.FindByValue("Germany").Selected = True
+        End If
+    End Sub
+    
+    Protected Sub dlCountry_SelectedIndexChanged(ByVal sender As Object, ByVal e As System.EventArgs)
+        SetGP()
+    End Sub
+    
+    Sub SetGP()
+        PartnerMap.Markers.Clear()
+        Dim dt As DataTable = dbUtil.dbGetDataTable("RFM", GetSql())
+        If dt.Rows.Count > 1 Then
+            Dim rnd As New Random()
+            For i As Integer = 0 To dt.Rows.Count - 1
+                Dim rdx As Integer = rnd.Next(i, dt.Rows.Count)
+                Dim ar1() As Object = dt.Rows(i).ItemArray.Clone()
+                Dim ar2() As Object = dt.Rows(rdx).ItemArray.Clone()
+                dt.Rows(i).ItemArray = ar2
+                dt.Rows(rdx).ItemArray = ar1
+            Next
+            dt.AcceptChanges()
+        End If
+        If dt.Rows.Count > 0 Then
+            Dim i As Integer = 0
+            'Dim rnd As New Random
+            'Dim idxShow As Integer = rnd.Next(0, dt.Rows.Count - 1)
+            For Each r As DataRow In dt.Rows
+                Dim gp As New GoogleMarker
+                gp.Address = GetAddressForGeodecode(r.Item("address"), r.Item("zipcode"), r.Item("city"), r.Item("Country"))
+                Dim ic As New Artem.Web.UI.Controls.GoogleMarker.InfoWindowContent()
+                gp.Text = GetCP(r.Item("account_name"), _
+                          String.Format("{0}, {1} {2}, {3}", r.Item("address"), r.Item("zipcode"), r.Item("city"), r.Item("account_name")), _
+                          r.Item("phone_num"), r.Item("url"), r.Item("row_id"), _
+                          r.Item("erp_id"), r.Item("logo_width"), r.Item("logo_height"), r.Item("HasLogo"))
+                PartnerMap.Markers.Add(gp)
+                If i = 0 Then
+                    PartnerMap.Address = gp.Address
+                    Me.Page.ClientScript.RegisterClientScriptBlock(GetType(Page), "DefaultMarker", "<script type='text/javascript'>setTimeout('showInfoWindow(" + i.ToString() + ");',3000);<" + "/script>")
+                End If
+                i += 1
+            Next
+            gv1.DataSource = dt : gv1.DataBind()
+            'If dlCountry.SelectedValue = "Germany" Then PartnerMap.BaseCountryCode = "155"
+        End If
+    End Sub
+    
+    Private Function GetCP(ByVal CPName As String, ByVal CPAddress As String, ByVal CPPhone As String, ByVal Url As String, _
+                           ByVal RowId As String, ByVal ErpId As String, ByVal LogoW As Integer, _
+                           ByVal LogoH As Integer, ByVal LogoCounts As Integer) As String
+        If LogoW > 330 Then LogoW = 330
+        If LogoH > 120 Then LogoH = 120
+        Url = "/Order/CPInfo.aspx?ERPID=" + ErpId
+        Dim sb As New System.Text.StringBuilder
+        With sb
+            .AppendLine(String.Format("<table width='350px' height='200px'>"))
+            .AppendLine(String.Format("<tr><td style='color:Navy'><h4><a href='{0}' target='_blank'>{1}</a></h4></td></tr>", Url, CPName))
+            .AppendLine(String.Format("<tr><td>Phone: {0}</td></tr>", CPPhone))
+            .AppendLine(String.Format("<tr><td>{0}</td></tr>", CPAddress))
+            If LogoCounts > 0 Then .AppendLine(String.Format("<tr><td><img width='{0}px' height='{1}px' src='/Includes/CPLogo.ashx?ERPID={2}' alt='{3}'/></td></tr>", LogoW.ToString(), LogoH.ToString(), ErpId, CPName))
+            .AppendLine(String.Format("</table>"))
+        End With
+        Return sb.ToString()
+    End Function
+    
+    Protected Sub gv1_RowDataBound(ByVal sender As Object, ByVal e As System.Web.UI.WebControls.GridViewRowEventArgs)
+        If e.Row.RowType = DataControlRowType.DataRow Then
+        End If
+    End Sub
+    
+</script>
+<table width="100%">
+    <tr><td colspan="2"><hr /></td></tr>
+    <tr>
+        <td align='left' height='20' colspan="2">
+            <font color='#543434' size='4'>Locate an Advantech Partner Near You</font>
+        </td>
+    </tr>   
+    <tr>
+        <th align="left" colspan="2">
+            <table width="200px">
+                <tr>
+                    <td>Country:</td>
+                    <td>
+                        <asp:DropDownList Width="150px" runat="server" ID="dlCountry" OnSelectedIndexChanged="dlCountry_SelectedIndexChanged" AutoPostBack="true">
+                            <asp:ListItem Text="Belgium" Value="Belgium" />      
+                            <asp:ListItem Text="Czech Republic" Value="Czech Republic" />
+                            <asp:ListItem Text="Denmark" Value="Denmark" />       
+                            <asp:ListItem Text="Finland" Value="Finland" />       
+                            <asp:ListItem Text="France" Value="France" />        
+                            <asp:ListItem Text="Germany" Value="Germany" />       
+                            <asp:ListItem Text="Greece" Value="Greece" />        
+                            <asp:ListItem Text="Hungary" Value="Hungary" /> 
+                            <asp:ListItem Text="Iceland" Value="Iceland" /> 
+                            <asp:ListItem Text="Ireland" Value="Ireland" />     
+                            <asp:ListItem Text="Italy" Value="Italy" />         
+                            <asp:ListItem Text="Latvia" Value="Latvia" /> 
+                            <asp:ListItem Text="Luxembourg" Value="Luxembourg" />       
+                            <asp:ListItem Text="Netherlands" Value="Netherlands" />   
+                            <asp:ListItem Text="Norway" Value="Norway" />        
+                            <asp:ListItem Text="Poland" Value="Poland" />        
+                            <asp:ListItem Text="Portugal" Value="Portugal" />      
+                            <asp:ListItem Text="Romania" Value="Romania" />       
+                            <asp:ListItem Text="Slovakia" Value="Slovakia" />      
+                            <asp:ListItem Text="Slovenia" Value="Slovenia" />      
+                            <asp:ListItem Text="Spain" Value="Spain" />         
+                            <asp:ListItem Text="Sweden" Value="Sweden" />        
+                            <asp:ListItem Text="Switzerland" Value="Switzerland" />   
+                            <asp:ListItem Text="UK" Value="UNITED KINGDOM" />            
+                        </asp:DropDownList>
+                    </td>
+                </tr>
+            </table>            
+        </th>
+    </tr>
+    <tr>
+        <td valign="top" style="width:20%" align="left">
+            <asp:UpdatePanel runat="server" ID="up1" UpdateMode="Conditional">
+                <ContentTemplate>
+                    <asp:Panel runat="server" ID="panel1" ScrollBars="Vertical" Width="100%" Height="430px">
+                        <asp:GridView runat="server" Visible="true" ID="gv1" Width="98%" AutoGenerateColumns="false" AllowSorting="false" 
+                            AllowPaging="false" PagerSettings-Position="TopAndBottom" HeaderStyle-BackColor="#EBEADB" 
+                            PagerStyle-BackColor="#C3DAF9" RowStyle-BackColor="#FFFFFF" AlternatingRowStyle-BackColor="#FFFFFF" 
+                            PagerStyle-ForeColor="#3A4A8D" HeaderStyle-ForeColor="#333399"
+                            HeaderStyle-HorizontalAlign="Center" OnRowDataBound="gv1_RowDataBound">
+                            <Columns>
+                                <asp:TemplateField HeaderText="Map" ItemStyle-HorizontalAlign="Center">
+                                    <ItemTemplate>                                  
+                                        <a href="javascript:void(0);" onclick='showInfoWindow(<%# Container.DataItemIndex.toString() %>)'>Position</a>
+                                    </ItemTemplate>
+                                </asp:TemplateField>
+                                <asp:HyperLinkField HeaderText="Name" DataNavigateUrlFields="erp_id" DataNavigateUrlFormatString="/Order/CPInfo.aspx?ERPID={0}" DataTextField="account_name" Target="_blank" />
+                                <asp:BoundField Visible="false" HeaderStyle-Width="300px" HeaderText="Address" DataField="Address" SortExpression="Address" />
+                                <asp:BoundField Visible="false" HeaderStyle-Width="80px" ItemStyle-HorizontalAlign="Left" HeaderText="City" DataField="city" SortExpression="city" />
+                                <asp:BoundField Visible="false" HeaderStyle-Width="120px" ItemStyle-HorizontalAlign="Center" HeaderText="Country" DataField="COUNTRY" SortExpression="COUNTRY" />
+                                <asp:BoundField Visible="false" HeaderStyle-Width="150px" ItemStyle-HorizontalAlign="Left" HeaderText="Type" DataField="ACCOUNT_STATUS" SortExpression="ACCOUNT_STATUS" />
+                                <asp:BoundField Visible="false" HeaderStyle-Width="300px" HeaderStyle-HorizontalAlign="Center" HeaderText="Business Application" DataField="baa" SortExpression="baa" />
+                                <asp:BoundField Visible="false" HeaderStyle-Width="120px" HeaderText="Tel." DataField="PHONE_NUM" SortExpression="PHONE_NUM" />
+                            </Columns>
+                        </asp:GridView>
+                        <asp:SqlDataSource runat="server" ID="src1" ConnectionString="<%$ ConnectionStrings:RFM %>" />
+                    </asp:Panel> 
+                </ContentTemplate>
+                <Triggers>
+                    <asp:AsyncPostBackTrigger ControlID="dlCountry" EventName="SelectedIndexChanged" />
+                </Triggers>
+            </asp:UpdatePanel>                                           
+        </td>
+        <td valign="top" style="width:80%">
+            <asp:UpdatePanel runat="server" ID="up2" UpdateMode="Conditional">
+                <ContentTemplate>
+                    <asp:Label runat="server" ID="lbSql" />
+                    <artem:GoogleMap ID="PartnerMap" runat="server" Width="100%" Height="430px" 
+                        InsideUpdatePanel="true" EnableScrollWheelZoom="true"
+                        Key="ABQIAAAAAdfarN5qMcZFUCMW5ctIMxS7U-QakKK4NN0qiNtkDx0ft3WtLRTtqpIg2UuGTqli0-yZKOoGyh9wDw" Zoom="5">                   
+                    </artem:GoogleMap>
+                </ContentTemplate>
+                <Triggers>
+                    <asp:AsyncPostBackTrigger ControlID="dlCountry" EventName="SelectedIndexChanged" />
+                </Triggers>
+            </asp:UpdatePanel>
+        </td>
+    </tr>
+</table>
+<script type="text/javascript">
+    function showInfoWindow(index) {  
+        //alert(index);      
+        var marker = PartnerMap.Markers[index];
+        //alert(marker);
+        marker.openInfoWindowHtml(marker.Text);
+        //window.scrollBy(0,800);
+        //alert(marker);
+    }         
+</script>

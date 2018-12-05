@@ -1,0 +1,11 @@
+﻿<%@ Page Language="VB" MasterPageFile="~/Includes/MyMaster.master" Title="MyAdvantech - My Price List" %>
+<%@ Register TagName="PriceListBlock" TagPrefix="uc1" Src="~/Includes/MyPriceList.ascx" %>
+
+<script runat="server">
+
+</script>
+
+<asp:Content ID="Content1" ContentPlaceHolderID="_main" Runat="Server">
+<uc1:PriceListBlock runat="server" ID="ucPriceList" />
+</asp:Content>
+

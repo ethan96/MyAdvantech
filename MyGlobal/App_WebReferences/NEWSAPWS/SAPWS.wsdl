@@ -1,0 +1,110 @@
+<?xml version="1.0" encoding="utf-8"?>
+<wsdl:definitions xmlns:http="http://schemas.xmlsoap.org/wsdl/http/" xmlns:soapenc="http://schemas.xmlsoap.org/soap/encoding/" xmlns:mime="http://schemas.xmlsoap.org/wsdl/mime/" xmlns:tns="eBizAEU" xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/" xmlns:tm="http://microsoft.com/wsdl/mime/textMatching/" xmlns:s="http://www.w3.org/2001/XMLSchema" xmlns:soap12="http://schemas.xmlsoap.org/wsdl/soap12/" targetNamespace="eBizAEU" xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/">
+  <wsdl:types>
+    <s:schema elementFormDefault="qualified" targetNamespace="eBizAEU">
+      <s:element name="HelloKitty">
+        <s:complexType />
+      </s:element>
+      <s:element name="HelloKittyResponse">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="HelloKittyResult" type="s:string" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="UnlockUser">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="userid" type="s:string" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="UnlockUserResponse">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="UnlockUserResult">
+              <s:complexType>
+                <s:sequence>
+                  <s:any minOccurs="0" maxOccurs="unbounded" namespace="http://www.w3.org/2001/XMLSchema" processContents="lax" />
+                  <s:any minOccurs="1" namespace="urn:schemas-microsoft-com:xml-diffgram-v1" processContents="lax" />
+                </s:sequence>
+              </s:complexType>
+            </s:element>
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+    </s:schema>
+  </wsdl:types>
+  <wsdl:message name="HelloKittySoapIn">
+    <wsdl:part name="parameters" element="tns:HelloKitty" />
+  </wsdl:message>
+  <wsdl:message name="HelloKittySoapOut">
+    <wsdl:part name="parameters" element="tns:HelloKittyResponse" />
+  </wsdl:message>
+  <wsdl:message name="UnlockUserSoapIn">
+    <wsdl:part name="parameters" element="tns:UnlockUser" />
+  </wsdl:message>
+  <wsdl:message name="UnlockUserSoapOut">
+    <wsdl:part name="parameters" element="tns:UnlockUserResponse" />
+  </wsdl:message>
+  <wsdl:portType name="SAPWSSoap">
+    <wsdl:operation name="HelloKitty">
+      <wsdl:input message="tns:HelloKittySoapIn" />
+      <wsdl:output message="tns:HelloKittySoapOut" />
+    </wsdl:operation>
+    <wsdl:operation name="UnlockUser">
+      <wsdl:input message="tns:UnlockUserSoapIn" />
+      <wsdl:output message="tns:UnlockUserSoapOut" />
+    </wsdl:operation>
+  </wsdl:portType>
+  <wsdl:binding name="SAPWSSoap" type="tns:SAPWSSoap">
+    <soap:binding transport="http://schemas.xmlsoap.org/soap/http" />
+    <wsdl:operation name="HelloKitty">
+      <soap:operation soapAction="eBizAEU/HelloKitty" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="UnlockUser">
+      <soap:operation soapAction="eBizAEU/UnlockUser" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+  </wsdl:binding>
+  <wsdl:binding name="SAPWSSoap12" type="tns:SAPWSSoap">
+    <soap12:binding transport="http://schemas.xmlsoap.org/soap/http" />
+    <wsdl:operation name="HelloKitty">
+      <soap12:operation soapAction="eBizAEU/HelloKitty" style="document" />
+      <wsdl:input>
+        <soap12:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap12:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="UnlockUser">
+      <soap12:operation soapAction="eBizAEU/UnlockUser" style="document" />
+      <wsdl:input>
+        <soap12:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap12:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+  </wsdl:binding>
+  <wsdl:service name="SAPWS">
+    <wsdl:port name="SAPWSSoap" binding="tns:SAPWSSoap">
+      <soap:address location="http://aeu-ebus-dev:9000/SAPWS.asmx" />
+    </wsdl:port>
+    <wsdl:port name="SAPWSSoap12" binding="tns:SAPWSSoap12">
+      <soap12:address location="http://aeu-ebus-dev:9000/SAPWS.asmx" />
+    </wsdl:port>
+  </wsdl:service>
+</wsdl:definitions>

@@ -1,0 +1,306 @@
+﻿<%@ Page Language="VB" ValidateRequest="false" EnableEventValidation="false" Title="Advantech Celebrates One Million ADAM Remote I/O Modules Sold!" MasterPageFile="~/MADAM/MADAM_MP.master" %>
+<script runat="server">
+    
+    Sub Paging()
+        Dim dt As DataTable = dbUtil.dbGetDataTable("MYLOCAL", "select top 10000 * ," & _
+                                                    "  (isnull(REASON1,'') + 'Min@*&G' + isnull(REASON2,'') + 'Min@*&G'+ isnull(REASON3,'')) as REASONS from MADAM_USER_REASON where is_visible=1 order by submit_time desc")
+        Dim objPds As PagedDataSource = New PagedDataSource
+        objPds.DataSource = dt.DefaultView
+        objPds.AllowPaging = True
+        objPds.PageSize = 8
+
+        Dim CurPage As Integer
+
+        If Not (Request.QueryString("Page") Is Nothing) Then
+            CurPage = Convert.ToInt32(Request.QueryString("Page"))
+        Else
+            CurPage = 1
+        End If
+
+        objPds.CurrentPageIndex = CurPage - 1
+        'lblCurrentPage.Text = "Page: " + CurPage.ToString
+        '--------------------------------------------------------------------------------------- Response.Write(objPds.PageCount.ToString)
+        Dim Page_Area As Int32 = 0 'CurPage \ 10
+        If CInt(CurPage Mod 10) > 0 Then
+            Page_Area = CurPage \ 10
+        Else
+            Page_Area = CurPage \ 10 - 1
+        End If
+        Dim Page_Area_FirstNum As Int32 = Page_Area * 10 + 1
+        
+        '-----------------------------Pre Bt
+        If Page_Area_FirstNum > 10 Then
+            Dim PageHLinkNext As New HyperLink
+            PageHLinkNext.Text = " << "
+            Dim PageLit As New Literal
+            PageLit.Text = " | "
+            PageHLinkNext.NavigateUrl = Request.CurrentExecutionFilePath + "?Page=" + Convert.ToString(Page_Area_FirstNum - 1)
+            PH1.Controls.Add(PageHLinkNext):PH1.Controls.Add(PageLit)
+        Else
+            Dim PageLit As New Literal
+            PageLit.Text = " | "
+            PH1.Controls.Add(PageLit)
+        End If
+        '-----------------------------    
+        Dim i As Integer = Page_Area_FirstNum
+        If CurPage = 10 Then
+            ' Response.Write(Page_Area.ToString + "------i:" + i.ToString + "------duanmo" + (Page_Area_FirstNum + 10).ToString)
+          '  Response.End()
+        End If
+        Do While i <= Page_Area_FirstNum + 9
+            If i <= objPds.PageCount Then
+                '-----------------------------          
+                Dim PageHLink As New HyperLink
+                PageHLink.Text = Convert.ToString(i)
+                PageHLink.NavigateUrl = Request.CurrentExecutionFilePath + "?Page=" + Convert.ToString(i)
+                If CurPage = i Then
+                    PageHLink.Enabled = False : PageHLink.ForeColor = Drawing.Color.Silver
+                End If
+                Dim PageLit As New Literal
+                PageLit.Text = " | "
+                PH1.Controls.Add(PageHLink)  : PH1.Controls.Add(PageLit)
+                'End If
+                '-----------------------------                                  
+                If i = Page_Area_FirstNum + 9 Then
+                    Exit Do
+                End If
+                i = i + 1
+            Else
+                Exit Do
+            End If
+        Loop
+        
+        '-----------------------------Next BT
+        If (Page_Area_FirstNum + 9) < objPds.PageCount Then
+            Dim PageHLinkNext As New HyperLink
+            PageHLinkNext.Text = " >> "
+            PageHLinkNext.NavigateUrl = Request.CurrentExecutionFilePath + "?Page=" + Convert.ToString(i + 1)
+            PH1.Controls.Add(PageHLinkNext)
+            ' Exit Do
+        End If
+        '-----------------------------     
+       '----------------------------------------------------------------------------------------------------------------------------
+        
+        If Not objPds.IsFirstPage Then
+            lnkPrev.HRef = Request.CurrentExecutionFilePath + "?Page=" + Convert.ToString(CurPage - 1)
+        Else
+            lnkPrev.HRef = ""
+        End If
+
+        If Not objPds.IsLastPage Then
+            lnkNext.HRef = Request.CurrentExecutionFilePath + "?Page=" + Convert.ToString(CurPage + 1)
+        Else
+            lnkNext.HRef = ""
+        End If
+        dlReasons.DataSource = objPds : dlReasons.DataBind()
+    End Sub
+
+    Protected Sub Page_Load(ByVal sender As Object, ByVal e As System.EventArgs)
+        Paging()
+    End Sub
+
+    Protected Sub lite_reason_Load(ByVal sender As Object, ByVal e As System.EventArgs)
+        ' <%# IIf(Eval("REASON1").ToString.Length > 50, Left(Eval("REASON1"), 50) + "...", Eval("REASON1"))%>
+        Dim lite_reasonit As Literal = CType(sender, Literal) : Dim Text_Value As String = ""
+        Dim LITE_TEXT As String = lite_reasonit.Text.ToString.Trim
+        If LITE_TEXT.Contains("Min@*&G") Then
+            Dim p() As String = Split(LITE_TEXT, "Min@*&G")
+            Dim p0 As String = "", p1 As String = "", p2 As String = "" : Dim str As String = ""
+            With System.Text.Encoding.Default               
+                str = "1:" + p(0) + "2:" + p(1) + "3:" + p(2)
+                str = str.Replace("<br/>", "")
+                If .GetBytes(str).Length > 48 Then
+                    str = bSubstring(str, 48).ToString + "..."
+                End If
+            End With
+            ' Text_Value = p0 + p1 + p2
+            Text_Value = str
+        End If
+        Text_Value = Text_Value.Replace("1:", "<font color=""tomato"">1:</font>")
+        Text_Value = Text_Value.Replace("2:", "<br><font color=""tomato"">2:</font>")
+        Text_Value = Text_Value.Replace("3:", "<br><font color=""tomato"">3:</font>")
+        lite_reasonit.Text = Text_Value
+    End Sub
+    Public Function bSubstring(ByVal s As String, ByVal length As Integer) As String
+        Dim bytes As Byte() = System.Text.Encoding.Unicode.GetBytes(s)
+        Dim n As Integer = 0' 表示当前的字节数  
+        Dim i As Integer = 0' 要截取的字节数  
+        While i < bytes.GetLength(0) AndAlso n < length
+            ' 偶数位置，如0、2、4等，为UCS2编码中两个字节的第一个字节  
+            If i Mod 2 = 0 Then
+                n += 1
+                ' 在UCS2第一个字节时n加1  
+            Else
+                ' 当UCS2编码的第二个字节大于0时，该UCS2字符为汉字，一个汉字算两个字节  
+                If bytes(i) > 0 Then
+                    n += 1
+                End If
+            End If
+            i += 1
+        End While    
+        If i Mod 2 = 1 Then  ' 如果i为奇数时，处理成偶数           
+            If bytes(i) > 0 Then ' 该UCS2字符是汉字时，去掉这个截一半的汉字  
+                i = i - 1
+            Else   ' 该UCS2字符是字母或数字，则保留该字符  
+                i = i + 1
+            End If
+        End If
+        Return System.Text.Encoding.Unicode.GetString(bytes, 0, i)
+    End Function
+    Public ImgFolder As String = "./images/"
+    Protected Sub Page_Init(ByVal sender As Object, ByVal e As System.EventArgs)
+        If Session("Browser_lan") IsNot Nothing AndAlso Session("Browser_lan").ToString() <> "" Then
+            Dim lan As String = Session("Browser_lan").ToString.ToLower
+            Select Case lan
+                Case "zh-cn"
+                    ImgFolder = "./images_cn/"
+                    TD1.Attributes.Add("background", ImgFolder + "main_tab_01.jpg")
+                    Nextpage.Width = "58"
+                    page_ma.Text = "页码"
+                Case Else
+                    TD1.Attributes.Add("background", ImgFolder + "main_tab_01.gif")
+                  
+            End Select
+            Image7.Src = ImgFolder + "btn_winner.jpg"
+            Image7.Attributes.Add("onMouseOver", "MM_swapImage('" + Image7.ClientID + "','','" + ImgFolder + "/btn_winner_over.jpg',1)")
+            Pre.Src = ImgFolder + "btn_pre.gif"
+            Nextpage.Src=ImgFolder+"btn_next.gif"
+        End If
+    End Sub
+</script>
+
+<asp:Content ID="Content1" ContentPlaceHolderID="ContentPlaceHolder1" Runat="Server">
+<table width="977"  border="0" align="center" cellpadding="0" cellspacing="0" id="Table_01">
+    <tr>
+		<td height="20" colspan="3">&nbsp;</td>
+    </tr>
+	<tr>
+		<td>
+			<img src="images/main_1_02.jpg" width="106" height="481" alt=""></td>
+		<td>
+            <table id="Table_2" width="759" height="481" border="0" cellpadding="0" cellspacing="0">
+                <tr>
+                    <td height="161" colspan="3" valign="bottom" background="images/main_tab_01.gif" id="TD1" runat="server">
+                        <table width="240" height="58" border="0" align="right" cellpadding="0" cellspacing="2">
+                            <tr>
+                                <td width="236" height="54" valign="top">
+                                    <a href="main_1.aspx">
+                                        <img src="images/btn_join.jpg" name="Image7" id="Image7" runat="server" width="191" height="40" border="0"  
+                                            onmouseover="MM_swapImage('Image7','','images/btn_join_over.jpg',1)" onmouseout="MM_swapImgRestore()">
+                                    </a>
+                                </td>
+                            </tr>
+                        </table>
+                    </td>
+                </tr>
+                <tr>
+                    <td><img src="images/main_tab_02.jpg" width="121" height="249" alt="" /></td>
+                    <td width="594" height="249" bgcolor="#faf3d5">  
+                        <asp:DataList runat="server" ID="dlReasons" RepeatDirection="Horizontal" RepeatColumns="4" CellSpacing="6">                                                                
+                            <ItemTemplate>
+                                <table id="Table_3" width="139" style="height:107px" border="0" cellpadding="0" cellspacing="0">
+                                    <tr>
+                                        <td colspan="3"><img src="images/list_tab_01.gif" width="139" height="5" alt="" /></td>
+                                    </tr>
+                                    <tr>
+                                        <td rowspan="2"><img src="images/list_tab_02.gif" width="5" height="102" alt="" /></td>
+                                        <td width="129" height="97" valign="top" bgcolor="#FFFFFF">
+                                            <table width="129" border="0" cellspacing="0" cellpadding="0">
+                                                <tr>
+                                                    <td><div align="center" class="txt1"><%# Eval("NICK_NAME")%></div></td>
+                                                </tr>
+                                                <tr>
+                                                    <td><img src="images/line_1.gif" width="127" height="5" alt="" /></td>
+                                                </tr>
+                                                <tr>
+                                                    <td align="left">
+                                                        <asp:Panel runat="server" ID="RowPanelReson" CssClass="txt30" HorizontalAlign="Left">                                                    
+                                                            <asp:Literal runat="server" ID="lite_reason" OnLoad="lite_reason_Load" Text='<%# Eval("REASONS")%>'></asp:Literal>
+                                                        </asp:Panel>
+                                                    </td>
+                                                </tr>
+                                            </table>
+                                        </td>
+                                        <td rowspan="2"><img src="images/list_tab_04.gif" width="5" height="102" alt="" /></td>
+                                    </tr>
+                                    <tr>
+                                        <td><img src="images/list_tab_05.gif" width="129" height="5" alt="" /></td>
+                                    </tr>                                    
+                                </table>
+                                <ajaxToolkit:HoverMenuExtender runat="server" ID="rowHv" TargetControlID="RowPanelReson" 
+                                    PopupControlID="RowPanelDetReason" PopupPosition="Center" PopDelay="100" HoverCssClass="popupHover"
+                                    OffsetX="-100"    OffsetY="-100" />
+                                <asp:Panel runat="server" ID="RowPanelDetReason" Width="300px"  CssClass="Pancs">
+                                    <table width="300" border="0" align="left" cellpadding="0" cellspacing="0">
+                                      <tr>
+                                        <td align="center" ><img src="./images/top1.gif" width="300" height="9" /></td>
+                                      </tr>
+                                      <tr>
+                                        <td align="center" background="./images/top3.gif">
+                                            <div align="center" class="txt1"><%# Eval("NICK_NAME")%></div>  
+                                        </td>
+                                      </tr>
+                                      <tr>
+                                        <td align="center" style="text-align:center;" background="./images/top3.gif">
+                                            <img src="./images/top2.gif" width="280" height="5"  />
+                                        </td>
+                                      </tr>
+                                      <tr>
+                                        <td align="left" background="./images/top3.gif" class="Pancs2">
+                                            <asp:Panel runat="server" ID="reasons" HorizontalAlign="Left" CssClass="Pancs3" ScrollBars="Auto" height="200">
+                                                <span>1:</span><br /><%# Eval("REASON1")%><br />
+                                                <span>2:</span><br /><%# Eval("REASON2")%><br />
+                                                <span>3:</span><br /><%# Eval("REASON3")%><br />
+                                            </asp:Panel>     
+                                        </td>
+                                      </tr>
+                                       <tr>
+                                        <td align="center"><img src="./images/top4.gif" width="300" height="8" /></td>
+                                      </tr>
+                                    </table>                                  
+                                </asp:Panel>
+                            </ItemTemplate>
+                        </asp:DataList>   
+                        <asp:SqlDataSource runat="server" ID="srcReasons" ConnectionString="<%$ConnectionStrings:MYLOCAL %>" 
+                            SelectCommand="select top 10000 * from MADAM_USER_REASON where is_visible=1 order by submit_time desc" /> 
+                    </td>
+                    <td><img src="images/main_tab_04.jpg" width="44" height="249" alt="" /></td>
+                </tr>
+                <tr>
+                    <td height="71" colspan="3" valign="top" background="images/main_tab_05.jpg">
+                        <table width="470" border="0" align="center" cellpadding="0" cellspacing="2" class="linkb">
+                            <tr>
+                                <td width="470">
+                                    <div align="center">
+                                        <a runat="server" id="lnkPrev" href="main_2.aspx">
+                                            <img src="images/btn_pre.gif" id="Pre" runat="server" width="58" height="10" border="0" alt="" />
+                                        </a>
+                                        <span class="txt2">
+                                            <asp:Literal runat="server"  ID="page_ma">Page</asp:Literal>  
+                                          <%--  <a href="main_2.aspx?Page=1">1</a> | 
+                                            <a href="main_2.aspx?Page=2">2</a> | 
+                                            <a href="main_2.aspx?Page=3">3</a> | 
+                                            <a href="main_2.aspx?Page=4">4</a> | 
+                                            <a href="main_2.aspx?Page=5">5</a> | 
+                                            <a href="main_2.aspx?Page=6">6</a> | 
+                                            <a href="main_2.aspx?Page=7">7</a> | 
+                                            <a href="main_2.aspx?Page=8">8</a> | 
+                                            <a href="main_2.aspx?Page=9">9</a> | --%>
+                                            <asp:PlaceHolder  ID="PH1" runat="server"></asp:PlaceHolder>
+                                        </span>
+                                        <a runat="server" id="lnkNext" href="main_2.aspx">
+                                            <img src="images/btn_next.gif" id="Nextpage" runat="server" width="35" height="10" border="0"/>
+                                        </a>
+                                   </div>
+                               </td>
+                            </tr>                            
+                        </table>
+                    </td>
+                </tr>
+            </table>
+        </td>
+		<td><img src="images/main_1_04.jpg" width="112" height="481" alt="" /></td>
+	</tr>
+	
+</table>
+</asp:Content>

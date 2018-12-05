@@ -1,0 +1,39 @@
+﻿<%@ Page Title="MyAdvantech - Aonline Survey Master" Language="VB" MasterPageFile="~/Includes/MyMaster.master" %>
+<%@ MasterType VirtualPath="~/Includes/MyMaster.master" %>
+<%@ Register Src="~/EC/Surveys/Aonline_CreateQuestion.ascx" TagName="CreateQuestion" TagPrefix="uc1" %>
+<%@ Register Src="~/EC/Surveys/Aonline_PageDetail.ascx" TagName="PageDetail" TagPrefix="uc3" %>
+
+<script runat="server">
+
+    Protected Sub btnAddQuestion_Click(sender As Object, e As System.EventArgs)
+        ucCreateQuestion.Initial()
+        mpeCreateQuestion.Show()
+    End Sub
+
+    Protected Sub ucCreateQuestion_Update()
+        ucPageDetail.DataBind()
+        up1.Update()
+    End Sub
+</script>
+
+<asp:Content ID="Content1" ContentPlaceHolderID="_main" runat="Server">
+    <asp:UpdatePanel runat="server" ID="up1" UpdateMode="Conditional" ChildrenAsTriggers="false">
+        <ContentTemplate>
+            <table>
+                <tr><td height="20"></td></tr>
+                <tr>
+                    <td>
+                        <asp:Button runat="server" ID="btnAddQuestion" Text="Add Question" Width="100" Height="30" OnClick="btnAddQuestion_Click" />
+                        <asp:LinkButton runat="server" ID="linkCreateQuestion" />
+                        <ajaxToolkit:ModalPopupExtender runat="server" ID="mpeCreateQuestion" PopupControlID="PanelCreateQuestion" 
+                            TargetControlID="linkCreateQuestion" BackgroundCssClass="modalBackground" />
+                        <asp:Panel runat="server" ID="PanelCreateQuestion" Width="600" Height="600" ScrollBars="Auto">
+                            <uc1:CreateQuestion runat="server" ID="ucCreateQuestion" OnUpdate="ucCreateQuestion_Update" />
+                        </asp:Panel>
+                    </td>
+                </tr>
+                <tr><td><uc3:PageDetail runat="server" ID="ucPageDetail" /></td></tr>
+            </table>
+        </ContentTemplate>
+    </asp:UpdatePanel>
+</asp:Content>

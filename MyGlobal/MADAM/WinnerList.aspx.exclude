@@ -1,0 +1,47 @@
+﻿<%@ Page Title="Advantech Celebrates One Million ADAM Remote I/O Modules Sold!" Language="VB" MasterPageFile="~/MADAM/MADAM_MP.master" %>
+
+<script runat="server">
+
+    Protected Sub Page_Load(ByVal sender As Object, ByVal e As System.EventArgs)
+        If Session("user_id") IsNot Nothing AndAlso (Util.IsAEUIT() OrElse Session("user_id").ToString.ToLower.StartsWith("julia.ko")) Then
+        Else
+            Response.End()
+        End If
+    End Sub
+
+    Protected Sub GridView1_RowDataBound(ByVal sender As Object, ByVal e As System.Web.UI.WebControls.GridViewRowEventArgs)
+        If e.Row.RowType = DataControlRowType.DataRow Then
+            If e.Row.Cells(9).Text.ToLower = "true" Then
+               e.Row.Cells(9).BackColor=Drawing.Color.DarkOrange
+            End If
+        End If
+    End Sub
+</script>
+
+<asp:Content ID="Content2" ContentPlaceHolderID="ContentPlaceHolder1" Runat="Server">
+    <center>
+        <asp:GridView ID="GridView1" runat="server" AutoGenerateColumns="False" 
+            DataKeyNames="EMAIL" DataSourceID="SqlDataSource1" OnRowDataBound="GridView1_RowDataBound">
+            <Columns>
+                <asp:BoundField DataField="No" HeaderText="No" SortExpression="No" />
+                <asp:BoundField DataField="NAME" HeaderText="NAME" SortExpression="NAME" HtmlEncode="false" />
+                <asp:BoundField DataField="EMAIL" HeaderText="EMAIL" SortExpression="EMAIL" />
+                <asp:BoundField DataField="NICK_NAME" HeaderText="NICK_NAME"  SortExpression="NICK_NAME" />
+                <asp:BoundField DataField="CONTACT_NUMBER" HeaderText="CONTACT_NUMBER"  SortExpression="CONTACT_NUMBER" />
+                <asp:BoundField DataField="CITY" HeaderText="CITY"  SortExpression="CITY" />
+                <asp:BoundField DataField="ZIP_CODE" HeaderText="ZIP_CODE"  SortExpression="ZIP_CODE" />
+                <asp:BoundField DataField="COUNTRY" HeaderText="COUNTRY"  SortExpression="COUNTRY" />
+                <asp:BoundField DataField="MAIL_ADDR" HeaderText="MAIL_ADDR"  SortExpression="MAIL_ADDR" HtmlEncode="false" />
+                <asp:BoundField DataField="ISCONFIRMATION" HeaderText="ISCONFIRMATION"  SortExpression="ISCONFIRMATION" ItemStyle-HorizontalAlign="Center" />
+                <asp:BoundField DataField="UPD_DATE" HeaderText="UPD_DATE"  SortExpression="UPD_DATE" />
+              
+            </Columns>
+        </asp:GridView>
+        <asp:SqlDataSource ID="SqlDataSource1" runat="server"  ConnectionString="<%$ ConnectionStrings:MYLOCAL %>" 
+                SelectCommand="SELECT case when  no='iPad' then 0 else convert(int,REPLACE(NO,'Memo','')) end as orderby,* FROM [MADAM_Winner_Prize] order by orderby"></asp:SqlDataSource>
+    </center>
+    
+    
+
+</asp:Content>
+

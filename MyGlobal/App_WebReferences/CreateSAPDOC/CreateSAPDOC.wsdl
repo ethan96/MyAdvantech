@@ -1,0 +1,711 @@
+<?xml version="1.0" encoding="utf-8"?>
+<wsdl:definitions xmlns:http="http://schemas.xmlsoap.org/wsdl/http/" xmlns:soapenc="http://schemas.xmlsoap.org/soap/encoding/" xmlns:mime="http://schemas.xmlsoap.org/wsdl/mime/" xmlns:tns="eBizAEU" xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/" xmlns:tm="http://microsoft.com/wsdl/mime/textMatching/" xmlns:s="http://www.w3.org/2001/XMLSchema" xmlns:soap12="http://schemas.xmlsoap.org/wsdl/soap12/" targetNamespace="eBizAEU" xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/">
+  <wsdl:types>
+    <s:schema elementFormDefault="qualified" targetNamespace="eBizAEU">
+      <s:import namespace="http://tempuri.org/SalesOrder.xsd" />
+      <s:import namespace="http://tempuri.org/SalesOrder1.xsd" />
+      <s:import schemaLocation="http://myadvan-global:9000/CreateSAPDOC.asmx?schema=SalesOrder" namespace="http://tempuri.org/SalesOrder.xsd" />
+      <s:import schemaLocation="http://myadvan-global:9000/CreateSAPDOC.asmx?schema=SalesOrder1" namespace="http://tempuri.org/SalesOrder1.xsd" />
+      <s:element name="CreateSO">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="refDoc_Number" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="ErrMsg" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="OrderHeaderDt">
+              <s:complexType>
+                <s:sequence>
+                  <s:any minOccurs="0" maxOccurs="unbounded" namespace="http://www.w3.org/2001/XMLSchema" processContents="lax" />
+                  <s:any minOccurs="1" namespace="urn:schemas-microsoft-com:xml-diffgram-v1" processContents="lax" />
+                </s:sequence>
+                <s:attribute fixed="http://tempuri.org/SalesOrder.xsd" name="namespace" />
+                <s:attribute fixed="OrderHeaderDataTable" name="tableTypeName" />
+              </s:complexType>
+            </s:element>
+            <s:element minOccurs="0" maxOccurs="1" name="OrderLineDt">
+              <s:complexType>
+                <s:sequence>
+                  <s:any minOccurs="0" maxOccurs="unbounded" namespace="http://www.w3.org/2001/XMLSchema" processContents="lax" />
+                  <s:any minOccurs="1" namespace="urn:schemas-microsoft-com:xml-diffgram-v1" processContents="lax" />
+                </s:sequence>
+                <s:attribute fixed="http://tempuri.org/SalesOrder.xsd" name="namespace" />
+                <s:attribute fixed="OrderLinesDataTable" name="tableTypeName" />
+              </s:complexType>
+            </s:element>
+            <s:element minOccurs="0" maxOccurs="1" name="PartnerFuncDT">
+              <s:complexType>
+                <s:sequence>
+                  <s:any minOccurs="0" maxOccurs="unbounded" namespace="http://www.w3.org/2001/XMLSchema" processContents="lax" />
+                  <s:any minOccurs="1" namespace="urn:schemas-microsoft-com:xml-diffgram-v1" processContents="lax" />
+                </s:sequence>
+                <s:attribute fixed="http://tempuri.org/SalesOrder.xsd" name="namespace" />
+                <s:attribute fixed="PartnerFuncDataTable" name="tableTypeName" />
+              </s:complexType>
+            </s:element>
+            <s:element minOccurs="0" maxOccurs="1" name="ConditionDT">
+              <s:complexType>
+                <s:sequence>
+                  <s:any minOccurs="0" maxOccurs="unbounded" namespace="http://www.w3.org/2001/XMLSchema" processContents="lax" />
+                  <s:any minOccurs="1" namespace="urn:schemas-microsoft-com:xml-diffgram-v1" processContents="lax" />
+                </s:sequence>
+                <s:attribute fixed="http://tempuri.org/SalesOrder.xsd" name="namespace" />
+                <s:attribute fixed="ConditionDataTable" name="tableTypeName" />
+              </s:complexType>
+            </s:element>
+            <s:element minOccurs="0" maxOccurs="1" name="HeaderTextsDt">
+              <s:complexType>
+                <s:sequence>
+                  <s:any minOccurs="0" maxOccurs="unbounded" namespace="http://www.w3.org/2001/XMLSchema" processContents="lax" />
+                  <s:any minOccurs="1" namespace="urn:schemas-microsoft-com:xml-diffgram-v1" processContents="lax" />
+                </s:sequence>
+                <s:attribute fixed="http://tempuri.org/SalesOrder.xsd" name="namespace" />
+                <s:attribute fixed="HeaderTextsDataTable" name="tableTypeName" />
+              </s:complexType>
+            </s:element>
+            <s:element minOccurs="0" maxOccurs="1" name="CreditCardDT">
+              <s:complexType>
+                <s:sequence>
+                  <s:any minOccurs="0" maxOccurs="unbounded" namespace="http://www.w3.org/2001/XMLSchema" processContents="lax" />
+                  <s:any minOccurs="1" namespace="urn:schemas-microsoft-com:xml-diffgram-v1" processContents="lax" />
+                </s:sequence>
+                <s:attribute fixed="http://tempuri.org/SalesOrder.xsd" name="namespace" />
+                <s:attribute fixed="CreditCardDataTable" name="tableTypeName" />
+              </s:complexType>
+            </s:element>
+            <s:element minOccurs="0" maxOccurs="1" name="retDataTableDT">
+              <s:complexType>
+                <s:sequence>
+                  <s:any minOccurs="0" maxOccurs="unbounded" namespace="http://www.w3.org/2001/XMLSchema" processContents="lax" />
+                  <s:any minOccurs="1" namespace="urn:schemas-microsoft-com:xml-diffgram-v1" processContents="lax" />
+                </s:sequence>
+              </s:complexType>
+            </s:element>
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="CreateSOResponse">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="1" maxOccurs="1" name="CreateSOResult" type="s:boolean" />
+            <s:element minOccurs="0" maxOccurs="1" name="refDoc_Number" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="ErrMsg" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="OrderHeaderDt">
+              <s:complexType>
+                <s:sequence>
+                  <s:any minOccurs="0" maxOccurs="unbounded" namespace="http://www.w3.org/2001/XMLSchema" processContents="lax" />
+                  <s:any minOccurs="1" namespace="urn:schemas-microsoft-com:xml-diffgram-v1" processContents="lax" />
+                </s:sequence>
+                <s:attribute fixed="http://tempuri.org/SalesOrder.xsd" name="namespace" />
+                <s:attribute fixed="OrderHeaderDataTable" name="tableTypeName" />
+              </s:complexType>
+            </s:element>
+            <s:element minOccurs="0" maxOccurs="1" name="OrderLineDt">
+              <s:complexType>
+                <s:sequence>
+                  <s:any minOccurs="0" maxOccurs="unbounded" namespace="http://www.w3.org/2001/XMLSchema" processContents="lax" />
+                  <s:any minOccurs="1" namespace="urn:schemas-microsoft-com:xml-diffgram-v1" processContents="lax" />
+                </s:sequence>
+                <s:attribute fixed="http://tempuri.org/SalesOrder.xsd" name="namespace" />
+                <s:attribute fixed="OrderLinesDataTable" name="tableTypeName" />
+              </s:complexType>
+            </s:element>
+            <s:element minOccurs="0" maxOccurs="1" name="PartnerFuncDT">
+              <s:complexType>
+                <s:sequence>
+                  <s:any minOccurs="0" maxOccurs="unbounded" namespace="http://www.w3.org/2001/XMLSchema" processContents="lax" />
+                  <s:any minOccurs="1" namespace="urn:schemas-microsoft-com:xml-diffgram-v1" processContents="lax" />
+                </s:sequence>
+                <s:attribute fixed="http://tempuri.org/SalesOrder.xsd" name="namespace" />
+                <s:attribute fixed="PartnerFuncDataTable" name="tableTypeName" />
+              </s:complexType>
+            </s:element>
+            <s:element minOccurs="0" maxOccurs="1" name="ConditionDT">
+              <s:complexType>
+                <s:sequence>
+                  <s:any minOccurs="0" maxOccurs="unbounded" namespace="http://www.w3.org/2001/XMLSchema" processContents="lax" />
+                  <s:any minOccurs="1" namespace="urn:schemas-microsoft-com:xml-diffgram-v1" processContents="lax" />
+                </s:sequence>
+                <s:attribute fixed="http://tempuri.org/SalesOrder.xsd" name="namespace" />
+                <s:attribute fixed="ConditionDataTable" name="tableTypeName" />
+              </s:complexType>
+            </s:element>
+            <s:element minOccurs="0" maxOccurs="1" name="HeaderTextsDt">
+              <s:complexType>
+                <s:sequence>
+                  <s:any minOccurs="0" maxOccurs="unbounded" namespace="http://www.w3.org/2001/XMLSchema" processContents="lax" />
+                  <s:any minOccurs="1" namespace="urn:schemas-microsoft-com:xml-diffgram-v1" processContents="lax" />
+                </s:sequence>
+                <s:attribute fixed="http://tempuri.org/SalesOrder.xsd" name="namespace" />
+                <s:attribute fixed="HeaderTextsDataTable" name="tableTypeName" />
+              </s:complexType>
+            </s:element>
+            <s:element minOccurs="0" maxOccurs="1" name="CreditCardDT">
+              <s:complexType>
+                <s:sequence>
+                  <s:any minOccurs="0" maxOccurs="unbounded" namespace="http://www.w3.org/2001/XMLSchema" processContents="lax" />
+                  <s:any minOccurs="1" namespace="urn:schemas-microsoft-com:xml-diffgram-v1" processContents="lax" />
+                </s:sequence>
+                <s:attribute fixed="http://tempuri.org/SalesOrder.xsd" name="namespace" />
+                <s:attribute fixed="CreditCardDataTable" name="tableTypeName" />
+              </s:complexType>
+            </s:element>
+            <s:element minOccurs="0" maxOccurs="1" name="retDataTableDT">
+              <s:complexType>
+                <s:sequence>
+                  <s:any minOccurs="0" maxOccurs="unbounded" namespace="http://www.w3.org/2001/XMLSchema" processContents="lax" />
+                  <s:any minOccurs="1" namespace="urn:schemas-microsoft-com:xml-diffgram-v1" processContents="lax" />
+                </s:sequence>
+              </s:complexType>
+            </s:element>
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="CreateQuotation">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="refDoc_Number" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="ErrMsg" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="OrderHeaderDt">
+              <s:complexType>
+                <s:sequence>
+                  <s:any minOccurs="0" maxOccurs="unbounded" namespace="http://www.w3.org/2001/XMLSchema" processContents="lax" />
+                  <s:any minOccurs="1" namespace="urn:schemas-microsoft-com:xml-diffgram-v1" processContents="lax" />
+                </s:sequence>
+                <s:attribute fixed="http://tempuri.org/SalesOrder.xsd" name="namespace" />
+                <s:attribute fixed="OrderHeaderDataTable" name="tableTypeName" />
+              </s:complexType>
+            </s:element>
+            <s:element minOccurs="0" maxOccurs="1" name="OrderLineDt">
+              <s:complexType>
+                <s:sequence>
+                  <s:any minOccurs="0" maxOccurs="unbounded" namespace="http://www.w3.org/2001/XMLSchema" processContents="lax" />
+                  <s:any minOccurs="1" namespace="urn:schemas-microsoft-com:xml-diffgram-v1" processContents="lax" />
+                </s:sequence>
+                <s:attribute fixed="http://tempuri.org/SalesOrder.xsd" name="namespace" />
+                <s:attribute fixed="OrderLinesDataTable" name="tableTypeName" />
+              </s:complexType>
+            </s:element>
+            <s:element minOccurs="0" maxOccurs="1" name="PartnerFuncDT">
+              <s:complexType>
+                <s:sequence>
+                  <s:any minOccurs="0" maxOccurs="unbounded" namespace="http://www.w3.org/2001/XMLSchema" processContents="lax" />
+                  <s:any minOccurs="1" namespace="urn:schemas-microsoft-com:xml-diffgram-v1" processContents="lax" />
+                </s:sequence>
+                <s:attribute fixed="http://tempuri.org/SalesOrder.xsd" name="namespace" />
+                <s:attribute fixed="PartnerFuncDataTable" name="tableTypeName" />
+              </s:complexType>
+            </s:element>
+            <s:element minOccurs="0" maxOccurs="1" name="ConditionDT">
+              <s:complexType>
+                <s:sequence>
+                  <s:any minOccurs="0" maxOccurs="unbounded" namespace="http://www.w3.org/2001/XMLSchema" processContents="lax" />
+                  <s:any minOccurs="1" namespace="urn:schemas-microsoft-com:xml-diffgram-v1" processContents="lax" />
+                </s:sequence>
+                <s:attribute fixed="http://tempuri.org/SalesOrder.xsd" name="namespace" />
+                <s:attribute fixed="ConditionDataTable" name="tableTypeName" />
+              </s:complexType>
+            </s:element>
+            <s:element minOccurs="0" maxOccurs="1" name="HeaderTextsDt">
+              <s:complexType>
+                <s:sequence>
+                  <s:any minOccurs="0" maxOccurs="unbounded" namespace="http://www.w3.org/2001/XMLSchema" processContents="lax" />
+                  <s:any minOccurs="1" namespace="urn:schemas-microsoft-com:xml-diffgram-v1" processContents="lax" />
+                </s:sequence>
+                <s:attribute fixed="http://tempuri.org/SalesOrder.xsd" name="namespace" />
+                <s:attribute fixed="HeaderTextsDataTable" name="tableTypeName" />
+              </s:complexType>
+            </s:element>
+            <s:element minOccurs="0" maxOccurs="1" name="retDataTableDT">
+              <s:complexType>
+                <s:sequence>
+                  <s:any minOccurs="0" maxOccurs="unbounded" namespace="http://www.w3.org/2001/XMLSchema" processContents="lax" />
+                  <s:any minOccurs="1" namespace="urn:schemas-microsoft-com:xml-diffgram-v1" processContents="lax" />
+                </s:sequence>
+              </s:complexType>
+            </s:element>
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="CreateQuotationResponse">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="1" maxOccurs="1" name="CreateQuotationResult" type="s:boolean" />
+            <s:element minOccurs="0" maxOccurs="1" name="refDoc_Number" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="ErrMsg" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="OrderHeaderDt">
+              <s:complexType>
+                <s:sequence>
+                  <s:any minOccurs="0" maxOccurs="unbounded" namespace="http://www.w3.org/2001/XMLSchema" processContents="lax" />
+                  <s:any minOccurs="1" namespace="urn:schemas-microsoft-com:xml-diffgram-v1" processContents="lax" />
+                </s:sequence>
+                <s:attribute fixed="http://tempuri.org/SalesOrder.xsd" name="namespace" />
+                <s:attribute fixed="OrderHeaderDataTable" name="tableTypeName" />
+              </s:complexType>
+            </s:element>
+            <s:element minOccurs="0" maxOccurs="1" name="OrderLineDt">
+              <s:complexType>
+                <s:sequence>
+                  <s:any minOccurs="0" maxOccurs="unbounded" namespace="http://www.w3.org/2001/XMLSchema" processContents="lax" />
+                  <s:any minOccurs="1" namespace="urn:schemas-microsoft-com:xml-diffgram-v1" processContents="lax" />
+                </s:sequence>
+                <s:attribute fixed="http://tempuri.org/SalesOrder.xsd" name="namespace" />
+                <s:attribute fixed="OrderLinesDataTable" name="tableTypeName" />
+              </s:complexType>
+            </s:element>
+            <s:element minOccurs="0" maxOccurs="1" name="PartnerFuncDT">
+              <s:complexType>
+                <s:sequence>
+                  <s:any minOccurs="0" maxOccurs="unbounded" namespace="http://www.w3.org/2001/XMLSchema" processContents="lax" />
+                  <s:any minOccurs="1" namespace="urn:schemas-microsoft-com:xml-diffgram-v1" processContents="lax" />
+                </s:sequence>
+                <s:attribute fixed="http://tempuri.org/SalesOrder.xsd" name="namespace" />
+                <s:attribute fixed="PartnerFuncDataTable" name="tableTypeName" />
+              </s:complexType>
+            </s:element>
+            <s:element minOccurs="0" maxOccurs="1" name="ConditionDT">
+              <s:complexType>
+                <s:sequence>
+                  <s:any minOccurs="0" maxOccurs="unbounded" namespace="http://www.w3.org/2001/XMLSchema" processContents="lax" />
+                  <s:any minOccurs="1" namespace="urn:schemas-microsoft-com:xml-diffgram-v1" processContents="lax" />
+                </s:sequence>
+                <s:attribute fixed="http://tempuri.org/SalesOrder.xsd" name="namespace" />
+                <s:attribute fixed="ConditionDataTable" name="tableTypeName" />
+              </s:complexType>
+            </s:element>
+            <s:element minOccurs="0" maxOccurs="1" name="HeaderTextsDt">
+              <s:complexType>
+                <s:sequence>
+                  <s:any minOccurs="0" maxOccurs="unbounded" namespace="http://www.w3.org/2001/XMLSchema" processContents="lax" />
+                  <s:any minOccurs="1" namespace="urn:schemas-microsoft-com:xml-diffgram-v1" processContents="lax" />
+                </s:sequence>
+                <s:attribute fixed="http://tempuri.org/SalesOrder.xsd" name="namespace" />
+                <s:attribute fixed="HeaderTextsDataTable" name="tableTypeName" />
+              </s:complexType>
+            </s:element>
+            <s:element minOccurs="0" maxOccurs="1" name="retDataTableDT">
+              <s:complexType>
+                <s:sequence>
+                  <s:any minOccurs="0" maxOccurs="unbounded" namespace="http://www.w3.org/2001/XMLSchema" processContents="lax" />
+                  <s:any minOccurs="1" namespace="urn:schemas-microsoft-com:xml-diffgram-v1" processContents="lax" />
+                </s:sequence>
+              </s:complexType>
+            </s:element>
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="CreateSO1">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="refDoc_Number" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="ErrMsg" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="OrderHeaderDt">
+              <s:complexType>
+                <s:sequence>
+                  <s:any minOccurs="0" maxOccurs="unbounded" namespace="http://www.w3.org/2001/XMLSchema" processContents="lax" />
+                  <s:any minOccurs="1" namespace="urn:schemas-microsoft-com:xml-diffgram-v1" processContents="lax" />
+                </s:sequence>
+                <s:attribute fixed="http://tempuri.org/SalesOrder1.xsd" name="namespace" />
+                <s:attribute fixed="OrderHeaderDataTable" name="tableTypeName" />
+              </s:complexType>
+            </s:element>
+            <s:element minOccurs="0" maxOccurs="1" name="OrderLineDt">
+              <s:complexType>
+                <s:sequence>
+                  <s:any minOccurs="0" maxOccurs="unbounded" namespace="http://www.w3.org/2001/XMLSchema" processContents="lax" />
+                  <s:any minOccurs="1" namespace="urn:schemas-microsoft-com:xml-diffgram-v1" processContents="lax" />
+                </s:sequence>
+                <s:attribute fixed="http://tempuri.org/SalesOrder1.xsd" name="namespace" />
+                <s:attribute fixed="OrderLinesDataTable" name="tableTypeName" />
+              </s:complexType>
+            </s:element>
+            <s:element minOccurs="0" maxOccurs="1" name="PartnerFuncDT">
+              <s:complexType>
+                <s:sequence>
+                  <s:any minOccurs="0" maxOccurs="unbounded" namespace="http://www.w3.org/2001/XMLSchema" processContents="lax" />
+                  <s:any minOccurs="1" namespace="urn:schemas-microsoft-com:xml-diffgram-v1" processContents="lax" />
+                </s:sequence>
+                <s:attribute fixed="http://tempuri.org/SalesOrder1.xsd" name="namespace" />
+                <s:attribute fixed="PartnerFuncDataTable" name="tableTypeName" />
+              </s:complexType>
+            </s:element>
+            <s:element minOccurs="0" maxOccurs="1" name="ConditionDT">
+              <s:complexType>
+                <s:sequence>
+                  <s:any minOccurs="0" maxOccurs="unbounded" namespace="http://www.w3.org/2001/XMLSchema" processContents="lax" />
+                  <s:any minOccurs="1" namespace="urn:schemas-microsoft-com:xml-diffgram-v1" processContents="lax" />
+                </s:sequence>
+                <s:attribute fixed="http://tempuri.org/SalesOrder1.xsd" name="namespace" />
+                <s:attribute fixed="ConditionDataTable" name="tableTypeName" />
+              </s:complexType>
+            </s:element>
+            <s:element minOccurs="0" maxOccurs="1" name="HeaderTextsDt">
+              <s:complexType>
+                <s:sequence>
+                  <s:any minOccurs="0" maxOccurs="unbounded" namespace="http://www.w3.org/2001/XMLSchema" processContents="lax" />
+                  <s:any minOccurs="1" namespace="urn:schemas-microsoft-com:xml-diffgram-v1" processContents="lax" />
+                </s:sequence>
+                <s:attribute fixed="http://tempuri.org/SalesOrder1.xsd" name="namespace" />
+                <s:attribute fixed="HeaderTextsDataTable" name="tableTypeName" />
+              </s:complexType>
+            </s:element>
+            <s:element minOccurs="0" maxOccurs="1" name="CreditCardDT">
+              <s:complexType>
+                <s:sequence>
+                  <s:any minOccurs="0" maxOccurs="unbounded" namespace="http://www.w3.org/2001/XMLSchema" processContents="lax" />
+                  <s:any minOccurs="1" namespace="urn:schemas-microsoft-com:xml-diffgram-v1" processContents="lax" />
+                </s:sequence>
+                <s:attribute fixed="http://tempuri.org/SalesOrder1.xsd" name="namespace" />
+                <s:attribute fixed="CreditCardDataTable" name="tableTypeName" />
+              </s:complexType>
+            </s:element>
+            <s:element minOccurs="0" maxOccurs="1" name="retDataTableDT">
+              <s:complexType>
+                <s:sequence>
+                  <s:any minOccurs="0" maxOccurs="unbounded" namespace="http://www.w3.org/2001/XMLSchema" processContents="lax" />
+                  <s:any minOccurs="1" namespace="urn:schemas-microsoft-com:xml-diffgram-v1" processContents="lax" />
+                </s:sequence>
+              </s:complexType>
+            </s:element>
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="CreateSO1Response">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="1" maxOccurs="1" name="CreateSO1Result" type="s:boolean" />
+            <s:element minOccurs="0" maxOccurs="1" name="refDoc_Number" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="ErrMsg" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="OrderHeaderDt">
+              <s:complexType>
+                <s:sequence>
+                  <s:any minOccurs="0" maxOccurs="unbounded" namespace="http://www.w3.org/2001/XMLSchema" processContents="lax" />
+                  <s:any minOccurs="1" namespace="urn:schemas-microsoft-com:xml-diffgram-v1" processContents="lax" />
+                </s:sequence>
+                <s:attribute fixed="http://tempuri.org/SalesOrder1.xsd" name="namespace" />
+                <s:attribute fixed="OrderHeaderDataTable" name="tableTypeName" />
+              </s:complexType>
+            </s:element>
+            <s:element minOccurs="0" maxOccurs="1" name="OrderLineDt">
+              <s:complexType>
+                <s:sequence>
+                  <s:any minOccurs="0" maxOccurs="unbounded" namespace="http://www.w3.org/2001/XMLSchema" processContents="lax" />
+                  <s:any minOccurs="1" namespace="urn:schemas-microsoft-com:xml-diffgram-v1" processContents="lax" />
+                </s:sequence>
+                <s:attribute fixed="http://tempuri.org/SalesOrder1.xsd" name="namespace" />
+                <s:attribute fixed="OrderLinesDataTable" name="tableTypeName" />
+              </s:complexType>
+            </s:element>
+            <s:element minOccurs="0" maxOccurs="1" name="PartnerFuncDT">
+              <s:complexType>
+                <s:sequence>
+                  <s:any minOccurs="0" maxOccurs="unbounded" namespace="http://www.w3.org/2001/XMLSchema" processContents="lax" />
+                  <s:any minOccurs="1" namespace="urn:schemas-microsoft-com:xml-diffgram-v1" processContents="lax" />
+                </s:sequence>
+                <s:attribute fixed="http://tempuri.org/SalesOrder1.xsd" name="namespace" />
+                <s:attribute fixed="PartnerFuncDataTable" name="tableTypeName" />
+              </s:complexType>
+            </s:element>
+            <s:element minOccurs="0" maxOccurs="1" name="ConditionDT">
+              <s:complexType>
+                <s:sequence>
+                  <s:any minOccurs="0" maxOccurs="unbounded" namespace="http://www.w3.org/2001/XMLSchema" processContents="lax" />
+                  <s:any minOccurs="1" namespace="urn:schemas-microsoft-com:xml-diffgram-v1" processContents="lax" />
+                </s:sequence>
+                <s:attribute fixed="http://tempuri.org/SalesOrder1.xsd" name="namespace" />
+                <s:attribute fixed="ConditionDataTable" name="tableTypeName" />
+              </s:complexType>
+            </s:element>
+            <s:element minOccurs="0" maxOccurs="1" name="HeaderTextsDt">
+              <s:complexType>
+                <s:sequence>
+                  <s:any minOccurs="0" maxOccurs="unbounded" namespace="http://www.w3.org/2001/XMLSchema" processContents="lax" />
+                  <s:any minOccurs="1" namespace="urn:schemas-microsoft-com:xml-diffgram-v1" processContents="lax" />
+                </s:sequence>
+                <s:attribute fixed="http://tempuri.org/SalesOrder1.xsd" name="namespace" />
+                <s:attribute fixed="HeaderTextsDataTable" name="tableTypeName" />
+              </s:complexType>
+            </s:element>
+            <s:element minOccurs="0" maxOccurs="1" name="CreditCardDT">
+              <s:complexType>
+                <s:sequence>
+                  <s:any minOccurs="0" maxOccurs="unbounded" namespace="http://www.w3.org/2001/XMLSchema" processContents="lax" />
+                  <s:any minOccurs="1" namespace="urn:schemas-microsoft-com:xml-diffgram-v1" processContents="lax" />
+                </s:sequence>
+                <s:attribute fixed="http://tempuri.org/SalesOrder1.xsd" name="namespace" />
+                <s:attribute fixed="CreditCardDataTable" name="tableTypeName" />
+              </s:complexType>
+            </s:element>
+            <s:element minOccurs="0" maxOccurs="1" name="retDataTableDT">
+              <s:complexType>
+                <s:sequence>
+                  <s:any minOccurs="0" maxOccurs="unbounded" namespace="http://www.w3.org/2001/XMLSchema" processContents="lax" />
+                  <s:any minOccurs="1" namespace="urn:schemas-microsoft-com:xml-diffgram-v1" processContents="lax" />
+                </s:sequence>
+              </s:complexType>
+            </s:element>
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="CreateQuotation1">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="refDoc_Number" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="ErrMsg" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="OrderHeaderDt">
+              <s:complexType>
+                <s:sequence>
+                  <s:any minOccurs="0" maxOccurs="unbounded" namespace="http://www.w3.org/2001/XMLSchema" processContents="lax" />
+                  <s:any minOccurs="1" namespace="urn:schemas-microsoft-com:xml-diffgram-v1" processContents="lax" />
+                </s:sequence>
+                <s:attribute fixed="http://tempuri.org/SalesOrder1.xsd" name="namespace" />
+                <s:attribute fixed="OrderHeaderDataTable" name="tableTypeName" />
+              </s:complexType>
+            </s:element>
+            <s:element minOccurs="0" maxOccurs="1" name="OrderLineDt">
+              <s:complexType>
+                <s:sequence>
+                  <s:any minOccurs="0" maxOccurs="unbounded" namespace="http://www.w3.org/2001/XMLSchema" processContents="lax" />
+                  <s:any minOccurs="1" namespace="urn:schemas-microsoft-com:xml-diffgram-v1" processContents="lax" />
+                </s:sequence>
+                <s:attribute fixed="http://tempuri.org/SalesOrder1.xsd" name="namespace" />
+                <s:attribute fixed="OrderLinesDataTable" name="tableTypeName" />
+              </s:complexType>
+            </s:element>
+            <s:element minOccurs="0" maxOccurs="1" name="PartnerFuncDT">
+              <s:complexType>
+                <s:sequence>
+                  <s:any minOccurs="0" maxOccurs="unbounded" namespace="http://www.w3.org/2001/XMLSchema" processContents="lax" />
+                  <s:any minOccurs="1" namespace="urn:schemas-microsoft-com:xml-diffgram-v1" processContents="lax" />
+                </s:sequence>
+                <s:attribute fixed="http://tempuri.org/SalesOrder1.xsd" name="namespace" />
+                <s:attribute fixed="PartnerFuncDataTable" name="tableTypeName" />
+              </s:complexType>
+            </s:element>
+            <s:element minOccurs="0" maxOccurs="1" name="ConditionDT">
+              <s:complexType>
+                <s:sequence>
+                  <s:any minOccurs="0" maxOccurs="unbounded" namespace="http://www.w3.org/2001/XMLSchema" processContents="lax" />
+                  <s:any minOccurs="1" namespace="urn:schemas-microsoft-com:xml-diffgram-v1" processContents="lax" />
+                </s:sequence>
+                <s:attribute fixed="http://tempuri.org/SalesOrder1.xsd" name="namespace" />
+                <s:attribute fixed="ConditionDataTable" name="tableTypeName" />
+              </s:complexType>
+            </s:element>
+            <s:element minOccurs="0" maxOccurs="1" name="HeaderTextsDt">
+              <s:complexType>
+                <s:sequence>
+                  <s:any minOccurs="0" maxOccurs="unbounded" namespace="http://www.w3.org/2001/XMLSchema" processContents="lax" />
+                  <s:any minOccurs="1" namespace="urn:schemas-microsoft-com:xml-diffgram-v1" processContents="lax" />
+                </s:sequence>
+                <s:attribute fixed="http://tempuri.org/SalesOrder1.xsd" name="namespace" />
+                <s:attribute fixed="HeaderTextsDataTable" name="tableTypeName" />
+              </s:complexType>
+            </s:element>
+            <s:element minOccurs="0" maxOccurs="1" name="retDataTableDT">
+              <s:complexType>
+                <s:sequence>
+                  <s:any minOccurs="0" maxOccurs="unbounded" namespace="http://www.w3.org/2001/XMLSchema" processContents="lax" />
+                  <s:any minOccurs="1" namespace="urn:schemas-microsoft-com:xml-diffgram-v1" processContents="lax" />
+                </s:sequence>
+              </s:complexType>
+            </s:element>
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="CreateQuotation1Response">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="1" maxOccurs="1" name="CreateQuotation1Result" type="s:boolean" />
+            <s:element minOccurs="0" maxOccurs="1" name="refDoc_Number" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="ErrMsg" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="OrderHeaderDt">
+              <s:complexType>
+                <s:sequence>
+                  <s:any minOccurs="0" maxOccurs="unbounded" namespace="http://www.w3.org/2001/XMLSchema" processContents="lax" />
+                  <s:any minOccurs="1" namespace="urn:schemas-microsoft-com:xml-diffgram-v1" processContents="lax" />
+                </s:sequence>
+                <s:attribute fixed="http://tempuri.org/SalesOrder1.xsd" name="namespace" />
+                <s:attribute fixed="OrderHeaderDataTable" name="tableTypeName" />
+              </s:complexType>
+            </s:element>
+            <s:element minOccurs="0" maxOccurs="1" name="OrderLineDt">
+              <s:complexType>
+                <s:sequence>
+                  <s:any minOccurs="0" maxOccurs="unbounded" namespace="http://www.w3.org/2001/XMLSchema" processContents="lax" />
+                  <s:any minOccurs="1" namespace="urn:schemas-microsoft-com:xml-diffgram-v1" processContents="lax" />
+                </s:sequence>
+                <s:attribute fixed="http://tempuri.org/SalesOrder1.xsd" name="namespace" />
+                <s:attribute fixed="OrderLinesDataTable" name="tableTypeName" />
+              </s:complexType>
+            </s:element>
+            <s:element minOccurs="0" maxOccurs="1" name="PartnerFuncDT">
+              <s:complexType>
+                <s:sequence>
+                  <s:any minOccurs="0" maxOccurs="unbounded" namespace="http://www.w3.org/2001/XMLSchema" processContents="lax" />
+                  <s:any minOccurs="1" namespace="urn:schemas-microsoft-com:xml-diffgram-v1" processContents="lax" />
+                </s:sequence>
+                <s:attribute fixed="http://tempuri.org/SalesOrder1.xsd" name="namespace" />
+                <s:attribute fixed="PartnerFuncDataTable" name="tableTypeName" />
+              </s:complexType>
+            </s:element>
+            <s:element minOccurs="0" maxOccurs="1" name="ConditionDT">
+              <s:complexType>
+                <s:sequence>
+                  <s:any minOccurs="0" maxOccurs="unbounded" namespace="http://www.w3.org/2001/XMLSchema" processContents="lax" />
+                  <s:any minOccurs="1" namespace="urn:schemas-microsoft-com:xml-diffgram-v1" processContents="lax" />
+                </s:sequence>
+                <s:attribute fixed="http://tempuri.org/SalesOrder1.xsd" name="namespace" />
+                <s:attribute fixed="ConditionDataTable" name="tableTypeName" />
+              </s:complexType>
+            </s:element>
+            <s:element minOccurs="0" maxOccurs="1" name="HeaderTextsDt">
+              <s:complexType>
+                <s:sequence>
+                  <s:any minOccurs="0" maxOccurs="unbounded" namespace="http://www.w3.org/2001/XMLSchema" processContents="lax" />
+                  <s:any minOccurs="1" namespace="urn:schemas-microsoft-com:xml-diffgram-v1" processContents="lax" />
+                </s:sequence>
+                <s:attribute fixed="http://tempuri.org/SalesOrder1.xsd" name="namespace" />
+                <s:attribute fixed="HeaderTextsDataTable" name="tableTypeName" />
+              </s:complexType>
+            </s:element>
+            <s:element minOccurs="0" maxOccurs="1" name="retDataTableDT">
+              <s:complexType>
+                <s:sequence>
+                  <s:any minOccurs="0" maxOccurs="unbounded" namespace="http://www.w3.org/2001/XMLSchema" processContents="lax" />
+                  <s:any minOccurs="1" namespace="urn:schemas-microsoft-com:xml-diffgram-v1" processContents="lax" />
+                </s:sequence>
+              </s:complexType>
+            </s:element>
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+    </s:schema>
+  </wsdl:types>
+  <wsdl:message name="CreateSOSoapIn">
+    <wsdl:part name="parameters" element="tns:CreateSO" />
+  </wsdl:message>
+  <wsdl:message name="CreateSOSoapOut">
+    <wsdl:part name="parameters" element="tns:CreateSOResponse" />
+  </wsdl:message>
+  <wsdl:message name="CreateQuotationSoapIn">
+    <wsdl:part name="parameters" element="tns:CreateQuotation" />
+  </wsdl:message>
+  <wsdl:message name="CreateQuotationSoapOut">
+    <wsdl:part name="parameters" element="tns:CreateQuotationResponse" />
+  </wsdl:message>
+  <wsdl:message name="CreateSO1SoapIn">
+    <wsdl:part name="parameters" element="tns:CreateSO1" />
+  </wsdl:message>
+  <wsdl:message name="CreateSO1SoapOut">
+    <wsdl:part name="parameters" element="tns:CreateSO1Response" />
+  </wsdl:message>
+  <wsdl:message name="CreateQuotation1SoapIn">
+    <wsdl:part name="parameters" element="tns:CreateQuotation1" />
+  </wsdl:message>
+  <wsdl:message name="CreateQuotation1SoapOut">
+    <wsdl:part name="parameters" element="tns:CreateQuotation1Response" />
+  </wsdl:message>
+  <wsdl:portType name="CreatSAPDOCSoap">
+    <wsdl:operation name="CreateSO">
+      <wsdl:input message="tns:CreateSOSoapIn" />
+      <wsdl:output message="tns:CreateSOSoapOut" />
+    </wsdl:operation>
+    <wsdl:operation name="CreateQuotation">
+      <wsdl:input message="tns:CreateQuotationSoapIn" />
+      <wsdl:output message="tns:CreateQuotationSoapOut" />
+    </wsdl:operation>
+    <wsdl:operation name="CreateSO1">
+      <wsdl:input message="tns:CreateSO1SoapIn" />
+      <wsdl:output message="tns:CreateSO1SoapOut" />
+    </wsdl:operation>
+    <wsdl:operation name="CreateQuotation1">
+      <wsdl:input message="tns:CreateQuotation1SoapIn" />
+      <wsdl:output message="tns:CreateQuotation1SoapOut" />
+    </wsdl:operation>
+  </wsdl:portType>
+  <wsdl:binding name="CreatSAPDOCSoap" type="tns:CreatSAPDOCSoap">
+    <soap:binding transport="http://schemas.xmlsoap.org/soap/http" />
+    <wsdl:operation name="CreateSO">
+      <soap:operation soapAction="eBizAEU/CreateSO" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="CreateQuotation">
+      <soap:operation soapAction="eBizAEU/CreateQuotation" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="CreateSO1">
+      <soap:operation soapAction="eBizAEU/CreateSO1" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="CreateQuotation1">
+      <soap:operation soapAction="eBizAEU/CreateQuotation1" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+  </wsdl:binding>
+  <wsdl:binding name="CreatSAPDOCSoap12" type="tns:CreatSAPDOCSoap">
+    <soap12:binding transport="http://schemas.xmlsoap.org/soap/http" />
+    <wsdl:operation name="CreateSO">
+      <soap12:operation soapAction="eBizAEU/CreateSO" style="document" />
+      <wsdl:input>
+        <soap12:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap12:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="CreateQuotation">
+      <soap12:operation soapAction="eBizAEU/CreateQuotation" style="document" />
+      <wsdl:input>
+        <soap12:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap12:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="CreateSO1">
+      <soap12:operation soapAction="eBizAEU/CreateSO1" style="document" />
+      <wsdl:input>
+        <soap12:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap12:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="CreateQuotation1">
+      <soap12:operation soapAction="eBizAEU/CreateQuotation1" style="document" />
+      <wsdl:input>
+        <soap12:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap12:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+  </wsdl:binding>
+  <wsdl:service name="CreatSAPDOC">
+    <wsdl:port name="CreatSAPDOCSoap" binding="tns:CreatSAPDOCSoap">
+      <soap:address location="http://myadvan-global:9000/CreateSAPDOC.asmx" />
+    </wsdl:port>
+    <wsdl:port name="CreatSAPDOCSoap12" binding="tns:CreatSAPDOCSoap12">
+      <soap12:address location="http://myadvan-global:9000/CreateSAPDOC.asmx" />
+    </wsdl:port>
+  </wsdl:service>
+</wsdl:definitions>

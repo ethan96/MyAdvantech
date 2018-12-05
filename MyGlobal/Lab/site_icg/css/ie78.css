@@ -1,0 +1,83 @@
+@charset "utf-8";
+
+/* IE7 */
+
+body {*overflow-y: hidden;}
+
+.login-desktop {*width:60%;}
+
+.login-desktop .btn , .box_popup .content .btn , .topLoginBox .btn
+{
+	*padding: 3px 6px;
+	*margin-left:2px;
+	*line-height:18px;
+	*vertical-align:middle;
+	*text-align:center;
+}
+
+.btn
+{
+	*display:block;
+	*padding: 6px 12px;
+	*margin-bottom: 0;
+	*font-size: 14px;
+	*font-weight: 400;
+	*line-height: 1;
+	*text-align: center;
+	*white-space: nowrap;
+	*vertical-align: middle;
+	*cursor: pointer;
+	*background-image: none;
+	*border: 1px solid transparent;
+}
+
+.btn-primary /* 藍 */
+{
+	*color: #fff;
+	*background-color: #003477; /*337ab7*/
+	*border-color: #003477; /*2e6da4*/
+}
+
+.btn-info	/*淡藍*/
+{
+	*color: #fff;
+	*background-color: #0066cc; /*5bc0de*/
+	*border-color: #0066cc; /*46b8da*/
+}
+
+.btn-gray	/*灰*/
+{
+	*color: #333;
+	*background-color: #DDD;
+	*border-color: #CCC;
+	*cursor:default !important;
+}
+
+.pages {*height:30px;*line-height:30px;*padding:20px 0;*text-align:center;}
+.pages a {*display:block;}
+
+.resultsBox {*height:100%;}
+.resultsBox .listType button , .resultsBox .listType a {*margin-left:3px;}
+
+.for-narrow .type-list .resultList .btns button.btn {*padding:4px 2px 6px 2px !important;}
+.for-tablet .type-list .resultList .btns button.btn {*padding:4px 2px 5px 2px !important;}
+.for-mobile .type-list .resultList .btns {*width:250px !important;*margin:0 auto;}
+.for-mobile .type-list .resultList .btns button.btn {*height:26px;*line-height:10px;}
+
+.resultsBox .resultList .btns a ,
+.resultsBox .resultList .btns button {*display:block;*float:left;margin:1px;}
+
+.type-thumbnail .resultList .btns ,
+.mobile-type-thumbnail .resultList .btns {*width:250px !important;*margin:0 auto;}
+.type-thumbnail .resultList .btns a.btn ,
+.mobile-type-thumbnail .resultList .btns a.btn {*padding:8px 12px;}
+
+.for-narrow .type-thumbnail .resultList .btns a.btn ,
+.for-tablet .type-thumbnail .resultList .btns a.btn {*padding:6px 10px !important;}
+
+
+/* IE8 */
+
+@media \0screen {
+
+}

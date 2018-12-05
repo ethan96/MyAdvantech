@@ -1,0 +1,74 @@
+﻿<%@ Page Title="" Language="VB" MasterPageFile="~/Includes/MyMaster.master" %>
+
+<script runat="server">
+    Protected Sub gv1_RowDataBound(ByVal sender As Object, ByVal e As System.Web.UI.WebControls.GridViewRowEventArgs) Handles gv1.RowDataBound
+        Dim oType As ListItemType = e.Row.RowType
+        If (oType <> ListItemType.Header And oType <> ListItemType.Footer) Then
+            e.Row.Cells(4).Text = CType(e.Row.Cells(4).Text, Date).ToShortDateString()
+            If Not e.Row.Cells(6).Text.StartsWith("<a") Then
+                e.Row.Cells(6).Text = "<a href='http://downloadt.advantech.com/download/downloadlit.aspx?LIT_ID=" & HttpUtility.UrlEncode(e.Row.Cells(6).Text) & "' target='_blank'>Link</a>"
+            End If
+
+        End If
+    End Sub
+
+    Protected Sub Page_Load(ByVal sender As Object, ByVal e As System.EventArgs)
+
+    End Sub
+</script>
+
+<asp:Content ID="Content1" ContentPlaceHolderID="_main" Runat="Server">
+    <table align="center" width="100%" border="0" cellspacing="0" cellpadding="0">
+        <tr>
+			<td colspan="3" style="height:15px">
+			</td>
+	    </tr>
+        <tr>
+			<td style="width:10px">
+			</td>
+			<td>
+				<!--Page Title-->
+				<div class="euPageTitle">eA Training Download</div>
+			</td>
+			<td style="width:20px">
+			</td>
+		</tr>
+        <tr>
+			<td colspan="3" style="height:15px">
+			</td>
+		</tr>
+		<tr>
+		    <td colspan="3" width="100%">
+		        <sgv:SmartGridView runat="server" ID="gv1" DataSourceID="sql1" ShowWhenEmpty="true" AutoGenerateColumns="false" Width="100%">
+	                <Columns>
+	                    <asp:TemplateField ItemStyle-Width="50px" ItemStyle-HorizontalAlign="Center" Visible="false">
+                            <headertemplate>
+                                No.
+                            </headertemplate>
+                            <itemtemplate>
+                                <%#Container.DataItemIndex + 1%>
+                            </itemtemplate>
+                        </asp:TemplateField>
+	                    <asp:BoundField HeaderText="TYPE" DataField="LIT_TYPE" ReadOnly="true" ItemStyle-Width="10%"   />
+                        <asp:BoundField HeaderText="File Name" DataField="FILE_NAME" ReadOnly="true"   />
+                        <asp:BoundField HeaderText="Description" DataField="LIT_DESC" ReadOnly="true"   />
+                        <asp:BoundField HeaderText="Last Updated" DataField="LAST_UPDATED" ReadOnly="true"   />
+                        <asp:BoundField HeaderText="File Type" DataField="FILE_EXT" ReadOnly="true"  ItemStyle-Width="10%"  />
+                        <asp:BoundField HeaderText="LINK" DataField="LITERATURE_ID" ReadOnly="true"  Visible="true" ItemStyle-Width="10%"  />
+	                </Columns>
+	                <FooterStyle BackColor="#A4B5BD" ForeColor="White" Font-Bold="True" />
+                    <RowStyle BackColor="#F7F6F3" ForeColor="#333333" />
+                    <SelectedRowStyle BackColor="#E2DED6" Font-Bold="True" ForeColor="#333333" />
+                    <PagerStyle BackColor="#284775" ForeColor="White" HorizontalAlign="Justify"  />
+                    <HeaderStyle BackColor="#A4B5BD" Font-Bold="True" ForeColor="White" />
+                    <AlternatingRowStyle BackColor="White" ForeColor="#284775" />
+                    <PagerSettings PageButtonCount="10" Position="TopAndBottom" />
+	            </sgv:SmartGridView>
+                <asp:SqlDataSource runat="server" ID="sql1" ConnectionString="<%$ connectionStrings:My %>"
+                     SelectCommand="SELECT LIT_TYPE, FILE_NAME, LIT_DESC,LAST_UPDATED, FILE_EXT ,LITERATURE_ID FROM LITERATURE WHERE LIT_TYPE = 'Event Presentation' AND PRIMARY_BU = 'IAG' ORDER BY LAST_UPDATED DESC">
+                </asp:SqlDataSource>
+		    </td>
+		</tr>
+    </table>
+</asp:Content>
+

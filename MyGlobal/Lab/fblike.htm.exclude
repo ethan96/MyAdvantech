@@ -1,0 +1,22 @@
+﻿<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <title></title>
+</head>
+<body>
+    <div id="fb-root">
+    </div>
+    <script>        (function (d, s, id) {
+            var js, fjs = d.getElementsByTagName(s)[0];
+            if (d.getElementById(id)) return;
+            js = d.createElement(s); js.id = id;
+            js.src = "//connect.facebook.net/zh_TW/all.js#xfbml=1&appId=305515149487004";
+            fjs.parentNode.insertBefore(js, fjs);
+        } (document, 'script', 'facebook-jssdk'));</script>
+    <div class="fb-like" data-href="http://www.facebook.com/pages/Hcetnavda/267253613330109"
+        data-send="true" data-width="450" data-show-faces="true">
+        
+        <img src="http://profile.ak.fbcdn.net/hprofile-ak-snc4/373485_132381433540928_1916359815_n.jpg" />
+    </div>
+</body>
+</html>

@@ -1,0 +1,443 @@
+﻿<%@ Page Language="VB" Title="Advantech Product Training 2012Q2" MasterPageFile="~/Includes/MyMaster.master"%>
+
+<script runat="server">
+
+</script>
+
+<asp:Content ID="Content1" ContentPlaceHolderID="_main" runat="Server">
+
+        <style type="text/css">
+            ol
+            {
+                margin: 0;
+                padding: 0;
+            }
+            .c4
+            {
+                vertical-align: top;
+                width: 138.8pt;
+                border-style: solid;
+                border-color: #ffffff;
+                border-width: 1pt;
+                padding: 5pt 5pt 5pt 5pt;
+            }
+            .c7
+            {
+                vertical-align: top;
+                width: 129pt;
+                border-style: solid;
+                border-color: #ffffff;
+                border-width: 1pt;
+                padding: 5pt 5pt 5pt 5pt;
+            }
+            .c8
+            {
+                vertical-align: top;
+                width: 220.2pt;
+                border-style: solid;
+                border-color: #ffffff;
+                border-width: 1pt;
+                padding: 5pt 5pt 5pt 5pt;
+            }
+            .c1
+            {
+                color: #1155cc;
+                font-size: 10pt;
+                text-decoration: underline;
+            }
+            .c15
+            {
+                max-width: 468pt;
+                background-color: #ffffff;
+                padding: 72pt 72pt 72pt 72pt;
+            }
+            .c5
+            {
+                line-height: 1.0;
+                text-align: center;
+                direction: ltr;
+            }
+            .c2
+            {
+                color: inherit;
+                text-decoration: inherit;
+            }
+            .c11
+            {
+                height: 11pt;
+                direction: ltr;
+            }
+            .c6
+            {
+                line-height: 1.0;
+                direction: ltr;
+            }
+            .c0
+            {
+                height: 0pt;
+            }
+            .c13
+            {
+                font-size: 14pt;
+            }
+            .c9
+            {
+                font-weight: bold;
+            }
+            .c14
+            {
+                border-collapse: collapse;
+            }
+            .c3
+            {
+                font-size: 10pt;
+            }
+            .c12
+            {
+                direction: ltr;
+            }
+            .c10
+            {
+                color: #002060;
+            }
+            .title
+            {
+                padding-top: 24pt;
+                line-height: 1.15;
+                text-align: left;
+                color: #000000;
+                font-size: 36pt;
+                font-family: Arial;
+                font-weight: bold;
+                padding-bottom: 6pt;
+            }
+            .subtitle
+            {
+                padding-top: 18pt;
+                line-height: 1.15;
+                text-align: left;
+                color: #666666;
+                font-style: italic;
+                font-size: 24pt;
+                font-family: Georgia;
+                padding-bottom: 4pt;
+            }
+            p
+            {
+                color: #000000;
+                font-size: 11pt;
+                margin: 0;
+                font-family: Arial;
+            }
+            h1
+            {
+                padding-top: 24pt;
+                line-height: 1.15;
+                text-align: left;
+                color: #000000;
+                font-size: 18pt;
+                font-family: Arial;
+                font-weight: bold;
+                padding-bottom: 6pt;
+            }
+            h2
+            {
+                padding-top: 18pt;
+                line-height: 1.15;
+                text-align: left;
+                color: #000000;
+                font-size: 14pt;
+                font-family: Arial;
+                font-weight: bold;
+                padding-bottom: 4pt;
+            }
+            h3
+            {
+                padding-top: 14pt;
+                line-height: 1.15;
+                text-align: left;
+                color: #666666;
+                font-size: 12pt;
+                font-family: Arial;
+                font-weight: bold;
+                padding-bottom: 4pt;
+            }
+            h4
+            {
+                padding-top: 12pt;
+                line-height: 1.15;
+                text-align: left;
+                color: #666666;
+                font-style: italic;
+                font-size: 11pt;
+                font-family: Arial;
+                padding-bottom: 2pt;
+            }
+            h5
+            {
+                padding-top: 11pt;
+                line-height: 1.15;
+                text-align: left;
+                color: #666666;
+                font-size: 10pt;
+                font-family: Arial;
+                font-weight: bold;
+                padding-bottom: 2pt;
+            }
+            h6
+            {
+                padding-top: 10pt;
+                line-height: 1.15;
+                text-align: left;
+                color: #666666;
+                font-style: italic;
+                font-size: 10pt;
+                font-family: Arial;
+                padding-bottom: 2pt;
+            }
+        </style>
+        <p class="c12">
+            <asp:Image ID="Image1" height="53" runat="server" ImageUrl="~/Images/image01.jpg" />
+        <p class="c11">
+            <span></span>
+        </p>
+        <p class="c12">
+            <span class="c9 c13">Advantech Product Training - 2012Q2</span></p>
+        <p class="c11">
+            <span class="c13"></span>
+        </p>
+        <a href="#" name="abd90846552148e5903cc383df06e8ff11b43c62"></a><a href="#" name="0">
+        </a>
+        <table cellpadding="0" cellspacing="0" class="c14" align="center">
+            <tbody>
+                <tr>
+                    <td class="c7">
+                        <p class="c5">
+                            <span class="c9">Time</span></p>
+                    </td>
+                    <td class="c8">
+                        <p class="c5">
+                            <span class="c9">Topic</span></p>
+                    </td>
+                    <td class="c4">
+                        <p class="c5">
+                            <span class="c9">Link</span></p>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="c7">
+                        <p class="c6">
+                            <span class="c3">26.Mar.2012 11h-12h CET</span></p>
+                    </td>
+                    <td class="c8">
+                        <p class="c6">
+                            <span class="c3">ATOM Based TPC &amp; WEBOP Update</span></p>
+                    </td>
+                    <td class="c4">
+                        <p class="c6">
+                            <span class="c1"><a class="c2" href="http://advantech99.adobeconnect.com/p85w789w819/" target="_blank">
+                                View Video</a></span><span class="c3">&nbsp; </span><span class="c1"><a class="c2"
+                                    href="http://download.advantech.com/ProductFile/PIS/PRODUCTTRAINING/Marketing%20Information/TPC-xx71H%20%20Q2%20webinar%20presentation20120420104558.pptx">Download Slides</a></span><span class="c3">&nbsp;</span></p>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="c7">
+                        <p class="c6">
+                            <span class="c3">26.Mar.2012 15h-16h CET</span></p>
+                    </td>
+                    <td class="c8">
+                        <p class="c6">
+                            <span class="c3">FPM and IPPC Series Update</span></p>
+                    </td>
+                    <td class="c4">
+                        <p class="c6">
+                            <span class="c1"><a class="c2" href="http://advantech99.adobeconnect.com/p9fmd0euncj/" target="_blank">
+                                View Video</a></span><span class="c3">&nbsp; </span><span class="c1"><a class="c2"
+                                    href="http://download.advantech.com/ProductFile/PIS/PRODUCTTRAINING/Marketing%20Information/IPPC%20and%20FPM%20Q2%20webinar%20presentation20120420105449.pptx">Download Slides</a></span><span class="c3">&nbsp;</span></p>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="c7">
+                        <p class="c6">
+                            <span class="c3">27.Mar.2012 11h-12h CET</span></p>
+                    </td>
+                    <td class="c8">
+                        <p class="c6">
+                            <span class="c3">Panel PC &nbsp;PPC Series Update</span></p>
+                    </td>
+                    <td class="c4">
+                        <p class="c6">
+                            <span class="c1"><a class="c2" href="http://advantech99.adobeconnect.com/p15v6cibl8c/" target="_blank">
+                                View Video</a></span><span class="c3">&nbsp; </span><span class="c1"><a class="c2"
+                                    href="http://download.advantech.com/ProductFile/PIS/PRODUCTTRAINING/Marketing%20Information/PPC%20series%20Q2%20webinar20120420105911.pptx">Download Slides</a></span></p>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="c7">
+                        <p class="c6">
+                            <span class="c3">27.Mar.2012 15h-16h CET</span></p>
+                    </td>
+                    <td class="c8">
+                        <p class="c6">
+                            <span class="c3">ARK Box PC Family Update</span></p>
+                    </td>
+                    <td class="c4">
+                        <p class="c6">
+                            <span class="c1"><a class="c2" href="http://advantech99.adobeconnect.com/p3k0309fq7y/" target="_blank">
+                                View Video</a></span><span class="c3">&nbsp; </span><span class="c1"><a class="c2"
+                                    href="http://downloadt.advantech.com/ProductFile/PIS/ProductTraining/Marketing%20Information/Embedded_Box_Computer_ARKQ2%20product%20webinar20120420110323.pdf" target="_blank">Download Slides</a></span></p>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="c7">
+                        <p class="c6">
+                            <span class="c3">28.Mar.2012 11h-12h CET</span></p>
+                    </td>
+                    <td class="c8">
+                        <p class="c6">
+                            <span class="c3">Wireless ICOM for In/Out Door Applications</span></p>
+                    </td>
+                    <td class="c4">
+                        <p class="c6">
+                            <span class="c1"><a class="c2" href="http://advantech99.adobeconnect.com/p92uyuye3yj/" target="_blank">
+                                View Video</a></span><span class="c3">&nbsp; </span><span class="c1"><a class="c2"
+                                    href="http://download.advantech.com/ProductFile/PIS/PRODUCTTRAINING/Marketing%20Information/ICOM%20Q1%20Update%20Training20120420110749.pptx">Download Slides</a></span></p>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="c7">
+                        <p class="c6">
+                            <span class="c3">29.Mar.2012 11h-12h CET</span></p>
+                    </td>
+                    <td class="c8">
+                        <p class="c6">
+                            <span class="c3">IPC/SBC/AIMB Update</span></p>
+                    </td>
+                    <td class="c4">
+                        <p class="c6">
+                            <span class="c1"><a class="c2" href="http://advantech99.adobeconnect.com/p25o14snwty/" target="_blank">
+                                View Video</a></span><span class="c3">&nbsp; </span><span class="c1"><a class="c2"
+                                    href="http://download.advantech.com/ProductFile/PIS/PRODUCTTRAINING/Marketing%20Information/Quarterly%20Training%20-%20IPC%20-%20V220120420111105.pptx">Download Slides</a></span></p>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="c7">
+                        <p class="c6">
+                            <span class="c3">29.Mar.2012 15h-16h CET</span></p>
+                    </td>
+                    <td class="c8">
+                        <p class="c6">
+                            <span class="c3">Industrial Monitors Update</span></p>
+                    </td>
+                    <td class="c4">
+                        <p class="c6">
+                            <span class="c1"><a class="c2" href="http://advantech99.adobeconnect.com/p5bt1w65xx7/" target="_blank">
+                                View Video</a></span><span class="c3">&nbsp; </span><span class="c1"><a class="c2"
+                                    href="http://download.advantech.com/ProductFile/PIS/PRODUCTTRAINING/Marketing%20Information/IDS%20Product%20Update%20March%20201220120420111403.pptx">Download Slides</a></span></p>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="c7">
+                        <p class="c6">
+                            <span class="c3">16.Apr.2012 11h-12h CET</span></p>
+                    </td>
+                    <td class="c8">
+                        <p class="c6">
+                            <span class="c3 c10">Core i7 Update</span></p>
+                    </td>
+                    <td class="c4">
+                        <p class="c6">
+                            <span class="c1"><a class="c2" href="http://advantech99.adobeconnect.com/p2dtjeb4w4x/" target="_blank">
+                                View Video</a></span><span class="c3">&nbsp; &nbsp;</span><span class="c1"><a class="c2"
+                                    href="http://download.advantech.com/ProductFile/PIS/PRODUCTTRAINING/Marketing%20Information/2012%20UNO%20Automation%20Controller%20News%20and%20i7%20High%20Performance%20models20120425132143.pptx">Download Slides</a></span></p>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="c7">
+                        <p class="c6">
+                            <span class="c3">16.Apr.2012 15h-16h CET</span></p>
+                    </td>
+                    <td class="c8">
+                        <p class="c6">
+                            <span class="c3 c10">ADAM 2000/6100/6600 for IOT</span></p>
+                    </td>
+                    <td class="c4">
+                        <p class="c6">
+                            <span class="c1"><a class="c2" href="http://advantech99.adobeconnect.com/p45z9ng4yxa/" target="_blank">
+                                View Video</a></span><span class="c3">&nbsp; &nbsp;</span><span class="c1"><a class="c2"
+                                    href="http://download.advantech.com/ProductFile/PIS/PRODUCTTRAINING/Marketing%20Information/2012%20ADAM%20News%20ADAM-6100%20APAX-507x%20ADAM-2000%20ADAM-660020120425115434.pptx" target="_blank">Download Slides</a></span></p>
+                    </td>
+                </tr>
+                <tr class="c0">
+                    <td class="c7">
+                        <p class="c6">
+                            <span class="c3">17.Apr.2012 11h-12h CET</span></p>
+                    </td>
+                    <td class="c8">
+                        <p class="c6">
+                            <span class="c3">3U CPCI Introduction; FWA Update</span></p>
+                    </td>
+                    <td class="c4">
+                        <p class="c6">
+                            <span class="c1"><a class="c2" href="http://advantech99.adobeconnect.com/p29keos2927/" target="_blank">
+                                View Video</a></span><span class="c3">&nbsp; &nbsp;</span><span class="c1"><a class="c2"
+                                    href="http://download.advantech.com/ProductFile/PIS/PRODUCTTRAINING/Marketing%20Information/NCG%20Training%20April%20201220120425115756.ppt" target="_blank">Download Slides</a></span></p>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="c7">
+                        <p class="c6">
+                            <span class="c3">17.Apr.2012 15h-16h CET</span></p>
+                    </td>
+                    <td class="c8">
+                        <p class="c6">
+                            <span class="c3 c10">Peripherals and Modules Update</span></p>
+                    </td>
+                    <td class="c4">
+                        <p class="c6">
+                            <span class="c1"><a class="c2" href="http://advantech99.adobeconnect.com/p6u1hchqhw5/" target="_blank">
+                                View Video</a></span><span class="c3">&nbsp; &nbsp;</span><span class="c1"><a class="c2"
+                                    href="http://download.advantech.com/ProductFile/PIS/PRODUCTTRAINING/Marketing%20Information/P-Modules%20Product%20Update%20Q220120425120048.pptx" target="_blank">Download Slides</a></span></p>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="c7">
+                        <p class="c6">
+                            <span class="c3">23.Apr.2012 11h-12h CET</span></p>
+                    </td>
+                    <td class="c8">
+                        <p class="c6">
+                            <span class="c3">Embedded Boards Market and Product Position</span></p>
+                    </td>
+                    <td class="c4">
+                        <p class="c6">
+                            <span class="c1"><a class="c2" href="http://advantech99.adobeconnect.com/p75du0p99ld/" target="_blank">
+                                View Video</a></span><span class="c3">&nbsp; &nbsp;</span><span class="c1"><a class="c2"
+                                    href="http://advantech99.adobeconnect.com/aeuprod20120423a/" target="_blank">Download Slides</a></span></p>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="c7">
+                        <p class="c6">
+                            <span class="c3">23.Apr,2012 15h-16h CET</span></p>
+                    </td>
+                    <td class="c8">
+                        <p class="c6">
+                            <span class="c3">COM Market and Product Position</span></p>
+                    </td>
+                    <td class="c4">
+                        <p class="c6">
+                            <span class="c1"><a class="c2" href="http://advantech99.adobeconnect.com/p7fb51kqj4w/" target="_blank">
+                                View Video</a></span><span class="c3">&nbsp; &nbsp;</span><span class="c1"><a class="c2"
+                                    href="http://www.google.com/url?q=http%3A%2F%2Fadvantech99.adobeconnect.com%2Faeuprod20120423b%2F&amp;sa=D&amp;sntz=1&amp;usg=AFQjCNG9xsyHubFcIwK6qjIV9D5cr8SwsQ" target="_blank">Download Slides</a></span></p>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+        <p class="c11">
+            <span class="c3"></span>
+        </p>
+
+
+  
+</asp:Content>

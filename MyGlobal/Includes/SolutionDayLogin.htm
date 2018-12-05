@@ -1,0 +1,23 @@
+﻿<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <title></title>
+    <script type="text/javascript">
+        window.onload = function () {
+            formsol.submit();
+        };
+    </script>
+</head>
+<body>
+    <form name="formsol" method=post action="http://www.advantech.com.tw/SolutionDay/login.aspx"> 
+        <input type="hidden" name="UID" value='<%=Session("user_id") %>'> 
+        <input type="hidden" name="ORGID" value="ACL"> 
+        <input type="hidden" name="COMPANYID" value="ACL"> 
+        <input type="hidden" name="Premier_Com" value="RBU" ID="Hidden1"> 
+        <input type="hidden" name="act" value="Sign in"> 
+    </form> 
+    
+
+</body>
+</html>

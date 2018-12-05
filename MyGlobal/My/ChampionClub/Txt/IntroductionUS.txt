@@ -1,0 +1,24 @@
+﻿<div class="main-intro">
+    <div class="intro-heading">
+        Introduction</div>
+    <p>
+        <strong>Advantech Champion Club</strong> is designed exclusively for our Premier Channel Partners (PCP). The program incentivizes specific sales goals and awards points that can be redeemed for various prize levels. All PCP sales are invited to register to join this new program. Awards are given on an individual performance basis. </p>
+    <!-- end .main-intro -->
+</div>
+<div class="main-content">
+    <div class="content-heading">
+        Program Overview</div>
+    <p>
+        Individual sales persons are awarded points for achieving any of the five (4) defined goals:<br />
+1)	New accounts reaching $40K in revenue.<br />
+2)	New product sales (per unit) within 3 months<br />
+3)	Promotional product sales (per unit) within promotional time frame <br />
+4)	Field Sales quarterly quota achievement($12.5K, as set by the Advantech Channel Sales Manager)<br />
+
+To be eligible, minimum annual individual sales revenue is $50,000.
+
+See the <i>Regional Program & Registration</i> link for points per achievement, additional details, and registration. Join today!
+
+    </p>  
+</div>
+

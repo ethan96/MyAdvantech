@@ -1,0 +1,163 @@
+﻿<%@ Page Language="VB" %>
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<script runat="server">
+    Dim strObject As String = "", strObject2 As String = "", strType As String = "", strPartNO As String = ""
+    Protected Sub Page_Load(ByVal sender As Object, ByVal e As System.EventArgs)
+        strObject = Request("Element") : strObject2 = Request("Element2") : strType = Request("Type") : strPartNO = Request("PartNO")
+        Dim Block_Select As String = ""
+        If strObject <> "" Then
+            ViewState("SqlCommand1") = ""
+            'Frank 2012/06/04: Stop using Session("org") and replacing by Left(Session("org_id"), 2)
+            'SqlDataSource2.SelectCommand = "select distinct category_id as part_no, category_desc as product_desc, " & _
+            '" category_id from cbom_catalog_category " & _
+            '" where org= '" & Session("org") & "' and category_id like '%" & strPartNO & "%' and category_type='Category' order by part_no"
+            SqlDataSource2.SelectCommand = "select distinct category_id as part_no, category_desc as product_desc, " & _
+                " category_id from cbom_catalog_category " & _
+                " where org= '" & Left(Session("org_id").ToString.ToUpper, 2) & "' and category_id like '%" & strPartNO & "%' and category_type='Category' order by part_no"
+
+            ViewState("SqlCommand1") = SqlDataSource2.SelectCommand
+            'and (PARENT_CATEGORY_ID = '' or PARENT_CATEGORY_ID = 'root')
+        End If
+        If Not Page.IsPostBack Then
+            'Try
+            gv2.DataBind()
+            'Catch ex As Exception
+            'End Try
+        End If
+        
+    End Sub
+    Protected Sub oSearch(ByVal sender As Object, ByVal e As System.EventArgs) Handles Button1.Click
+        ViewState("SqlCommand1") = ""
+        'Frank 2012/06/04: Stop using Session("org") and replacing by Left(Session("org_id"), 2)
+        'SqlDataSource2.SelectCommand = "select distinct category_id as part_no, category_desc as product_desc, " & _
+        '" category_id from cbom_catalog_category " & _
+        '" where org= '" & Session("org") & "' and category_id like '%" & Me.PartNO.Text & "%' and category_type='Category' order by part_no"
+        SqlDataSource2.SelectCommand = "select distinct category_id as part_no, category_desc as product_desc, " & _
+        " category_id from cbom_catalog_category " & _
+        " where org= '" & Left(Session("org_id").ToString.ToUpper, 2) & "' and category_id like '%" & Me.PartNO.Text & "%' and category_type='Category' order by part_no"
+        ViewState("SqlCommand1") = SqlDataSource2.SelectCommand
+    End Sub
+    
+    'Private Sub AdxDatagrid1_ItemDataBound(ByVal sender As Object, ByVal e As System.Web.UI.WebControls.DataGridItemEventArgs) Handles AdxDatagrid1.ItemDataBound
+
+    '    Dim oDataGridItem As DataGridItem = e.Item
+    '    Dim retVal() As String
+    '    Dim idx As Integer = 0
+    '    Dim oType As ListItemType = e.Item.ItemType
+    '    Dim list_price As Decimal = 0, unit_price As Decimal = 0
+    '    Dim cuu As String = ""
+
+    '    If (oType <> ListItemType.Header And oType <> ListItemType.Footer) Then
+    '        retVal = Me.AdxDatagrid1.VxGetGridItemValue(oDataGridItem)
+    '        'AdxDatagrid1.VxUserFormat(oDataGridItem, 1, "<b>" & retVal(1) & "</b>")
+    '        Dim returnVal As String = e.Item.Cells(1).Text.ToString()
+    '        'e.Item.Attributes.Add("onclick", "javascript:Pick(" & strForm & "," & strObject & "," & retVal(0) & ")")
+    '        Me.AdxDatagrid1.VxUserFormat(oDataGridItem, 1, _
+    '        "<a href=""#"" onclick=" & Chr(34) & _
+    '        "Pick('" & strObject & "','" & strObject2 & "','" & _
+    '        retVal(1) & "','" & Replace(retVal(2), Chr(34), "") & "')" & Chr(34) & ">" & retVal(1) & "</a>")
+    '    End If
+
+    'End Sub
+    
+    Protected Sub SqlDataSource2_Load(ByVal sender As Object, ByVal e As System.EventArgs)
+        If ViewState("SqlCommand1") <> "" Then SqlDataSource2.SelectCommand = ViewState("SqlCommand1")
+    End Sub
+    Protected Sub gv2_RowDataBoundDataRow(ByVal sender As Object, ByVal e As System.Web.UI.WebControls.GridViewRowEventArgs)
+        If e.Row.RowType = DataControlRowType.DataRow Then
+            e.Row.Attributes.Add("onmouseover", "currentcolor=this.style.backgroundColor;this.style.backgroundColor='#FFEEAA'")
+            e.Row.Attributes.Add("onmouseout", "this.style.backgroundColor=currentcolor")
+            e.Row.Cells(1).Text = "<a href=""#"" onclick=" & Chr(34) & _
+            "Pick('" & strObject & "','" & strObject2 & "','" & _
+                    e.Row.Cells(1).Text & "','" & Replace(Replace(e.Row.Cells(2).Text, Chr(34), ""), "'", "`") & "')" & Chr(34) & ">" & e.Row.Cells(1).Text & "</a>"
+            e.Row.Cells(2).Text = e.Row.Cells(2).Text
+        End If
+    End Sub
+</script>
+<script type="text/javascript" language="javascript">
+function Pick(xElement,xElement2,xPart,xDesc){
+//window.opener.froms(xForm).elements(xElement).value = xPart;
+window.opener.aspnetForm.elements('ctl00__main_' + xElement).value = xPart;
+window.opener.aspnetForm.elements('ctl00__main_' + xElement2).value = xDesc;
+self.close();
+}
+</script>
+<html xmlns="http://www.w3.org/1999/xhtml" >
+<head id="Head1" runat="server">
+    <title>Advantech B2B-Europe Online -- Category Inquiry</title>
+ <meta content="Microsoft Visual Studio .NET 7.1" name="GENERATOR"/>
+	<meta content="Visual Basic .NET 7.1" name="CODE_LANGUAGE"/>
+	<meta content="JavaScript" name="vs_defaultClientScript"/>
+	<meta content="http://schemas.microsoft.com/intellisense/ie5" name="vs_targetSchema"/>
+   <link runat="server" id="ebizCss" visible="true" href="../Includes/ebiz.aeu.style.css" rel="stylesheet" type="text/css" />
+    <link href="../Includes/global.css" rel="Stylesheet" type="text/css" />
+    
+</head>
+
+<body>
+    <form id="form1" runat="server">
+    <div>
+        
+    
+    <table width="100%" border="0" cellspacing="0" cellpadding="0" ID="Table1">
+			<tr>
+				<td width="100%" valign="top" align="center" height="10">
+					&nbsp;
+				</td>
+			</tr>
+			<tr>
+				<!-- ******* center column (start) ********-->
+				<td width="100%" valign="top" align="center">
+				<table width="100%"><tr><td align="center" >
+                    Part No:<asp:TextBox ID="PartNO" runat="server"></asp:TextBox><asp:Button ID="Button1"
+                        runat="server" Text="Search" /></td></tr></table>
+                		<sgv:SmartGridView ShowWhenEmpty="true" runat="server" ID="gv2" DataSourceID="SqlDataSource2" AutoGenerateColumns="false" EnableTheming="false" 
+                                                                                        HeaderStyle-HorizontalAlign="Center" AllowSorting="true" AllowPaging="true" PageSize="50" Width="96%" OnRowDataBoundDataRow="gv2_RowDataBoundDataRow">
+                                                                                        <Columns>
+                                                                                            <asp:TemplateField ItemStyle-Width="15px" ItemStyle-HorizontalAlign="Center">
+                                                                                                <headertemplate>
+                                                                                                    No.
+                                                                                                </headertemplate>
+                                                                                                <itemtemplate>
+                                                                                                    <%# Container.DataItemIndex + 1 %>
+                                                                                                </itemtemplate>
+                                                                                            </asp:TemplateField>
+                                                                                            
+                                                                                               <%--<a  href = "javascript:Pick('<%= strObject %>','<%=strObject2 %>','<%# Eval("PART_NO")%>','<%# Eval("PART_NO")%>')"><%#Eval("product_desc")%> </a>--%>
+                                                                                             <asp:BoundField HeaderText="Part No" DataField="part_no" ItemStyle-HorizontalAlign="left" ItemStyle-Width="120px" ItemStyle-Wrap ="false"/>
+                                                                                                
+                                                                                            <asp:BoundField HeaderText="Product Description" DataField="product_desc" ItemStyle-HorizontalAlign="left" ItemStyle-Width="120px" ItemStyle-Wrap ="false" />
+                                                                                            
+                                                                                        </Columns>
+                                                                                        <FooterStyle BackColor="#A4B5BD" ForeColor="White" Font-Bold="True" />
+                                                                                        <RowStyle BackColor="#F7F6F3" ForeColor="#333333" />
+                                                                                        <SelectedRowStyle BackColor="#E2DED6" Font-Bold="True" ForeColor="#333333" />
+                                                                                        <PagerStyle BackColor="#284775" ForeColor="White" HorizontalAlign="Justify"  />
+                                                                                        <HeaderStyle BackColor="#A4B5BD" Font-Bold="True" ForeColor="White" />
+                                                                                        <AlternatingRowStyle BackColor="White" ForeColor="#284775" />
+                                                                                        <PagerSettings PageButtonCount="10" Position="TopAndBottom" />
+                                                                                        <FixRowColumn TableHeight="400" FixRowType="Header" FixColumns="-1" FixRows="-1" />
+                                                                                    </sgv:SmartGridView>
+                                                                                    <asp:SqlDataSource runat="server" ID="SqlDataSource2" ConnectionString="<%$ connectionStrings:B2B %>" 
+                                                                                        SelectCommand="" OnLoad="SqlDataSource2_Load">
+                                                                                    </asp:SqlDataSource>
+				
+                </td>
+				<!-- ******* center column (end) ********-->
+			</tr>
+			<tr valign="middle">
+				<td align="center">
+					<!-- ******* page title (start) ********-->
+					&nbsp;&nbsp;<span class="PageMessageBar">*HINT: Click 'Query' to input query string then 'Go'. Click 'Part No' to apply.</span>
+					<p></p>
+					<!-- ******* page title (end) ********-->
+				</td>
+			</tr>			
+		</table>
+    
+    </div>
+    </form>
+</body>
+</html>

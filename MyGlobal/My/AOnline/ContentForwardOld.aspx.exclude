@@ -1,0 +1,415 @@
+﻿<%@ Page Title="MyAdvantech - Forward Marketing Content to AOnline Customer" Language="VB" MasterPageFile="~/Includes/MyMaster.master" ValidateRequest="false" EnableEventValidation="false" %>
+<%@ Register namespace="eBizAEUControls" tagprefix="uc1" %>
+<%@ Register src="AOnlineFunctionLinks.ascx" tagname="AOnlineFunctionLinks" tagprefix="uc1" %>
+<script runat="server">
+    
+    Protected Sub Page_Load(sender As Object, e As System.EventArgs)
+        If Not Page.IsPostBack Then
+            Dim NewCamp As New AOnlineUtil.AOnlineSalesCampaign(User.Identity.Name)
+            hdCampId.Value = NewCamp.CampaignRowId
+            srcMyList.SelectParameters("CBY").DefaultValue = User.Identity.Name
+            Dim strMyContentCartContents As String = AOnlineUtil.AOnlineSalesCampaign.MyContentCartContents()
+            If Request("ToCHS") IsNot Nothing Then
+                strMyContentCartContents = CharSetConverter.ToSimplified(strMyContentCartContents)
+            ElseIf Request("ToCHT") IsNot Nothing Then
+                strMyContentCartContents = CharSetConverter.ToTraditional(strMyContentCartContents)
+            End If
+            Editor1.Content = _
+                "<table width='750px'>" + _
+                "   <tr style='height:60px'><td>Dear Customer</td></tr>" + _
+                "   <tr><td>" + strMyContentCartContents + "<td></tr>" + _
+                "</table>"
+            Dim conn As New SqlClient.SqlConnection(ConfigurationManager.ConnectionStrings("MYLOCAL_NEW").ConnectionString)
+            Dim cmd As New SqlClient.SqlCommand("select top 1 DEFAULT_SIGNATURE1 from AONLINE_SALES_PROFILE where USERID=@UID and DEFAULT_SIGNATURE1 is not null", conn)
+            cmd.Parameters.AddWithValue("UID", User.Identity.Name) : conn.Open()
+            Dim obj As Object = cmd.ExecuteScalar()
+            conn.Close()
+            If obj IsNot Nothing Then EditorSignature.Content = obj.ToString()
+        End If
+    End Sub
+
+    Protected Sub btn2Email1_Click(sender As Object, e As System.EventArgs)
+        lbMsg.Text = "" : mv.ActiveViewIndex = 1
+    End Sub
+
+    Protected Sub btnEdit1_Click(sender As Object, e As System.EventArgs)
+        lbMsg.Text = "" : mv.ActiveViewIndex = 0
+    End Sub
+
+    Protected Sub btnPreview_Click(sender As Object, e As System.EventArgs)
+        lbMsg.Text = ""
+        Editor2.Content = Editor1.Content + "<br/>" + EditorSignature.Content
+        mv.ActiveViewIndex = 2
+    End Sub
+
+    Protected Sub btnSend1_Click(sender As Object, e As System.EventArgs)
+        lbMsg.Text = ""
+        If String.IsNullOrEmpty(hdCampId.Value) Then
+            lbMsg.Text = "eDM has been delivered, please start from content search again, thank you." : Exit Sub
+        End If
+        If String.IsNullOrEmpty(txtSubject.Text) Then
+            lbMsg.Text = "Email subject is empty" : Exit Sub
+        End If
+        Dim arrTo As New ArrayList
+        If tabconToList.ActiveTabIndex = 0 Then
+            If String.IsNullOrEmpty(txtSendTo.Text) Then
+                lbMsg.Text = "Send To list is empty" : Exit Sub
+            End If
+            txtSendTo.Text = Replace(txtSendTo.Text, ",", ";")
+            Dim strTo() As String = Split(txtSendTo.Text, ";")
+            For Each strEmail As String In strTo
+                If Util.IsValidEmailFormat(Trim(strEmail)) Then
+                    If Not arrTo.Contains(Trim(strEmail)) Then arrTo.Add(Trim(strEmail))
+                Else
+                    lbMsg.Text = strEmail + " is not a valid email format" : Exit Sub
+                End If
+            Next
+            If arrTo.Count >= 100 Then
+                lbMsg.Text = "Please enter less than 100 emails" : Exit Sub
+            End If
+        ElseIf tabconToList.ActiveTabIndex = 1 Then
+            If dlMyList.SelectedIndex <= 0 Then
+                lbMsg.Text = "Please select or create a contact list first" : Exit Sub
+            End If
+        End If
+       
+        If String.IsNullOrEmpty(Editor1.Content) Then
+            lbMsg.Text = "Content is empty" : Exit Sub
+        End If
+        ProcessSending()
+    End Sub
+    
+    Function GetCandidateSendToEmailList() As ArrayList
+        Dim arrTo As New ArrayList
+        If tabconToList.ActiveTabIndex = 0 Then
+            txtSendTo.Text = Replace(txtSendTo.Text, ",", ";")
+            Dim strTo() As String = Split(txtSendTo.Text, ";")
+            For Each strEmail As String In strTo
+                If Util.IsValidEmailFormat(Trim(strEmail)) Then
+                    If Not arrTo.Contains(Trim(strEmail)) Then arrTo.Add(Trim(strEmail))
+                End If
+            Next
+        ElseIf tabconToList.ActiveTabIndex = 1 Then
+            If dlMyList.SelectedIndex > 0 Then
+                AOnlineUtil.AOnlineSalesCampaign.ExportContactFromMyContactList(dlMyList.SelectedValue, arrTo)
+            End If
+        End If
+        Return arrTo
+    End Function
+    
+    Sub ProcessSending()
+        Dim strContent As String = GetEmailContent()
+        Dim arrTo As ArrayList = GetCandidateSendToEmailList()
+        AOnlineUtil.AOnlineSalesCampaign.UpdateContent(hdCampId.Value, txtSubject.Text, "", strContent, EditorSignature.Content, User.Identity.Name)
+        AOnlineUtil.AOnlineSalesCampaign.ReplaceAndUpdateCampaignContentHyperlinkImg(strContent, hdCampId.Value, strContent)
+        AOnlineUtil.AOnlineSalesCampaign.Draft2Formal(hdCampId.Value, User.Identity.Name)
+        AOnlineUtil.AOnlineSalesCampaign.ImportContacts(hdCampId.Value, User.Identity.Name, arrTo)
+        Dim strcampId As String = hdCampId.Value
+        hdCampId.Value = ""
+        Dim cmd As SqlClient.SqlCommand = Nothing, conn As New SqlClient.SqlConnection(ConfigurationManager.ConnectionStrings("MYLOCAL_NEW").ConnectionString)
+        conn.Open()
+        For Each strEmail As String In arrTo
+            Dim tmpTo As New ArrayList
+            tmpTo.Add(New CampaignSendToEmail(New Net.Mail.MailAddress(strEmail)))
+            Try
+                Dim strContactContent As String = ""
+                Dim cmdContactId As New SqlClient.SqlCommand("select top 1 row_id from AONLINE_SALES_CAMPAIGN_CONTACT where CAMPAIGN_ROW_ID=@CID and CONTACT_EMAIL=@EM", conn)
+                cmdContactId.Parameters.AddWithValue("CID", strcampId) : cmdContactId.Parameters.AddWithValue("EM", strEmail)
+                Dim tmpContactId As String = cmdContactId.ExecuteScalar()
+                If tmpContactId IsNot Nothing Then
+                    AOnlineUtil.AOnlineSalesCampaign.ReplaceHyperlinkImgWithContactRowId(strContent, tmpContactId, strContactContent)
+                    If AOnlineUtil.AOnlineSalesCampaign.SendAOnlineEDM(tmpTo.ToArray(GetType(CampaignSendToEmail)), txtSubject.Text, strContactContent, True, "") Then
+                        cmd = New SqlClient.SqlCommand( _
+                       "update AONLINE_SALES_CAMPAIGN_CONTACT set IS_SENT=1, VIA_SMTP_ADDR=@SM, SENT_DATE=getdate() where campaign_row_id=@CID and CONTACT_EMAIL=@EM", conn)
+                        With cmd.Parameters
+                            .AddWithValue("CID", strcampId) : .AddWithValue("EM", strEmail) : .AddWithValue("SM", CType(tmpTo(0), CampaignSendToEmail).SendVia)
+                        End With
+                        If cmd.Connection.State <> ConnectionState.Open Then cmd.Connection.Open()
+                        cmd.ExecuteNonQuery()
+                    End If
+                End If
+               
+            Catch ex As Exception
+                lbMsg.Text = "Error occurred while sending email to " + strEmail
+                conn.Close()
+                Util.InsertMyErrLog(ex.ToString())
+                Exit Sub
+            End Try
+        Next
+        conn.Close()
+        txtSendTo.Text = "" : txtSubject.Text = "" : Editor1.Content = "" : EditorSignature.Content = ""
+        lbMsg.Text = "Email has been delivered, thank you!"
+    End Sub
+    
+    Function GetEmailContent() As String
+        Dim sb As New System.Text.StringBuilder
+        sb.Append(Editor1.Content + "<br/>")
+        sb.Append(EditorSignature.Content + "<br/>")
+        Return sb.ToString()
+    End Function
+    
+    Protected Sub TimerAtt_Tick(sender As Object, e As System.EventArgs)
+        'TimerAtt.Interval = 9999
+        'Try
+        '    lbAtts.Text = "Downloading..."
+        '    If hdSrcId.Value <> "" And hdSearchSid.Value <> "" Then
+        '        Dim obj As Object = dbUtil.dbExecuteScalar("MyLocal", _
+        '            "select top 1 ORIGINAL_URL from KM_SEARCH_TMP_DETAIL where ORIGINAL_URL like 'http%//%.%' and SOURCE_ID='" + hdSrcId.Value + "' and SEARCH_ROW_ID='" + hdSearchSid.Value + "'")
+        '        If obj IsNot Nothing Then
+        '            Dim strDlUrl As String = obj.ToString()
+        '            Dim webRequest As Net.HttpWebRequest = _
+        '                DirectCast(Net.WebRequest.Create(strDlUrl), Net.HttpWebRequest)
+        '            Dim webResponse As Net.HttpWebResponse = DirectCast(webRequest.GetResponse(), Net.HttpWebResponse)
+        '            If webResponse.ContentLength <= 1024 * 1000 * 5 Then
+        '                Dim fName As String = webResponse.ResponseUri.AbsoluteUri.Substring(webResponse.ResponseUri.AbsoluteUri.LastIndexOf("/") + 1)
+        '                Dim extName As String = fName.Substring(fName.LastIndexOf(".") + 1).ToLower()
+        '                If extName = "ppt" Or extName = "pptx" Or extName = "pdf" Or extName = "doc" Or extName = "docx" _
+        '                    Or extName = "jpg" Or extName = "gif" Or extName = "png" Or extName = "psd" Or extName = "ps" Or extName = "xls" _
+        '                    Or extName = "xlsx" Or extName = "bmp" Or extName = "htm" Or extName = "html" Or extName = "jpeg" _
+        '                    Or extName = "rar" Or extName = "zip" Or extName = "txt" Then
+        '                    lbAtts.Text = "<a target='_blank' href='" + strDlUrl + "'>" + fName + "</a>"
+        '                    Dim wc As New Net.WebClient()
+        '                    Dim bs() As Byte = wc.DownloadData(strDlUrl)
+        '                    AOnlineUtil.AOnlineSalesCampaign.UpdateAttachment(hdCampId.Value, bs, fName, User.Identity.Name)
+        '                Else
+        '                    lbAtts.Text = extName + " cannot be attached"
+        '                    lbAtts.Text = ""
+        '                End If
+        '            Else
+        '                lbAtts.Text = ""
+        '            End If
+        '        Else
+        '            lbAtts.Text = ""
+        '        End If
+        '    Else
+        '        'lbAtts.Text = "no id"
+        '    End If
+        'Catch ex As Exception
+        '    lbAtts.Text = ex.ToString()
+        'End Try
+        'TimerAtt.Enabled = False
+    End Sub
+    
+    Protected Sub dlMyList_SelectedIndexChanged(sender As Object, e As System.EventArgs)
+        If dlMyList.SelectedIndex > 0 Then
+            hySeeMyList.NavigateUrl = "MyContactList.aspx?ListID=" + dlMyList.SelectedValue : hySeeMyList.Visible = True
+        Else
+            hySeeMyList.Visible = False
+        End If
+    End Sub
+    
+    Protected Sub dlMyList_DataBound(sender As Object, e As System.EventArgs)
+        dlMyList.Items.Insert(0, New ListItem("select...", ""))
+    End Sub
+
+    Protected Sub lnkSave2MySignature_Click(sender As Object, e As System.EventArgs)
+      
+        lbSaveSig.Text = ""
+        If String.IsNullOrEmpty(EditorSignature.Content) Then
+            lbSaveSig.Text = "Signature is empty" : Exit Sub
+        End If
+        Dim conn As New SqlClient.SqlConnection(ConfigurationManager.ConnectionStrings("MYLOCAL_NEW").ConnectionString)
+        Dim cmd As New SqlClient.SqlCommand( _
+            " delete from AONLINE_SALES_PROFILE where USERID=@UID; " + _
+            " insert into AONLINE_SALES_PROFILE (USERID, DEFAULT_SIGNATURE1) values (@UID,@SIG1)", conn)
+        cmd.Parameters.AddWithValue("UID", User.Identity.Name) : cmd.Parameters.AddWithValue("SIG1", EditorSignature.Content)
+        conn.Open() : cmd.ExecuteNonQuery() : conn.Close()
+        lbSaveSig.Text = "Saved"
+       
+    End Sub
+
+    Protected Sub hlOutlook_Load(ByVal sender As Object, ByVal e As System.EventArgs)
+        'Dim mail_str As String = ""
+        'Dim email_subjectlineTitle As String = " " + txtSubject.Text
+        'Dim email_body As String = RegularExpressions.Regex.Replace(Editor1.Content.Replace("<tr>", "%0A"), "<[^>]*>", String.Empty)
+        'Dim arrTo As New ArrayList
+        'If tabconToList.ActiveTabIndex = 0 Then
+        '    txtSendTo.Text = Replace(txtSendTo.Text, ",", ";")
+        '    Dim strTo() As String = Split(txtSendTo.Text, ";")
+        '    For Each strEmail As String In strTo
+        '        If Util.IsValidEmailFormat(Trim(strEmail)) Then
+        '            If Not arrTo.Contains(Trim(strEmail)) Then arrTo.Add(Trim(strEmail))
+        '        End If
+        '    Next
+        'ElseIf tabconToList.ActiveTabIndex = 1 Then
+        '    If dlMyList.SelectedIndex > 0 Then
+        '        AOnlineUtil.AOnlineSalesCampaign.ExportContactFromMyContactList(dlMyList.SelectedValue, arrTo)
+        '    End If
+        'End If
+        'mail_str = ("mailto:" + String.Join(";", arrTo.ToArray()))
+        'mail_str += "?subject=" + email_subjectlineTitle
+        'mail_str += ("&body=" + (email_body.Substring(0, 1200) + "..."))
+        'mail_str += "&bcc=f9@advantech.corp"
+        'hlOutlook.NavigateUrl = mail_str
+    End Sub
+</script>
+
+<asp:Content ID="Content1" ContentPlaceHolderID="_main" Runat="Server">
+    <asp:HiddenField runat="server" ID="hdCampId" />
+    <table width="100%">
+        <tr align="right"><td align="right"><uc1:AOnlineFunctionLinks ID="AOnlineFunctionLinks1" runat="server" /></td></tr>
+    </table>
+    <h2 style="color:Navy">Forward Marketing Content to Customer</h2><br />
+    <table>
+        <tr>
+            <td>
+                <a style="font-size: x-small" href="ContentSearch.aspx">Search Content</a>
+            </td>
+            <td>|</td>
+            <td>
+                <a style="font-size: x-small" href="ContactMining.aspx">Search Contact</a>
+            </td>
+        </tr>
+    </table>
+    <asp:UpdatePanel runat="server" ID="upMsg" UpdateMode="Conditional">
+        <ContentTemplate>
+            <asp:Label runat="server" ID="lbMsg" Font-Bold="true" ForeColor="Tomato" Height="20px" />
+        </ContentTemplate>
+        <Triggers>
+            <asp:AsyncPostBackTrigger ControlID="btnSend1" EventName="Click" />
+            <asp:AsyncPostBackTrigger ControlID="btnSend2" EventName="Click" />
+        </Triggers>
+    </asp:UpdatePanel>
+    <asp:MultiView runat="server" ID="mv" ActiveViewIndex="0" ViewStateMode="Enabled">
+        <asp:View runat="server" ID="v1">
+            <h2>Edit Email Content</h2>
+            <table width="100%" style="border-style:groove">               
+                <tr>
+                    <td>
+                        <ajaxToolkit:Editor runat="server" ID="Editor1" Width="890px" Height="400px" />
+                    </td>
+                </tr>
+                <tr>
+                    <th align="left" style="background-color:#DEE1E7">Signature:</th>                    
+                </tr>
+                <tr>
+                    <td>
+                        <table>
+                            <tr>
+                                <td colspan="3"><uc1:NoToolBarEditor runat="server" ID="EditorSignature" Width="500px" Height="150px" /></td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <asp:LinkButton runat="server" ID="lnkSave2MySignature" Text="Save as My Signature"
+                                        OnClick="lnkSave2MySignature_Click" />
+                                </td>
+                                <td>
+                                    <asp:UpdatePanel runat="server" ID="upSaveSig" UpdateMode="Conditional">
+                                        <ContentTemplate>
+                                            <asp:Label runat="server" ID="lbSaveSig" ForeColor="Tomato" /></ContentTemplate>
+                                        <Triggers>
+                                            <asp:AsyncPostBackTrigger ControlID="lnkSave2MySignature" EventName="Click" />
+                                        </Triggers>
+                                    </asp:UpdatePanel>
+                                </td>
+                                <td style="width:300px">&nbsp;</td>
+                            </tr>
+                        </table>
+                    </td>
+                </tr>
+                <tr style="display:none">
+                    <td>
+                        <table>
+                            <tr>
+                                <th align="left">Attachments:</th>
+                                <td>
+                                                                    
+                                </td>
+                            </tr>
+                        </table>
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <table>
+                            <tr>
+                                <td><asp:Button runat="server" ID="btn2Email1" Text="Email Subject & To" OnClick="btn2Email1_Click" /></td>
+                                <td><asp:Button runat="server" ID="btnPreview2" Text="Preview" OnClick="btnPreview_Click" /></td>
+                                <td><asp:HyperLink runat="server" ID="hlOutlook" Text="Forward via Outlook" OnLoad="hlOutlook_Load" Visible="false" /></td>
+                            </tr>
+                        </table>
+                    </td>
+                </tr>
+            </table> 
+        </asp:View>
+        <asp:View runat="server" ID="v2">
+            <h2>Email Subject & Send-To List</h2>
+            <table width="100%">
+                <tr>
+                    <th align="left" style="width:60px">Subject:</th>
+                    <td><asp:TextBox runat="server" ID="txtSubject" Width="400px" /></td>
+                </tr>
+                <tr>
+                    <th align="left" style="width:60px">To:</th>
+                    <td>
+                        <ajaxToolkit:TabContainer runat="server" ID="tabconToList">
+                            <ajaxToolkit:TabPanel HeaderText="Enter Email" runat="server" ID="tab1">
+                                <ContentTemplate>
+                                    <asp:TextBox runat="server" ID="txtSendTo" Width="500px" TextMode="MultiLine" Height="50px" />&nbsp;(Split by ; for multiple emails)
+                                </ContentTemplate>
+                            </ajaxToolkit:TabPanel>
+                            <ajaxToolkit:TabPanel HeaderText="My Contact List" runat="server" ID="tab2">
+                                <ContentTemplate>
+                                    <table>
+                                        <tr>
+                                            <td>
+                                                <asp:DropDownList runat="server" ID="dlMyList" DataTextField="LIST_NAME" DataSourceID="srcMyList"
+                                                    DataValueField="ROW_ID" OnSelectedIndexChanged="dlMyList_SelectedIndexChanged"
+                                                    AutoPostBack="true" OnDataBound="dlMyList_DataBound" />
+                                                &nbsp;
+                                            </td>
+                                            <td>
+                                                <asp:UpdatePanel runat="server" ID="upMyListDetail" UpdateMode="Conditional">
+                                                    <ContentTemplate>
+                                                        <asp:HyperLink Visible="false" runat="server" ID="hySeeMyList" NavigateUrl='MyContactList.aspx' Text="See Contacts"
+                                                            Target="_blank" />
+                                                    </ContentTemplate>
+                                                    <Triggers>
+                                                        <asp:AsyncPostBackTrigger ControlID="dlMyList" EventName="SelectedIndexChanged" />
+                                                    </Triggers>
+                                                </asp:UpdatePanel>
+                                            </td>
+                                        </tr>
+                                    </table>                                                              
+                                    <asp:SqlDataSource runat="server" ID="srcMyList" ConnectionString="<%$ConnectionStrings:MyLocal_New %>"
+                                        SelectCommand="select top 10 ROW_ID, LIST_NAME, CREATED_DATE, (select count(z.row_id) from AONLINE_SALES_CONTACTLIST_DETAIL z where z.LIST_ID=a.ROW_ID) as contacts 
+                                        from AONLINE_SALES_CONTACTLIST_MASTER a where a.USERID=@CBY order by CREATED_DATE desc">
+                                        <SelectParameters>
+                                            <asp:Parameter ConvertEmptyStringToNull="false" Name="CBY" />
+                                        </SelectParameters>
+                                    </asp:SqlDataSource> 
+                                </ContentTemplate>
+                            </ajaxToolkit:TabPanel>                            
+                        </ajaxToolkit:TabContainer>
+                    </td>
+                </tr>
+                <tr>
+                    <td colspan="2">
+                        <asp:Button runat="server" ID="btnEdit1" Text="Back to Edit" OnClick="btnEdit1_Click" />&nbsp;
+                        <asp:Button runat="server" ID="btnPreview" Text="Preview" OnClick="btnPreview_Click" />&nbsp;
+                        <asp:Button runat="server" ID="btnSend1" Text="Send" OnClick="btnSend1_Click" />
+                    </td>
+                </tr>
+            </table>
+        </asp:View>
+        <asp:View runat="server" ID="v3">
+            <h2>Preview Email Content</h2>
+            <table width="100%">
+                <tr>
+                    <td><uc1:NoToolBarEditor2 runat="server" ID="Editor2" ActiveMode="Preview" Width="890px" Height="500px" /></td>
+                </tr>
+                <tr>
+                    <td>
+                        <table>
+                            <tr>
+                                <td><asp:Button runat="server" ID="btnEdit2" Text="Back to Edit" OnClick="btnEdit1_Click" /></td>
+                                <td><asp:Button runat="server" ID="btn2Email2" Text="Back to Email Subject & To" OnClick="btn2Email1_Click" /></td>
+                                <td><asp:Button runat="server" ID="btnSend2" Text="Send" OnClick="btnSend1_Click" /></td>
+                            </tr>
+                        </table>
+                    </td>
+                </tr>
+            </table>
+        </asp:View>
+    </asp:MultiView>
+</asp:Content>

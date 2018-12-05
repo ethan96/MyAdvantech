@@ -1,0 +1,316 @@
+﻿<%@ Page Title="MyAdvantech - AEU Account Analysis" Language="VB" MasterPageFile="~/Includes/MyMaster.master" %>
+<%@ MasterType VirtualPath="~/Includes/MyMaster.master" %>
+<script runat="server">
+
+    Function IsAEUMarcom() As Boolean
+        Return True
+    End Function
+    
+    <Services.WebMethod(enablesession:=True)> _
+    <Web.Script.Services.ScriptMethod()> _
+    Public Shared Function AutoSuggestANACP(ByVal prefixText As String, ByVal count As Integer) As String()
+        Dim dt As DataTable = dbUtil.dbGetDataTable("MY", String.Format( _
+        "select distinct top 20 account_name from siebel_account where rbu in ('ADL','AFR','AIT','AUK','AEE','ABN') and account_name like N'%{0}%' order by account_name ", prefixText.Trim().Replace("'", "").Replace("*", "%")))
+        If dt.Rows.Count > 0 Then
+            Dim str(dt.Rows.Count - 1) As String
+            For i As Integer = 0 To dt.Rows.Count - 1
+                str(i) = dt.Rows(i).Item(0)
+            Next
+            Return str
+        End If
+        Return Nothing
+    End Function
+    
+    <Services.WebMethod(enablesession:=True)> _
+    <Web.Script.Services.ScriptMethod()> _
+    Public Shared Function AutoSuggestANACPSales(ByVal prefixText As String, ByVal count As Integer) As String()
+        Dim dt As DataTable = dbUtil.dbGetDataTable("MY", String.Format( _
+        "select distinct top 20 primary_sales_email from siebel_account where rbu in ('ADL','AFR','AIT','AUK','AEE','ABN') and primary_sales_email like N'%{0}%' order by primary_sales_email ", prefixText.Trim().Replace("'", "").Replace("*", "%")))
+        If dt.Rows.Count > 0 Then
+            Dim str(dt.Rows.Count - 1) As String
+            For i As Integer = 0 To dt.Rows.Count - 1
+                str(i) = dt.Rows(i).Item(0)
+            Next
+            Return str
+        End If
+        Return Nothing
+    End Function
+    
+    Protected Sub AccSrc_Selecting(ByVal sender As Object, ByVal e As System.Web.UI.WebControls.SqlDataSourceSelectingEventArgs)
+        e.Command.CommandTimeout = 600
+    End Sub
+    
+    Function GetAccountSql() As String
+        Dim sb As New System.Text.StringBuilder
+        With sb
+            .AppendLine(String.Format(" SELECT a.ROW_ID, a.ERP_ID, a.ACCOUNT_NAME, a.ACCOUNT_STATUS, a.PHONE_NUM, a.URL,  "))
+            .AppendLine(String.Format(" a.ACCOUNT_TYPE, a.RBU, a.PRIMARY_SALES_EMAIL, a.PARENT_ROW_ID, "))
+            .AppendLine(String.Format(" a.COMPETITOR_FLAG, a.PARTNER_FLAG, a.COUNTRY, a.CITY, a.ADDRESS, a.ZIPCODE, a.BAA,  "))
+            .AppendLine(String.Format(" a.CREATED, a.LAST_UPDATED, a.PriOwnerDivision, a.PriOwnerRowId, a.PriOwnerPosition, a.LOCATION,  "))
+            .AppendLine(String.Format(" a.ACCOUNT_TEAM, a.ADDRESS2, a.ACCOUNT_CC_GRADE, a.CURRENCY,  "))
+            .AppendLine(String.Format(" b.salesoffice, b.salesgroup, IsNull(b.company_id,'N/A') as SAP_COMPANY_ID, c.YearOpty, c.YearAct "))
+            .AppendLine(String.Format(" FROM SIEBEL_ACCOUNT AS a "))
+            .AppendLine(String.Format(" left join sap_dimcompany b on a.erp_id=b.company_id inner join siebel_account_stat c on a.row_id=c.row_id "))
+            If Util.GetCheckedCountFromCheckBoxList(cblAllOrgs) > 0 Then
+                .AppendLine(String.Format(" WHERE a.RBU in {0} ", Util.GetInStrinFromCheckBoxList(cblAllOrgs)))
+            Else
+                .AppendLine(String.Format(" WHERE a.RBU in ('ADL','AFR','AIT','AUK','AEE','ABN') "))
+            End If
+          
+            If txtAccName.Text.Trim() <> "" Then
+                .AppendLine(String.Format(" and a.account_name like N'%{0}%' ", txtAccName.Text.Trim().Replace("'", "''").Replace("*", "%")))
+            End If
+            If txtAccSales.Text.Trim() <> "" Then
+                .AppendLine(String.Format(" and a.primary_sales_email like N'%{0}%' ", txtAccSales.Text.Trim().Replace("'", "''").Replace("*", "%")))
+            End If
+            If Util.GetCheckedCountFromCheckBoxList(cblAccStatus) > 0 Then
+                .AppendLine(String.Format(" and a.account_status in {0} ", Util.GetInStrinFromCheckBoxList(cblAccStatus)))
+            Else
+                gvAccount.DataSource = Nothing : gvAccount.DataBind()
+                Return ""
+            End If
+            .AppendLine(String.Format(" ORDER BY a.ACCOUNT_NAME "))
+            'Response.Write(sb.ToString())
+        End With
+        Return sb.ToString()
+    End Function
+    
+    Protected Sub Page_Init(ByVal sender As Object, ByVal e As System.EventArgs)
+        If Not Page.IsPostBack Then
+            'Session("user_id") = "tc.chen@advantech.com.tw"
+          
+            'If Util.IsAEUIT() = False AndAlso IsAEUMarcom() = False Then
+            '    Response.Redirect("../home.aspx")
+            'End If
+            Me.txtAccName.Attributes("autocomplete") = "off" : Me.txtAccSales.Attributes("autocomplete") = "off"
+            AccSrc.SelectCommand = GetAccountSql()
+            'imgXls.Visible = Util.IsInternalUser(Session("user_id"))
+        End If
+    End Sub
+    
+    Protected Sub gvAccount_PageIndexChanging(ByVal sender As Object, ByVal e As System.Web.UI.WebControls.GridViewPageEventArgs)
+        AccSrc.SelectCommand = GetAccountSql()
+    End Sub
+
+    Protected Sub gvAccount_Sorting(ByVal sender As Object, ByVal e As System.Web.UI.WebControls.GridViewSortEventArgs)
+        AccSrc.SelectCommand = GetAccountSql()
+    End Sub
+    
+    Protected Sub btnQueryAccount_Click(ByVal sender As Object, ByVal e As System.EventArgs)
+        lbMsg.Text=""
+        gvAccount.PageIndex = 0 : AccSrc.SelectCommand = GetAccountSql()
+    End Sub
+
+    Protected Sub gvAccount_RowCreated(ByVal sender As Object, ByVal e As System.Web.UI.WebControls.GridViewRowEventArgs)
+        If Not (e.Row Is Nothing) AndAlso e.Row.RowType = DataControlRowType.Header Then
+            Dim GridView1 As GridView = sender
+            For Each cell As TableCell In e.Row.Cells
+                If cell.HasControls Then
+                    Dim button As LinkButton = DirectCast(cell.Controls(0), LinkButton)
+                    If Not (button Is Nothing) Then
+                        Dim image As New ImageButton
+                        image.ImageUrl = "/Images/sort_1.jpg"
+                        image.CommandArgument = button.CommandArgument : image.CommandName = button.CommandName
+                        If GridView1.SortExpression = button.CommandArgument Then
+                            If GridView1.SortDirection = SortDirection.Ascending Then
+                                image.ImageUrl = "/Images/sort_2.jpg"
+                            Else
+                                image.ImageUrl = "/Images/sort_1.jpg"
+                            End If
+                        End If
+                        cell.Controls.Add(image)
+                    End If
+                End If
+            Next
+        End If
+    End Sub
+
+    Protected Sub gvAccount_DataBound(ByVal sender As Object, ByVal e As System.EventArgs)
+        If txtAccName.Text.Trim() <> "" AndAlso gvAccount.Rows.Count = 0 Then
+            Dim at As Object = dbUtil.dbExecuteScalar("MY", String.Format( _
+            " select top 1 account_status from siebel_account " + _
+            " where account_name=N'{0}' and account_status is not null and account_status<>''", txtAccName.Text.Replace("'", "''")))
+            If at IsNot Nothing Then
+                lbMsg.Text = txtAccName.Text + "'s account status is " + at.ToString()
+            Else
+                lbMsg.Text = "ya"
+            End If
+        End If
+    End Sub
+
+    Protected Sub imgXls_Click(ByVal sender As Object, ByVal e As System.Web.UI.ImageClickEventArgs)
+        If GetAccountSql() <> "" Then
+            Util.DataTable2ExcelDownload(dbUtil.dbGetDataTable("MY", GetAccountSql()), "AEUIT_AEU_Accounts.xls")
+        End If
+    End Sub
+
+    Protected Sub Page_Load(ByVal sender As Object, ByVal e As System.EventArgs)
+        If Not Page.IsPostBack Then
+            Me.Master.LogoImgPath = "~/Images/dm_logo.JPG"
+            If MailUtil.IsInRole("ITD.ACL") = False AndAlso MailUtil.IsInRole("AEU.Marcoms") = False Then
+                Response.Redirect("../../home.aspx")
+            End If
+        End If
+    End Sub
+</script>
+
+<asp:Content ID="Content1" ContentPlaceHolderID="_main" Runat="Server">
+    <table width="100%">
+        <tr>
+            <th align="left" style="height:10px; color:Navy;"><h2>AEU Account Analysis</h2></th>
+        </tr>
+        <tr>
+            <td>
+                <table>
+                    <tr>
+                        <th align="left">Account Name</th>
+                    </tr>
+                    <tr>
+                        <td>
+                            <ajaxToolkit:AutoCompleteExtender runat="server" ID="aext1" TargetControlID="txtAccName" 
+                                ServiceMethod="AutoSuggestANACP" MinimumPrefixLength="0" CompletionInterval="100" />
+                            <asp:TextBox runat="server" ID="txtAccName" Width="320px" />
+                        </td>
+                    </tr>
+                    <tr>                        
+                        <th align="left">Account Primary Owner</th>
+                    </tr>
+                    <tr>
+                        <td>
+                            <ajaxToolkit:AutoCompleteExtender runat="server" ID="aext2" TargetControlID="txtAccSales" 
+                                ServiceMethod="AutoSuggestANACPSales" MinimumPrefixLength="0" CompletionInterval="100" />
+                            <asp:TextBox runat="server" ID="txtAccSales" Width="260px" />
+                        </td>
+                    </tr>
+                    <tr valign="top" style="display:block">                        
+                        <th align="left">Org:</th>
+                        <td>
+                            <table>
+                                <tr valign="top">
+                                    <td valign="middle">
+                                        <input id="cbAllOrg" type="checkbox" value="value" onclick="checkAllOrg();" style="font-weight:bold"><b>All</b></input>
+                                    </td>
+                                    <td>
+                                        <asp:CheckBoxList runat="server" ID="cblAllOrgs" RepeatColumns="6" RepeatDirection="Horizontal">
+                                            <asp:ListItem Value="ADL" Selected="True" />
+                                            <asp:ListItem Value="AFR" Selected="True" />
+                                            <asp:ListItem Value="AIT" Selected="True" />
+                                            <asp:ListItem Value="AUK" Selected="True" />
+                                            <asp:ListItem Value="ABN" Selected="True" />
+                                            <asp:ListItem Value="AEE" Selected="True" />
+                                        </asp:CheckBoxList>
+                                    </td>
+                                </tr>
+                            </table>                            
+                        </td>
+                    </tr>
+                    <tr valign="top" style="display:block">
+                        <th align="left">Account Status:</th>
+                        <td>
+                            <table>
+                                <tr valign="top">
+                                    <td valign="middle">
+                                        <input id="cbAllAstatus" type="checkbox" value="value" onclick="checkAllAstatus();" style="font-weight:bold"><b>All</b></input>
+                                    </td>
+                                    <td>
+                                        <asp:CheckBoxList runat="server" ID="cblAccStatus" RepeatColumns="4" RepeatDirection="Horizontal">
+                                            <asp:ListItem Value="01-Platinum Channel Partner" Selected="True" />
+                                            <asp:ListItem Value="01-Premier Channel Partner" Selected="True" />
+                                            <asp:ListItem Value="02-Gold Channel Partner" Selected="True" />
+                                            <asp:ListItem Value="03-Certified Channel Partner" Selected="True" />
+                                            <asp:ListItem Value="04-Premier Key Account" Selected="True" />
+                                            <asp:ListItem Value="05-D&Ms PKA" Selected="True" />
+                                            <asp:ListItem Value="06G-Golden Key Account(ACN)" />
+                                            <asp:ListItem Value="06-Key Account" Selected="True" />
+                                            <asp:ListItem Value="06P-Potential Key Account" Selected="True" />
+                                            <asp:ListItem Value="07-General Account" Selected="True" />
+                                            <asp:ListItem Value="08-General Account(List Price)" />
+                                            <asp:ListItem Value="08-Partner's Existing Customer" />
+                                            <asp:ListItem Value="09-Assigned to Partner" />
+                                            <asp:ListItem Value="09-Partner's Existing Customer" />
+                                            <asp:ListItem Value="10-Sales Contact" Selected="True" />
+                                            <asp:ListItem Value="11-Prospect" Selected="True" />
+                                            <asp:ListItem Value="11-Sales Contact" Selected="True" />
+                                            <asp:ListItem Value="12-Leads" Selected="True" />
+                                            <asp:ListItem Value="13-Press/Media" />
+                                            <asp:ListItem Value="14-Inactive" />
+                                            <asp:ListItem Value="15-Unverified" />
+                                            <asp:ListItem Value="16-Service" />
+                                        </asp:CheckBoxList>
+                                    </td>
+                                </tr>
+                            </table>                            
+                        </td>
+                    </tr>
+                    <tr>
+                        <td colspan="3" align="center"><asp:Button runat="server" ID="btnQueryAccount" Text="Search" OnClick="btnQueryAccount_Click" /></td>
+                    </tr>
+                    <tr>
+                        <td colspan="3">
+                            <asp:UpdatePanel runat="server" ID="upMsg" UpdateMode="Conditional">
+                                <ContentTemplate>
+                                    <asp:Label runat="server" ID="lbMsg" Font-Bold="true" ForeColor="Tomato" Font-Size="Larger" />
+                                </ContentTemplate>
+                                <Triggers>
+                                    <asp:AsyncPostBackTrigger ControlID="btnQueryAccount" EventName="Click" />
+                                </Triggers>
+                            </asp:UpdatePanel>
+                        </td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <asp:UpdatePanel runat="server" ID="up1" UpdateMode="Conditional">
+                    <ContentTemplate>    
+                        <asp:ImageButton runat="server" ID="imgXls" ImageUrl="~/Images/excel.gif" AlternateText="Download" OnClick="imgXls_Click" />                   
+                        <asp:GridView runat="server" ID="gvAccount" Width="98%" AutoGenerateColumns="false" PageSize="50" 
+                            AllowPaging="true" AllowSorting="true" PagerSettings-Position="TopAndBottom" DataSourceID="AccSrc" 
+                            OnPageIndexChanging="gvAccount_PageIndexChanging" OnSorting="gvAccount_Sorting" EnableTheming="false" 
+                            RowStyle-BackColor="#FFFFFF" AlternatingRowStyle-BackColor="#ebebeb" HeaderStyle-BackColor="#dcdcdc" 
+                            BorderWidth="1" BorderColor="#d7d0d0" HeaderStyle-ForeColor="Black" BorderStyle="Solid"
+                            PagerStyle-BackColor="#ffffff" OnRowCreated="gvAccount_RowCreated" 
+                            PagerStyle-BorderWidth="0" PagerStyle-BorderColor="White" OnDataBound="gvAccount_DataBound">
+                            <Columns>
+                                <asp:HyperLinkField HeaderText="Account Name" DataNavigateUrlFields="ROW_ID" 
+                                    DataNavigateUrlFormatString="~/DM/CustomerDashboard.aspx?ROWID={0}" 
+                                    DataTextField="ACCOUNT_NAME" Target="_blank" SortExpression="ACCOUNT_NAME" />
+                                <asp:BoundField HeaderText="Account Status" DataField="ACCOUNT_STATUS" SortExpression="ACCOUNT_STATUS" />
+                                <asp:BoundField HeaderText="Org." DataField="RBU" SortExpression="RBU" ItemStyle-HorizontalAlign="Center" />
+                                <asp:BoundField HeaderText="Primary Sales" DataField="PRIMARY_SALES_EMAIL" SortExpression="PRIMARY_SALES_EMAIL" />
+                                <asp:BoundField HeaderText="Opportunities in 1 Year" DataField="YearOpty" SortExpression="YearOpty" ItemStyle-HorizontalAlign="Center" />
+                                <asp:BoundField HeaderText="Activities in 1 Year" DataField="YearAct" SortExpression="YearAct" ItemStyle-HorizontalAlign="Center" />
+                            </Columns>
+                        </asp:GridView>
+                        <asp:SqlDataSource runat="server" ID="AccSrc" ConnectionString="<%$ConnectionStrings:MY %>" OnSelecting="AccSrc_Selecting" />
+                    </ContentTemplate>
+                    <Triggers>
+                        <asp:AsyncPostBackTrigger ControlID="btnQueryAccount" EventName="Click" />
+                        <asp:PostBackTrigger ControlID="imgXls" />
+                    </Triggers>
+                </asp:UpdatePanel>
+            </td>
+        </tr>
+    </table>
+    <script type="text/javascript">
+        function checkAllAstatus() {
+            //alert('aaaa');
+            //alert(document.getElementById('cbAllAstatus').checked);
+            var ck = document.getElementById('cbAllAstatus').checked;
+            var cbs = document.getElementById('<%=cblAccStatus.ClientID %>').getElementsByTagName("input");
+            for (i = 0; i < cbs.length; i++) {
+                cbs[i].checked = ck;
+            }
+        }
+        function checkAllOrg() {
+            //alert('aaaa');
+            //alert(document.getElementById('cbAllAstatus').checked);
+            var ck = document.getElementById('cbAllOrg').checked;
+            var cbs = document.getElementById('<%=cblAllOrgs.ClientID %>').getElementsByTagName("input");
+            for (i = 0; i < cbs.length; i++) {
+                cbs[i].checked = ck;
+            }
+        }
+    </script>
+</asp:Content>

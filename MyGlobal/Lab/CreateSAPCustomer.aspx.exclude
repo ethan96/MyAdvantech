@@ -1,0 +1,420 @@
+﻿<%@ Page Title="Create SAP Customer" Language="VB" MasterPageFile="~/Includes/MyMaster.master"
+    AutoEventWireup="false" CodeFile="CreateSAPCustomer.aspx.vb" Inherits="Lab_CreateSAPCustomer" %>
+
+<asp:Content ID="Content1" ContentPlaceHolderID="_main" runat="Server">
+    <asp:UpdatePanel runat="server" ID="up1" UpdateMode="Conditional">
+        <ContentTemplate>
+            <asp:MultiView runat="server" ID="mv1" ActiveViewIndex="0">
+                <asp:View runat="server" ID="GeneralView">
+                    <h2>General Data</h2>
+                    <table>
+                        <tr>
+                            <th align="left">
+                                Company Id:
+                            </th>
+                            <td>
+                                <asp:TextBox runat="server" ID="txtCompanyId" Width="80px" AutoPostBack="true" />&nbsp;<asp:Label runat="server" ID="lbERPIDMsg" ForeColor="Tomato" Font-Bold="true" />
+                            </td>
+                        </tr>
+                        <tr>
+                            <th align="left">
+                                Company Name:
+                            </th>
+                            <td>
+                                <asp:TextBox runat="server" ID="txtCompanyName" Width="220px" />
+                            </td>
+                        </tr>
+                        <tr>
+                            <th align="left">
+                                VAT Number:
+                            </th>
+                            <td>
+                                <asp:TextBox runat="server" ID="txtVAT" Width="120px" />
+                            </td>
+                        </tr>
+                        <tr>
+                            <th align="left">
+                                Website:
+                            </th>
+                            <td>
+                                <asp:TextBox runat="server" ID="txtWebsiteUrl" Width="200px" />
+                            </td>
+                        </tr>
+                        <tr>
+                            <th align="left">
+                                Address:
+                            </th>
+                            <td>
+                                <asp:TextBox runat="server" ID="txtAddr" Width="250px" />
+                            </td>
+                        </tr>
+                        <tr>
+                            <th align="left">
+                                Postal Code:
+                            </th>
+                            <td>
+                                <asp:TextBox runat="server" ID="txtPostCode" Width="80px" />
+                            </td>
+                        </tr>
+                        <tr>
+                            <th align="left">
+                                City:
+                            </th>
+                            <td>
+                                <asp:TextBox runat="server" ID="txtCity" Width="100px" />
+                            </td>
+                        </tr>
+                        <tr>
+                            <th align="left">
+                                Country:
+                            </th>
+                            <td>
+                                <asp:DropDownList runat="server" ID="dlCountry" />
+                            </td>
+                        </tr>
+                        <tr>
+                            <td colspan="2">
+                                <table>
+                                    <tr>
+                                        <th align="left">
+                                            Telephone:
+                                        </th>
+                                        <td>
+                                            <asp:TextBox runat="server" ID="txtTel" Width="100px" />
+                                        </td>
+                                        <th align="left">
+                                            Fax:
+                                        </th>
+                                        <td>
+                                            <asp:TextBox runat="server" ID="txtFax" Width="100px" />
+                                        </td>
+                                    </tr>
+                                </table>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td colspan="2">
+                                <table>
+                                    <tr>
+                                        <th align="left">
+                                            Contact Person Name:
+                                        </th>
+                                        <td>
+                                            <asp:TextBox runat="server" ID="txtContactName" Width="100px" />
+                                        </td>
+                                        <th align="left">
+                                            Contact Person Email:
+                                        </th>
+                                        <td>
+                                            <asp:TextBox runat="server" ID="txtContactEmail" Width="100px" />
+                                        </td>
+                                    </tr>
+                                </table>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td colspan="2">
+                                <table>
+                                    <tr>
+                                        <th align="left">
+                                            Incoterm1
+                                        </th>
+                                        <td>
+                                            <asp:DropDownList runat="server" ID="dlInco1" Width="50px" />
+                                        </td>
+                                        <th align="left">
+                                            Incoterm2
+                                        </th>
+                                        <td>
+                                            <asp:TextBox runat="server" ID="txtInco2" Width="100px" />
+                                        </td>
+                                    </tr>
+                                </table>
+                            </td>
+                        </tr>
+                        <tr>
+                            <th align="left">
+                                Sales Office:
+                            </th>
+                            <td>
+                                <asp:DropDownList runat="server" ID="dlSalesOffice">
+                                    <asp:ListItem Text="ADL" Value="3000" />
+                                    <asp:ListItem Text="ABN" Value="3100" />
+                                    <asp:ListItem Text="AFR" Value="3200" />
+                                    <asp:ListItem Text="AIT" Value="3300" />
+                                    <asp:ListItem Text="AUK" Value="3400" />
+                                    <asp:ListItem Text="Eastern Europe" Value="3600" />
+                                    <asp:ListItem Text="Emerging Territory" Value="3700" />
+                                    <asp:ListItem Text="AESC" Value="3900" />
+                                </asp:DropDownList>
+                            </td>
+                        </tr>
+                        <tr>
+                            <th align="left">
+                                Sales:
+                            </th>
+                            <td>
+                                <asp:DropDownList runat="server" ID="dlSalesCode" />
+                            </td>
+                        </tr>
+                        <tr>
+                            <th align="left">
+                                Inside Sales:
+                            </th>
+                            <td>
+                                <asp:DropDownList runat="server" ID="dlISCode" />
+                            </td>
+                        </tr>
+                        <tr>
+                            <th align="left">
+                                OP:
+                            </th>
+                            <td>
+                                <asp:DropDownList runat="server" ID="dlOPCode" />
+                            </td>
+                        </tr>
+                        <tr>
+                            <th align="left">
+                                Customer Type:
+                            </th>
+                            <td>
+                                <asp:DropDownList runat="server" ID="dlCustomerType">
+                                    <asp:ListItem Text="312 = eA KA" Value="312" />
+                                    <asp:ListItem Text="315 = GA eAutomation" Value="315" />
+                                    <asp:ListItem Text="321 = CSF & East Europe" Value="321" />
+                                    <asp:ListItem Text="322 = eP GA" Value="322" />
+                                    <asp:ListItem Text="323 = eP KA Embedded" Value="323" />
+                                    <asp:ListItem Text="324 = eP KA Medical" Value="324" />
+                                    <asp:ListItem Text="325 = eP KA Telecom" Value="325" />
+                                    <asp:ListItem Text="327 = eP Gaming" Value="327" />
+                                </asp:DropDownList>
+                            </td>
+                        </tr>
+                        <tr>
+                            <th align="left">
+                                Vertical Market Definition (Only for KA):
+                            </th>
+                            <td>
+                                <asp:DropDownList runat="server" ID="dlVM">
+                                    <asp:ListItem Text="Select..." Value="NONE" />
+                                    <asp:ListItem Text="080 / (BA) Building Automation" Value="080" />
+                                    <asp:ListItem Text="100 / (MA) Machine Automation " Value="100" />
+                                    <asp:ListItem Text="130 / (FA) Factory Automation " Value="130" />
+                                    <asp:ListItem Text="140 / (EFMS) Environmental and Facility Management " Value="140" />
+                                    <asp:ListItem Text="150 / (P&E) Power & Energy" Value="150" />
+                                    <asp:ListItem Text="170 / Education" Value="170" />
+                                    <asp:ListItem Text="200 / Transportation" Value="200" />
+                                    <asp:ListItem Text="260 / Networks & Telecom" Value="260" />
+                                    <asp:ListItem Text="270 / Military" Value="270" />
+                                    <asp:ListItem Text="400 / Gaming/ POS" Value="400" />
+                                    <asp:ListItem Text="401 / Gaming / Innocore" Value="401" />
+                                    <asp:ListItem Text="590 / Medical" Value="590" />
+                                    <asp:ListItem Text="610 / Self Service" Value="610" />
+                                    <asp:ListItem Text="700 / Brand Store (AiS)" Value="700" />
+                                    <asp:ListItem Text="710 / eHome (AiS)" Value="710" />
+                                    <asp:ListItem Text="720 / Enterprise (AiS)" Value="720" />
+                                    <asp:ListItem Text="730 / Exhibition (AiS)" Value="730" />
+                                    <asp:ListItem Text="740 / Hospitality (AiS)" Value="740" />
+                                    <asp:ListItem Text="750 / Hotel (AiS)" Value="750" />
+                                    <asp:ListItem Text="760 / Lifestyle Service (AiS)" Value="760" />
+                                    <asp:ListItem Text="770 / Museum (AiS)" Value="770" />
+                                    <asp:ListItem Text="780 / Public Space (AiS)" Value="780" />
+                                    <asp:ListItem Text="790 / Restaurant (AiS)" Value="790" />
+                                    <asp:ListItem Text="800 / Retail (AiS)" Value="800" />
+                                    <asp:ListItem Text="810 / School Campus (AiS)" Value="810" />
+                                    <asp:ListItem Text="999 / Others / General Biz" Value="999" />
+                                </asp:DropDownList>
+                            </td>
+                        </tr>    
+                        <tr>
+                            <th align="left">
+                                Credit Limit & Payment Terms:
+                            </th>
+                            <td>
+                                <asp:RadioButtonList runat="server" ID="rblFillCredit" RepeatColumns="2" RepeatDirection="Horizontal" AutoPostBack="true">
+                                    <asp:ListItem Text="NO" Selected="True" />
+                                    <asp:ListItem Text="YES" />
+                                </asp:RadioButtonList>
+                            </td>
+                        </tr>
+                        <tr>
+                            <th align="left">
+                                Has Ship-to Data?
+                            </th>
+                            <td>
+                                <asp:RadioButtonList runat="server" ID="rblHasShipto" RepeatColumns="2" RepeatDirection="Horizontal" AutoPostBack="true">
+                                    <asp:ListItem Text="NO" Selected="True" />
+                                    <asp:ListItem Text="YES" />
+                                </asp:RadioButtonList>
+                            </td>
+                        </tr>
+                    </table>
+                    <table>
+                        <tr>
+                            <td>
+                                <asp:Button runat="server" ID="btnCreate" Text="Create" />
+                            </td>
+                            <td>
+                                <asp:Button runat="server" ID="btnGo2Credit" Text="Input Credit Data" Visible="false" />
+                            </td>
+                            <td>
+                                <asp:Button runat="server" ID="btnGo2Shipto" Text="Input Ship-to Data" Visible="false" />
+                            </td>
+                        </tr>
+                    </table>
+                </asp:View>
+                <asp:View runat="server" ID="CreditView">
+                    <h2>Credit Data</h2>
+                    <table>
+                        <tr>
+                            <th align="left">Contact Person Finance & Acounting dept:</th>
+                            <td>
+                                
+                            </td>
+                        </tr>
+                        <tr>
+                            <th align="left">Currency:</th>
+                            <td>
+                                <asp:DropDownList runat="server" ID="dlCurr">
+                                    <asp:ListItem Text="EUR" Value="EUR" />
+                                    <asp:ListItem Text="USD" Value="USD" />
+                                    <asp:ListItem Text="GBP" Value="GBP" />
+                                </asp:DropDownList>
+                            </td>
+                        </tr>
+                        <tr>
+                            <th align="left">Payment Term:</th>
+                            <td>
+                                <asp:DropDownList runat="server" ID="dlPayTerm" />
+                            </td>
+                        </tr>
+                        <tr>
+                            <th align="left">Amount Insured:</th>
+                            <td>
+                                <asp:TextBox runat="server" ID="txtAmtInsured" Width="80px" />
+                                <ajaxToolkit:FilteredTextBoxExtender runat="server" ID="ft1" TargetControlID="txtAmtInsured"
+                                    FilterType="Numbers, Custom" ValidChars="^[1-9]\d*$" />
+                            </td>
+                        </tr>
+                        <tr>
+                            <th align="left">Shipping Condition:</th>
+                            <td>
+                                <asp:DropDownList runat="server" ID="dlShipCond" />
+                            </td>
+                        </tr>
+                    </table>
+                    <table>
+                        <tr>
+                            <td>
+                                <asp:Button runat="server" ID="btnCreate2" Text="Create" />
+                            </td>
+                            <td>
+                                <asp:Button runat="server" ID="btn2General" Text="Back to Edit General Data" />
+                            </td>
+                        </tr>
+                    </table>
+                </asp:View>
+                <asp:View runat="server" ID="ShiptoView">
+                    <h2>Ship-to</h2>
+                    <table width="100%">
+                        <tr>
+                            <th align="left">Company Name:</th>
+                            <td>
+                                <asp:TextBox runat="server" ID="txtShiptoCompanyName" Width="250px" />
+                            </td>
+                        </tr>
+                        <tr>
+                            <th align="left">VAT Number:</th>
+                            <td>
+                                <asp:TextBox runat="server" ID="txtShiptoVATNumber" Width="100px" />
+                            </td>
+                        </tr>
+                        <tr>
+                            <th align="left">Address:</th>
+                            <td>
+                                <asp:TextBox runat="server" ID="txtShiptoAddress" Width="250px" />
+                            </td>
+                        </tr>
+                        <tr>
+                            <th align="left">
+                                Postal Code:
+                            </th>
+                            <td>
+                                <asp:TextBox runat="server" ID="txtShiptoPostcode" Width="80px" />
+                            </td>
+                        </tr>
+                        <tr>
+                            <th align="left">
+                                City:
+                            </th>
+                            <td>
+                                <asp:TextBox runat="server" ID="txtShiptoCity" Width="100px" />
+                            </td>
+                        </tr>
+                        <tr>
+                            <th align="left">
+                                Country:
+                            </th>
+                            <td>
+                                <asp:DropDownList runat="server" ID="dlShiptoCountry" />
+                            </td>
+                        </tr>
+                        <tr>
+                            <td colspan="2">
+                                <table>
+                                    <tr>
+                                        <th align="left">
+                                            Telephone:
+                                        </th>
+                                        <td>
+                                            <asp:TextBox runat="server" ID="txtShiptoTel" Width="100px" />
+                                        </td>
+                                        <th align="left">
+                                            Fax:
+                                        </th>
+                                        <td>
+                                            <asp:TextBox runat="server" ID="txtShiptoFax" Width="100px" />
+                                        </td>
+                                    </tr>
+                                </table>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td colspan="2">
+                                <table>
+                                    <tr>
+                                        <th align="left">
+                                            Contact Person Name:
+                                        </th>
+                                        <td>
+                                            <asp:TextBox runat="server" ID="txtShiptoContactName" Width="100px" />
+                                        </td>
+                                        <th align="left">
+                                            Contact Person Email:
+                                        </th>
+                                        <td>
+                                            <asp:TextBox runat="server" ID="txtShiptoContactEmail" Width="100px" />
+                                        </td>
+                                    </tr>
+                                </table>
+                            </td>
+                        </tr>
+                    </table>
+                    <table>
+                        <tr>
+                            <td>
+                                <asp:Button runat="server" ID="btnCreate3" Text="Create" />
+                            </td>
+                            <td>
+                                <asp:Button runat="server" ID="btn2General2" Text="Back to Edit General Data" />
+                            </td>
+                        </tr>
+                    </table>
+                </asp:View>
+            </asp:MultiView>
+            <asp:Label runat="server" ID="lbDoneMsg" Font-Bold="true" ForeColor="Tomato" /> <br />    
+            <asp:Label runat="server" ID="lbDebugMsg" />       
+            <asp:GridView runat="server" ID="gvPtnr" />
+        </ContentTemplate>
+    </asp:UpdatePanel>        
+</asp:Content>

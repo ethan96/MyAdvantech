@@ -1,0 +1,122 @@
+﻿<%@ Page Title="MyAdvantech - My Sales Team" Language="VB" MasterPageFile="~/Includes/MyMaster.master" %>
+
+<script runat="server">
+    Function GetMyTeamSql() As String
+        Dim strMgrEmail As String = Session("user_id")
+        If Util.IsANAPowerUser() OrElse Util.IsAEUIT() Then strMgrEmail = "richardh@advantech.com"
+        Dim sb As New System.Text.StringBuilder
+        With sb
+            .AppendLine(String.Format(" select a.email, a.DIVISION, a.POSITION, a.ROW_ID, a.POSITION_ID, a.NAME , "))
+            .AppendLine(String.Format(" cast(IsNull( "))
+            .AppendLine(String.Format(" 	( "))
+            .AppendLine(String.Format(" 		select sum(z.REVENUE_US_AMT)  "))
+            .AppendLine(String.Format(" 		from SIEBEL_OPPORTUNITY z  "))
+            .AppendLine(String.Format(" 		where z.PR_POSTN_ID=a.POSITION_ID and z.SUM_WIN_PROB between 1 and 99 "))
+            .AppendLine(String.Format(" 	),0) as numeric(18,2)) as Pending_USD_Amount   "))
+            .AppendLine(String.Format(" from SIEBEL_SALES_HIERARCHY a  "))
+            .AppendLine(String.Format(" where a.PAR_EMAIL='{0}' and dbo.isemail(a.EMAIL)=1 ", strMgrEmail))
+            If txtQSalesName.Text.Trim() <> "" Then
+                .AppendLine(String.Format(" and (a.NAME like N'%{0}%' or a.email like '%{0}%') ", Replace(Replace(txtQSalesName.Text.Trim(), "'", "''"), "*", "%")))
+            End If
+            .AppendLine(String.Format(" order by a.EMAIL "))
+        End With
+        Return sb.ToString()
+    End Function
+
+    Protected Sub Page_Load(ByVal sender As Object, ByVal e As System.EventArgs)
+        If Not Page.IsPostBack Then
+            src1.SelectCommand = GetMyTeamSql()
+            Dim strMgrEmail As String = Session("user_id")
+            If Util.IsANAPowerUser() OrElse Util.IsAEUIT() Then strMgrEmail = "richardh@advantech.com"
+            litMgrName.Text = Util.GetNameVonEmail(strMgrEmail)
+        End If
+    End Sub
+
+    Protected Sub src1_Selecting(ByVal sender As Object, ByVal e As System.Web.UI.WebControls.SqlDataSourceSelectingEventArgs)
+        e.Command.CommandTimeout = 600
+    End Sub
+
+    Protected Sub btnQuery_Click(ByVal sender As Object, ByVal e As System.EventArgs)
+        src1.SelectCommand = GetMyTeamSql()
+    End Sub
+
+    Protected Sub gvMyTeam_PageIndexChanging(ByVal sender As Object, ByVal e As System.Web.UI.WebControls.GridViewPageEventArgs)
+        src1.SelectCommand = GetMyTeamSql()
+    End Sub
+
+    Protected Sub gvMyTeam_Sorting(ByVal sender As Object, ByVal e As System.Web.UI.WebControls.GridViewSortEventArgs)
+        src1.SelectCommand = GetMyTeamSql()
+    End Sub
+
+    Protected Sub gvMyTeam_RowCreated(ByVal sender As Object, ByVal e As System.Web.UI.WebControls.GridViewRowEventArgs)
+        If Not (e.Row Is Nothing) AndAlso e.Row.RowType = DataControlRowType.Header Then
+            Dim GridView1 As GridView = sender
+            For Each cell As TableCell In e.Row.Cells
+                If cell.HasControls Then
+                    Dim button As LinkButton = DirectCast(cell.Controls(0), LinkButton)
+                    If Not (button Is Nothing) Then
+                        Dim image As New ImageButton
+                        image.ImageUrl = "/Images/sort_1.jpg"
+                        image.CommandArgument = button.CommandArgument : image.CommandName = button.CommandName
+                        If GridView1.SortExpression = button.CommandArgument Then
+                            If GridView1.SortDirection = SortDirection.Ascending Then
+                                image.ImageUrl = "/Images/sort_2.jpg"
+                            Else
+                                image.ImageUrl = "/Images/sort_1.jpg"
+                            End If
+                        End If
+                        cell.Controls.Add(image)
+                    End If
+                End If
+            Next
+        End If
+    End Sub
+</script>
+
+<asp:Content ID="Content1" ContentPlaceHolderID="_main" Runat="Server">
+    <table width="100%">
+        <tr>
+            <th align="left" style="color:Navy"><h2><asp:Literal runat="server" ID="litMgrName" /> Team's Project</h2></th>
+        </tr>
+        <tr>
+            <td>
+                <table>
+                    <tr>
+                        <th align="left">Sales Name/Email:</th>
+                        <td>
+                            <asp:TextBox runat="server" ID="txtQSalesName" Width="200px" />
+                        </td>
+                        <td>
+                            <asp:Button runat="server" ID="btnQuery" Text="Query" OnClick="btnQuery_Click" />
+                        </td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <asp:UpdatePanel runat="server" ID="up1" UpdateMode="Conditional">
+                    <ContentTemplate>
+                        <asp:GridView runat="server" ID="gvMyTeam" Width="95%" AutoGenerateColumns="false" DataSourceID="src1" AllowSorting="true" 
+                            OnPageIndexChanging="gvMyTeam_PageIndexChanging" OnSorting="gvMyTeam_Sorting" OnRowCreated="gvMyTeam_RowCreated"
+                            EnableTheming="false" RowStyle-BackColor="#FFFFFF" AlternatingRowStyle-BackColor="#ebebeb" 
+                            HeaderStyle-BackColor="#dcdcdc" BorderWidth="1" BorderColor="#d7d0d0" HeaderStyle-ForeColor="Black" BorderStyle="Solid"
+                            PagerStyle-BackColor="#ffffff" PagerStyle-BorderWidth="0" PagerStyle-BorderColor="White">
+                            <Columns>
+                                <asp:HyperLinkField HeaderText="Sales Name" SortExpression="NAME" DataNavigateUrlFields="email" 
+                                    DataNavigateUrlFormatString="http://my-global.advantech.eu/DM/SalesDashboard.aspx?uid={0}" DataTextField="NAME" Target="_blank" />
+                                <asp:BoundField HeaderText="Sales Position" DataField="POSITION" SortExpression="POSITION" />
+                                <asp:BoundField HeaderText="Sales Division" DataField="DIVISION" SortExpression="DIVISION" />
+                                <asp:BoundField HeaderText="Pending Amount" DataField="Pending_USD_Amount" SortExpression="Pending_USD_Amount" ItemStyle-HorizontalAlign="Right" />
+                            </Columns>
+                        </asp:GridView>
+                        <asp:SqlDataSource runat="server" ID="src1" ConnectionString="<%$ConnectionStrings:MY %>" OnSelecting="src1_Selecting" />
+                    </ContentTemplate>
+                    <Triggers>
+                        <asp:AsyncPostBackTrigger ControlID="btnQuery" EventName="Click" />
+                    </Triggers>
+                </asp:UpdatePanel>                
+            </td>
+        </tr>
+    </table>
+</asp:Content>

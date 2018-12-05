@@ -1,0 +1,312 @@
+﻿<%@ Page Title="MyAdvantech – Download Material" Language="VB" MasterPageFile="~/Includes/MyMaster.master" %>
+
+<%@ Import Namespace="System.IO.Compression" %>
+<%@ Import Namespace="Microsoft.Win32" %>
+<%@ Import Namespace="System.Diagnostics" %>
+<%@ Import Namespace="System.IO" %>
+<%@ Import Namespace="System.Net" %>
+
+<script runat="server">
+    Public Function GetSQL() As String
+        Dim sb As New StringBuilder
+        With sb
+            '.AppendFormat(" select distinct top 100 a.literature_id as lit_id, a.LIT_NAME, a.FILE_EXT, a.LIT_TYPE, b.model_name, d.part_no, d.product_line ")
+            '.AppendFormat(" from [PIS].dbo.LITERATURE a left join [PIS].dbo.model_lit b on a.LITERATURE_ID=b.literature_id left join [PIS].dbo.model_product c on b.model_name=c.model_name left join SAP_PRODUCT d on c.part_no=d.PART_NO ")
+            '.AppendFormat(" where a.LITERATURE_ID not in (select z.Thumbnail_ID from PIS.dbo.LITERATURE_EXTEND z where z.Thumbnail_ID is not null or z.Thumbnail_ID !='') ")
+            'If Util.GetCheckedCountFromCheckBoxList(cblMaterial) > 0 Then
+            '    Dim arrTypes As New ArrayList
+            '    For Each li As ListItem In cblMaterial.Items
+            '        If li.Selected Then
+            '            If li.Value.ToLower() = "photo" Then
+            '                Dim certTypeDt As DataTable = dbUtil.dbGetDataTable("PIS_NEW", "select distinct LIT_TYPE from v_LITERATURE where LIT_TYPE like 'Product - Photo%'")
+            '                For Each ctr As DataRow In certTypeDt.Rows
+            '                    arrTypes.Add("'" + ctr.Item("LIT_TYPE") + "'")
+            '                Next
+            '            Else
+            '                If li.Value.ToLower() Like "*data*sheet*" Then
+            '                    Dim certTypeDt As DataTable = dbUtil.dbGetDataTable("PIS_NEW", "select distinct LIT_TYPE from v_LITERATURE where LIT_TYPE like '%data%sheet%'")
+            '                    For Each ctr As DataRow In certTypeDt.Rows
+            '                        arrTypes.Add("'" + ctr.Item("LIT_TYPE") + "'")
+            '                    Next
+            '                End If
+            '            End If
+            '        End If
+            '    Next
+            '    If arrTypes.Count > 0 Then
+            '        .AppendFormat(" and a.LIT_TYPE in ({0}) ", String.Join(",", arrTypes.ToArray()))
+            '    End If
+            '    If txtLit.Text.Replace("'", "").Trim <> "" Then
+            '        .AppendFormat(" and a.LIT_NAME like '{0}%' ", txtLit.Text.Replace("'", "''").Trim)
+            '    End If
+            '    If txtPN.Text.Replace("'", "").Trim <> "" Then
+            '        .AppendFormat(" and (d.PART_NO like '{0}%' or b.model_name like N'{0}%') ", txtPN.Text.Replace("'", "''").Trim)
+            '    End If
+            '    If txtPL.Text.Replace("'", "").Trim <> "" Then
+            '        .AppendFormat(" and d.PRODUCT_LINE like '%{0}%' ", txtPL.Text.Replace("'", "''").Trim)
+            '    End If
+            'Else
+            '    .AppendFormat(" and 1 <> 1 ")
+            'End If
+            '.AppendFormat(" order by a.LIT_NAME ")
+            
+            .AppendFormat(" select distinct t.LIT_ID, t.LIT_NAME, t.FILE_EXT, t.LIT_TYPE, ")
+            .AppendFormat(" (select distinct b1.model_name ")
+            .AppendFormat(" from [PIS].dbo.LITERATURE a1 left join [PIS].dbo.model_lit b1 on a1.LITERATURE_ID=b1.literature_id ")
+            .AppendFormat(" left join [PIS].dbo.model_product c1 on b1.model_name=c1.model_name left join SAP_PRODUCT d1 on c1.part_no=d1.PART_NO ")
+            .AppendFormat(" where a1.LITERATURE_ID=t.LIT_ID ")
+            .AppendFormat(" for XML path('') ")
+            .AppendFormat(" ) as model_name, ")
+            .AppendFormat(" (select distinct d1.part_no ")
+            .AppendFormat(" from [PIS].dbo.LITERATURE a1 left join [PIS].dbo.model_lit b1 on a1.LITERATURE_ID=b1.literature_id ")
+            .AppendFormat(" left join [PIS].dbo.model_product c1 on b1.model_name=c1.model_name left join SAP_PRODUCT d1 on c1.part_no=d1.PART_NO ")
+            .AppendFormat(" where a1.LITERATURE_ID=t.LIT_ID ")
+            .AppendFormat(" for XML path('') ")
+            .AppendFormat(" ) as part_no ")
+            .AppendFormat(" from ")
+            .AppendFormat(" (select distinct a.LITERATURE_ID as LIT_ID, a.LIT_NAME, a.FILE_EXT, a.LIT_TYPE, b.model_name, d.PART_NO ")
+            .AppendFormat(" from [PIS].dbo.LITERATURE a left join [PIS].dbo.model_lit b on a.LITERATURE_ID=b.literature_id ")
+            .AppendFormat(" left join [PIS].dbo.model_product c on b.model_name=c.model_name left join SAP_PRODUCT d on c.part_no=d.PART_NO ")
+            .AppendFormat(" where a.LITERATURE_ID not in (select z.Thumbnail_ID from PIS.dbo.LITERATURE_EXTEND z where z.Thumbnail_ID is not null or z.Thumbnail_ID !='') ")
+            If Util.GetCheckedCountFromCheckBoxList(cblMaterial) > 0 Then
+                Dim arrTypes As New ArrayList
+                For Each li As ListItem In cblMaterial.Items
+                    If li.Selected Then
+                        If li.Value.ToLower() = "photo" Then
+                            Dim certTypeDt As DataTable = dbUtil.dbGetDataTable("PIS_NEW", "select distinct LIT_TYPE from v_LITERATURE where LIT_TYPE like 'Product - Photo%'")
+                            For Each ctr As DataRow In certTypeDt.Rows
+                                arrTypes.Add("'" + ctr.Item("LIT_TYPE") + "'")
+                            Next
+                        Else
+                            If li.Value.ToLower() Like "*data*sheet*" Then
+                                Dim certTypeDt As DataTable = dbUtil.dbGetDataTable("PIS_NEW", "select distinct LIT_TYPE from v_LITERATURE where LIT_TYPE like '%data%sheet%'")
+                                For Each ctr As DataRow In certTypeDt.Rows
+                                    arrTypes.Add("'" + ctr.Item("LIT_TYPE") + "'")
+                                Next
+                            End If
+                        End If
+                    End If
+                Next
+                If arrTypes.Count > 0 Then
+                    .AppendFormat(" and a.LIT_TYPE in ({0}) ", String.Join(",", arrTypes.ToArray()))
+                End If
+                If txtLit.Text.Replace("'", "").Trim <> "" Then
+                    .AppendFormat(" and a.LIT_NAME like '{0}%' ", txtLit.Text.Replace("'", "''").Replace("*", "%").Trim)
+                End If
+                If txtPN.Text.Replace("'", "").Trim <> "" Then
+                    .AppendFormat(" and (d.PART_NO like '{0}%' or b.model_name like N'{0}%') ", txtPN.Text.Replace("'", "''").Replace("*", "%").Trim)
+                End If
+                If txtPL.Text.Replace("'", "").Trim <> "" Then
+                    .AppendFormat(" and d.PRODUCT_LINE like '%{0}%' ", txtPL.Text.Replace("'", "''").Replace("*", "%").Trim)
+                End If
+            Else
+                .AppendFormat(" and 1 <> 1 ")
+            End If
+            .AppendFormat(" ) as t order by t.lit_name ")
+        End With
+        Return sb.ToString
+    End Function
+
+    Protected Sub sql1_Load(sender As Object, e As System.EventArgs)
+        sql1.SelectCommand = GetSQL()
+    End Sub
+
+    Protected Sub gv1_PreRender(sender As Object, e As System.EventArgs)
+        Dim chk As CheckBox
+        Dim checkboxIdsList As New ArrayList
+        For Each rowItem As GridViewRow In CType(sender, GridView).Rows
+            chk = CType(rowItem.Cells(0).FindControl("item"), CheckBox)
+            checkboxIdsList.Add(chk.ClientID)
+        Next
+        Dim checkboxIds As String = String.Join("|", checkboxIdsList.ToArray())
+        CType(CType(sender, GridView).HeaderRow.Cells(0).FindControl("all"), CheckBox).Attributes.Add("onclick", "selectAll('" & checkboxIds & "',this)")
+    End Sub
+
+    Protected Sub btnDownloadCheck_Click(sender As Object, e As System.EventArgs)
+        Dim dt As New DataTable
+        dt.Columns.Add("LIT_ID") : dt.Columns.Add("LIT_NAME") : dt.Columns.Add("FILE_EXT")
+        For Each row As GridViewRow In gv1.Rows
+            If CType(row.Cells(1).FindControl("item"), CheckBox).Checked Then
+                Dim r As DataRow = dt.NewRow()
+                r.Item("LIT_ID") = CType(row.Cells(1).FindControl("hdnLitId"), HiddenField).Value
+                r.Item("LIT_NAME") = CType(row.Cells(1).FindControl("hdnLitName"), HiddenField).Value.Replace("*", " ")
+                r.Item("FILE_EXT") = CType(row.Cells(1).FindControl("hdnLitExt"), HiddenField).Value
+                dt.Rows.Add(r)
+            End If
+        Next
+        Compress(dt)
+    End Sub
+    
+    Public Sub Compress(ByVal dt As DataTable)
+        Dim zipOutput As New ICSharpCode.SharpZipLib.Zip.ZipOutputStream(Context.Response.OutputStream)
+        Try
+            With HttpContext.Current.Response
+                .ClearHeaders()
+                .ClearContent()
+                .ContentType = "application/x-zip-compressed"
+                .AddHeader("Content-Disposition", String.Format("attachment; filename=Materials.zip;"))
+            
+                For Each row As DataRow In dt.Rows
+                    Try
+                        Dim client As New WebClient
+                        Dim buffers As Byte() = client.DownloadData("http://downloadt.advantech.com/download/downloadlit.aspx?lit_id=" + row.Item("LIT_ID").ToString)
+                        Dim ms As New MemoryStream
+                        ms.Write(buffers, 0, buffers.Length)
+                        ms.Position = 0
+                        Dim zipEntry As New ICSharpCode.SharpZipLib.Zip.ZipEntry(row.Item("LIT_NAME").ToString + "." + row.Item("FILE_EXT").ToString)
+                        zipEntry.Size = ms.Length
+                        ms.Close()
+                        zipOutput.PutNextEntry(zipEntry)
+                        zipOutput.Write(buffers, 0, buffers.Length)
+                    Catch ex As Exception
+                        Throw New Exception("Compress material files failed:" + ex.ToString)
+                    End Try
+                Next
+                
+                zipOutput.Finish()
+                zipOutput.Close()
+                .End()
+            End With
+            
+        Catch ERR As Threading.ThreadAbortException
+        Catch ex As Exception
+        End Try
+    End Sub
+
+    Protected Sub btnSearch_Click(sender As Object, e As System.EventArgs)
+        If Util.GetCheckedCountFromCheckBoxList(cblMaterial) = 0 Then
+            lblMsg.Text = "Please select a literature type."
+        Else
+            lblMsg.Text = ""
+        End If
+    End Sub
+
+    Protected Sub sql1_Selecting(sender As Object, e As System.Web.UI.WebControls.SqlDataSourceSelectingEventArgs)
+        e.Command.CommandTimeout = 1000 * 60
+    End Sub
+    
+    
+    'Public Function Highlight(ByVal Search_Str As String, ByVal InputTxt As String) As String
+    '    If Search_Str <> "" And Search_Str IsNot Nothing Then
+    '        Search_Str = Replace(Search_Str, "*", "{0,}")
+    '        Try
+    '            Dim RegExp As New Regex(Search_Str.Replace(" ", "|").Trim(), RegexOptions.IgnoreCase)
+    '            Return RegExp.Replace(InputTxt, New MatchEvaluator(AddressOf ReplaceKeyWords))
+    '            RegExp = Nothing
+    '        Catch ex As System.ArgumentException
+        
+    '        End Try
+    '    Else
+    '        Return InputTxt
+    '    End If
+    '    Return ""
+    'End Function
+    
+    'Public Function ReplaceKeyWords(ByVal m As Match) As String
+    '    Return "<span style='background-color:Yellow'>" + m.Value + "</span>"
+    'End Function
+</script>
+
+<asp:Content ID="Content1" ContentPlaceHolderID="_main" Runat="Server">
+    <script language="javascript" type="text/javascript">
+        function selectAll(obj1, obj2) {
+            var checkboxIds = new String();
+            checkboxIds = obj1;
+
+            var arrIds = new Array();
+            arrIds = checkboxIds.split('|');
+
+            for (var i = 0; i < arrIds.length; i++) {
+                document.getElementById(arrIds[i]).checked = obj2.checked;
+            }
+        }
+    </script>
+    <table>
+        <tr><td height="10"></td></tr>
+        <tr><td style="font-size:large;color:#4B65F9">Download Material</td></tr>
+        <tr><td height="10"></td></tr>
+        <tr>
+            <td>
+                <table>
+                    <tr>
+                        <th align="right">Literature Type </th>
+                        <td colspan="2">
+                            <asp:CheckBoxList runat="server" ID="cblMaterial" RepeatDirection="Horizontal">
+                                <asp:ListItem Text="Photo" Value="Photo" />
+                                <asp:ListItem Text="Datasheet" />
+                            </asp:CheckBoxList>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th align="right">Literature </th>
+                        <td colspan="2"><asp:TextBox runat="server" ID="txtLit" Width="200px" /></td>
+                    </tr>
+                    <tr>
+                        <th align="right">Model Name/Part No. </th>
+                        <td colspan="2"><asp:TextBox runat="server" ID="txtPN" Width="200px" /></td>
+                    </tr>
+                    <tr>
+                        <th align="right">Product Line </th>
+                        <td><asp:TextBox runat="server" ID="txtPL" Width="200px" /></td>
+                        <td><asp:Button runat="server" ID="btnSearch" Text="Search" Width="80" OnClick="btnSearch_Click" /></td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+        <tr><td height="10"></td></tr>
+        <tr>
+            <td>
+                <asp:Button runat="server" ID="btnDownloadCheck" Text="Download" Width="150" OnClick="btnDownloadCheck_Click" />
+                <asp:UpdatePanel runat="server" ID="up1">
+                    <ContentTemplate>
+                        <asp:Label runat="server" ID="lblMsg" ForeColor="Red"></asp:Label>
+                        <asp:GridView runat="server" ID="gv1" AutoGenerateColumns="false" DataSourceID="sql1" AllowSorting="true" Width="100%" PageSize="100" AllowPaging="true" DataKeyNames="LIT_ID" OnPreRender="gv1_PreRender">
+                            <Columns>
+                                <asp:TemplateField ItemStyle-Width="50px" ItemStyle-HorizontalAlign="Center">
+                                    <headertemplate>
+                                        No.
+                                    </headertemplate>
+                                    <itemtemplate>
+                                        <%# Container.DataItemIndex + 1%>
+                                    </itemtemplate>
+                                </asp:TemplateField>
+                                <asp:TemplateField ItemStyle-Width="50px" HeaderStyle-HorizontalAlign="Center" ItemStyle-HorizontalAlign="Center">
+                                    <HeaderTemplate>
+                                        <asp:CheckBox runat="server" ID="all" />
+                                    </HeaderTemplate>
+                                    <ItemTemplate>
+                                        <asp:CheckBox runat="server" ID="item" />
+                                        <asp:HiddenField runat="server" ID="hdnLitId" Value='<%#Eval("LIT_ID") %>' />
+                                        <asp:HiddenField runat="server" ID="hdnLitName" Value='<%#Eval("LIT_NAME") %>' />
+                                        <asp:HiddenField runat="server" ID="hdnLitExt" Value='<%#Eval("FILE_EXT") %>' />
+                                    </ItemTemplate>
+                                </asp:TemplateField>
+                                <asp:HyperLinkField HeaderText="Literature" DataNavigateUrlFields="LIT_ID" DataNavigateUrlFormatString="http://downloadt.advantech.com/download/downloadlit.aspx?lit_id={0}" DataTextField="LIT_NAME" Target="_blank" SortExpression="LIT_NAME" />
+                                <asp:BoundField DataField="LIT_TYPE" HeaderText="File Type" SortExpression="LIT_TYPE" />
+                                <asp:BoundField DataField="FILE_EXT" HeaderText="File Ext" SortExpression="FILE_EXT" />
+                                <%--<asp:BoundField DataField="MODEL_NAME" HeaderText="Model Name" SortExpression="MODEL_NAME" />--%>
+                                <asp:TemplateField HeaderText="Model Name">
+                                    <ItemTemplate>
+                                        <%# Util.Highlight(txtPN.Text, Replace(Eval("model_name"), "><", ">, <"))%>
+                                    </ItemTemplate>
+                                </asp:TemplateField>
+                                <asp:TemplateField HeaderText="Part NO.">
+                                    <ItemTemplate>
+                                        <%#Util.Highlight(txtPN.Text, Replace(Eval("part_no"), "><", ">, <"))%>
+                                    </ItemTemplate>
+                                </asp:TemplateField>
+                                <%--<asp:BoundField DataField="PRODUCT_LINE" HeaderText="Product Line" SortExpression="PRODUCT_LINE" />--%>
+                            </Columns>
+                        </asp:GridView>
+                        <asp:SqlDataSource runat="server" ID="sql1" ConnectionString="<%$ connectionStrings:MY %>"
+                            SelectCommand="" OnLoad="sql1_Load" OnSelecting="sql1_Selecting">
+                        </asp:SqlDataSource>
+                    </ContentTemplate>
+                    <Triggers>
+                        <asp:AsyncPostBackTrigger ControlID="btnSearch" EventName="Click" />
+                    </Triggers>
+                </asp:UpdatePanel>
+            </td>
+        </tr>
+    </table>
+</asp:Content>
+

@@ -1,0 +1,152 @@
+﻿<%@ Page Language="VB" %>
+<%@ Import Namespace="System.Data" %>
+<%@ Import Namespace="System.Data.SqlClient" %>
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<script runat="server">
+
+    Protected Sub btnSubmit_Click(ByVal sender As Object, ByVal e As System.EventArgs)
+        If Me.txtUserid.Text.Trim() = "" Then
+            Me.Page.ClientScript.RegisterStartupScript(GetType(String), "alert", "<script>alert('please fill in the User Id')</" & "script")
+            Me.txtUserid.Focus()
+            Exit Sub
+        End If
+        'If Me.txtPassword.Text.Trim() = "" Then
+        '    Me.Page.ClientScript.RegisterStartupScript(GetType(String), "alert", "<script>alert('please fill the Password')</" & "script")
+        '    Me.txtPassword.Focus()
+        '    Exit Sub
+        'End If
+        Dim strSql As String = "", UserId As String = Me.txtUserid.Text.Trim()
+        Dim Pwd As String = Me.txtPassword.Text.Trim()
+        strSql &= "exec sp_dropuser '" & UserId & "';"
+        strSql &= "exec sp_droplogin '" & UserId & "'"
+        'strSql &= "exec sp_addlogin '" & UserId & "','" & Pwd & "', 'SiebelDB_EUR';"
+        'strSql &= "exec sp_grantdbaccess '" & UserId & "';"
+        'strSql &= "exec sp_addrolemember 'SSE_ROLE','" & UserId & "'"
+        Dim cn As New SqlConnection
+        cn.ConnectionString = "Data Source=CRMDB-GLOBAL;Initial Catalog=aclcrmdb;Password=AEU1593;User ID=PUSER_AEU;Connect Timeout=120;"
+        Dim cmd As New SqlCommand
+        'Dim tran As SqlTransaction = Nothing
+        cn.Open()
+        'tran = cn.BeginTransaction()
+        Try
+            cmd.Connection = cn
+            cmd.CommandType = CommandType.Text
+            cmd.CommandText = strSql
+            'cmd.Transaction = tran
+            cmd.ExecuteNonQuery()
+        Catch ex As Exception
+            'tran.Rollback()
+            cn.Close()
+            cn.Dispose()
+            Me.lblMessage.Text = ex.Message.ToString & "&nbsp;Please contact CRM.AEU!"
+            Me.lblMessage.Font.Bold = True
+            Me.lblMessage.ForeColor = Drawing.Color.Red
+            Me.lblMessage.Font.Size = FontUnit.Larger
+            Me.trmessage.visible = True
+            Exit Sub
+        End Try
+        'tran.Commit()
+        'tran.Dispose()
+        cn.Close()
+        cn.Dispose()
+        Me.lblMessage.Text = "Delete user successfully!"
+        Me.lblMessage.Font.Bold = True
+        Me.lblMessage.ForeColor = Drawing.Color.Red
+        Me.lblMessage.Font.Size = FontUnit.Larger
+        Me.trmessage.visible = True
+    End Sub
+
+   
+</script>
+<script language="javascript" type="text/javascript">
+
+    function PickCompWin() {
+        var PostString;
+        var ForceWhere = "";
+        PostString = "../QueryForm.aspx?";
+        var SelectSQL = "name,convert(varchar(10),createdate,111) as createdate,updatedate from master.dbo.syslogins  ";
+        //alert(SelectSQL)
+
+        ForceWhere = "name not like '%\\%'";
+
+        SelectSQL = "SelectSQL=" + escape(SelectSQL);
+
+        //var DataType="&DataType=1"; 
+        ForceWhere = "&ForceWhere=" + encodeURI(ForceWhere);
+        var showColumns = "&ShowColumns=" + encodeURI("name,Createdate,updatedate");
+        var OptionWhereField = "&OptionWhereField=" + "name";
+        var ReturnControlName = "&ReturnControlName=form1.elements.txtUserid";
+        var ReturnFieldIndex = "&ReturnFieldIndex=1";
+        var LableCaption = "&LableCaption=" + encodeURI("please entry :");
+        var Width = "&Width=400";
+        var Connection = "&Connection=CRMEURDB75";
+        // PostString  += "+++"
+        PostString += SelectSQL + ForceWhere + showColumns + OptionWhereField + ReturnControlName + ReturnFieldIndex + LableCaption + Width + Connection;
+        window.open(PostString, '_child', 'scrollbars=yes,status=yes,width=400,height=400', '');
+    }
+</script>
+<html xmlns="http://www.w3.org/1999/xhtml" >
+<head id="Head1" runat="server">
+    <title>Delete SQL Login</title>
+</head>
+<body>
+    <form id="form1" runat="server">
+    <div>
+      <asp:Table ID="Table1" Runat=server Width=80% BorderWidth=1 BackColor=Beige>
+
+                        <asp:TableRow>
+
+                                    <asp:TableCell ColumnSpan=2 BackColor="#ff0000" HorizontalAlign="center">
+
+                                    <asp:Label ID="Label1" Font-Name="verdana" Font-size="12px" ForeColor="#ffffff" font-bold="True" Runat="server" Text="Delete SQL Login" />
+
+                                    </asp:TableCell>
+
+                        </asp:TableRow>
+
+                        <asp:TableRow>
+
+                                    <asp:TableCell HorizontalAlign="Right"><asp:Label ID="Label2" Font-Name="verdana" Font-size="12px"  Runat=server Text="Siebel User Id:" /></asp:TableCell>
+
+                                   <asp:TableCell><asp:TextBox id="txtUserid" Runat="server" />&nbsp;<input id="btnPick" type="button" value="Pick Exist User" onclick="PickCompWin()" /></asp:TableCell>
+
+                        </asp:TableRow>
+
+                        <asp:TableRow Visible="false">
+
+                                    <asp:TableCell HorizontalAlign="Right"><asp:Label ID="Label3" Font-Name="verdana" Font-size="12px"  Runat=server Text="New Password:" /></asp:TableCell>
+
+                                    <asp:TableCell><asp:TextBox id="txtPassword" Runat="server" /></asp:TableCell>
+
+                        </asp:TableRow>
+
+                        <asp:TableRow>
+
+                                    <asp:TableCell ColumnSpan=2 HorizontalAlign=Center>
+
+                                    <asp:Button ID="btnSubmit" Text="Submit" Runat=server OnClick="btnSubmit_Click" />
+
+                                    </asp:TableCell>
+
+                        </asp:TableRow>
+                        
+                         <asp:TableRow ID="trMessage" runat="server" Visible="false"> 
+
+                                    <asp:TableCell ColumnSpan=2 HorizontalAlign="center">
+
+            <asp:Label ID="lblMessage" runat="server" Font-Name="verdana"></asp:Label>
+                                    
+
+                                    </asp:TableCell>
+
+                        </asp:TableRow>
+
+            </asp:Table>
+            
+            <br />
+    </div>
+    </form>
+</body>
+</html>

@@ -1,0 +1,320 @@
+﻿<%@ Page Title="MyAdvantech - Search Advantech Websites" Language="VB" MasterPageFile="~/Includes/MyMaster.master" ValidateRequest="false" EnableEventValidation="false" %>
+
+<script runat="server">
+    
+    <Services.WebMethod()> _
+    <Web.Script.Services.ScriptMethod()> _
+    Public Shared Function GetSuggestion(ByVal prefixText As String, ByVal count As Integer) As String()
+        Dim dt As DataTable = Nothing
+        If prefixText.EndsWith(" ") Then
+            Dim ps() As String = Split(prefixText, " ")
+            Dim arr As New ArrayList
+            If ps.Length > 1 Then
+                If ps.Length >= 7 Then Return New String() {prefixText}
+                For Each s As String In ps
+                    arr.Add("'" + s.Trim().Replace("'", "''").Replace("*", "%") + "'")
+                Next
+            Else
+                Return New String() {prefixText}
+            End If
+
+            Dim sb As New System.Text.StringBuilder
+            With sb
+                .AppendLine(String.Format(" select top 10 keyword  "))
+                .AppendLine(String.Format(" from MY_WEB_KEYWORDS  "))
+                .AppendLine(String.Format(" where document_id in "))
+                .AppendLine(String.Format(" ( "))
+                .AppendLine(String.Format(" 	select document_id "))
+                .AppendLine(String.Format(" 	from MY_WEB_KEYWORDS "))
+                .AppendLine(String.Format(" 	where keyword=N'{0}' ", ps(ps.Length - 2)))
+                .AppendLine(String.Format(" ) and keyword not in ({0}) ", String.Join(",", arr.ToArray())))
+                .AppendLine(String.Format(" group by keyword order by COUNT(distinct document_id) desc "))
+            End With
+            dt = dbUtil.dbGetDataTable("MY", sb.ToString())
+            For Each r As DataRow In dt.Rows
+                r.Item("keyword") = prefixText + " " + r.Item("keyword")
+            Next
+        Else
+            prefixText = Replace(Replace(Trim(prefixText), "'", "''"), "*", "%")
+            dt = dbUtil.dbGetDataTable("MY", String.Format("select distinct top 10 keyword from MY_WEB_KEYWORDS where keyword like N'%{0}%' order by keyword", prefixText))
+        End If
+        If dt.Rows.Count > 0 Then
+            Dim str(dt.Rows.Count - 1) As String
+            For i As Integer = 0 To dt.Rows.Count - 1
+                str(i) = dt.Rows(i).Item(0)
+            Next
+            Return str
+        End If
+        Return New String() {prefixText}
+    End Function
+    
+    'Public Function Highlight(ByVal Search_Str As String, ByVal InputTxt As String) As String
+    '    Dim reg1 As New Regex(Trim(Search_Str), RegexOptions.IgnoreCase)
+    '    If reg1.IsMatch(InputTxt) Then
+    '        Return reg1.Replace(InputTxt, New MatchEvaluator(AddressOf ReplaceKeyWords))
+    '        reg1 = Nothing
+    '    End If
+    '    Return ""
+    'End Function
+
+    
+    Function ShowTextPreview(ByVal t As String) As String
+        'Return t
+        Dim tl() As String = Split(t, vbCrLf)
+        Dim reg1 As New Regex(Trim(Me.txtKey.Text), RegexOptions.IgnoreCase)
+        Dim nt As New System.Text.StringBuilder
+        For Each l As String In tl
+            If reg1.IsMatch(l) Then
+                nt.AppendLine("..." + l + "...")
+            End If
+        Next
+        Dim rt As String = Util.Highlight(Me.txtKey.Text, HttpUtility.HtmlEncode(nt.ToString()))
+        If Trim(rt) <> String.Empty Then Return rt
+        If t.Length > 200 Then
+            Return t.Substring(0, 200) + "..."
+        Else
+            Return t
+        End If
+    End Function
+    
+    'Public Function ReplaceKeyWords(ByVal m As Match) As String
+    '    Return "<span style='color:Red'><b>" + m.Value + "</b></span>"
+    'End Function
+    
+    Function GetSql() As String
+        If txtKey.Text.Trim = "" Then Return ""
+        txtKey.Text = Replace(txtKey.Text, "*", "%")
+        Dim fts As New eBizAEU.FullTextSearch(Server.HtmlEncode(Replace(txtKey.Text, "*", "%")))
+        Dim strKey As String = fts.NormalForm.Replace("'", "''")
+        Dim AD_field As String = "", ES_field As String = ""
+        Me.Isspecial_user(AD_field, ES_field)
+        Dim sb As New System.Text.StringBuilder
+        With sb
+            .AppendLine(String.Format(" select top 50 a.keyid, b.[rank], a.ContentType, a.APPNAME, a.Meta_Description, "))
+            .AppendLine(String.Format(" a.Url, a.LastModified, "))
+            .AppendLine(String.Format(" a.ResponseUri, a.Title, a.[Text], a.Crawl_Time, a.GOOGLE_PAGERANK from MY_WEB_SEARCH a inner join  "))
+            .AppendLine(String.Format(" (  "))
+            .AppendLine(String.Format("     select top 100 z.keyid as [key], 1000 as [rank] "))
+            .AppendLine(String.Format("     from MY_WEB_SEARCH z where (z.Title like N'%{0}%')  ", txtKey.Text.Trim().Replace("'", "''").Replace("*", "%")))
+            If rblWeb.SelectedIndex > 0 Then
+                If rblWeb.SelectedIndex = 1 AndAlso AD_field <> "" Then
+                    .AppendLine(String.Format(" and z.APPNAME in ('{0}','{1}') ", rblWeb.SelectedValue, AD_field))
+                ElseIf rblWeb.SelectedIndex = 2 AndAlso ES_field <> "" Then
+                    .AppendLine(String.Format(" and z.APPNAME in ('{0}','{1}') ", rblWeb.SelectedValue, ES_field))
+                Else
+                    .AppendLine(String.Format(" and z.APPNAME='{0}' ", rblWeb.SelectedValue))
+                End If               
+            End If
+            .AppendLine(String.Format("     order by z.Title "))
+            .AppendLine(String.Format("     union "))
+            .AppendLine(String.Format(" 	SELECT top 500 [key], [rank]  "))
+            .AppendLine(String.Format(" 	from freetexttable(MY_WEB_SEARCH, (title, text, Meta_Description),  "))
+            .AppendLine(String.Format(" 	N'{0}') order by [rank] desc ", strKey))
+            .AppendLine(String.Format(" ) b on a.keyid=b.[key]  "))
+            If rblWeb.SelectedIndex > 0 Then
+                '.AppendLine(String.Format(" where a.APPNAME='{0}' ", rblWeb.SelectedValue))
+                If rblWeb.SelectedIndex = 1 AndAlso AD_field <> "" Then
+                    .AppendLine(String.Format(" and a.APPNAME in ('{0}','{1}') ", rblWeb.SelectedValue, AD_field))
+                ElseIf rblWeb.SelectedIndex = 2 AndAlso ES_field <> "" Then
+                    .AppendLine(String.Format(" and a.APPNAME in ('{0}','{1}') ", rblWeb.SelectedValue, ES_field))
+                Else
+                    .AppendLine(String.Format(" and a.APPNAME='{0}' ", rblWeb.SelectedValue))
+                End If
+            End If
+            .AppendLine(String.Format(" order by (1+a.GOOGLE_PAGERANK)*50+b.[rank]-a.Depth desc "))
+        End With
+        'Response.Write(sb.ToString())
+        Return sb.ToString()
+    End Function
+
+    Protected Sub Page_Init(ByVal sender As Object, ByVal e As System.EventArgs)
+        If Not Page.IsPostBack Then
+            Me.txtKey.Attributes("autocomplete") = "off"
+        End If
+    End Sub
+    Public Sub Isspecial_user(ByRef ReturnAdStr As String, ByRef ReturnEsStr As String)
+        Try
+            Dim lan_default As String = ""
+            If Request.ServerVariables("HTTP_ACCEPT_LANGUAGE") IsNot Nothing AndAlso Request.ServerVariables("HTTP_ACCEPT_LANGUAGE").ToString.Trim <> "" Then
+                lan_default = Request.ServerVariables("HTTP_ACCEPT_LANGUAGE").ToString.Trim
+            End If
+            Dim Arr As New ArrayList
+            Arr.Add("AKR,KOR,ko-kr,Advantech KR,eStore KR")
+            Arr.Add("AJP,JAP,ja-jp,Advantech JP,eStore JP")
+            For Each Str As String In Arr
+                Str = Str.ToUpper
+                Dim p() As String = Str.Split(",")
+                If (HttpContext.Current.Session("RBU") IsNot Nothing AndAlso HttpContext.Current.Session("RBU").ToString <> "" AndAlso Str.Contains(HttpContext.Current.Session("RBU").ToString.ToUpper.Trim)) _
+                    OrElse _
+                    (HttpContext.Current.Session("LanG") IsNot Nothing AndAlso HttpContext.Current.Session("LanG").ToString <> "" AndAlso Str.Contains(HttpContext.Current.Session("LanG").ToString.ToUpper.Trim)) _
+                    OrElse _
+                    (lan_default <> "" AndAlso lan_default.ToUpper.Contains(p(2))) _
+                    Then
+                    ReturnAdStr = p(3)
+                    ReturnEsStr = p(4)
+                End If
+            Next
+        Catch ex As Exception
+
+        End Try
+    End Sub
+    Protected Sub btnSearch_Click(ByVal sender As Object, ByVal e As System.EventArgs)
+        If txtKey.Text.Trim() = "" Then txtKey.Text = "*"
+        hd_FS.Value = "0"
+        'If dbUtil.dbGetDataTable("MY", GetSql()).Rows.Count = 0 Then hd_FS.Value = "1"
+        gv1.PageIndex = 0 : src1.SelectCommand = GetSql()
+        gv1.EmptyDataText = "No Search Result. Please refine your search."
+        If False Then
+            lbSql.Visible = True : lbSql.Text = src1.SelectCommand
+        End If
+    End Sub
+
+    Protected Sub gv1_PageIndexChanging(ByVal sender As Object, ByVal e As System.Web.UI.WebControls.GridViewPageEventArgs)
+        src1.SelectCommand = GetSql()
+    End Sub
+
+    Protected Sub src1_Selecting(ByVal sender As Object, ByVal e As System.Web.UI.WebControls.SqlDataSourceSelectingEventArgs)
+        e.Command.CommandTimeout = 600
+    End Sub
+
+    Protected Sub gv1_DataBound(ByVal sender As Object, ByVal e As System.EventArgs)
+        'If gv1.PageIndex = 0 AndAlso gv1.Rows.Count = 0 Then
+        '    hd_FS.Value = "1" : src1.SelectCommand = GetSql()
+        'End If
+    End Sub
+    
+    Function FormatAppName(ByVal appvalue As String) As String
+        Dim apname As String = "", apurl As String = ""
+        Select Case UCase(appvalue)
+            Case "ADVANTECH US"
+                apname = "Corp. Website" : apurl = "http://www.advantech.com"
+            Case "ADVANTECH TW"
+                apname = "Corp. Website" : apurl = "http://www.advantech.com.tw"
+            Case "ADVANTECH INNOCORE"
+                apname = "Innocore" : apurl = "http://www.advantech-innocore.com"
+            Case "ESTORE US"
+                apname = "eStore" : apurl = "http://buy.advantech.com"
+            Case "SUPPORT"
+                apname = "Support Portal" : apurl = "http://support.advantech.com"
+            Case "ADAM COMMUNITY"
+                apname = "Adam Community" : apurl = "http://adamcommunity.com"
+                '------
+            Case "ADVANTECH JP"
+                apname = "Advantech JP" : apurl = "http://www.advantech.co.jp"
+            Case "ADVANTECH KR"
+                apname = "Advantech KR" : apurl = "http://www.advantech.co.kr"
+            Case "ESTORE JP"
+                apname = "eStore JP" : apurl = "http://buy.advantech.co.jp"
+            Case "ESTORE KR"
+                apname = "eStore KR" : apurl = "http://buy.advantech.co.kr"
+                '------
+            Case Else
+                apname = "Others" : apurl = "http://www.advantech.com"
+        End Select
+        Return String.Format("<a target='_blank' href='{0}'>{1}</a>", apurl, apname)
+    End Function
+    
+    Protected Sub Page_Load(ByVal sender As Object, ByVal e As System.EventArgs)
+        If Not Page.IsPostBack Then
+            If Request("key") IsNot Nothing AndAlso Request("key").ToString().Trim() <> "" Then
+                txtKey.Text = Request("key").ToString().Trim()
+                btnSearch_Click(Nothing, Nothing)
+            End If
+        End If
+    End Sub
+</script>
+
+<asp:Content ID="Content1" ContentPlaceHolderID="_main" Runat="Server">
+    <script type="text/javascript">
+        function ShowHide(eid) {
+            var e = document.getElementById(eid);
+            if (e) {
+                if (e.style.display == 'none') {
+                    e.style.display = 'block';
+                }
+                else { e.style.display = 'none'; }
+            }
+        }        
+    </script>
+    <table width="100%" style="height:100%" id="stb">
+        <asp:HiddenField runat="server" ID="hd_FS" Value="0" />
+        <tr align="center" style="height:20px; vertical-align:middle;">
+            <th style="color:Navy"><h2>Search Advantech Websites</h2></th>
+        </tr>
+        <tr valign="top" align="center">
+            <td style="height:35px">
+                <table>
+                    <tr valign="top">
+                        <td>
+                            <ajaxToolkit:AutoCompleteExtender runat="server" ID="ac1" TargetControlID="txtKey" MinimumPrefixLength="2" CompletionInterval="200" ServiceMethod="GetSuggestion" />
+                            <asp:Panel runat="server" ID="PanelSearchTextBox" DefaultButton="btnSearch">
+                                <asp:TextBox runat="server" ID="txtKey" Width="500px" />
+                            </asp:Panel>
+                        </td>
+                        <td><asp:Button runat="server" ID="btnSearch" Text="Search" OnClick="btnSearch_Click" /></td>                        
+                    </tr>
+                    <tr>
+                        <td colspan="2" align="center">
+                            <asp:RadioButtonList runat="server" ID="rblWeb" RepeatColumns="6" RepeatDirection="Horizontal">
+                                <asp:ListItem Text="All Websites" />
+                                <asp:ListItem Text="Corp. Website" Value="Advantech US" Selected="True" />
+                                <asp:ListItem Text="Innocore" Value="Advantech Innocore" />
+                                <asp:ListItem Text="eStore" Value="eStore US" />
+                            </asp:RadioButtonList>
+                        </td>
+                    </tr>                   
+                </table>
+            </td>
+        </tr>
+        <tr valign="top" align="center">
+            <td>
+                <asp:UpdatePanel runat="server" ID="up1" UpdateMode="Conditional">
+                    <ContentTemplate>
+                        <asp:Label runat="server" ID="lbSql" Visible="false" />
+                        <asp:GridView runat="server" ID="gv1" Width="95%" AutoGenerateColumns="false" AllowPaging="true" EnableTheming="false" 
+                            BorderWidth="1" BorderColor="#d7d0d0" HeaderStyle-ForeColor="Black" BorderStyle="Solid" 
+                            PagerStyle-BackColor="#ffffff" PagerStyle-BorderWidth="0" PagerStyle-BorderColor="White" RowStyle-BackColor="#FFFFFF"  
+                            PageSize="10" PagerSettings-Position="TopAndBottom" DataSourceID="src1" ShowHeader="false" OnPageIndexChanging="gv1_PageIndexChanging" OnDataBound="gv1_DataBound">
+                            <Columns>
+                                <asp:TemplateField>
+                                    <ItemTemplate>
+                                        <table width="100%">                                            
+                                            <tr align="left">
+                                                <td>
+                                                    <a target="_blank"  style="font-size:16px; text-decoration:underline" href='<%# Eval("ResponseUri") %>'><%# Eval("title")%></a>                                                                                                      
+                                                </td>
+                                            </tr>
+                                            <tr align="left">
+                                                <td>
+                                                    <div style="width:95%; overflow:auto; height:100px">
+                                                        <%# ShowTextPreview(Eval("Text"))%>
+                                                    </div>  
+                                                </td>
+                                            </tr>
+                                            <tr align="left">
+                                                <td><%# FormatAppName(Eval("APPNAME"))%></td>
+                                            </tr>
+                                            <tr align="left">
+                                                <td style="color:#0E774A">
+                                                    <a target="_blank" href='<%# Eval("ResponseUri") %>'><%# Eval("ResponseUri") %></a>&nbsp;
+                                                </td>
+                                            </tr>
+                                            <tr align="left" style="display:none"><td><b>Google Page Rank:</b>&nbsp;<%#Eval("GOOGLE_PAGERANK")%></td></tr>
+                                        </table>
+                                    </ItemTemplate>
+                                </asp:TemplateField>
+                            </Columns>
+                        </asp:GridView>
+                        <asp:SqlDataSource runat="server" ID="src1" ConnectionString="<%$ConnectionStrings:MY %>" OnSelecting="src1_Selecting" />
+                    </ContentTemplate>
+                    <Triggers>
+                        <asp:PostBackTrigger ControlID="btnSearch" />
+                    </Triggers>
+                </asp:UpdatePanel>
+            </td>
+        </tr>
+    </table>
+    <script type="text/javascript">
+        document.getElementById('stb').style.height = Math.max(document.documentElement.scrollHeight, document.body.scrollHeight) - 160 + "px";
+    </script>
+</asp:Content>

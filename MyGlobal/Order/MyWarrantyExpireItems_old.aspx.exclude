@@ -1,0 +1,271 @@
+﻿<%@ Page Language="VB" EnableEventValidation="false" MasterPageFile="~/Includes/MyMaster.master" Title="My Warranty Expired Items Inquiry" %>
+<%@ Register assembly="ExportToExcel" namespace="KrishLabs.Web.Controls" tagprefix="RK" %>
+<script runat="server">
+  
+    Public Function GetSql() As String
+        Dim sb As New System.Text.StringBuilder
+        With sb
+            .AppendLine(" select a.item_no as part_no, a.model_no, dbo.DateOnly(a.efftive_date) as invoice_date, ")
+            .AppendLine(" dbo.DateOnly(a.efftive_date+730) as warranty_end_date, a.order_no as so_no, ")
+            .AppendLine(" cast(a.Qty as int) as qty, ")
+            .AppendLine(" case when a.tr_curr='EUR' then cast(a.EUR as numeric(18,2)) else cast(a.US_AMT/a.us_ex_rate as numeric(18,2)) end as amount, ")
+            .AppendLine(" a.tr_curr as currency, a.line_no, ")
+            .AppendLine(" a.egroup as product_group, a.edivision as product_division, a.product_line, ")
+            .AppendLine(" a.SalesOffice, a.SalesName, a.CustSegment, a.material_group, a.model_no, a.BillingDoc as invoice_no ")
+            .AppendLine(" from eai_sale_fact_new a ")
+            If Me.txtTo.Text.Trim <> "" Then
+                .AppendLine(String.Format(" where a.Qty>0 and a.material_group in ('PRODUCT') and a.customer_id='{0}' and a.efftive_date+730 between '{1}' and '{2}' and a.tran_type='shipment' ", CompanyId, FromDate, ToDate))
+            Else
+                'Remove inquires the end date
+                .AppendLine(String.Format(" where a.Qty>0 and a.material_group in ('PRODUCT') and a.customer_id='{0}' and a.efftive_date+730 >= '{1}'  and a.tran_type='shipment' ", CompanyId, FromDate))
+            End If
+            If txtPartNo.Text.Trim <> "" Then
+                .AppendLine(String.Format("  and a.item_no like '{0}%' ", txtPartNo.Text.Trim.Replace("'", "")))
+            End If
+            .AppendLine(" order by a.efftive_date+730 ")
+        End With
+        Return sb.ToString()
+    End Function
+    
+    Public Property FromDate() As String
+        Get
+            If Date.TryParse(Me.txtFrom.Text, Now) Then
+                Return CDate(Me.txtFrom.Text).ToString("yyyy/MM/dd")
+            Else
+                Me.txtFrom.Text = DateAdd(DateInterval.Month, -1, Now).ToString("yyyy/MM/dd")
+                Return CDate(Me.txtFrom.Text).ToString("yyyy/MM/dd")
+            End If
+        End Get
+        Set(ByVal value As String)
+            If Date.TryParse(value, Now) Then
+                Me.txtFrom.Text = CDate(value).ToString("yyyy/MM/dd")
+            Else
+                Me.txtFrom.Text = DateAdd(DateInterval.Month, -1, Now).ToString("yyyy/MM/dd")
+            End If
+        End Set
+    End Property
+    Public Property ToDate() As String
+        Get
+            If Date.TryParse(Me.txtTo.Text, Now) Then
+                Return CDate(Me.txtTo.Text).ToString("yyyy/MM/dd")
+            Else
+                Me.txtTo.Text = DateAdd(DateInterval.Month, 3, Now).ToString("yyyy/MM/dd")
+                Return CDate(Me.txtTo.Text).ToString("yyyy/MM/dd")
+            End If
+        End Get
+        Set(ByVal value As String)
+            If Date.TryParse(value, Now) Then
+                Me.txtTo.Text = CDate(value).ToString("yyyy/MM/dd")
+            Else
+                Me.txtTo.Text = DateAdd(DateInterval.Month, 3, Now).ToString("yyyy/MM/dd")
+            End If
+        End Set
+    End Property
+    Public ReadOnly Property CompanyId() As String
+        Get
+            Return Session("company_id")
+        End Get
+    End Property
+
+    Protected Sub Page_Load(ByVal sender As Object, ByVal e As System.EventArgs)
+      
+    End Sub
+
+    Protected Sub Page_PreRender(ByVal sender As Object, ByVal e As System.EventArgs)
+        If Me.txtFrom.Text.Trim = "" Then Me.txtFrom.Text = FromDate
+        'If Me.txtTo.Text.Trim = "" Then Me.txtTo.Text = ToDate
+        If Me.txtTo.Text.Trim = "" Then Me.txtTo.Text = ""
+    End Sub
+
+    Protected Sub gv1_PageIndexChanging(ByVal sender As Object, ByVal e As System.Web.UI.WebControls.GridViewPageEventArgs)
+        src1.SelectCommand = GetSql()
+    End Sub
+
+    Protected Sub gv1_Sorting(ByVal sender As Object, ByVal e As System.Web.UI.WebControls.GridViewSortEventArgs)
+        src1.SelectCommand = GetSql()
+    End Sub
+
+    Protected Sub gv1_SelectedIndexChanging(ByVal sender As Object, ByVal e As System.Web.UI.WebControls.GridViewSelectEventArgs)
+        src1.SelectCommand = GetSql()
+    End Sub
+
+    Protected Sub btnXls_Click(ByVal sender As Object, ByVal e As System.Web.UI.ImageClickEventArgs)
+        If GetSql() <> "" Then
+            Dim dt As DataTable = dbUtil.dbGetDataTable("RFM", GetSql())
+            dt.Columns.Add("Serial_Number")
+            Dim arrInvNo As New ArrayList, arrPN As New ArrayList
+            For Each r As DataRow In dt.Rows
+                If r.Item("material_group").ToString = "PRODUCT" Then
+                    If Not arrInvNo.Contains("'" + r.Item("invoice_no").ToString() + "'") Then arrInvNo.Add("'" + r.Item("invoice_no").ToString() + "'")
+                    If Not arrPN.Contains("'" + r.Item("part_no").ToString() + "'") Then arrPN.Add("'" + r.Item("part_no").ToString() + "'")
+                End If
+            Next
+            If arrInvNo.Count > 0 And arrPN.Count > 0 Then
+                String.Join(",", arrInvNo.ToArray(GetType(String)))
+                'Util.SendEmail("tc.chen@advantech.eu", "ebiz.aeu@advantech.eu", "", String.Format("select invoice_no, part_no, serial_number from sap_invoice_sn where serial_number is not null and invoice_no in ({0}) and part_no in ({1})", _
+                '              String.Join(",", arrInvNo.ToArray(GetType(String))), String.Join(",", arrPN.ToArray(GetType(String)))), False, "", "")
+
+                'Dim sndt As DataTable = dbUtil.dbGetDataTable("RFM", _
+                'String.Format("select invoice_no, part_no, serial_number from sap_invoice_sn where serial_number is not null and invoice_no in ({0}) and part_no in ({1})", _
+                '              String.Join(",", arrInvNo.ToArray(GetType(String))), String.Join(",", arrPN.ToArray(GetType(String)))))
+                
+                Dim sndt As DataTable = dbUtil.dbGetDataTable("RFM", _
+                    String.Format("select invoice_no, part_no, serial_number from sap_invoice_sn_v2 where serial_number is not null and invoice_no in ({0}) and part_no in ({1})", _
+                    String.Join(",", arrInvNo.ToArray(GetType(String))), String.Join(",", arrPN.ToArray(GetType(String)))))
+
+                
+                For Each r As DataRow In dt.Rows
+                    If r.Item("material_group").ToString = "PRODUCT" Then
+                        Dim rs() As DataRow = sndt.Select("invoice_no='" + r.Item("invoice_no").ToString() + "' and part_no='" + r.Item("part_no") + "'")
+                        Dim snArr As New ArrayList
+                        For Each snr As DataRow In rs
+                            snArr.Add(snr.Item("serial_number"))
+                        Next
+                        If snArr.Count > 0 Then
+                            r.Item("Serial_Number") = String.Join(",", snArr.ToArray(GetType(String)))
+                        End If
+                    End If
+                Next
+                dt.AcceptChanges()
+                If dt.Rows.Count > 0 Then
+                    dt.TableName = "WarrantyItems"
+                 Util.DataTable2ExcelDownload(dt, "WarrantyExpiredItems.xls")
+                End If
+            End If
+        End If
+    End Sub
+
+    Protected Sub btnQuery_Click(ByVal sender As Object, ByVal e As System.Web.UI.ImageClickEventArgs)
+        src1.SelectCommand = GetSql()
+    End Sub
+
+    Protected Sub Page_Error(ByVal sender As Object, ByVal e As System.EventArgs)
+
+    End Sub
+
+    Protected Sub src1_Selecting(ByVal sender As Object, ByVal e As System.Web.UI.WebControls.SqlDataSourceSelectingEventArgs)
+        e.Command.CommandTimeout = 999999
+    End Sub
+
+    Protected Sub gv1_DataBound(ByVal sender As Object, ByVal e As System.EventArgs)
+        'If gv1.Rows.Count > 0 Then
+        '    btnXls.Visible = True
+        '    'btnXls.Visible = False
+        'Else
+        '    btnXls.Visible = False
+        'End If
+    End Sub
+    
+    Function GetPNLink(ByVal modelno As String, ByVal partno As String) As String
+        If Session("user_id") Like "*@*advantech*" Then
+            Return String.Format("<a target='_blank' href='http://datamining.advantech.eu/Datamining/ProductProfile.aspx?PN={0}'>{0}</a>", partno)
+        Else
+            If modelno.Trim <> "" Then
+                Return String.Format("<a target='_blank' href='/Product/model_detail.aspx?modelno={0}'>{1}</a>", modelno, partno)
+            Else
+                Return partno
+            End If
+        End If
+    End Function
+    
+    <Services.WebMethod()> _
+    <Web.Script.Services.ScriptMethod()> _
+    Public Shared Function GetPartNo(ByVal prefixText As String, ByVal count As Integer) As String()
+        prefixText = UCase(Replace(Trim(prefixText), "'", "''"))
+        Dim dt As DataTable = dbUtil.dbGetDataTable("RFM", String.Format("select top 20 part_no from sap_product where part_no like '{0}%' and part_no not like '#%'", prefixText))
+        If dt.Rows.Count > 0 Then
+            Dim str(dt.Rows.Count - 1) As String
+            For i As Integer = 0 To dt.Rows.Count - 1
+                str(i) = dt.Rows(i).Item(0)
+            Next
+            Return str
+        End If
+        Return Nothing
+    End Function
+</script>
+<asp:Content ID="Content1" ContentPlaceHolderID="_main" Runat="Server">
+    <table width="100%">
+        <tr>
+            <td>
+                <table width="340px">
+                    <tr>
+                        <th align="left" style="width:100px">Warranty End Date</th> 
+                        <td>From:</td>
+                        <td>
+                            <ajaxToolkit:CalendarExtender runat="server" ID="CalendarExtender1" TargetControlID="txtFrom" Format="yyyy/MM/dd" />
+                            <asp:TextBox runat="server" ID="txtFrom" Width="70px" />
+                        </td>
+                        <td>To:</td>
+                        <td>
+                            <ajaxToolkit:CalendarExtender runat="server" ID="CalendarExtender2" TargetControlID="txtTo" Format="yyyy/MM/dd" />
+                            <asp:TextBox runat="server" ID="txtTo" Width="70px" />
+                        </td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <table width="340px">
+                    <tr>
+                        <th align="left" style="width:50px">Part No.</th>
+                        <td>
+                            <ajaxToolkit:AutoCompleteExtender runat="server" ID="ac1" TargetControlID="txtPartNo" 
+                                CompletionInterval="300" ServiceMethod="GetPartNo" MinimumPrefixLength="1" />
+                            <asp:TextBox runat="server" ID="txtPartNo" Width="120px" />
+                        </td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <table width="340px">
+                    <tr>
+                        <td align="center">                            
+                            <asp:ImageButton runat="server" ID="btnQuery" ImageUrl="~/Images/newgo.gif" AlternateText="Query" OnClick="btnQuery_Click" />
+                        </td>
+                    </tr>
+                </table>                
+            </td>
+        </tr>
+        <tr>
+            <td>   
+                <asp:ImageButton Visible="true"  runat="server" ID="btnXls" ImageUrl="~/Images/excel.gif" AlternateText="Download Excel" OnClick="btnXls_Click" />               
+                <asp:UpdatePanel runat="server" ID="up1" UpdateMode="Conditional">
+                    <ContentTemplate>                                             
+                        <asp:GridView PagerSettings-Position="TopAndBottom" Width="97%" runat="server" ID="gv1" AutoGenerateColumns="false"  DataSourceID="src1" 
+                            OnPageIndexChanging="gv1_PageIndexChanging" OnSorting="gv1_Sorting" 
+                            OnSelectedIndexChanging="gv1_SelectedIndexChanging" AllowPaging="true" AllowSorting="true" PageSize="25" OnDataBound="gv1_DataBound">
+                            <Columns>                                  
+                                <asp:BoundField HeaderText="SO No." DataField="so_no" SortExpression="so_no" />
+                                <asp:BoundField HeaderText="Line No." DataField="line_no" SortExpression="line_no" />
+                                <asp:BoundField HeaderText="Invoice No" DataField="invoice_no" SortExpression="invoice_no" ItemStyle-HorizontalAlign="Center" />
+                                <asp:BoundField HeaderText="Invoice Qty." DataField="qty" SortExpression="qty" ItemStyle-HorizontalAlign="Center" />
+                                <asp:BoundField HeaderText="Currency" DataField="currency" SortExpression="currency" ItemStyle-HorizontalAlign="Center" />
+                                <asp:BoundField HeaderText="Amount" DataField="amount" SortExpression="amount" ItemStyle-HorizontalAlign="Right" />                               
+                                <asp:TemplateField HeaderText="Part No." SortExpression="part_no">
+                                    <ItemTemplate>
+                                        <%#GetPNLink(Eval("model_no"), Eval("part_no"))%>
+                                    </ItemTemplate>
+                                </asp:TemplateField>
+                                <asp:BoundField ItemStyle-HorizontalAlign="Center" HeaderText="Warranty End Date" DataField="warranty_end_date" SortExpression="warranty_end_date" />      
+                                <asp:BoundField HeaderText="Material Group" DataField="material_group" SortExpression="material_group" Visible="false" />                                
+                            </Columns>
+                        </asp:GridView> 
+                        <asp:SqlDataSource runat="server" ID="src1" ConnectionString="<%$ConnectionStrings:RFM %>" OnSelecting="src1_Selecting" />
+                    </ContentTemplate>
+                    <Triggers>                        
+                        <asp:AsyncPostBackTrigger ControlID="btnQuery" EventName="Click" />
+                    </Triggers>
+                </asp:UpdatePanel>
+                <%--<RK:ExportToExcel ID="ExportToExcel1" Visible="false"
+                    runat="server" ApplyStyleInExcel ="True"
+                    exportfilename="test.xls"
+                    includetimestamp="true" PageSize="All"
+                    text="Download to EXCEL"  OnPreExport="ExportToExcel1_PreExport" /> --%>
+            </td>
+        </tr>
+    </table>   
+</asp:Content>
+    

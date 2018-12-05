@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<License>
+  <Data>
+    <LicensedTo>Advantech Europe GmbH</LicensedTo>
+    <LicenseType>Developer Enterprise Subscription</LicenseType>
+    <LicenseNote>Limited to 1 developer.</LicenseNote>
+    <OrderID>101206083835</OrderID>
+    <OEM>This is not a non-redistributable license</OEM>
+    <Products>
+      <Product>Aspose.Total</Product>
+    </Products>
+    <EditionType>Enterprise</EditionType>
+    <SerialNumber>b287dace-2fb0-4c8a-b5fa-1599503cd639</SerialNumber>
+    <SubscriptionExpiry>20120117</SubscriptionExpiry>
+    <LicenseVersion>2.2</LicenseVersion>
+  </Data>
+  <Signature>wgELEODcAflrgiypacoUWvTP5J/8mwL/GzeQ7+vaBzXqglKYpaaLWpTMMfO50Q8KSy5uv+8NwJ0rwL27mobD4N+Pp1Kv6syv5Qarv2cQEXmFpaZDsk8jFujTBwk4wH5DfZEo7NQ53hfj1gnmZKafUHsOIvDjF1QDLJPSlXv6M6Q=</Signature>
+</License>

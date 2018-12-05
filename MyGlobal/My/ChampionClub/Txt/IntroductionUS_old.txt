@@ -1,0 +1,116 @@
+﻿  <div class="main-intro">
+
+                            <div class="intro-heading"> Introduction</div>
+                            <p>
+                                <strong>Advantech Champion Club</strong> is a society that includes programs designed exclusive for our Premier Channel Partner (PCP). 
+                                The PCP sales are welcome to become our potential Club members. With registration to make part of our Club member, 
+                                they can join an accumulation of points, which could redeem for certain level of prizes based on achievement performance under our program 
+                                criteria by quarterly basis.</p>
+                            <!-- end .main-intro -->
+                        </div>
+                        <div class="main-content">
+                            <div class="content-heading">
+                                Program Overview</div>
+                            <p>
+                                Currently our program mainly covers some items as below explained. They refer to the point accumulation which is regionally defined. 
+                                Furthermore, it might expand for future consideration. <br />
+                                Sales Quota：</p>
+                            <ul>
+                                <li>Achievement for quarterly target/quota.</li>
+                                <li>Special offerings (such as Star Products or Limited Timeframe…etc).</li>
+                            </ul>
+                        </div>
+                        <div class="main-content2">
+                            <div class="content-heading">
+                                Prize</div>
+                            <ul>
+                                <li>Quarterly：<br />
+                                    There are few levels of prizes available for redemption.</li>
+                                <li>Year End：<br />
+                                    Top point score winners + Certain Numbers of candidates (regionally defined from criteria) can win a group travel package.</li>
+                            </ul>
+                        </div>
+                        <div class="main-content">
+                            <div class="content-heading">
+                                Process</div>
+                            <p>“Real plan shall be according to regional event launchment, below milestone shall be only for main reference.”</p>
+                            <div id="Opp_table">
+                                <table width="100%" cellpadding="0" cellspacing="0">
+                                    <thead>
+                                        <tr>
+                                            <th width="20%" scope="col">
+                                                Milestone
+                                            </th>
+                                            <th width="32%" scope="col">
+                                                Timeline/Month
+                                            </th>
+                                            <th scope="col">
+                                                Deadline
+                                            </th>
+                                            <th scope="col">
+                                                Remark
+                                            </th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr class="odd1">
+                                            <td>
+                                                Program Announcement &amp; Registration
+                                            </td>
+                                            <td>
+                                                Dec, Mar, Jun, Sep
+                                            </td>
+                                            <td>
+                                                end of month
+                                            </td>
+                                            <td>
+                                                Announcement of regional program and candidate registration
+                                            </td>
+                                        </tr>
+                                        <tr class="odd2">
+                                            <td>
+                                                Phase Window
+                                            </td>
+                                            <td>
+                                                Q1, Q2, Q3, Q4
+                                            </td>
+                                            <td>
+                                                end of quarter
+                                            </td>
+                                            <td>
+                                                Program running
+                                            </td>
+                                        </tr>
+                                        <tr class="odd1">
+                                            <td>
+                                                Point Submission
+                                            </td>
+                                            <td>
+                                                4/1, 7/1, 10/1, 1/2
+                                            </td>
+                                            <td>
+                                                2 weeks
+                                            </td>
+                                            <td>
+                                                Candidate shall submit the result of achievement
+                                            </td>
+                                        </tr>
+                                        <tr class="odd2">
+                                            <td>
+                                                Points Allocation<br />
+                                                &amp; Redeem
+                                            </td>
+                                            <td>
+                                                4/15, 7/15, 10/15, 1/15
+                                            </td>
+                                            <td>
+                                                2 weeks
+                                            </td>
+                                            <td>
+                                                Prize redemption period
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>

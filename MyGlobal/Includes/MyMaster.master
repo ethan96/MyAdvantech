@@ -1,0 +1,1459 @@
+﻿<%@ Master Language="VB" ClassName="MyMaster" %>
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<script runat="server">  
+
+    Public Property LogoImgPath() As String
+        Set(ByVal value As String)
+            Me.hlHomeLogo.ImageUrl = value
+        End Set
+        Get
+            Return Me.hlHomeLogo.ImageUrl
+        End Get
+    End Property
+
+    Public Property SearchDlSelIdx() As Integer
+        Get
+            Return dlSearchOption.SelectedIndex
+        End Get
+        Set(ByVal value As Integer)
+            dlSearchOption.SelectedIndex = IIf(value >= 0 And value <= 3, value, 0)
+            If dlSearchOption.SelectedIndex = 1 Then
+                LitTypeLabel.Style.Item("display") = "block"
+            End If
+        End Set
+    End Property
+
+    Public Property EnableAsyncPostBackHolder() As Boolean
+        Get
+            'Return Me.apbh1.Visible
+        End Get
+        Set(ByVal value As Boolean)
+            'Me.cph1.Visible = value 'Me.apbh1.Visible = value
+            'If value Then
+            UpdateProgress2.Visible = value
+            'End If
+        End Set
+    End Property
+
+    Protected Overloads Overrides Sub Render(ByVal writer As System.Web.UI.HtmlTextWriter)
+        Dim swHtmlText As New HtmlTextWriter(New System.IO.StringWriter)
+        MyBase.Render(swHtmlText)
+        Dim strHtml As String = swHtmlText.InnerWriter.ToString
+        strHtml = Regex.Replace(strHtml, "^\s+<", " <", RegexOptions.Multiline)
+        strHtml = Regex.Replace(strHtml, ">\s+<", "> <", RegexOptions.Multiline)
+        writer.Write(strHtml.Trim)
+    End Sub
+    Sub ImageButton_Click(ByVal sender As Object, ByVal e As ImageClickEventArgs)
+        If True Then
+            Try
+                dbUtil.dbExecuteNoQuery("My", String.Format("insert into user_query_log (userid,keyword,ip,type) values ('{0}','{1}','{2}','{3}')", Session("user_id"), txtSearchKey.Text.Trim.Replace("'", "''"), Request.ServerVariables("REMOTE_ADDR"), dlSearchOption.SelectedValue))
+            Catch ex As Exception
+                'Util.SendEmail("rudy.wang@advantech.com.tw", "ebiz.aeu@advantech.eu", "error", ex.ToString, True, "", "")
+            End Try
+            If dlSearchOption.SelectedIndex = 0 Then
+                Response.Redirect(IIf(HttpRuntime.AppDomainAppVirtualPath = "/", "", HttpRuntime.AppDomainAppVirtualPath) + "/Product/ProductSearch.aspx?key=" + Me.txtSearchKey.Text)
+            Else
+                If dlSearchOption.SelectedIndex = 1 Then
+                    Dim ltArr As New ArrayList
+                    For i As Integer = 0 To cblLitSearch.Items.Count - 1
+                        If cblLitSearch.Items(i).Selected Then ltArr.Add(i.ToString())
+                    Next
+                    If ltArr.Count > 0 Then
+                        Response.Redirect(IIf(HttpRuntime.AppDomainAppVirtualPath = "/", "", HttpRuntime.AppDomainAppVirtualPath) + "/Product/MaterialSearch.aspx?key=" + Me.txtSearchKey.Text + "&LitType=" + String.Join(",", ltArr.ToArray()))
+                    Else
+                        Response.Redirect(IIf(HttpRuntime.AppDomainAppVirtualPath = "/", "", HttpRuntime.AppDomainAppVirtualPath) + "/Product/MaterialSearch.aspx?key=" + Me.txtSearchKey.Text)
+                    End If
+                Else
+                    If dlSearchOption.SelectedIndex = 2 Then
+                        Response.Redirect(IIf(HttpRuntime.AppDomainAppVirtualPath = "/", "", HttpRuntime.AppDomainAppVirtualPath) + "/Product/AdvWebSearch.aspx?key=" + Me.txtSearchKey.Text)
+                    End If
+                    'If dlSearchOption.SelectedIndex = 2 Then
+                    '    Response.Redirect("/Product/SupportSearch.aspx?key=" + Me.txtSearchKey.Text)
+                    'Else
+                    '    If dlSearchOption.SelectedIndex = 3 Then
+                    '        Response.Redirect("/Product/ResourceSearch.aspx?key=" + Me.txtSearchKey.Text)
+                    '    End If
+                    'End If
+                End If
+            End If
+        Else
+            Response.Redirect("/Home.aspx")
+        End If
+    End Sub
+
+    Protected Sub Page_Load(ByVal sender As Object, ByVal e As System.EventArgs)
+
+        '把預設按鈕指定給空按鈕，防止ENTER發生Logout
+        'Me.Page.Form.DefaultButton = btn_enter.UniqueID
+
+        If Not Page.IsPostBack Then
+            If Util.GetRuntimeSiteUrl().ToLower().Contains("advantech-bb.com") Then hlHomeLogo.ImageUrl = "~/Images/logo_mybb.jpg"
+
+            If Request.IsAuthenticated Then
+                If Util.IsAccountAdmin = True AndAlso Not Util.IsInternalUser(Session("user_id")) Then
+                    tdAdminBuyer.Visible = True : tdAdminBuyer1.Visible = True
+                Else
+                    tdAdminBuyer.Visible = False : tdAdminBuyer1.Visible = False
+                End If
+            End If
+            'If Not IsPostBack Then
+            If Util.IsInternalUser(Session("user_id")) OrElse Util.IsAEUIT() Then
+                ADMIN1_TR.Visible = True : ADMIN2_TR.Visible = True : LoginView6.Visible = True
+            End If
+
+            'Frank added:20120201
+            'Please add “eQuotation” between Admin & Product, and only User.IsAuthenticated 
+            'andalso Util.IsInternalUser then it is visible, thanks.
+            If Request.IsAuthenticated AndAlso Util.IsInternalUser2() Then
+                tdeQuotation.Visible = True : tdeQuotation1.Visible = True
+            Else
+                tdeQuotation.Visible = False : tdeQuotation1.Visible = False
+            End If
+
+            'End If
+            'If Session("user_id") = "rudy.wang@advantech.com.tw" Then tdAdminBuyer.Visible = True : tdAdminBuyer1.Visible = True
+            If Session IsNot Nothing AndAlso Session("org_id") IsNot Nothing Then
+                If Session("org_id") = "EU50" Then Session("org_id") = "EU10"
+            End If
+            'lblTime.Text = Now.ToString("HH:mm") + " " + Today.DayOfWeek.ToString + " " + Today.Day.ToString + " " + MonthName(Now.Month) + " " + Today.Year.ToString
+            If LCase(Request.ServerVariables("URL")).Contains("home_ez.aspx") Then LoginView3.Visible = False
+            Dim username As String = ""
+            If Session("FirstName") IsNot Nothing Then username = Session("FirstName")
+            'If Session("user_id") IsNot Nothing And Not IsDBNull(Session("user_id")) Then username = Session("user_id").split("@")(0).ToString.Split(".")(0)
+            'If Util.IsInternalUser(Session("user_id")) = False Then
+            '    Dim dt As DataTable = dbUtil.dbGetDataTable("MY", String.Format("select top 1 isnull(FirstName,'') as firstname from siebel_contact where email_address='{0}' order by account_status", Session("user_id")))
+            '    If dt.Rows.Count > 0 Then
+            '        If dt.Rows(0).Item(0).ToString <> "" Then username = dt.Rows(0).Item(0).ToString
+            '    Else
+            '        If Session("FirstName") <> "" Then username = Session("FirstName")
+            '    End If
+            'Else
+            '    If Session("FirstName") <> "" Then username = Session("FirstName")
+            'End If
+            If LCase(Request.ServerVariables("URL")).Contains("home_cp.aspx") Then
+                tdTime.Visible = False
+                lblRole.Text = "<table><tr><td width='12%' class='h2'><img src='../images/login_channel.jpg' ></td><td class='h2'><a href='/My/MyProfile.aspx'><font color='#20a055'>Hi, " + username + "!</font></a></td></tr></table>"
+            End If
+            If LCase(Request.ServerVariables("URL")).Contains("home_ga.aspx") Then
+                tdTime.Visible = False
+                lblRole.Text = "<table><tr><td width='12%' class='h2'><img src='../images/login_general.jpg' ></td><td class='h2'><a href='/My/MyProfile.aspx'><font color='#f5a023'>Hi, " + username + "!</font></a></td></tr></table>"
+            End If
+            If LCase(Request.ServerVariables("URL")).Contains("home_ka.aspx") Then
+                tdTime.Visible = False
+                lblRole.Text = "<table><tr><td width='12%' class='h2'><img src='../images/login_key.jpg' ></td><td class='h2'><a href='/My/MyProfile.aspx'><font color='#e83c26'>Hi, " + username + "!</font></a></td></tr></table>"
+            End If
+            'If LCase(Request.ServerVariables("URL")).Contains("home_ga.aspx") Then
+            '    LoginView3.Visible = False : lbRBU.Visible = False : hyCompanyId.Visible = False
+            'End If
+
+            If Session("account_status") IsNot Nothing Then
+                If Session("account_status") = "GA" Then
+                    If Session("company_name") = "" Then
+                        Dim obj As Object = dbUtil.dbExecuteScalar("MY", String.Format("select isnull(account,'') as account from siebel_contact where email_address='{0}' and account <> '' and account is not null", Session("user_id")))
+                        If obj IsNot Nothing Then Session("company_name") = obj.ToString
+                    End If
+                End If
+            End If
+
+
+            'Frank 2012/02/10
+            'If user doesn't login MyAdvantech, lblUserInfo will not show the user's information.
+            If Request.IsAuthenticated Then
+                'If HttpContext.Current.User.Identity.IsAuthenticated Then
+                lblUserInfo.Text = Session("user_id")
+                'If Session("company_name") <> "" Then lblUserInfo.Text += " (" + Session("company_name") + ")"
+                If Session("company_name") <> "" And Session("user_id") <> "" Then lblUserInfo.Text += " (" + Session("company_name") + ")"
+            Else
+                lblUserInfo.Text = ""
+            End If
+
+            If Session("OptyId") IsNot Nothing AndAlso Session("OptyId") <> "" Then
+                Try
+                    CType(LoginView6.FindControl("litOptyId"), Literal).Text = "Placing Order for Opportunity Id: " + Session("OptyId")
+                    CType(LoginView6.FindControl("btnCancelOpty"), LinkButton).Visible = True
+                Catch ex As Exception
+                End Try
+            End If
+
+            'TC added change org function
+            'If Not Page.IsPostBack Then
+            If Request.IsAuthenticated Then
+
+                'Frank 2012/06/04: Stop using Session("org") and replacing by Left(Session("org_id"), 2)
+                'If Session IsNot Nothing AndAlso Session("company_id") IsNot Nothing AndAlso Session("company_id").ToString() <> String.Empty _
+                '    AndAlso Session("org_id") IsNot Nothing AndAlso Session("org").ToString() <> String.Empty Then
+
+                If Session IsNot Nothing AndAlso Session("company_id") IsNot Nothing AndAlso Session("company_id").ToString() <> String.Empty _
+                    AndAlso Session("org_id") IsNot Nothing Then
+
+                    Dim orgDt As DataTable = dbUtil.dbGetDataTable("MY",
+                        "select distinct org_id, org_name from sap_company_org where company_id='" + Session("company_id") + "' and org_id not in " + ConfigurationManager.AppSettings("InvalidOrg") + " order by org_id")
+                    If orgDt.Rows.Count > 1 Then
+                        trChgOrg.Visible = True
+                        For Each r As DataRow In orgDt.Rows
+                            dlOrg.Items.Add(New ListItem(r.Item("org_name"), r.Item("org_id")))
+                        Next
+                    End If
+
+                    For Each li As ListItem In dlOrg.Items
+                        li.Selected = False : If li.Value = Session("org_id") Then li.Selected = True
+                    Next
+                End If
+            End If
+            'End If
+            'End of change org
+
+            'Util.SendEmail("rudy.wang@advantech.com.tw", "ebiz.aeu@advantech.eu", "test", "1<br/>" + Session("user_id") + "<br/>" + Session("account_status"), True, "", "")
+            If Session("user_id") = "" Then
+                If cblLitSearch.Items.FindByText("Advertisement") IsNot Nothing Then cblLitSearch.Items.Remove(cblLitSearch.Items.FindByText("Advertisement"))
+                If cblLitSearch.Items.FindByText("Banner") IsNot Nothing Then cblLitSearch.Items.Remove(cblLitSearch.Items.FindByText("Banner"))
+                If cblLitSearch.Items.FindByText("Brochure") IsNot Nothing Then cblLitSearch.Items.Remove(cblLitSearch.Items.FindByText("Brochure"))
+                If cblLitSearch.Items.FindByText("Catalogue") IsNot Nothing Then cblLitSearch.Items.Remove(cblLitSearch.Items.FindByText("Catalogue"))
+                If cblLitSearch.Items.FindByText("DM") IsNot Nothing Then cblLitSearch.Items.Remove(cblLitSearch.Items.FindByText("DM"))
+                If cblLitSearch.Items.FindByText("Event Poster") IsNot Nothing Then cblLitSearch.Items.Remove(cblLitSearch.Items.FindByText("Event Poster"))
+                If cblLitSearch.Items.FindByText("Event Presentation") IsNot Nothing Then cblLitSearch.Items.Remove(cblLitSearch.Items.FindByText("Event Presentation"))
+                If cblLitSearch.Items.FindByText("Marketing Kit") IsNot Nothing Then cblLitSearch.Items.Remove(cblLitSearch.Items.FindByText("Marketing Kit"))
+                If cblLitSearch.Items.FindByText("Product Roadmap") IsNot Nothing Then cblLitSearch.Items.Remove(cblLitSearch.Items.FindByText("Product Roadmap"))
+                If cblLitSearch.Items.FindByText("Sales Kit") IsNot Nothing Then cblLitSearch.Items.Remove(cblLitSearch.Items.FindByText("Sales Kit"))
+                If cblLitSearch.Items.FindByText("presentation slide") IsNot Nothing Then cblLitSearch.Items.Remove(cblLitSearch.Items.FindByText("presentation slide"))
+            Else
+                If Session("account_status") Is Nothing Then Session("account_status") = "GA"
+                If Session("account_status").ToString() = "GA" Then
+                    If cblLitSearch.Items.FindByText("Advertisement") IsNot Nothing Then cblLitSearch.Items.Remove(cblLitSearch.Items.FindByText("Advertisement"))
+                    If cblLitSearch.Items.FindByText("Banner") IsNot Nothing Then cblLitSearch.Items.Remove(cblLitSearch.Items.FindByText("Banner"))
+                    If cblLitSearch.Items.FindByText("Brochure") IsNot Nothing Then cblLitSearch.Items.Remove(cblLitSearch.Items.FindByText("Brochure"))
+                    If cblLitSearch.Items.FindByText("Catalogue") IsNot Nothing Then cblLitSearch.Items.Remove(cblLitSearch.Items.FindByText("Catalogue"))
+                    If cblLitSearch.Items.FindByText("DM") IsNot Nothing Then cblLitSearch.Items.Remove(cblLitSearch.Items.FindByText("DM"))
+                    If cblLitSearch.Items.FindByText("Event Poster") IsNot Nothing Then cblLitSearch.Items.Remove(cblLitSearch.Items.FindByText("Event Poster"))
+                    If cblLitSearch.Items.FindByText("Event Presentation") IsNot Nothing Then cblLitSearch.Items.Remove(cblLitSearch.Items.FindByText("Event Presentation"))
+                    If cblLitSearch.Items.FindByText("Marketing Kit") IsNot Nothing Then cblLitSearch.Items.Remove(cblLitSearch.Items.FindByText("Marketing Kit"))
+                    If cblLitSearch.Items.FindByText("Product Roadmap") IsNot Nothing Then cblLitSearch.Items.Remove(cblLitSearch.Items.FindByText("Product Roadmap"))
+                    If cblLitSearch.Items.FindByText("Sales Kit") IsNot Nothing Then cblLitSearch.Items.Remove(cblLitSearch.Items.FindByText("Sales Kit"))
+                    If cblLitSearch.Items.FindByText("presentation slide") IsNot Nothing Then cblLitSearch.Items.Remove(cblLitSearch.Items.FindByText("presentation slide"))
+                End If
+                If Session("account_status").ToString() = "CP" Then
+                    If cblLitSearch.Items.FindByText("Marketing Kit") IsNot Nothing Then cblLitSearch.Items.Remove(cblLitSearch.Items.FindByText("Marketing Kit"))
+                    If cblLitSearch.Items.FindByText("Sales Kit") IsNot Nothing Then cblLitSearch.Items.Remove(cblLitSearch.Items.FindByText("Sales Kit"))
+                End If
+                'Frank 2012/11/21: KA user can not search Sales Kit
+                If Session("account_status").ToString().Equals("KA", StringComparison.InvariantCultureIgnoreCase) Then
+                    If cblLitSearch.Items.FindByText("Sales Kit") IsNot Nothing Then cblLitSearch.Items.Remove(cblLitSearch.Items.FindByText("Sales Kit"))
+                End If
+                If Session("account_status").ToString() <> "CP" AndAlso Session("account_status").ToString() <> "EZ" Then
+                    If cblLitSearch.Items.FindByText("Presentation (For CP Only)") IsNot Nothing Then cblLitSearch.Items.Remove(cblLitSearch.Items.FindByText("Presentation (For CP Only)"))
+                End If
+            End If
+
+            If Util.IsInternalUser(Session("user_id")) = False Then
+                If cblLitSearch.Items.FindByText("eDM") IsNot Nothing Then
+                    cblLitSearch.Items.Remove(cblLitSearch.Items.FindByText("eDM"))
+                End If
+                If cblLitSearch.Items.FindByText("Event Report") IsNot Nothing Then
+                    cblLitSearch.Items.Remove(cblLitSearch.Items.FindByText("Event Report"))
+                End If
+            End If
+
+
+            '20161220 Alex: Assign country name to user by IP2Location db if user is not logging
+            Dim dtCountry_RBU As DataTable = Cache("COUNTRY_RBU")
+            If dtCountry_RBU Is Nothing Then
+                Try
+                    dtCountry_RBU = dbUtil.dbGetDataTable("CP", String.Format("  SELECT * FROM COUNTRY_RBU_MAPPING"))
+                    Cache.Add("COUNTRY_RBU", dtCountry_RBU, Nothing, Now.AddHours(1), System.Web.Caching.Cache.NoSlidingExpiration, CacheItemPriority.Default, Nothing)
+                Catch ex As Exception
+                End Try
+            End If
+
+            Dim websiteUrl As String = String.Empty
+            Dim rbu = Session("RBU")
+            If dtCountry_RBU IsNot Nothing AndAlso dtCountry_RBU.Rows.Count > 0 Then
+                If Not Context.User.Identity.IsAuthenticated Then
+                    Dim CountryName As String = String.Empty
+                    Dim userIP As String = Util.GetClientIP()
+                    If userIP IsNot Nothing Then
+                        Try
+                            CountryName = Advantech.Myadvantech.Business.IPBusinesssLogic.IPtoCountryNameByIP(userIP).Split(",")(0)
+                        Catch ex As Exception
+                        End Try
+
+                        If Not String.IsNullOrEmpty(CountryName) AndAlso CountryName <> "ERROR" Then
+                            'Convert countryname because of difference between ip2location and cuntry_rbu_mapping table  
+                            If CountryName = "Russian Federation" Then CountryName = "Russia"
+                            If CountryName = "United Kingdom" Then CountryName = "UK"
+                            If CountryName = "United States" Then CountryName = "USA"
+                            If CountryName = "Syrian Arab Republic" Then CountryName = "Syria"
+                            If CountryName = "Brunei Darussalam" Then CountryName = "Brunei"
+                            If CountryName = "Saint Kitts and Nevis" Then CountryName = "Nevis"
+                            If CountryName = "Cote D'ivoire" Then CountryName = "Ivory Coast"
+                            If CountryName = "Timor-Leste" Then CountryName = "East Timor"
+
+
+                            Dim drs() As DataRow = dtCountry_RBU.Select(String.Format("COUNTRY = '{0}' ", CountryName))
+                            If drs.Count > 0 AndAlso Not IsDBNull(drs(0).Item("WEBSITE")) Then
+                                websiteUrl = drs(0).Item("WEBSITE")
+                            End If
+                        End If
+                    End If
+
+                Else
+                    If rbu IsNot Nothing Then
+                        Dim drs() As DataRow = dtCountry_RBU.Select(String.Format("RBU = '{0}' ", rbu))
+                        If drs.Count > 0 AndAlso Not IsDBNull(drs(0).Item("WEBSITE")) Then
+                            websiteUrl = drs(0).Item("WEBSITE")
+                        End If
+                    End If
+                End If
+            End If
+
+            If Not String.IsNullOrEmpty(websiteUrl) Then
+                hyContactUs.NavigateUrl = websiteUrl + "Contact/"
+            End If
+            'If rbu = "AAC" OrElse rbu = "ANADMF" OrElse rbu = "AENC" Then hyContactUs.NavigateUrl = "http://www.advantech.com/contact/"
+            'If rbu = "AFR" OrElse rbu = "ADL" OrElse rbu = "ABN" OrElse rbu = "AIT" OrElse rbu = "AUK" OrElse rbu = "APL" Then hyContactUs.NavigateUrl = "http://www.advantech.eu/contact"
+            'If rbu = "ATW" Then hyContactUs.NavigateUrl = "http://www.advantech.tw/contact/"
+            'If rbu = "ABR" Then hyContactUs.NavigateUrl = "http://www.advantech.com.br/contact/"
+            'If rbu = "ACN" Then hyContactUs.NavigateUrl = "http://www.advantech.com.cn/contact/"
+            'If rbu = "AIN" Then hyContactUs.NavigateUrl = "http://www.advantech.in/contact/"
+            'If rbu = "AJP" Then hyContactUs.NavigateUrl = "http://www.advantech.co.jp/contact/"
+            'If rbu = "AKR" Then hyContactUs.NavigateUrl = "http://www.advantech.co.kr/contact"
+            'If rbu = "AMY" Then hyContactUs.NavigateUrl = "http://www.advantech.com.my/contact/"
+            'If rbu = "ASG" OrElse rbu = "SAP" OrElse rbu = "ATH" OrElse rbu = "AID" Then hyContactUs.NavigateUrl = "http://www.advantechsg.com.sg/contact/"
+            'If rbu = "AAU" Then hyContactUs.NavigateUrl = "http://www.advantech.net.au/contact/"
+            'If rbu = "ARU" Then hyContactUs.NavigateUrl = "http://www.advantech.ru/contact/"
+
+            'IC 2014/07/28 Use table [CHANGECOMPANY_EXTERNALUSER] to control changing cp users, and only in home_cp page can do this change
+            'IC 2014/09/02 Add KA (key account) users can change company_id in home_ka.aspx page
+            'ICC 2015/7/3 Add UsGroup for Arrow's account to change company ID
+            'Dim UsGroup As New List(Of String)(New String() {"JAY.LEE@ADVANTECH.COM", "CINDY.CHIU@ADVANTECH.COM", "MARADY.PEK@ADVANTECH.COM", "ANDYC@ADVANTECH.COM"})
+            If Session("ORG_ID") IsNot Nothing _
+                AndAlso (Session("ORG_ID").ToString.StartsWith("EU", StringComparison.OrdinalIgnoreCase) OrElse Session("ORG_ID").ToString.StartsWith("TW", StringComparison.OrdinalIgnoreCase)) _
+                AndAlso (Request.Url.ToString().ToUpper().IndexOf("HOME_CP") > -1 OrElse Request.Url.ToString().ToUpper().IndexOf("HOME_KA") > -1) _
+            Then
+                Dim dtCCEU As DataTable = Cache("CCEU")
+                If dtCCEU Is Nothing Then
+                    dtCCEU = dbUtil.dbGetDataTable("MY", "SELECT DISTINCT ce.USERID, ce.COMPANY_ID, sd.COMPANY_NAME FROM " &
+                                                                                    " (SELECT USERID, COMPANY_ID FROM CHANGECOMPANY_EXTERNALUSER) ce, " &
+                                                                                    " (SELECT COMPANY_ID, COMPANY_NAME FROM SAP_DIMCOMPANY) sd " &
+                                                                                    " WHERE ce.COMPANY_ID = sd.COMPANY_ID")
+                    Cache.Add("CCEU", dtCCEU, Nothing, Now.AddHours(3), System.Web.Caching.Cache.NoSlidingExpiration, CacheItemPriority.Default, Nothing)
+                End If
+                If Not dtCCEU Is Nothing AndAlso dtCCEU.Rows.Count > 0 Then
+                    Dim drs() As DataRow = dtCCEU.Select(String.Format("USERID = '{0}' ", Context.User.Identity.Name), "COMPANY_ID ASC")
+                    If drs.Count > 0 Then
+                        dlChangeCompanyMultiErpId.Visible = True
+                        If Request.IsAuthenticated Then
+                            lblUserInfo.Text = Session("user_id")
+                        End If
+                        dlChangeCompanyMultiErpId.Items.Clear()
+                        Dim items As New List(Of ListItem)
+                        For Each dr In drs
+                            Dim li As New ListItem(String.Format("{0} ({1})", dr.Item(2).ToString(), dr.Item(1).ToString()), dr.Item(1).ToString())
+                            If li.Value.Equals(Session("company_id").ToString(), StringComparison.OrdinalIgnoreCase) Then
+                                li.Selected = True
+                            End If
+                            dlChangeCompanyMultiErpId.Items.Add(li)
+                        Next
+                    End If
+                End If
+                '20150724 TC: show company id switch dropdownlist on home_premier.aspx as well
+                'ICC 2015/7/15 Add Arrow table for arrow's customers to change company ID
+            ElseIf Session("ORG_ID") IsNot Nothing AndAlso Session("ORG_ID").ToString.StartsWith("US", StringComparison.OrdinalIgnoreCase) _
+                AndAlso Session("company_id") IsNot Nothing AndAlso
+                (Request.Url.ToString().ToUpper().IndexOf("HOME_CP") > -1 Or Request.Url.ToString().ToUpper().IndexOf("HOME_PREMIER") > -1) Then
+
+
+                'ICC 2015/7/20 Create new table US_COMPANY_GROUP for US customers to change company ID
+                Dim dtUScomGroup As DataTable = Cache("dtUScomGroup")
+                If dtUScomGroup Is Nothing Then
+                    dtUScomGroup = dbUtil.dbGetDataTable("MY", " SELECT DISTINCT UC.GROUP_ID, UC.COMPANY_ID, SD.COMPANY_NAME " &
+                                                                                    " FROM US_COMPANY_GROUP UC (nolock) " &
+                                                                                    " INNER JOIN SAP_DIMCOMPANY SD (nolock) ON UC.COMPANY_ID = SD.COMPANY_ID ")
+                    Cache.Add("dtUScomGroup", dtUScomGroup, Nothing, Now.AddHours(3), System.Web.Caching.Cache.NoSlidingExpiration, CacheItemPriority.Default, Nothing)
+                End If
+                If Not dtUScomGroup Is Nothing AndAlso dtUScomGroup.Rows.Count > 0 Then
+                    'Get group ID first
+                    Dim drs() As DataRow = dtUScomGroup.Select(String.Format("COMPANY_ID = '{0}' ", Session("company_id").ToString))
+                    If Not drs Is Nothing AndAlso drs.Length > 0 Then
+                        Dim gid As String = drs(0).Item("GROUP_ID").ToString
+                        'Use group ID to get same group company ID
+                        Dim usgroup() As DataRow = dtUScomGroup.Select(String.Format("GROUP_ID = {0}", gid))
+                        If Not usgroup Is Nothing AndAlso usgroup.Length > 0 Then
+                            dlChangeCompanyMultiErpId.Visible = True
+                            dlChangeCompanyMultiErpId.Items.Clear()
+                            If Request.IsAuthenticated Then
+                                lblUserInfo.Text = Session("user_id")
+                            End If
+
+                            For Each dr In usgroup
+                                Dim li As New ListItem(String.Format("{0} ({1})", dr.Item("COMPANY_NAME").ToString, dr.Item("COMPANY_ID").ToString), dr.Item("COMPANY_ID").ToString)
+                                If li.Value.Equals(Session("company_id").ToString(), StringComparison.OrdinalIgnoreCase) Then
+                                    li.Selected = True
+                                End If
+                                dlChangeCompanyMultiErpId.Items.Add(li)
+                            Next
+                        End If
+                    End If
+                End If
+
+            End If
+
+            'Ryan 20160421 If org is KR, change Privacy Policy url.
+            If Session("ORG_ID") IsNot Nothing AndAlso Session("ORG_ID").ToString.StartsWith("KR", StringComparison.OrdinalIgnoreCase) Then
+                PrivacyPolicyLink.HRef = "http://www.advantech.co.kr/about/privacy"
+            End If
+
+            'ICC 2016/8/8 For Arrow's ERP ID, do not show these controls in page.
+            If Session("company_id") IsNot Nothing AndAlso Session("company_id").ToString.Equals("UARROW001", StringComparison.OrdinalIgnoreCase) Then
+                btnSearch.Visible = False
+                PanelSearch.Visible = False
+                dlSearchOption.Visible = False
+                tdSearch.Visible = False
+                ADMIN1_TR.Visible = False
+                ADMIN2_TR.Visible = False
+                tdAdminBuyer.Visible = False
+                tdAdminBuyer1.Visible = False
+                tdeQuotation.Visible = False
+                tdeQuotation1.Visible = False
+                tdHomeProduct.Visible = False
+                tdHomeProduct1.Visible = False
+                tdHomeResource.Visible = False
+                tdHomeResource1.Visible = False
+                tdHomeSupport.Visible = False
+                tdHomeSupport1.Visible = False
+            End If
+        End If
+
+        If LCase(Request.ServerVariables("URL")).Contains("unica_sbu_campaigns") Then
+            table1.Width = "1200" : table2.Width = "1200"
+        End If
+
+    End Sub
+
+    Protected Sub Page_Init(ByVal sender As Object, ByVal e As System.EventArgs)
+
+        If Not Page.IsPostBack Then
+
+
+            If Request.IsAuthenticated AndAlso Session("account_status") Is Nothing Then Session("account_status") = "GA"
+            Dim Domainstr As String = Request.Url.Host.ToLower
+            If InStr(Domainstr, "daqyourway.advantech") > 0 Then
+                Response.Redirect("./DAQ/Default.aspx", False)
+                Exit Sub
+            End If
+            'If InStr(Domainstr, "daqyourway.advantech.eu") > 0 Then
+            '    Response.Redirect("./DAQ/Default.aspx", False)
+            '    Exit Sub
+            'End If
+            If InStr(Domainstr, "1millionadam.advantech.com") > 0 Then
+                Response.Redirect("./MADAM/home.aspx", False)
+                Exit Sub
+            End If
+
+            If Request.IsAuthenticated Then
+                If Session IsNot Nothing AndAlso Session("account_status") IsNot Nothing Then
+                    Me.ace1.ServiceMethod = "GetSearchSuggestionKeys"
+                End If
+                'Andrew 2015/9/4 set Mydashborader link for franchiser
+                Dim users = Util.RecognizeUser(Session("user_id"))
+                If users = UserType.Internal OrElse users = UserType.Franchiser Then
+                    If Session("company_id") IsNot Nothing Then
+                        divCompanyOrgRBUInfo.Visible = True
+                        lbSAPOrgId.Text = Session("org_id").ToString()
+                        If (users = UserType.Internal) Then
+                            ' internal doing
+                            hyCompanyId.Text = Session("company_id").ToString()
+                            hyCompanyId.NavigateUrl = "~/DM/CustomerDashboard.aspx?ERPID=" + Session("company_id")
+                            hyCompanyId.Visible = True
+                        ElseIf (users = UserType.Franchiser) Then
+                            'franchier doing
+                            'hyCompanyId.Text = Session("company_id").ToString()
+                            'hyCompanyId.NavigateUrl = "~/My/MyDashboard.aspx"
+                            'hyCompanyId.Visible = True
+                        End If
+                        If Session("RBU") IsNot Nothing Then
+                            lbRBU.Text = Session("RBU") : lbRBU.Visible = True
+                            Dim strRbu As String = Session("RBU").ToString().ToUpper()
+                            'If strRbu = "AAC" Or strRbu = "AENC" Or strRbu = "ANADMF" Or strRbu = "AASC" Then
+                            '    lbRBU.Text = "ANA"
+                            'End If
+                        End If
+                    Else
+                        divCompanyOrgRBUInfo.Visible = False
+                        'hyCompanyId.Visible = False : lbRBU.Visible = False : lbSAPOrgId.Visible = False
+                    End If
+                End If
+            Else
+
+            End If
+        End If
+    End Sub
+
+    Protected Sub Page_PreRender(ByVal sender As Object, ByVal e As System.EventArgs)
+        'Nada suggestes that do not move ShowMessage() into If Not Page.IsPostBack Then
+        'ShowMessage()
+        If Not Page.IsPostBack Then
+            If Me.Page.Title IsNot Nothing AndAlso Me.Page.Title <> String.Empty AndAlso Me.Page.Title.StartsWith("MyAdvantech") = False Then Me.Page.Title = "MyAdvantech - " + Me.Page.Title
+        End If
+    End Sub
+
+    Public Property UseEbizCss() As Boolean
+        Get
+            Return ebizCss.Visible
+        End Get
+        Set(ByVal value As Boolean)
+            ebizCss.Visible = value
+        End Set
+    End Property
+
+
+    Protected Sub LoginStatus1_LoggingOut(ByVal sender As Object, ByVal e As System.Web.UI.WebControls.LoginCancelEventArgs)
+        Dim httpWebcookie As HttpCookie
+        httpWebcookie = Request.Cookies(".AEULogin")
+        If httpWebcookie IsNot Nothing Then
+            Try
+                httpWebcookie.Domain = Request.Url.Host : httpWebcookie.Expires = DateTime.Now.AddYears(-3) : Response.Cookies.Add(httpWebcookie)
+            Catch ex As Exception
+            End Try
+        End If
+        Session("user_id") = "" : Session.Abandon() : FormsAuthentication.SignOut() : Server.Transfer("~/Logout.aspx")
+    End Sub
+
+    Protected Sub hlCompanyName_Load(ByVal sender As Object, ByVal e As System.EventArgs)
+        CType(sender, HyperLink).Text = Session("COMPANY_NAME")
+        CType(sender, HyperLink).NavigateUrl = "http://datamining.advantech.eu/Datamining/AccountProfile.aspx?ERPID=" + Session("company_id")
+        CType(sender, HyperLink).Target = "_blank"
+    End Sub
+
+    Protected Sub btnCancelOpty_Click(ByVal sender As Object, ByVal e As System.EventArgs)
+        Session("OptyId") = "" : CType(sender, LinkButton).Visible = False
+        CType(LoginView6.FindControl("litOptyId"), Literal).Text = ""
+    End Sub
+
+    Protected Sub hyUserID_Load(ByVal sender As Object, ByVal e As System.EventArgs)
+        If sender Is Nothing Or Session("user_id") Is Nothing Then Exit Sub
+        CType(sender, HyperLink).Text = Session("user_id")
+
+        If Session("User_id").ToString.ToLower = "ming.zhao@advantech.com.cn" Then
+            ' CType(sender, HyperLink).Text = Session("user_id") & " | " & Session("cart_id") & " | " & Session("g_catalog_id") & Session("User_Role") & "|" & Session("company_id")
+        End If
+        CType(sender, HyperLink).Target = "_blank"
+        CType(sender, HyperLink).NavigateUrl = "https://member.advantech.com/profile.aspx" &
+            "?pass=my" &
+            "&id=" & Session("user_id").ToString.Trim.ToLower &
+            "&lang=en" &
+            "&tempid=" & Session("TempId") &
+           "&callbackurl=" & Server.UrlEncode(Server.UrlEncode("http://" & Request.ServerVariables("SERVER_NAME") & "/home.aspx"))
+    End Sub
+
+    Public Event RegionChanged As CommandEventHandler
+
+    Protected Sub btnChgOrg_Click(sender As Object, e As System.EventArgs)
+        If Request.IsAuthenticated AndAlso Session IsNot Nothing AndAlso Session("company_id") IsNot Nothing AndAlso Session("company_id").ToString() <> String.Empty Then
+            Dim companyid As String = Session("company_id")
+            Dim OrgId As String = dlOrg.SelectedValue
+            '特例 - JJ 2014/3/3：ELVE001和EELVEL02為同公司，所以希望可相互查詢
+            '現在改為Region是EU10就帶companyid="EELVEL02"，是TW01就帶companyid = "ELVE001"
+            If companyid = "ELVE001" Or companyid = "EELVEL02" Then
+                'Region是Europe
+                If OrgId = "EU10" Then
+                    companyid = "EELVEL02"
+                End If
+
+                'Region是Taiwan
+                If OrgId = "TW01" Then
+                    companyid = "ELVE001"
+                End If
+            End If
+
+            Dim au As New AuthUtil : au.ChangeCompanyId(companyid, OrgId)
+            'Frank 2012/03/05
+            RaiseEvent RegionChanged(sender, New CommandEventArgs(dlOrg.SelectedValue, dlOrg.SelectedValue))
+        End If
+
+        '重新整理一次，以防有些寫在"Not IsPostBack"裡面的不動作
+        Response.Redirect(Request.Url.ToString)
+
+    End Sub
+
+    Protected Sub dlChangeCompanyMultiErpId_SelectedIndexChanged(sender As Object, e As System.EventArgs)
+        'ICC 2015/7/3 For UsGroup people the org id should be US01, and for original is EU10.
+        Dim org As String = "EU10"
+        'Dim UsGroup As New List(Of String)(New String() {"JAY.LEE@ADVANTECH.COM", "CINDY.CHIU@ADVANTECH.COM", "MARADY.PEK@ADVANTECH.COM", "ANDYC@ADVANTECH.COM"})
+        'If UsGroup.Contains(Context.User.Identity.Name.ToUpper) Then org = "US01"
+        'ICC 2015/7/15 If arrow's customers then change org to US01
+        If Not Session("org_id") Is Nothing AndAlso Session("org_id").ToString.StartsWith("US", StringComparison.OrdinalIgnoreCase) Then
+            org = "US01"
+        ElseIf Not Session("org_id") Is Nothing AndAlso Session("org_id").ToString.StartsWith("TW", StringComparison.OrdinalIgnoreCase) Then
+            org = "TW01"
+        End If
+        Dim au As New AuthUtil
+        au.ChangeCompanyId(dlChangeCompanyMultiErpId.SelectedValue, org)
+        '20150724 TC: redirect back to original requested page instead of always to home_cp.aspx
+        'Response.Redirect("home_cp.aspx")
+        Response.Redirect(Request.Url.ToString())
+    End Sub
+
+    Protected Sub dlChangeCompanyMultiErpId_DataBound(sender As Object, e As System.EventArgs)
+        Dim curCompId As String = Session("company_id")
+        For Each li As ListItem In dlChangeCompanyMultiErpId.Items
+            li.Selected = False
+            If li.Value.Equals(curCompId, StringComparison.OrdinalIgnoreCase) Then
+                li.Selected = True
+                Exit For
+            End If
+        Next
+    End Sub
+</script>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head id="Head1" runat="server">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <link runat="server" id="ebizCss" visible="true" href="ebiz.aeu.style.css"
+        rel="stylesheet" type="text/css" />
+    <link href="global.css" rel="Stylesheet" type="text/css" />
+    <link href="base.css" rel="Stylesheet" type="text/css" />
+    <link href="third.css" rel="Stylesheet" type="text/css" />
+    <style type="text/css">
+        .trEven {
+            background-color: #EBEBEB;
+        }
+
+        #CMSList .sort {
+            cursor: pointer;
+        }
+
+        #CMSList .sortASC {
+            background: no-repeat right center;
+            background-color: #dcdcdc;
+            background-image: url("/Images/sort_2.jpg");
+        }
+
+        #CMSList .sortDESC {
+            background: no-repeat right center;
+            background-color: #dcdcdc;
+            background-image: url("/Images/sort_1.jpg");
+        }
+
+        .divCMSContent.Title {
+            font-weight: bold;
+            font-size: 18px;
+            color: #cc3300;
+        }
+
+        .divCMSContent.Code {
+            border: #8b4513 1px solid;
+            padding-right: 5px;
+            padding-left: 5px;
+            color: #000066;
+            font-family: 'Courier New', Monospace;
+            background-color: #ff9933;
+        }
+
+        .ratingStar {
+            font-size: 0pt;
+            width: 13px;
+            height: 12px;
+            margin: 0px;
+            padding: 0px;
+            cursor: pointer;
+            display: block;
+            background-repeat: no-repeat;
+        }
+
+        .filledRatingStar {
+            background-image: url(../Images/FilledStar.png);
+        }
+
+        .emptyRatingStar {
+            background-image: url(../Images/EmptyStar.png);
+        }
+
+        .savedRatingStar {
+            background-image: url(../Images/SavedStar.png);
+        }
+
+        .box {
+            background: #fff;
+        }
+
+        .boxholder {
+            clear: both;
+            padding: 5px;
+            background: #E5E6F4;
+        }
+
+        .tab {
+            float: left;
+            height: 32px;
+            width: 102px;
+            margin: 0 1px 0 0;
+            text-align: center;
+            background: #E5E6F4;
+        }
+
+        .tabtxt {
+            margin: 0;
+            color: #fff;
+            font-size: 12px;
+            font-weight: bold;
+            padding: 9px 0 0 0;
+        }
+
+        BODY {
+            color: #333333;
+            font-size: 12px;
+            font-family: Arial, Helvetica, sans-serif;
+            line-height: 18px;
+        }
+
+        SELECT {
+            font: 99% arial,helvetica,clean,sans-serif;
+        }
+
+        INPUT {
+            font: 99% arial,helvetica,clean,sans-serif;
+        }
+
+        TEXTAREA {
+            font: 99% arial,helvetica,clean,sans-serif;
+        }
+
+        PRE {
+            font: 100% monospace;
+        }
+
+        CODE {
+            font: 100% monospace;
+        }
+
+        H1 {
+            padding-right: 0px;
+            padding-left: 0px;
+            padding-bottom: 0px;
+            margin: 0px;
+            padding-top: 0px;
+        }
+
+        H2 {
+            padding-right: 0px;
+            padding-left: 0px;
+            padding-bottom: 0px;
+            margin: 0px;
+            padding-top: 0px;
+        }
+
+        H3 {
+            padding-right: 0px;
+            padding-left: 0px;
+            padding-bottom: 0px;
+            margin: 0px;
+            padding-top: 0px;
+        }
+
+        H4 {
+            padding-right: 0px;
+            padding-left: 0px;
+            padding-bottom: 0px;
+            margin: 0px;
+            padding-top: 0px;
+        }
+
+        H5 {
+            padding-right: 0px;
+            padding-left: 0px;
+            padding-bottom: 0px;
+            margin: 0px;
+            padding-top: 0px;
+        }
+
+        H6 {
+            padding-right: 0px;
+            padding-left: 0px;
+            padding-bottom: 0px;
+            margin: 0px;
+            padding-top: 0px;
+        }
+
+        UL {
+            padding-right: 0px;
+            padding-left: 0px;
+            padding-bottom: 0px;
+            margin: 0px;
+            padding-top: 0px;
+        }
+
+        OL {
+            padding-right: 0px;
+            padding-left: 0px;
+            padding-bottom: 0px;
+            margin: 0px;
+            padding-top: 0px;
+        }
+
+        LI {
+            padding-right: 0px;
+            padding-left: 0px;
+            padding-bottom: 0px;
+            margin: 0px;
+            padding-top: 0px;
+        }
+
+        DL {
+            padding-right: 0px;
+            padding-left: 0px;
+            padding-bottom: 0px;
+            margin: 0px;
+            padding-top: 0px;
+        }
+
+        DT {
+            padding-right: 0px;
+            padding-left: 0px;
+            padding-bottom: 0px;
+            margin: 0px;
+            padding-top: 0px;
+        }
+
+        DD {
+            padding-right: 0px;
+            padding-left: 0px;
+            padding-bottom: 0px;
+            margin: 0px;
+            padding-top: 0px;
+        }
+
+        P {
+            padding-right: 0px;
+            padding-left: 0px;
+            padding-bottom: 0px;
+            margin: 0px;
+            padding-top: 0px;
+        }
+
+        FORM {
+            padding-right: 0px;
+            padding-left: 0px;
+            padding-bottom: 0px;
+            margin: 0px;
+            padding-top: 0px;
+        }
+
+        FIELDSET {
+            padding-right: 0px;
+            padding-left: 0px;
+            padding-bottom: 0px;
+            margin: 0px;
+            padding-top: 0px;
+        }
+
+        LEGEND {
+            padding-right: 0px;
+            padding-left: 0px;
+            padding-bottom: 0px;
+            margin: 0px;
+            padding-top: 0px;
+        }
+
+        INPUT {
+            padding-right: 0px;
+            padding-left: 0px;
+            padding-bottom: 0px;
+            margin: 0px;
+            padding-top: 0px;
+        }
+
+        IMG {
+            padding-right: 0px;
+            padding-left: 0px;
+            padding-bottom: 0px;
+            margin: 0px;
+            padding-top: 0px;
+        }
+
+        IMG {
+            border-right: 0px;
+            border-top: 0px;
+            border-left: 0px;
+            border-bottom: 0px;
+        }
+
+        FIELDSET {
+            border-right: 0px;
+            border-top: 0px;
+            border-left: 0px;
+            border-bottom: 0px;
+        }
+
+        LEGEND {
+            font-size: 0px;
+            height: 0px;
+        }
+
+        LABEL {
+            cursor: hand;
+        }
+
+        INPUT {
+            outline: none;
+        }
+
+        CITE {
+            font: 85% verdana;
+        }
+
+        EM {
+            font-style: normal;
+        }
+
+        CITE SPAN {
+            font-weight: bold;
+        }
+
+        A {
+            color: #004181;
+            text-decoration: none;
+        }
+
+            A:link {
+                text-decoration: none;
+            }
+
+            A:visited {
+                text-decoration: none;
+            }
+
+            A:hover {
+                text-decoration: underline;
+            }
+
+        .on A:hover {
+            text-decoration: none;
+        }
+    </style>
+    <link runat="server" id="Style1" rel="stylesheet" href="style-General.css"
+        type="text/css" />
+    <style type="text/css">
+        .ajax__tab_yuitabview-theme .ajax__tab_outer {
+        }
+
+        .ajax__tab_yuitabview-theme .ajax__tab_inner {
+        }
+
+        .ajax__tab_yuitabview-theme .ajax__tab_header {
+            border-bottom: solid 2px #DCDCDC;
+        }
+
+            .ajax__tab_yuitabview-theme .ajax__tab_header .ajax__tab_outer {
+                background: url(../Images/gray_right.gif) no-repeat right;
+            }
+
+            .ajax__tab_yuitabview-theme .ajax__tab_header .ajax__tab_inner {
+                background: url(../Images/gray_left.gif) no-repeat left;
+            }
+
+            .ajax__tab_yuitabview-theme .ajax__tab_header .ajax__tab_tab {
+                margin-right: 0px;
+                background: url(../Images/gray_bg1.gif);
+                width: 208px;
+                padding: 9px 0px 3px 0px;
+                text-align: center;
+                color: #4D6D94;
+                font-size: 12px;
+                display: block;
+                font-weight: bold;
+                font-family: Arial;
+            }
+
+        .ajax__tab_yuitabview-theme .ajax__tab_active .ajax__tab_tab {
+            padding: 6px 0px 3px 0px;
+            background: url(../images/fold_blue_bg1.gif);
+            height: 18px;
+            color: #FFFFFF;
+            font-size: 12px;
+            font-weight: bold;
+            font-family: Arial;
+        }
+
+        .ajax__tab_yuitabview-theme .ajax__tab_active .ajax__tab_outer {
+        }
+
+        .ajax__tab_yuitabview-theme .ajax__tab_body {
+            font-family: verdana,tahoma,helvetica;
+            font-size: 10pt;
+            padding: 0.25em 0.5em;
+            border: solid 1px #DCDCDC;
+            border-top-width: 0px;
+            color: #4D6D94;
+        }
+
+        .ajax__tab_yuitabview-theme-new .ajax__tab_outer {
+        }
+
+        .ajax__tab_yuitabview-theme-new .ajax__tab_inner {
+        }
+
+        .ajax__tab_yuitabview-theme-new .ajax__tab_header {
+            border-bottom: solid 2px #DCDCDC;
+        }
+
+            .ajax__tab_yuitabview-theme-new .ajax__tab_header .ajax__tab_outer {
+                background: url(../Images/gray_right.gif) no-repeat right;
+            }
+
+            .ajax__tab_yuitabview-theme-new .ajax__tab_header .ajax__tab_inner {
+                background: url(../Images/gray_left.gif) no-repeat left;
+            }
+
+            .ajax__tab_yuitabview-theme-new .ajax__tab_header .ajax__tab_tab {
+                margin-right: 0px;
+                background: url(../Images/gray_bg11.gif);
+                width: 145px;
+                padding: 9px 0px 3px 0px;
+                text-align: center;
+                color: #4D6D94;
+                font-size: 12px;
+                display: block;
+                font-weight: bold;
+                font-family: Arial;
+            }
+
+        .ajax__tab_yuitabview-theme-new .ajax__tab_active .ajax__tab_tab {
+            padding: 6px 0px 3px 0px;
+            background: url(../images/fold_blue_bg11.gif);
+            height: 18px;
+            width: 146px;
+            color: #FFFFFF;
+            font-size: 12px;
+            font-weight: bold;
+            font-family: Arial;
+        }
+
+        .ajax__tab_yuitabview-theme-new .ajax__tab_active .ajax__tab_outer {
+        }
+
+        .ajax__tab_yuitabview-theme-new .ajax__tab_body {
+            font-family: verdana,tahoma,helvetica;
+            font-size: 10pt;
+            padding: 0.25em 0.5em;
+            border: solid 1px #DCDCDC;
+            border-top-width: 0px;
+            color: #4D6D94;
+        }
+
+
+
+        .modalBackground {
+            background-color: Gray;
+            filter: alpha(opacity=70);
+            opacity: 0.7;
+        }
+
+        .modalPopup {
+            background-color: #ffffdd;
+            border-width: 3px;
+            border-style: solid;
+            border-color: Gray;
+            padding: 3px;
+            width: 550px;
+        }
+
+        .sampleStyleA {
+            background-color: #FFF;
+        }
+
+        .sampleStyleB {
+            background-color: #FFF;
+            font-family: monospace;
+            font-size: 10pt;
+            font-weight: bold;
+        }
+
+        .sampleStyleC {
+            background-color: #ddffdd;
+            font-family: sans-serif;
+            font-size: 10pt;
+            font-style: italic;
+        }
+
+        .sampleStyleD {
+            background-color: Blue;
+            color: White;
+            font-family: Arial;
+            font-size: 10pt;
+        }
+
+        .autocomplete {
+            background: #E0E0E0;
+            position: absolute;
+            border: solid 1px;
+            overflow-y: scroll;
+            overflow-x: auto;
+            height: 100px;
+            display: none;
+        }
+
+        a.accordionContent:link {
+            color: #ff0000;
+        }
+
+        a.accordionContent:visited {
+            color: #0000ff;
+        }
+
+        a.accordionContent:hover {
+            background: #66ff66;
+        }
+    </style>    
+</head>
+<body onload="goforit()" style="height: 100%; background-color: #FFFFFF; margin-left: 0px; margin-top: 0px;">
+    <form id="form1" runat="server">
+        <ajaxToolkit:ToolkitScriptManager runat="server" ID="tlsm1" AsyncPostBackTimeout="600"
+            EnableScriptGlobalization="true" EnableScriptLocalization="true" EnablePageMethods="true"
+            ScriptMode="Debug">
+        </ajaxToolkit:ToolkitScriptManager>
+        <script type="text/javascript">
+            var prm = Sys.WebForms.PageRequestManager.getInstance();
+            prm.add_beginRequest(beginRequest);
+            function beginRequest() {
+                prm._scrollPosition = null;
+            }
+            function ShowHideLitType() {
+                if (document.getElementById('<%=dlSearchOption.ClientID %>').selectedIndex == 1) {
+                    document.getElementById('<%=LitTypeLabel.ClientID %>').style.display = 'block';
+                }
+                else {
+                    document.getElementById('<%=LitTypeLabel.ClientID %>').style.display = 'none';
+                }
+            }
+            var dayarray = new Array("Sunday", "Monday", "Tuesday", "Wednesday",
+                   "Thursday", "Friday", "Saturday")
+
+            var montharray = new Array("January", "February", "March", "April", "May", "June",
+                   "July", "August", "September", "October", "November", "December")
+
+            function getthedate() {
+                var mydate = new Date()
+                var year = mydate.getYear()
+                if (year < 1000)
+                    year += 1900
+                var day = mydate.getDay()
+                var month = mydate.getMonth()
+                var daym = mydate.getDate()
+                if (daym < 10)
+                    daym = "0" + daym
+                var hours = mydate.getHours()
+                var minutes = mydate.getMinutes()
+                var seconds = mydate.getSeconds()
+                if (minutes <= 9)
+                    minutes = "0" + minutes
+                if (seconds <= 9)
+                    seconds = "0" + seconds
+                //Hire change font size
+
+                var cdate = hours + ":" + minutes + ":" + seconds + " " + daym + " " + montharray[month] + ", " + year;
+                var clock1 = document.getElementById("clock")
+                if (clock1 != null) { clock1.innerHTML = "<font size='1px'>" + cdate + "</font>"; }
+
+            }
+            if (!document.all && !document.getElementById)
+                getthedate()
+            function goforit() {
+                if (document.all || document.getElementById)
+                    setInterval("getthedate()", 1000)
+            }
+        </script>
+        <table width="100%" runat="server" id="tableBase" align="center" border="0" cellpadding="0"
+            cellspacing="0">
+            <tr>
+                <td align="center">
+                    <div>
+                        <table width="900px" runat="server" id="table1" align="center" border="0" cellpadding="0"
+                            cellspacing="0">
+                            <tr>
+                                <td align="center">
+                                    <table width="100%" border="0" cellpadding="0" cellspacing="0">
+                                        <tr valign="top">
+                                            <td valign="bottom" align="left" style="padding-bottom: 5px">
+                                                <asp:HyperLink runat="server" ID="hlHomeLogo" ImageUrl="~/Images/logo2.jpg" NavigateUrl="~/Home.aspx" />
+                                            </td>
+                                            <td valign="bottom" align="left">
+                                                <table width="100%" style="font-family: Arial, Helvetica, sans-serif; font-weight: bold; color: #838181;">
+                                                    <tr valign="top">
+                                                        <td align="right">
+                                                            <asp:Label runat="server" ID="lblUserInfo" />
+                                                            <%--IC 2014/07/28 Add DropDownList for cp to change company id--%>
+                                                            <asp:DropDownList runat="server" ID="dlChangeCompanyMultiErpId" Visible="false" AutoPostBack="true"
+                                                                OnSelectedIndexChanged="dlChangeCompanyMultiErpId_SelectedIndexChanged"
+                                                                OnDataBound="dlChangeCompanyMultiErpId_DataBound">
+                                                            </asp:DropDownList>
+                                                        </td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td id="LoginView6" runat="server" visible="false">
+                                                            <table>
+                                                                <tr align="left" valign="middle">
+                                                                    <th align="left" style="color: Gray">
+                                                                        <asp:Literal runat="server" ID="litOptyId" />
+                                                                    </th>
+                                                                    <td>
+                                                                        <asp:LinkButton ForeColor="Gray" Font-Bold="true" Font-Size="Small" runat="server"
+                                                                            ID="btnCancelOpty" Text="Cancel" Visible="false" OnClick="btnCancelOpty_Click" />
+                                                                    </td>
+                                                                </tr>
+                                                            </table>
+                                                        </td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td valign="bottom">
+                                                            <table width="100%">
+                                                                <tr runat="server" id="trChgOrg" visible="false">
+                                                                    <td colspan="17">
+                                                                        <b>Region:</b>&nbsp;<asp:DropDownList runat="server" ID="dlOrg" />&nbsp;<asp:Button runat="server" ID="btnChgOrg" Text="Change" OnClick="btnChgOrg_Click" />
+                                                                    </td>
+                                                                </tr>
+                                                                <%--ICC 2015/10/26 Set below tr as a server control for home_prier to hide this block.--%>
+                                                                <tr>
+                                                                    <td width="15%" align="center">
+                                                                        <asp:HyperLink runat="server" ID="hyMyHome" Text="Home" NavigateUrl="~/home.aspx" />
+                                                                    </td>
+                                                                    <td width="4%" align="center">
+                                                                        <asp:Image runat="server" ID="Image2_home" ImageUrl="~/Images/fenceline.jpg" alt="" Width="1"
+                                                                            Height="10" />
+                                                                    </td>
+                                                                    <td width="15%" align="center">
+                                                                        <asp:HyperLink runat="server" ID="hyHome" Text="advantech.com" NavigateUrl="http://www.advantech.com" />
+                                                                    </td>
+                                                                    <td width="4%" align="center">
+                                                                        <asp:Image runat="server" ID="Image2" ImageUrl="~/Images/fenceline.jpg" alt="" Width="1"
+                                                                            Height="10" />
+                                                                    </td>
+                                                                    <td width="7%" align="center" id="ADMIN1_TR" visible="false" runat="server">
+                                                                        <asp:HyperLink runat="server" ID="hyAdmin" Text="Admin" NavigateUrl="~/Admin/b2b_admin_portal.aspx" />
+                                                                    </td>
+                                                                    <td width="4%" align="center" id="ADMIN2_TR" visible="false" runat="server">
+                                                                        <asp:Image runat="server" ID="Image6" ImageUrl="~/Images/fenceline.jpg" alt="" Width="1"
+                                                                            Height="10" />
+                                                                    </td>
+                                                                    <td width="7%" align="center" runat="server" id="tdAdminBuyer" visible="false">
+                                                                        <asp:HyperLink runat="server" ID="hyAdminBuyer" Text="Admin" NavigateUrl="~/Admin/Profile_Admin.aspx" />
+                                                                    </td>
+                                                                    <td width="4%" align="center" runat="server" id="tdAdminBuyer1" visible="false">
+                                                                        <asp:Image runat="server" ID="Image16" ImageUrl="~/Images/fenceline.jpg" alt="" Width="1"
+                                                                            Height="10" />
+                                                                    </td>
+                                                                    <td width="7%" align="center" runat="server" id="tdeQuotation" visible="false">
+                                                                        <asp:HyperLink runat="server" ID="hyeQuotation" Text="eQuotation" NavigateUrl="http://eq.advantech.com/Home.aspx" />
+                                                                    </td>
+                                                                    <td width="4%" align="center" runat="server" id="tdeQuotation1" visible="false">
+                                                                        <asp:Image runat="server" ID="Image9" ImageUrl="~/Images/fenceline.jpg" alt="" Width="1"
+                                                                            Height="10" />
+                                                                    </td>
+                                                                    <td width="14%" align="center" runat="server" id="tdHomeProduct">
+                                                                        <asp:HyperLink runat="server" ID="hyProduct" Text="Product" NavigateUrl="~/Product/Product_Line_New.aspx" />
+                                                                    </td>
+                                                                    <td width="4%" align="center" runat="server" id="tdHomeProduct1">
+                                                                        <asp:Image runat="server" ID="Image3" ImageUrl="~/Images/fenceline.jpg" alt="" Width="1"
+                                                                            Height="10" />
+                                                                    </td>
+                                                                    <td width="15%" align="center" runat="server" id="tdHomeResource">
+                                                                        <%--<asp:HyperLink runat="server" ID="hyRec" Text="Resources" NavigateUrl="~/Product/ResourceSearch.aspx" />--%>
+                                                                        <asp:HyperLink runat="server" ID="hyRec" Text="Resources" NavigateUrl="http://support.advantech.com/OnlineResources/index.aspx" Target="_blank" />
+                                                                    </td>
+                                                                    <td width="4%" align="center" runat="server" id="tdHomeResource1">
+                                                                        <asp:Image runat="server" ID="Image4" ImageUrl="~/Images/fenceline.jpg" alt="" Width="1"
+                                                                            Height="10" />
+                                                                    </td>
+                                                                    <td width="10%" align="center" runat="server" id="tdHomeSupport">
+                                                                        <asp:HyperLink runat="server" ID="hySupport" Text="Support" NavigateUrl="http://support.advantech.com.tw/" />
+                                                                    </td>
+                                                                    <td width="4%" align="center" runat="server" id="tdHomeSupport1">
+                                                                        <asp:Image runat="server" ID="Image5" ImageUrl="~/Images/fenceline.jpg" Width="1"
+                                                                            Height="10" />
+                                                                    </td>
+                                                                    <td width="20%" align="center" nowrap="nowrap">
+                                                                        <asp:HyperLink runat="server" ID="hyContactUs" Text="Contact Us" NavigateUrl="http://www.advantech.com/contact/" />
+                                                                    </td>
+                                                                </tr>
+                                                            </table>
+                                                        </td>
+                                                    </tr>
+                                                </table>
+                                            </td>
+                                        </tr>
+                                    </table>
+                                </td>
+                            </tr>
+                        </table>
+                    </div>
+                    <div>
+                        <table style="margin-bottom: 5px;" width="900px" runat="server" align="center" id="table2" class="day" border="0">
+                            <tr>
+                                <td width="2">
+                                    <%-- <asp:Button ID="btn_enter" runat="server" OnClientClick="return false;" 
+                                Height="0px" Width="0px" />--%>
+                                </td>
+                                <td width="510" valign="middle" align="left">
+                                    <table width="100%">
+                                        <tr>
+                                            <td runat="server" id="tdTime" width="200">
+                                                <span class="testh1" id="clock"></span>
+                                            </td>
+                                            <td runat="server" id="tdRole">
+                                                <asp:Label runat="server" ID="lblRole" />
+                                            </td>
+                                            <td>
+                                                <div runat="server" id="divCompanyOrgRBUInfo" visible="false">
+                                                    <asp:HyperLink runat="server" ID="hyCompanyId" Font-Bold="true" />/<asp:Label runat="server" ID="lbSAPOrgId" Font-Bold="true" />/<asp:Label runat="server" ID="lbRBU" Font-Bold="true" />
+                                                </div>
+                                            </td>
+                                            <td>
+                                                <asp:LoginView runat="server" ID="LoginView3">
+                                                    <LoggedInTemplate>
+                                                        <table width="100%">
+                                                            <tr>
+                                                                <td>
+                                                                    <asp:LoginStatus runat="server" ID="LoginStatus1" LogoutImageUrl="~/Images/logout.jpg" OnLoggingOut="LoginStatus1_LoggingOut" />
+                                                                </td>
+                                                                <td>
+                                                                    <asp:HyperLink runat="server" ID="hlMyProfile" NavigateUrl="~/My/MyProfile.aspx" ImageUrl="~/Images/Profile.JPG" /></td>
+                                                            </tr>
+                                                        </table>
+                                                    </LoggedInTemplate>
+                                                </asp:LoginView>
+                                            </td>
+                                        </tr>
+                                    </table>
+                                </td>
+                                <%--ICC 2015/10/26 Set below td as a server control for home_prier to hide this block.--%>
+                                <td width="50" valign="middle" align="left" runat="server" id="tdSearch">
+                                    <span class="testh1">SEARCH</span>
+                                </td>
+                                <td valign="middle" width="100" align="left">
+                                    <asp:DropDownList Height="20" ID="dlSearchOption" runat="server" onchange="ShowHideLitType();">
+                                        <asp:ListItem Value="Product" Selected="True" />
+                                        <asp:ListItem Value="Material" Text="Marketing material & Support" />
+                                        <asp:ListItem Value="Websites" Text="Websites" />
+                                    </asp:DropDownList>
+                                </td>
+                                <td valign="middle" width="80" align="left">
+                                    <asp:Panel runat="server" ID="PanelSearch" DefaultButton="btnSearch">
+                                        <ajaxToolkit:AutoCompleteExtender runat="server" ID="ace1" ServiceMethod="GetPartNo"
+                                            TargetControlID="txtSearchKey" ServicePath="~/Services/AutoComplete.asmx" MinimumPrefixLength="1"
+                                            FirstRowSelected="true" />
+                                        <asp:TextBox autocomplete="off" runat="server" ID="txtSearchKey" />
+                                    </asp:Panel>
+                                </td>
+                                <td align="left" width="30">
+                                    <a runat="server" id="LitTypeLabel" href="javascript:void(0);" style="display: none; background-color: #004576; color: White;">Type</a>
+                                    <obout:Flyout runat="server" ID="FlyoutLitType" OpenEvent="ONCLICK" CloseEvent="ONMOUSEOUT"
+                                        AttachTo="LitTypeLabel" Position="ABSOLUTE" zIndex="999" RelativeLeft="-35" RelativeTop="25">
+                                        <asp:Panel runat="server" ID="LitTypePanel" HorizontalAlign="Left" BackColor="#ebebeb">
+                                            <asp:CheckBoxList runat="server" ID="cblLitSearch" RepeatDirection="Vertical">
+                                                <%--<asp:ListItem Text="Advertisement" Value="Advertisement" />--%>
+                                                <%--<asp:ListItem Text="Banner" Value="Banner" />
+                                            <asp:ListItem Text="Brochure" Value="Brochure" />--%>
+                                                <asp:ListItem Text="Case Study" Value="Case Study" />
+                                                <%--<asp:ListItem Text="Catalogue" Value="Catalogue" />--%>
+                                                <asp:ListItem Text="Certificate Logo" Value="Certificate-" />
+                                                <asp:ListItem Text="Datasheet" Value="Product - Datasheet" />
+                                                <%--<asp:ListItem Text="DM" Value="DM" />--%>
+                                                <%--<asp:ListItem Text="eDM" Value="eDM" />--%>
+                                                <asp:ListItem Text="eDM / eNewsletter" Value="eDM / eNewsletter" />
+                                                <%--<asp:ListItem Text="Event Poster" Value="Event Poster" />
+                                            <asp:ListItem Text="Event Presentation" Value="Event Presentation" />--%>
+                                                <%--<asp:ListItem Text="Marketing Kit" Value="Marketing Kit" />--%>
+                                                <asp:ListItem Text="News" Value="News" />
+                                                <asp:ListItem Text="Photo" Value="Photo" />
+                                                <%--<asp:ListItem Text="Podcast" Value="Podcast" />--%>
+                                                <%--<asp:ListItem Text="Press Release" Value="Press Release" />--%>
+                                                <%--<asp:ListItem Text="Product Roadmap" Value="Product - Roadmap" />--%>
+                                                <asp:ListItem Text="Sales Kit" Value="Product - Sales Kit" />
+                                                <asp:ListItem Text="Video" Value="Video" />
+                                                <asp:ListItem Text="White Papers" Value="White Papers" />
+                                                <%--<asp:ListItem Text="Webcast" Value="Webcast" />--%>
+                                                <asp:ListItem Text="eCatalog" Value="eCatalog" />
+                                                <%--<asp:ListItem Text="Presentation (For CP Only)" Value="Presentation (For CP Only)" />--%>
+                                                <asp:ListItem Text="Poster" Value="Poster" />
+                                                <asp:ListItem Text="presentation slide" Value="presentation slide" />
+                                                <%--<asp:ListItem Text="Image" Value="Image" />--%>
+                                            </asp:CheckBoxList>
+                                        </asp:Panel>
+                                    </obout:Flyout>
+                                </td>
+                                <td width="15" valign="middle" align="left">
+                                    <asp:ImageButton CausesValidation="false" runat="server" ID="btnSearch" ImageUrl="~/images/go_btn.jpg"
+                                        Width="34" Height="16" AlternateText="Search" OnClick="ImageButton_Click" />
+                                </td>
+                                <td height="5" valign="middle" align="left"></td>
+                            </tr>
+                        </table>
+                    </div>
+                    <table runat="server" align="center" id="table3" width="900px" border="0" cellpadding="0"
+                        cellspacing="0">
+                        <tr>
+                            <td height="5"></td>
+                        </tr>
+                        <tr>
+                            <td align="left">
+                                <asp:ContentPlaceHolder ID="_main" runat="server" />
+                            </td>
+                        </tr>
+                        <tr>
+                            <td height="5"></td>
+                        </tr>
+                    </table>
+                    <div class="footer">
+                        <table width="890" border="0" cellpadding="0" cellspacing="0">
+                            <tr>
+                                <td>
+                                    <%--<asp:Image runat="server" ID="Image8" ImageUrl="~/Images/footer.jpg" Width="890"
+                                    Height="32" />--%>
+                                    <table width="890">
+                                        <tr>
+                                            <td align="left">Copyright © 1983-<%=Now.Year%> Advantech Co., Ltd. All Rights Reserved</td>
+                                            <td align="right" width="10">
+                                                <asp:Image ID="Image1" runat="server" ImageUrl="~/Images/arrow_black2.jpg" />
+                                            </td>
+                                            <td width="120"><a href="http://www.advantech.com.tw/rss/" style="color: Black" target="_blank">RSS & Subscription</a></td>
+                                            <td align="right" width="10">
+                                                <asp:Image ID="Image7" runat="server" ImageUrl="~/Images/arrow_black2.jpg" />
+                                            </td>
+                                            <td width="50"><a href="http://www.advantech.com.tw/sitemap/" style="color: Black" target="_blank">Site Map</a></td>
+                                            <td align="right" width="10">
+                                                <asp:Image ID="Image8" runat="server" ImageUrl="~/Images/arrow_black2.jpg" />
+                                            </td>
+                                            <td width="75"><a id="PrivacyPolicyLink" runat="server" href="http://www.advantech.com.tw/about/privacy.aspx" style="color: Black" target="_blank">Privacy Policy</a></td>
+                                        </tr>
+                                    </table>
+                                </td>
+                            </tr>
+                        </table>
+                    </div>
+                </td>
+            </tr>
+        </table>
+        <asp:UpdateProgress DynamicLayout="false" ID="UpdateProgress2" runat="server">
+            <ProgressTemplate>
+                <div class="Progress">
+                    <asp:Image runat="server" ID="imgMasterLoad" ImageUrl="~/Images/LoadingRed.gif" />
+                    <b>Loading ...</b>
+                </div>
+            </ProgressTemplate>
+        </asp:UpdateProgress>
+        <ajaxToolkit:AlwaysVisibleControlExtender ID="AlwaysVisibleControlExtender1" runat="server"
+            TargetControlID="UpdateProgress2" HorizontalSide="Center" VerticalSide="Top"
+            HorizontalOffset="0" />
+        <asp:ContentPlaceHolder ID="cph1" runat="server" />
+        <ajaxToolkit:AlwaysVisibleControlExtender ID="AlwaysVisibleControlExtenderError"
+            runat="server" TargetControlID="ErroPL" VerticalSide="top" HorizontalSide="center"
+            VerticalOffset="0" HorizontalOffset="0" ScrollEffectDuration="1">
+        </ajaxToolkit:AlwaysVisibleControlExtender>
+        <asp:Panel ID="ErroPL" runat="server">
+            <asp:Label ID="lbErroMessage" runat="server" ForeColor="#ff0000" Font-Size="X-Large"
+                BackColor="#eeeeee"></asp:Label>
+        </asp:Panel>
+    </form>
+</body>
+</html>

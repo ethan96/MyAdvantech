@@ -1,0 +1,30 @@
+﻿<%@ Page Language="VB" %>
+
+<!DOCTYPE html>
+
+<script runat="server">
+
+</script>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head runat="server">
+    <title></title>
+</head>
+<body>
+    <form id="form1" runat="server">
+    <table width="1256" border="1" align="center">
+  <tr>
+    <td>
+    
+     <object classid="clsid:D27CDB6E-AE6D-11cf-96B8-444553540000" codebase="http://download.macromedia.com/pub/shockwave/cabs/flash/swflash.cab#version=7,0,19,0" width="1256" height="748">
+  <param name="movie" value="Cart2Quote.swf" />
+  <param name="quality" value="high" />
+  <embed src="Cart2Quote.swf" quality="high" pluginspage="http://www.macromedia.com/go/getflashplayer" type="application/x-shockwave-flash" width="1256" height="748"></embed>
+</object>
+    </td>
+  </tr>
+</table>
+
+    </form>
+</body>
+</html>

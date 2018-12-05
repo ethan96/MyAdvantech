@@ -1,0 +1,132 @@
+﻿<%@ Page Title="Data Mining - AOnline Order Basket Analysis" Language="VB" MasterPageFile="~/Includes/MyMaster.master" %>
+
+<script runat="server">
+
+    Class ModelIntProd
+        Public Property id As String : Public Property name As String
+        Public Sub New(ByVal k As String, ByVal v As String)
+            Me.id = k : Me.name = v
+        End Sub
+    End Class
+    
+    Protected Sub Page_Load(sender As Object, e As System.EventArgs)
+        If Request("q") IsNot Nothing Then
+            Dim txtKey As String = Trim(Request("q")), modelIntProds As New List(Of ModelIntProd)
+            Dim dt As DataTable = dbUtil.dbGetDataTable("MY", _
+                                  " select distinct top 10 model_no " + _
+                                  " from SAP_PRODUCT " + _
+                                  " where MATERIAL_GROUP in ('PRODUCT','CTOS') and MODEL_NO<>'' and MODEL_NO like '%" + Replace(txtKey, "'", "''") + "%' " + _
+                                  " order by MODEL_NO ")
+            For Each r As DataRow In dt.Rows
+                modelIntProds.Add(New ModelIntProd(r.Item("model_no"), r.Item("model_no")))
+            Next
+            'Dim strOwners() As String = CRMDAL.SearchSiebelOwnerEmail(txtKey, 10)
+            'If strOwners IsNot Nothing AndAlso strOwners.Length > 0 Then
+            '    For Each strOwner As String In strOwners
+            '        mails.Add(New CRMDAL.MailObject(strOwner, strOwner))
+            '    Next
+            'End If
+            Dim jsr As New Script.Serialization.JavaScriptSerializer, retJson As String = jsr.Serialize(modelIntProds)
+            If Request("callback") IsNot Nothing Then
+                retJson = Request("callback") + "(" + retJson + ")"
+            End If
+            Response.Clear() : Response.Write(retJson) : Response.End()
+        End If
+    End Sub
+
+    Protected Sub btnQuery_Click(sender As Object, e As System.EventArgs)
+        'Response.Write(txtModelIntProd.Text
+        If String.IsNullOrEmpty(Trim(txtModelIntProd.Text)) Then
+            Exit Sub
+        End If
+        
+        Dim InputModels() As String = Split(Trim(txtModelIntProd.Text), ";")
+        For i As Integer = 0 To InputModels.Length - 1
+            InputModels(i) = " SELECT '" + InputModels(i) + "' AS [MODEL NO] "
+        Next
+        
+        Dim strConn As String = "Data Source=aclecampaign\MATEST; Initial Catalog=AOnline_DataMining; Provider=MSOLAP;User Id=b2bsa;Password=@dvantech!;"
+        Dim strDMX As String = _
+            " SELECT FLATTENED " + _
+            "   PredictAssociation([AssoOrderModel].[ORDER DETAIL],INCLUDE_STATISTICS, 10) " + _
+            " From " + _
+            "   [AssoOrderModel] " + _
+            " NATURAL PREDICTION JOIN " + _
+            " (SELECT (" + String.Join(" UNION", InputModels.ToArray()) + ") AS [ORDER DETAIL]) AS t "
+        
+        Dim conn As New Microsoft.AnalysisServices.AdomdClient.AdomdConnection(strConn)
+        conn.Open()
+        Dim cmd As New Microsoft.AnalysisServices.AdomdClient.AdomdCommand(strDMX, conn)
+        Dim apt As New Microsoft.AnalysisServices.AdomdClient.AdomdDataAdapter(cmd)
+        Dim dt As New DataTable
+        apt.Fill(dt)
+        dt.Columns("Expression.$PROBABILITY").ColumnName = "PROBABILITY"
+        For Each r As DataRow In dt.Rows
+            If CDbl(r.Item("PROBABILITY")) < 0.1 Then
+                r.Delete()
+            End If
+        Next
+        gvDMResult.DataSource = dt.DefaultView().ToTable() : gvDMResult.DataBind()
+        conn.Close()
+    End Sub
+</script>
+<asp:Content ID="Content1" ContentPlaceHolderID="_main" runat="Server">
+    <script type="text/javascript" src="../../Includes/js/jquery-latest.min.js"></script>
+    <script type="text/javascript" src="../../Includes/js/jquery-ui.js"></script>
+    <link rel="stylesheet" href="../../Includes/js/jquery-ui.css" />
+    <link rel="stylesheet" href="../../Includes/js/token-input-facebook.css" type="text/css" />
+    <script type="text/javascript" src="../../Includes/js/json2.js"></script>
+    <script type="text/javascript" src="../../Includes/js/jquery.tokeninput.js"></script>
+    <script type="text/javascript">
+        $(document).ready(
+            function () {
+                $("#<%=txtModelIntProd.ClientId %>").tokenInput("<%=IO.Path.GetFileName(Request.PhysicalPath) %>", {
+                    theme: "facebook", searchDelay: 100, minChars: 2, tokenDelimiter: ";", hintText: "Type Model Name...", preventDuplicates: true, resizeInput: false
+                }).css({ "width": "600px" });
+            }
+        );
+    </script>
+    <table width="100%">
+        <tr>
+            <td>
+                <asp:Panel runat="server" ID="PanelQuery" DefaultButton="btnQuery">
+                    <table width="100%">
+                        <tr>                           
+                            <td>
+                                <b>Models:</b>
+                                <asp:TextBox runat="server" ID="txtModelIntProd" Width="600px" />
+                            </td>                            
+                        </tr>
+                        <tr>
+                            <td>
+                                <asp:Button runat="server" ID="btnQuery" Text="Analyze" OnClick="btnQuery_Click" />
+                            </td>
+                        </tr>
+                    </table>
+                </asp:Panel>
+            </td>
+        </tr>
+        <tr>
+            <td colspan="1">
+                <asp:UpdatePanel runat="server" ID="up1" UpdateMode="Conditional">
+                    <ContentTemplate>
+                        <asp:GridView runat="server" ID="gvDMResult" Width="100%" AutoGenerateColumns="false">
+                            <Columns>
+                                <asp:BoundField HeaderText="Model No." DataField="Expression.MODEL NO" />
+                                <asp:BoundField HeaderText="# of Support" DataField="Expression.$SUPPORT" ItemStyle-HorizontalAlign="Center" />
+                                <asp:TemplateField HeaderText="Probability" ItemStyle-HorizontalAlign="Center">
+                                    <ItemTemplate>
+                                        <%#FormatNumber(Eval("PROBABILITY") * 100, 2) + "%"%>
+                                    </ItemTemplate>
+                                </asp:TemplateField>
+                            </Columns>
+                        </asp:GridView>
+                    </ContentTemplate>
+                    <Triggers>
+                        <asp:AsyncPostBackTrigger ControlID="btnQuery" EventName="Click" />
+                    </Triggers>
+                </asp:UpdatePanel>
+            </td>
+        </tr>
+    </table>
+</asp:Content>
